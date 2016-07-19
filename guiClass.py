@@ -23,7 +23,6 @@ import numpy as np
 import gc
 import os
 import sys
-import copy
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
@@ -35,7 +34,7 @@ from availableDataClass import AvailableData
 from dataPlotterClass import DataPlotter
 from fieldToPlotClass import FieldToPlot
 from colorMapsCollectionClass import ColorMapsCollection
-from plotFieldWidgetClass import PlotFieldWidget
+from plotFieldItem import PlotFieldItem
 import unitConverters
 
 #from navigationToolbar2Class import NavigationToolbar2QT as NavigationToolbar
@@ -57,22 +56,16 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.unitConverter = unitConverters.OsirisUnitConverter()
         self.availableData = AvailableData()
-        self.dataPlotter = DataPlotter()
         self.colorMapsCollection = ColorMapsCollection()
+        self.dataPlotter = DataPlotter(self.colorMapsCollection)
         self.InitialUIValues()
         self.RegisterUIEvents()
-        self.fieldOnPlot = ""
         self.fieldsToPlot = list()
         self.currentAxesFieldsToPlot = list()
         self.SetListOfPlotPositions()
         self.CreateCanvasAndFigure()
-        
-     
-    def StartProgressBar(self):
-        self.loading_ProgressBar.setMaximum(0)
-        
-    def StopProgressBar(self):
-        self.loading_ProgressBar.setMaximum(10)
+        self.increaseRowsColumnsCounter = 0
+
         
     def CreateCanvasAndFigure(self):
         self.figure = Figure()
@@ -94,8 +87,8 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.browse_Button.clicked.connect(self.OpenFolderDialog)
         self.folderLocation_lineEdit.textChanged.connect(self.folderLocationlineEdit_TextChanged)
         self.loadData_Button.clicked.connect(self.loadDataButton_clicked)
-        self.selectDomainField_Button.clicked.connect(self.SelectDomainFieldButton_Clicked)
-        self.selectSpeciesField_Button.clicked.connect(self.SelectSpeciesFieldButton_Clicked)
+        self.addDomainField_Button.clicked.connect(self.addDomainFieldButton_Clicked)
+        self.addSpeciesField_Button.clicked.connect(self.addSpeciesFieldButton_Clicked)
         self.av2DDomainFields_comboBox.currentIndexChanged.connect(self.SetSelectedDomainField)
         self.avSpeciesFields_comboBox.currentIndexChanged.connect(self.SetSelectedSpeciesField)
         self.timeStep_Slider.sliderReleased.connect(self.PlotFields)
@@ -134,8 +127,8 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
     def setNormalizationButton_Clicked(self):
         n_p = float(self.plasmaDensity_lineEdit.text())
         self.unitConverter.setPlasmaDensity(n_p)
-        for widget in self.fieldsToPlot_listWidget.children()[0].children():
-            widget.LoadUnitsOptions()
+#        for widget in self.fieldsToPlot_listWidget.children()[0].children():
+#            widget.LoadUnitsOptions()
     
     
     def normalizedUnitsCheckBox_StatusChanged(self):
@@ -292,48 +285,31 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
     def PlotButton_Clicked(self):
         self.timeStep_Slider.setMaximum(self.availableData.GetNumberOfTimeSteps()-1)
         
-        plotPosition = int(self.plotPosition_comboBox.currentText())
-        for fld in self.currentAxesFieldsToPlot:
-            fld.SetPlotPosition(plotPosition)
-            
-        self.AddFieldToPlotOnPosition(plotPosition, copy.copy(self.currentAxesFieldsToPlot))
-        self.RemoveExcessFields()
         self.PlotFields()
         
-    def SelectDomainFieldButton_Clicked(self):
-        self.SetCurrentAxesFieldsToPlot(self.availableData.GetSelectedDomainField())
+    def addDomainFieldButton_Clicked(self):
+        self.addFieldsToPlot(self.availableData.GetSelectedDomainField())
 	
-    def SelectSpeciesFieldButton_Clicked(self):
+    def addSpeciesFieldButton_Clicked(self):
         self.availableData.SetSelectedSpeciesFields()
-        self.SetCurrentAxesFieldsToPlot(self.availableData.GetSelectedSpeciesFields())
+        self.addFieldsToPlot(self.availableData.GetSelectedSpeciesFields())
         
-    def SetCurrentAxesFieldsToPlot(self, field):
-        self.fieldsToPlot_listWidget.clear()
-        self.currentAxesFieldsToPlot.clear()
-        if isinstance(field, list):
-            fldList = list()
-            i=0
-            for fld in field:
-                fieldToPlot = FieldToPlot(fld, self.unitConverter)
-                fldList.append(fieldToPlot)
-                
-                wid = PlotFieldWidget(fieldToPlot, self.colorMapsCollection, len(field)>1)
-                wid2 = QtGui.QListWidgetItem()
-                wid2.setSizeHint(QtCore.QSize(100, 189))
-                self.fieldsToPlot_listWidget.addItem(wid2)
-                self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
+    def addFieldsToPlot(self, fields):
+        fldList = list()
+        for fld in fields:
+            fieldToPlot = FieldToPlot(fld, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
+            fieldToPlot.SetPlotPosition(len(self.fieldsToPlot)+1)
+            fldList.append(fieldToPlot)
+        
+        self.fieldsToPlot.append(fldList)
+        self.setAutoColumnsAndRows()
             
-                i+=1
-            self.currentAxesFieldsToPlot = fldList    
-        else:
-            fieldToPlot = FieldToPlot(field, self.unitConverter)#, self.colorMapsCollection)
-            
-            wid = PlotFieldWidget(fieldToPlot, self.colorMapsCollection, False)
-            wid2 = QtGui.QListWidgetItem()
-            wid2.setSizeHint(QtCore.QSize(100, 189))
-            self.fieldsToPlot_listWidget.addItem(wid2)
-            self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
-            self.currentAxesFieldsToPlot.append(fieldToPlot)
+        wid = PlotFieldItem(fldList, self)
+        wid2 = QtGui.QListWidgetItem()
+        wid2.setSizeHint(QtCore.QSize(100, 40))
+        self.fieldsToPlot_listWidget.addItem(wid2)
+        self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
+        
         
     def AddFieldToPlotOnPosition(self, fieldPosition, fieldToPlot):
         cnt = len(self.fieldsToPlot)
@@ -352,7 +328,28 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         while len(self.fieldsToPlot) > rows*columns:
             self.fieldsToPlot.remove(self.fieldsToPlot[-1])
             
-            
+    def setAutoColumnsAndRows(self):
+        rows = self.rows_spinBox.value()
+        columns = self.columns_spinBox.value()
+        if rows*columns < len(self.fieldsToPlot):
+            if self.increaseRowsColumnsCounter % 2 == 0:
+                self.increaseRows()
+            else:
+                self.increaseColumns()
+            self.increaseRowsColumnsCounter += 1
+                
+    def increaseColumns(self):
+        self.columns_spinBox.stepUp()
+        
+    def increaseRows(self):
+        self.rows_spinBox.stepUp()
+        
+    def decreaseColumns(self):
+        self.columns_spinBox.stepDown()
+        
+    def decreaseRows(self):
+        self.rows_spinBox.stepDown()
+        
     def PlotFields(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
@@ -382,6 +379,27 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
             self.dataPlotter.UpdateFigure(self.figure)
             self.canvas.draw()
             gc.collect()
-#        
+            
+    def RemoveSubplot(self, item):
+        
+        index = self.fieldsToPlot.index(item.fieldsToPlot)
+        self.fieldsToPlot.remove(item.fieldsToPlot)
+        self.fieldsToPlot_listWidget.takeItem(index)
+        for fieldGroup in self.fieldsToPlot:
+            for field in fieldGroup:
+                if field.GetPosition() > index+1:
+                    field.SetPlotPosition(field.GetPosition()-1)
+        
+        rows = self.rows_spinBox.value()
+        columns = self.columns_spinBox.value()  
+        if len(self.fieldsToPlot) > 0:
+            if self.increaseRowsColumnsCounter % 2 == 0:        
+                if len(self.fieldsToPlot) <= rows*(columns-1):
+                    self.decreaseColumns()
+                    self.increaseRowsColumnsCounter -= 1
+            else:
+                if len(self.fieldsToPlot) <= (rows-1)*columns:
+                    self.decreaseRows()
+                    self.increaseRowsColumnsCounter -= 1
 #        
 #        

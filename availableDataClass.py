@@ -175,16 +175,16 @@ class AvailableData:
                 self.numberOfTimeSteps = self.selectedDomainField.GetTotalTimeSteps()
     
     def GetSelectedDomainField(self):
-        return self.selectedDomainField;
+        # return a list to keep consistency with GetSelectedSpeciesFields()
+        fldList = list()
+        fldList.append(self.selectedDomainField)
+        return fldList;
             
     def GetSelectedDomainFieldName(self):
         return self.selectedDomainField.GetName();
 		
     def GetSelectedSpeciesFields(self):
-        if len(self.selectedSpeciesFields) == 1:
-            return self.selectedSpeciesFields[0]
-        else:
-            return self.selectedSpeciesFields
+        return self.selectedSpeciesFields
     
     def SetDataFolderLocation(self, folderLocation):
         
@@ -286,12 +286,3 @@ class AvailableData:
                 file_content = h5py.File(file_path, 'r')
                 for fieldName in list(file_content):
                     self.AddFieldToRawSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, True, fieldName))
-        
-
-# TESTING                    
-#availableData = AvailableData()
-#folderLocation = "O:/data/fhgfs/fla/plasma/ferran/repr_julias_plots/corrected_input_file/08_PW/05_10-15/MS"
-#availableData.LoadFolderData(folderLocation)
-#availableData.GetAvailableDomainFields()[0].GetName()
-#availableData.GetAvailableSpecies()[0].GetAvailableFieldNamesList()
-#availableData.GetAvailableDomainFields()[2].GetPlotData(30)

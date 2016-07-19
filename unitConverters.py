@@ -44,7 +44,7 @@ class OsirisUnitConverter:
         speciesName = field.GetSpeciesName()
         if self.useNormUnits:
             if speciesName == "":
-                if ("e1" or "e2" or "e3") in fieldName:
+                if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
                     return ["Norm", "V/m", "GV/m"]
                 else:
                     return ["Norm"]
@@ -57,7 +57,7 @@ class OsirisUnitConverter:
             
     def getFieldInUnits(self, fieldName, fieldData, units):
         
-        if ("e1" or "e2" or "e3") in fieldName:
+        if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
             if units == "Norm":
                 pass
             elif units == "V/m":
