@@ -79,7 +79,7 @@ class ColorMapsCollection:
         gray_cmap = matplotlib.cm.get_cmap('gray')
         #gray_cmap._init()
         
-        base_gray = CustomColorMap("Base grey", gray_cmap)
+        base_gray = CustomColorMap("Base gray", gray_cmap)
         self.TransparentColorMapList.append(base_gray)
         
         afmhot_cmap = matplotlib.cm.get_cmap('afmhot')

@@ -27,10 +27,11 @@ import random
 
 class DataPlotter:
     
-    def __init__(self):
+    def __init__(self, colorMapsCollection):
         
         self.testprop = 0
         self.currentAxesNumber = 1
+        self.colorMapsCollection = colorMapsCollection
         
     def MakePlot(self, figure, fieldsToPlot, rows, columns, timeStep):
 
@@ -60,7 +61,7 @@ class DataPlotter:
                     
                     plotData = field.GetFieldPlotData(timeStep)
                     units = plotData[2]
-                    field_cmap = field.GetColorMap()
+                    field_cmap = self.colorMapsCollection.GetColorMap(field.GetColorMap())
                     if field.IsScaleCustom():
                         scale = field.GetScale()
                         im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap, vmin=scale[0], vmax = scale[1])
