@@ -77,8 +77,10 @@ class ColorMapsCollection:
     def CreateTransparentColorMapList(self):
         self.TransparentColorMapList = list()
         gray_cmap = matplotlib.cm.get_cmap('gray')
-        #gray_cmap._init()
-        
+        gray_cmap._init()
+        alphas = np.abs(np.linspace(1.0, 0, gray_cmap.N))
+        gray_cmap._lut[:-3,-1] = alphas
+
         base_gray = CustomColorMap("Base gray", gray_cmap)
         self.TransparentColorMapList.append(base_gray)
         

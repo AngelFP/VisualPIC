@@ -19,6 +19,7 @@
 
 from speciesClass import Species
 from fieldClass import Field
+from rawDataSet import RawDataSet
 import os
 import h5py
 
@@ -26,7 +27,7 @@ class AvailableData:
     
     def __init__(self):
         
-        # species fields
+        # species (may vontain fields and raw data)
         self.availableSpecies = list()
         self.selectedSpecies = list()
         self.selectedSpeciesFieldName = None
@@ -37,11 +38,6 @@ class AvailableData:
         self.customDomainFields = list()
         self.selectedDomainField = None
         self.selectedField = None
-        
-        # raw fields
-        self.availableRawSpecies = list()
-        #self.selectedRawSpecies = list()
-        #self.selectedSpeciesRawFields = list()
 
         self.numberOfTimeSteps = 0
         self.dataLocation = ""
@@ -56,16 +52,6 @@ class AvailableData:
             if addSpecies:
                 self.availableSpecies.append(species)
                 
-    def AddRawSpecies(self, species):
-        
-        if isinstance(species, Species):
-            addSpecies = True
-            for avSpecies in self.availableRawSpecies:
-                if avSpecies.GetName() == species.GetName():
-                    addSpecies =  False
-            if addSpecies:
-                self.availableRawSpecies.append(species)
-            
     def AddSelectedSpecies(self, speciesName):
         
         for species in self.availableSpecies:
@@ -84,11 +70,11 @@ class AvailableData:
             if species.GetName() == speciesName:
                 species.AddAvailableField(field)
                 
-    def AddFieldToRawSpecies(self, speciesName, field):
+    def AddRawDataToSpecies(self, speciesName, dataSet):
         
-        for species in self.availableRawSpecies:
+        for species in self.availableSpecies:
             if species.GetName() == speciesName:
-                species.AddAvailableField(field)
+                species.AddRawDataSet(dataSet)
 
     def SetSelectedSpecies(self, speciesList):
         if speciesList is list:
@@ -117,9 +103,14 @@ class AvailableData:
 
         return self.availableSpecies
         
-    def GetAvailableRawSpecies(self):
+    def GetSpeciesWithRawData(self):
 
-        return self.availableRawSpecies
+        speciesList = list()
+        for species in self.availableSpecies:
+            if species.HasRawData():
+                speciesList.append(species)
+                
+        return speciesList
         
     def GetAvailableSpeciesNames(self):
 
@@ -272,17 +263,17 @@ class AvailableData:
             
             elif folder ==  keyFolderNames[3]:
                 subDir = self.dataLocation + "/" + folder
-                self.LoadRawFields(subDir)
+                self.LoadRawData(subDir)
                         
-    def LoadRawFields(self, subDir):
+    def LoadRawData(self, subDir):
         speciesNames = os.listdir(subDir)
         for species in speciesNames:
             if os.path.isdir(os.path.join(subDir, species)):
-                self.AddRawSpecies(Species(species))
-                fieldLocation = subDir + "/" + species
-                totalTimeSteps = len(os.listdir(fieldLocation))
+                self.AddSpecies(Species(species))
+                dataSetLocation = subDir + "/" + species
+                totalTimeSteps = len(os.listdir(dataSetLocation))
                 
-                file_path = fieldLocation + "/" + "RAW-" + species + "-000000.h5"
+                file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                 file_content = h5py.File(file_path, 'r')
-                for fieldName in list(file_content):
-                    self.AddFieldToRawSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, True, fieldName))
+                for dataSetName in list(file_content):
+                    self.AddRawDataToSpecies(species, RawDataSet(dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))

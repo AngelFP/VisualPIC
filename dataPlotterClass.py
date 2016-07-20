@@ -32,32 +32,37 @@ class DataPlotter:
         self.testprop = 0
         self.currentAxesNumber = 1
         self.colorMapsCollection = colorMapsCollection
+        self.cbSpacing = 0.01 # vertical space between color bars
+        self.LoadPlotTypes()
+     
+    def LoadPlotTypes(self):
         
+        self.plotTypes = {
+            "Field":self.MakeFieldPlot,
+            "Raw":self.MakeRawDataPlot
+            }
+            
     def MakePlot(self, figure, fieldsToPlot, rows, columns, timeStep):
-
-        #if rows*columns != self.currentAxesNumber:
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
             
-        my_cmap = matplotlib.cm.get_cmap('gray')
-        my_cmap._init()
-        
-        alphas = np.abs(np.linspace(1.0, 0, my_cmap.N))
-        my_cmap._lut[:-3,-1] = alphas
         
         figure.subplots_adjust(hspace=.3, top=.93, bottom=.09, right = .93, left = .09)
         
-        cbSpacing = 0.01 # vertical space between color bars
         
-        for fieldToPlot in fieldsToPlot:
-            if fieldToPlot != None:
-#                if len(fieldToPlot)>=1:
-                numFields = len(fieldToPlot)
-                ax = figure.add_subplot(rows,columns,fieldToPlot[0].GetPosition())
+        
+        for fieldToPlotList in fieldsToPlot:
+            self.plotTypes[fieldToPlotList[0].GetDataType()](figure, fieldToPlotList, rows, columns, timeStep)
+                    
+    def MakeFieldPlot(self, figure, fieldToPlotList, rows, columns, timeStep):
+
+            if fieldToPlotList != None:
+                numFields = len(fieldToPlotList)
+                ax = figure.add_subplot(rows,columns,fieldToPlotList[0].GetPosition())
                 ax.hold(False)
                 i = 0
-                for field in fieldToPlot:
+                for field in fieldToPlotList:
                     
                     plotData = field.GetFieldPlotData(timeStep)
                     units = plotData[2]
@@ -76,18 +81,11 @@ class DataPlotter:
                         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
                         ax.set_position(pos2)
                     ax.hold(True)
-#                        if i == 0:
-#                            cbar = figure.colorbar(im, cmap=field_cmap, label="$"+units[2][2:-1].replace("\\\\","\\")+"$")
-#                            cbax = cbar.ax
-#                            cbarpos = cbax.get_position()
-#                            cbax.set_position([cbarpos.x0, cbarpos.y0 + i*cbarpos.height/numFields, cbarpos.width, cbarpos.height/numFields])
-#                        else:
-                    #cbaxes = figure.add_axes([cbarpos.x0, cbarpos.y0 + i*cbarpos.height/numFields, 0.03, cbarpos.height/numFields]) 
-                    #cbar = figure.colorbar(im, cax = cbaxes, cmap=field_cmap, label="$"+units[2][2:-1].replace("\\\\","\\")+"$")
+                    
                     cbWidth = 0.015
-                    cbHeight = (pos2[3]-(numFields-1)*cbSpacing)/numFields
+                    cbHeight = (pos2[3]-(numFields-1)*self.cbSpacing)/numFields
                     cbX = pos2[0] + pos2[2] + 0.02
-                    cbY = pos2[1] + i*(cbHeight + cbSpacing)
+                    cbY = pos2[1] + i*(cbHeight + self.cbSpacing)
                     
                     cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
                     cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
@@ -95,23 +93,12 @@ class DataPlotter:
                     cbar.set_label(label="$"+units[2]+"$",size=20)
                     i += 1
                     
-#                else:
-#                    plotData = fieldToPlot[0].GetFieldPlotData(timeStep)
-#                    units = plotData[2]
-#                    ax = figure.add_subplot(rows,columns,fieldToPlot[0].GetPosition())
-#                    ax.hold(False)
-#                    field_cmap = fieldToPlot[0].GetColorMap()
-#                    if fieldToPlot[0].IsScaleCustom():
-#                        scale = fieldToPlot[0].GetScale()
-#                        im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap, vmin=scale[0], vmax = scale[1])
-#                    else:
-#                        im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap)
-#                    ax.set_xlabel("$"+units[0]+"$", fontsize=20)
-#                    ax.set_ylabel("$"+units[1]+"$", fontsize=20)
-#                    ax.set_title(fieldToPlot[0].GetName())
-#                    cbar = figure.colorbar(im, cmap=field_cmap, label="$"+units[2]+"$")     
-        #figure.tight_layout()
-        
+    def MakeRawDataPlot(self, figure, dataSetList, rows, columns, timeStep):    
+        if dataSetList != None:
+            ax = figure.add_subplot(rows,columns,dataSetList[0].GetPosition())
+            xData = dataSetList[0].GetDataSetPlotData(timeStep)
+            yData = dataSetList[1].GetDataSetPlotData(timeStep)
+            ax.plot(xData[0],yData[0],'.')
     
     def UpdateFigure(self, figure):
         # random data

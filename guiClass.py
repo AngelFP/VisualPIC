@@ -33,6 +33,7 @@ from CreateAnimationWidget import CreateAnimationWidget
 from availableDataClass import AvailableData
 from dataPlotterClass import DataPlotter
 from fieldToPlotClass import FieldToPlot
+from rawDataSetToPlot import RawDataSetToPlot
 from colorMapsCollectionClass import ColorMapsCollection
 from plotFieldItem import PlotFieldItem
 import unitConverters
@@ -109,6 +110,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.actionMake_video.triggered.connect(self.actionMakeVideo_toggled)
         self.normalizedUnits_checkBox.toggled.connect(self.normalizedUnitsCheckBox_StatusChanged)
         self.setNormalization_Button.clicked.connect(self.setNormalizationButton_Clicked)
+        self.addRawField_Button.clicked.connect(self.addRawFieldButton_Clicked)
     
     def rawFieldsRadioButton_Toggled(self):
         if self.rawPlotType_radioButton_1.isChecked():
@@ -228,17 +230,46 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
     def FillRawData(self):
         self.rawFieldSpecies_comboBox.clear()
         speciesNames = list()
-        for species in self.availableData.GetAvailableRawSpecies():
+        for species in self.availableData.GetSpeciesWithRawData():
             speciesNames.append(species.GetName())
         self.rawFieldSpecies_comboBox.addItems(speciesNames)
         self.FillSpeciesRawData(self.rawFieldSpecies_comboBox.currentText())
         
     
     def FillSpeciesRawData(self, speciesName):
-        for species in self.availableData.GetAvailableRawSpecies():
+        for species in self.availableData.GetSpeciesWithRawData():
             if speciesName == species.GetName():
-                self.xRaw_comboBox.addItems(species.GetAvailableFieldNamesList())
-                self.yRaw_comboBox.addItems(species.GetAvailableFieldNamesList())
+                self.xRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
+                self.yRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
+                
+    def addRawFieldButton_Clicked(self):
+        speciesName = self.rawFieldSpecies_comboBox.currentText()
+        xDataSetName = self.xRaw_comboBox.currentText()
+        yDataSetName = self.yRaw_comboBox.currentText()
+        dataSetsList = list()
+        for species in self.availableData.GetAvailableSpecies():
+            if species.GetName() == speciesName:
+               xDataSet = species.GetRawDataSet(xDataSetName) 
+               dataSetsList.append(xDataSet)
+               yDataSet = species.GetRawDataSet(yDataSetName) 
+               dataSetsList.append(yDataSet)
+               self.addRawDataSetToPlot(dataSetsList)
+        
+    def addRawDataSetToPlot(self, dataSets):
+        dataSetList = list()
+        for dataSet in dataSets:
+            dataSetToPlot = RawDataSetToPlot(dataSet, self.unitConverter)
+            dataSetToPlot.SetPlotPosition(len(self.fieldsToPlot)+1)
+            dataSetList.append(dataSetToPlot)
+        
+        self.fieldsToPlot.append(dataSetList)
+        self.setAutoColumnsAndRows()
+            
+        wid = PlotFieldItem(dataSetList, self)
+        wid2 = QtGui.QListWidgetItem()
+        wid2.setSizeHint(QtCore.QSize(100, 40))
+        self.fieldsToPlot_listWidget.addItem(wid2)
+        self.fieldsToPlot_listWidget.setItemWidget(wid2, wid) 
         
     def FillAvailableSpeciesList(self):
         

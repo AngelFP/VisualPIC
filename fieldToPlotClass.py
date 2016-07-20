@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #Copyright 2016 Ángel Ferran Pousa
 #
 #This file is part of VisualPIC.
@@ -17,9 +15,8 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-from fieldClass import Field
 class FieldToPlot:
-    def __init__(self, field: Field, unitConverter, colorMapsCollection, isPartOfMultiplot = False, fieldUnits = "Norm", axisUnits = "Norm", plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
+    def __init__(self, field, unitConverter, colorMapsCollection, isPartOfMultiplot = False, fieldUnits = "Norm", axisUnits = "Norm", plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
         
         self.field = field
         self.unitConverter = unitConverter
@@ -34,6 +31,7 @@ class FieldToPlot:
         self.vMax = vMax
         self.vMin = vMin
         self.SetDefaultColorMap()
+        self.dataType = "Field"
     
     def SetDefaultColorMap(self):
         if self.isPartOfMultiplot:
@@ -107,6 +105,9 @@ class FieldToPlot:
             return self.colorMapsCollection.GetTransparentColorMapsNames()
         else:
             return self.colorMapsCollection.GetSingleColorMapsNamesList()
+            
+    def GetDataType(self):
+        return self.dataType
         
     def GetFieldInfo(self):
         
@@ -131,10 +132,8 @@ class FieldToPlot:
         
         self.fieldUnits = info["fieldUnits"]
         self.axisUnits = info["axisUnits"]
-        if info["autoScale"]:
-            self.SetAutoScale()
-        else:
-            self.vMax = info["maxVal"]
-            self.vMin = info["minVal"]
+        self.useCustomScale = not info["autoScale"]
+        self.vMax = info["maxVal"]
+        self.vMin = info["minVal"]
         self.colorMap = info["cMap"]
         self.plotType = info["plotType"]

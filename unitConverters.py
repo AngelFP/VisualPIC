@@ -79,6 +79,10 @@ class OsirisUnitConverter:
         else:
             pass  
     
+    def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
+        #implement actual unit conversion
+        return dataSet.GetPlotData(timeStep)
+            
     def getAxisUnitsOptions(self):
         if self.useNormUnits:
             return  ["Norm", "m", "μm"]    
@@ -113,6 +117,8 @@ class OsirisUnitConverter:
         else:
             units[2] = units[2][2:-1].replace("\\\\","\\")
         return fieldData, extent, units
+        
+
         
         
         
