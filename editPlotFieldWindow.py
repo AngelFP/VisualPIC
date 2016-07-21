@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #Copyright 2016 Ángel Ferran Pousa
 #
 #This file is part of VisualPIC.
@@ -24,11 +26,11 @@ except AttributeError:
         return s
 
 class EditPlotFieldWindow(QtGui.QDialog):
-    def __init__(self, FieldsToPlot):
+    def __init__(self, subplot):
         super(EditPlotFieldWindow, self).__init__()
         self.resize(465, 224)
         
-        self.fieldsToPlot = FieldsToPlot
+        self.subplot = subplot
         self.selectedFieldIndex = 0
         self.updatingUiData = True
         
@@ -190,7 +192,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def GetFieldsInfo(self):
         self.fieldInfoList = list()
-        for field in self.fieldsToPlot:
+        for field in self.subplot.GetFieldsToPlot():
             self.fieldInfoList.append(field.GetFieldInfo())
         
     def FillInitialUI(self):
@@ -200,7 +202,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
     def FillListView(self):
         model = QtGui.QStandardItemModel()
         
-        for field in self.fieldsToPlot:
+        for field in self.subplot.GetFieldsToPlot():
             listLabel = field.GetName()
             if field.GetSpeciesName() != '':
                 listLabel += " / " + field.GetSpeciesName()
@@ -294,7 +296,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
     
     def AcceptButton_Clicked(self):
         i = 0
-        for field in self.fieldsToPlot:
+        for field in self.subplot.GetFieldsToPlot():
             field.SetFieldInfo(self.fieldInfoList[i])
             i+=1
         self.close() 

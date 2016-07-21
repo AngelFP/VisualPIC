@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #Copyright 2016 Ángel Ferran Pousa
 #
 #This file is part of VisualPIC.

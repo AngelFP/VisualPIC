@@ -20,8 +20,8 @@
 from matplotlib.figure import Figure
 import matplotlib
 from matplotlib.ticker import LinearLocator
-import numpy as np
 import random
+import numpy as np
     
  
 
@@ -39,10 +39,10 @@ class DataPlotter:
         
         self.plotTypes = {
             "Field":self.MakeFieldPlot,
-            "Raw":self.MakeRawDataPlot
+            "Axis":self.MakeAxisDataPlot
             }
             
-    def MakePlot(self, figure, fieldsToPlot, rows, columns, timeStep):
+    def MakePlot(self, figure, subplotList, rows, columns, timeStep):
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
@@ -52,17 +52,17 @@ class DataPlotter:
         
         
         
-        for fieldToPlotList in fieldsToPlot:
-            self.plotTypes[fieldToPlotList[0].GetDataType()](figure, fieldToPlotList, rows, columns, timeStep)
+        for subplot in subplotList:
+            self.plotTypes[subplot.GetDataType()](figure, subplot, rows, columns, timeStep)
                     
-    def MakeFieldPlot(self, figure, fieldToPlotList, rows, columns, timeStep):
+    def MakeFieldPlot(self, figure, subplot, rows, columns, timeStep):
 
-            if fieldToPlotList != None:
-                numFields = len(fieldToPlotList)
-                ax = figure.add_subplot(rows,columns,fieldToPlotList[0].GetPosition())
+            if subplot != None:
+                numFields = len(subplot.GetFieldsToPlot())
+                ax = figure.add_subplot(rows,columns,subplot.GetPosition())
                 ax.hold(False)
                 i = 0
-                for field in fieldToPlotList:
+                for field in subplot.GetFieldsToPlot():
                     
                     plotData = field.GetFieldPlotData(timeStep)
                     units = plotData[2]
@@ -93,12 +93,20 @@ class DataPlotter:
                     cbar.set_label(label="$"+units[2]+"$",size=20)
                     i += 1
                     
-    def MakeRawDataPlot(self, figure, dataSetList, rows, columns, timeStep):    
-        if dataSetList != None:
-            ax = figure.add_subplot(rows,columns,dataSetList[0].GetPosition())
-            xData = dataSetList[0].GetDataSetPlotData(timeStep)
-            yData = dataSetList[1].GetDataSetPlotData(timeStep)
-            ax.plot(xData[0],yData[0],'.')
+    def MakeAxisDataPlot(self, figure, subplot, rows, columns, timeStep):    
+        if subplot != None:
+            ax = figure.add_subplot(rows,columns,subplot.GetPosition())
+            plotData = subplot.GetAxisData()
+            xData = plotData["x"].GetDataSetPlotData(timeStep)
+            yData = plotData["y"].GetDataSetPlotData(timeStep)
+            weightData = plotData["weight"].GetDataSetPlotData(timeStep)
+            
+            blues_cmap = matplotlib.cm.get_cmap('Blues_r')
+            blues_cmap._init()
+            alphas = np.abs(np.linspace(1.0, 0, blues_cmap.N))
+            blues_cmap._lut[:-3,-1] = alphas  
+        
+            ax.scatter(xData[0],yData[0],c=weightData[0], cmap=blues_cmap, linewidths=0)
     
     def UpdateFigure(self, figure):
         # random data

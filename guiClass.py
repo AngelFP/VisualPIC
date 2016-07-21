@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 #Copyright 2016 Ángel Ferran Pousa
 #
@@ -34,6 +35,7 @@ from availableDataClass import AvailableData
 from dataPlotterClass import DataPlotter
 from fieldToPlotClass import FieldToPlot
 from rawDataSetToPlot import RawDataSetToPlot
+from subplot import Subplot
 from colorMapsCollectionClass import ColorMapsCollection
 from plotFieldItem import PlotFieldItem
 import unitConverters
@@ -61,7 +63,8 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.dataPlotter = DataPlotter(self.colorMapsCollection)
         self.InitialUIValues()
         self.RegisterUIEvents()
-        self.fieldsToPlot = list()
+#        self.fieldsToPlot = list()
+        self.subplotList = list()
         self.currentAxesFieldsToPlot = list()
         self.SetListOfPlotPositions()
         self.CreateCanvasAndFigure()
@@ -206,7 +209,8 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.columns_spinBox.setValue(1)
         self.fieldsToPlot_listWidget.clear()
         self.currentAxesFieldsToPlot.clear()
-        self.fieldsToPlot.clear()
+        #self.fieldsToPlot.clear()
+        self.subplotList.clear()
         
     def LoadFolderData(self):
         
@@ -246,26 +250,24 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         speciesName = self.rawFieldSpecies_comboBox.currentText()
         xDataSetName = self.xRaw_comboBox.currentText()
         yDataSetName = self.yRaw_comboBox.currentText()
-        dataSetsList = list()
+        dataSets = {}
         for species in self.availableData.GetAvailableSpecies():
             if species.GetName() == speciesName:
                xDataSet = species.GetRawDataSet(xDataSetName) 
-               dataSetsList.append(xDataSet)
+               dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
                yDataSet = species.GetRawDataSet(yDataSetName) 
-               dataSetsList.append(yDataSet)
-               self.addRawDataSetToPlot(dataSetsList)
+               dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+               weightingDataSet = species.GetRawDataSet("q")
+               dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.unitConverter)
+               self.addRawDataSubplot(dataSets)
         
-    def addRawDataSetToPlot(self, dataSets):
-        dataSetList = list()
-        for dataSet in dataSets:
-            dataSetToPlot = RawDataSetToPlot(dataSet, self.unitConverter)
-            dataSetToPlot.SetPlotPosition(len(self.fieldsToPlot)+1)
-            dataSetList.append(dataSetToPlot)
-        
-        self.fieldsToPlot.append(dataSetList)
+    def addRawDataSubplot(self, dataSets):
+        plotPosition = len(self.subplotList)+1
+        subplot = Subplot(plotPosition, axisData = dataSets)
+        self.subplotList.append(subplot)
         self.setAutoColumnsAndRows()
             
-        wid = PlotFieldItem(dataSetList, self)
+        wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
@@ -329,40 +331,41 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         fldList = list()
         for fld in fields:
             fieldToPlot = FieldToPlot(fld, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
-            fieldToPlot.SetPlotPosition(len(self.fieldsToPlot)+1)
             fldList.append(fieldToPlot)
-        
-        self.fieldsToPlot.append(fldList)
+            
+        plotPosition = len(self.subplotList)+1
+        subplot = Subplot(plotPosition, fieldsToPlotList = fldList)
+        self.subplotList.append(subplot)
         self.setAutoColumnsAndRows()
             
-        wid = PlotFieldItem(fldList, self)
+        wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
         
         
-    def AddFieldToPlotOnPosition(self, fieldPosition, fieldToPlot):
-        cnt = len(self.fieldsToPlot)
-        if fieldPosition <= cnt:
-            self.fieldsToPlot[fieldPosition-1] = fieldToPlot
-        else:
-            i = cnt
-            while i < fieldPosition-1:
-                self.fieldsToPlot.append(None)
-                i+=1
-            self.fieldsToPlot.append(fieldToPlot)
-            
-    def RemoveExcessFields(self):
-        rows = self.rows_spinBox.value()
-        columns = self.columns_spinBox.value()
-        while len(self.fieldsToPlot) > rows*columns:
-            self.fieldsToPlot.remove(self.fieldsToPlot[-1])
+#    def AddFieldToPlotOnPosition(self, fieldPosition, fieldToPlot):
+#        cnt = len(self.fieldsToPlot)
+#        if fieldPosition <= cnt:
+#            self.fieldsToPlot[fieldPosition-1] = fieldToPlot
+#        else:
+#            i = cnt
+#            while i < fieldPosition-1:
+#                self.fieldsToPlot.append(None)
+#                i+=1
+#            self.fieldsToPlot.append(fieldToPlot)
+#            
+#    def RemoveExcessFields(self):
+#        rows = self.rows_spinBox.value()
+#        columns = self.columns_spinBox.value()
+#        while len(self.fieldsToPlot) > rows*columns:
+#            self.fieldsToPlot.remove(self.fieldsToPlot[-1])
             
     def setAutoColumnsAndRows(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
-        if rows*columns < len(self.fieldsToPlot):
+        if rows*columns < len(self.subplotList):
             if self.increaseRowsColumnsCounter % 2 == 0:
                 self.increaseRows()
             else:
@@ -386,7 +389,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         columns = self.columns_spinBox.value()
         timeStep = self.timeStep_Slider.value()
         
-        self.dataPlotter.MakePlot(self.figure, self.fieldsToPlot, rows, columns, timeStep)
+        self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, timeStep)
         self.canvas.draw()
         
     def PlotDomainField(self):#, fieldName, timeStep):
@@ -413,13 +416,12 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
             
     def RemoveSubplot(self, item):
         
-        index = self.fieldsToPlot.index(item.fieldsToPlot)
-        self.fieldsToPlot.remove(item.fieldsToPlot)
+        index = self.subplotList.index(item.subplot)
+        self.subplotList.remove(item.subplot)
         self.fieldsToPlot_listWidget.takeItem(index)
-        for fieldGroup in self.fieldsToPlot:
-            for field in fieldGroup:
-                if field.GetPosition() > index+1:
-                    field.SetPlotPosition(field.GetPosition()-1)
+        for subplot in self.subplotList:
+            if subplot.GetPosition() > index+1:
+                subplot.SetPosition(subplot.GetPosition()-1)
         
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()  

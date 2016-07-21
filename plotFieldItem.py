@@ -17,9 +17,9 @@ except AttributeError:
 
 
 class PlotFieldItem(QtGui.QWidget):
-    def __init__(self, FieldsToPlot, parent=None):
+    def __init__(self, subplot, parent=None):
         super(PlotFieldItem, self).__init__(parent)
-        self.fieldsToPlot = FieldsToPlot
+        self.subplot = subplot
         
         self.mainWindow = parent
         self.verticalLayout_5 = QtGui.QVBoxLayout(self)
@@ -60,18 +60,15 @@ class PlotFieldItem(QtGui.QWidget):
 
     def setText(self):
         
-        self.FieldName.setText(self.fieldsToPlot[0].GetName())
-        if len(self.fieldsToPlot)>1:
-            self.SpeciesName.setText("Mult. species")
-        else:
-            self.SpeciesName.setText(self.fieldsToPlot[0].GetSpeciesName())
+        self.FieldName.setText(self.subplot.GetName())
+        self.SpeciesName.setText(self.subplot.GetPlottedSpeciesName())
 
     def registerUiEvents(self):
         self.editButton.clicked.connect(self.editButton_Clicked)
         self.deleteButton.clicked.connect(self.deleteButton_Clicked)
         
     def editButton_Clicked(self):
-        EditWindow = EditPlotFieldWindow(self.fieldsToPlot)
+        EditWindow = EditPlotFieldWindow(self.subplot)
         EditWindow.exec_()
         
     def deleteButton_Clicked(self):
