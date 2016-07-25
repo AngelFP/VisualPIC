@@ -39,7 +39,7 @@ class DataPlotter:
         
         self.plotTypes = {
             "Field":self.MakeFieldPlot,
-            "Axis":self.MakeAxisDataPlot
+            "Axis":self.Make2DHistogram
             }
             
     def MakePlot(self, figure, subplotList, rows, columns, timeStep):
@@ -73,8 +73,8 @@ class DataPlotter:
                     else:
                         im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap)
                     ax.xaxis.set_major_locator( LinearLocator(5) )
-                    ax.set_xlabel("x " + "$["+units[0]+"]$", fontsize=20)
-                    ax.set_ylabel("y " + "$["+units[1]+"]$", fontsize=20)
+                    ax.set_xlabel(subplot.GetXAxisText() + "$["+units[0]+"]$", fontsize=subplot.GetXAxisTextFontSize())
+                    ax.set_ylabel(subplot.GetYAxisText() + "$["+units[1]+"]$", fontsize=subplot.GetYAxisTextFontSize())
                     ax.set_title(field.GetName())
                     if i == 0:
                         pos1 = ax.get_position()
@@ -108,6 +108,64 @@ class DataPlotter:
         
             ax.scatter(xData[0],yData[0],c=weightData[0], cmap=blues_cmap, linewidths=0)
     
+    def Make2DHistogram(self, figure, subplot, rows, columns, timeStep):
+        if subplot != None:
+            ax = figure.add_subplot(rows,columns,subplot.GetPosition())
+            plotData = subplot.GetAxisData()
+            xData = plotData["x"].GetDataSetPlotData(timeStep)
+            yData = plotData["y"].GetDataSetPlotData(timeStep)
+            weightData = plotData["weight"].GetDataSetPlotData(timeStep)
+            
+            xValues = xData[0]
+            yValues = yData[0]
+            weightValues = weightData[0]
+            
+            xUnits = xData[1]
+            yUnits = yData[1]
+            weightUnits = weightData[1]
+            
+            xMin = min(xValues)
+            xMax = max(xValues)
+            yMin = min(yValues)
+            yMax = max(yValues)
+            
+            rangex = xMax - xMin
+            rangey = yMax - yMin
+            
+            xMargin = rangex/10
+            yMargin = rangey/10
+            
+            xMinHist = round(xMin-xMargin)
+            xMaxHist = round(xMax+xMargin)
+            yMinHist = round(yMin-yMargin)
+            yMaxHist = round(yMax+yMargin)
+#            
+#            numPart = len(xData)
+#            numBins = 100
+#            
+#            for i in np.linspace(0, numPart-1, numPart-1):
+#                x = xValues[i]
+#                y = yValues[i]
+#                w = weightValues[i]
+#                
+#                xBin = round((x-xMin)/dx * numBins)
+#                yBin = round((y-yMin)/dy * numBins)
+#                
+#            ax.scatter(xData[0],yData[0],c=weightData[0], cmap=blues_cmap, linewidths=0)
+            blues_cmap = matplotlib.cm.get_cmap('Blues_r')
+            blues_cmap._init()
+#            
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = 80, weights = weightValues)
+            dx = xedges[1]-xedges[0]
+            dy = yedges[1]-yedges[0]
+#            X, Y = np.meshgrid(xedges, yedges)
+#            ax.pcolormesh(X, Y, H.transpose(), cmap=blues_cmap)
+            
+            extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
+            ax.imshow(H.transpose(), extent=extent, cmap=blues_cmap, aspect='auto', origin='lower')
+            
+            #ax.hexbin(xValues,yValues)
+            
     def UpdateFigure(self, figure):
         # random data
         data = [random.random() for i in range(10)]

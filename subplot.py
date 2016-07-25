@@ -40,12 +40,63 @@ class Subplot:
         if len(axisData) > 0:
             self.dataType = "Axis"
         
+        # axis properties
+        self.xAxisProps = {}
+        self.yAxisProps = {}
+        self.zAxisProps = {}
+        self.axisTitleProps = {}
+        
+        self.xLims = [] # contains min and max values in x axis
+        self.yLims = []
+        self.zLims = []
+        
         self.SetSubplotName()  
         self.SetPlottedSpeciesName()
         self.LoadPossiblePlotTypes()
+        self.SetDefaultValues()
+        
+    def SetTitleProperty(self, targetProperty, value):
+        self.axisTitleProps[targetProperty] = value
+        
+    def GetTitleProperty(self, targetProperty):
+        return self.axisTitleProps[targetProperty]
+        
+    def SetAxisProperty(self, axis, targetPropery, value):
+        if axis == "x":
+            self.xAxisProps[targetPropery] = value
+        elif axis == "y":
+            self.yAxisProps[targetPropery] = value
+        elif axis == "z":
+            self.zAxisProps[targetPropery] = value
+            
+    def GetAxisProperty(self, axis, targetPropery):
+        if axis == "x":
+            return self.xAxisProps[targetPropery]
+        elif axis == "y":
+            return self.yAxisProps[targetPropery]
+        elif axis == "z":
+            return self.zAxisProps[targetPropery]
         
     def GetPosition(self):
         return self.subplotPosition
+        
+    def SetDefaultValues(self):
+        if self.dataType == "Axis":
+            self.SetAxisProperty("x", "LabelText", self.axisData["x"].GetName())
+            self.SetAxisProperty("y", "LabelText", self.axisData["y"].GetName())
+            if "z" in self.axisData:
+                    self.SetAxisProperty("z", "LabelText", self.axisData["z"].GetName())
+        elif self.dataType == "Field":
+            self.SetAxisProperty("x", "LabelText", "z")
+            self.SetAxisProperty("y", "LabelText", "y")
+            self.SetAxisProperty("z", "LabelText", "x")
+        
+        defaultFontSize = 20  
+        self.SetAxisProperty("x", "LabelSize", defaultFontSize)
+        self.SetAxisProperty("y", "LabelSize", defaultFontSize)
+        self.SetAxisProperty("z", "LabelSize", defaultFontSize)
+        self.SetTitleProperty("FontSize", defaultFontSize)
+        self.SetTitleProperty("Text", self.subplotName)
         
     def SetPosition(self, position):
         self.subplotPosition = position
@@ -80,7 +131,7 @@ class Subplot:
         self.SetPlottedSpeciesName()
         
     def AddAxisData(self, data, axis):
-        # axis should a string ("x", "y", "z" or "weight")
+        # axis should be a string ("x", "y", "z" or "weight")
         self.dataType = "Axis"
         self.axisData[axis] = data
         self.SetSubplotName()

@@ -84,6 +84,7 @@ class AvailableData:
         self.selectedSpeciesFields.clear()
         for species in self.selectedSpecies:
             self.selectedSpeciesFields.append(species.GetField(self.selectedSpeciesFieldName))
+            self.numberOfTimeSteps = species.GetField(self.selectedSpeciesFieldName).GetTotalTimeSteps()
             
     def SetSelectedSpeciesField(self, fieldName):
         self.selectedSpeciesFieldName = fieldName
