@@ -65,7 +65,7 @@ class DataPlotter:
                 for field in subplot.GetFieldsToPlot():
                     
                     plotData = field.GetFieldPlotData(timeStep)
-                    units = plotData[2]
+                    units = field.GetFieldUnits()
                     field_cmap = self.colorMapsCollection.GetColorMap(field.GetColorMap())
                     if field.IsScaleCustom():
                         scale = field.GetScale()
@@ -73,8 +73,8 @@ class DataPlotter:
                     else:
                         im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap)
                     ax.xaxis.set_major_locator( LinearLocator(5) )
-                    ax.set_xlabel(subplot.GetXAxisText() + "$["+units[0]+"]$", fontsize=subplot.GetXAxisTextFontSize())
-                    ax.set_ylabel(subplot.GetYAxisText() + "$["+units[1]+"]$", fontsize=subplot.GetYAxisTextFontSize())
+                    ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + "$["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
+                    ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + "$["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
                     ax.set_title(field.GetName())
                     if i == 0:
                         pos1 = ax.get_position()
@@ -90,7 +90,7 @@ class DataPlotter:
                     cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
                     cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
                     cbar.solids.set_edgecolor("face")
-                    cbar.set_label(label="$"+units[2]+"$",size=20)
+                    cbar.set_label(label="$"+units+"$",size=20)
                     i += 1
                     
     def MakeAxisDataPlot(self, figure, subplot, rows, columns, timeStep):    

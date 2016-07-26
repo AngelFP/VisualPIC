@@ -42,23 +42,23 @@ class OsirisUnitConverter:
     def getFieldUnitsOptions(self, field):
         fieldName = field.GetName()
         speciesName = field.GetSpeciesName()
+        normUnits = field.GetNormalizedUnits("Field")
         if self.useNormUnits:
             if speciesName == "":
                 if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
-                    return ["Norm", "V/m", "GV/m"]
+                    return [normUnits, "V/m", "GV/m"]
                 else:
-                    return ["Norm"]
+                    return [normUnits]
             elif "charge" in fieldName:
-                return ["Norm", "C/m^2", "n/n_0"]
+                return [normUnits, "C/m^2", "n/n_0"]
             else:
-                return ["Norm"]
+                return [normUnits]
         else:
-            return ["Norm"]
+            return [normUnits]
             
-    def getFieldInUnits(self, fieldName, fieldData, units):
-        
+    def getFieldInUnits(self, fieldName, fieldData, units, normUnits):
         if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
-            if units == "Norm":
+            if units == normUnits:
                 pass
             elif units == "V/m":
                 fieldData *= self.E0
@@ -68,7 +68,7 @@ class OsirisUnitConverter:
                 pass
                 
         elif "charge" in fieldName:
-            if units == "Norm":
+            if units == normUnits:
                 pass
             elif units == "C/m^2":
                 fieldData *= self.e * (self.w_p / self.c)**2
@@ -83,40 +83,40 @@ class OsirisUnitConverter:
         #implement actual unit conversion
         return dataSet.GetPlotData(timeStep)
             
-    def getAxisUnitsOptions(self):
+    def getAxisUnitsOptions(self, field):
+        normUnits = field.GetNormalizedUnits("Field")
         if self.useNormUnits:
-            return  ["Norm", "m", "μm"]    
+            return  [normUnits, "m", "μm"]    
         else:
-            return ["Norm"]
+            return [normUnits]
             
-    def getAxisInUnits(self, extent, units):
-        if units == "Norm":
-            pass
-        elif units == "m":
-            extent *= self.c / self.w_p 
-        elif units == "μm":
-            extent *= 1e6 * self.c / self.w_p 
+    def getAxisInUnits(self, axis, extent, units, normUnits):
+        if axis == "x":
+            if units == normUnits:
+                pass
+            elif units == "m":
+                extent[0:2] *= self.c / self.w_p 
+            elif units == "μm":
+                extent[0:2] *= 1e6 * self.c / self.w_p 
+        elif axis == "y":
+            if units == normUnits:
+                pass
+            elif units == "m":
+                extent[2:4] *= self.c / self.w_p 
+            elif units == "μm":
+                extent[2:4] *= 1e6 * self.c / self.w_p 
             
-    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axisUnits):
+    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
         fieldName = field.GetName()
         data = field.GetPlotData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
-        units = list(data[2])
         
-        self.getFieldInUnits(fieldName, fieldData, fieldUnits)
-        self.getAxisInUnits(extent, axisUnits)
-        if axisUnits != "Norm":
-            units[0] = axisUnits
-            units[1] = axisUnits
-        else:
-            units[0] = units[0][2:-1].replace("\\\\","\\")
-            units[1] = units[1][2:-1].replace("\\\\","\\")
-        if fieldUnits != "Norm":
-            units[2] = fieldUnits
-        else:
-            units[2] = units[2][2:-1].replace("\\\\","\\")
-        return fieldData, extent, units
+        self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])
+        self.getAxisInUnits("x", extent, axesUnits["x"], normUnits["x"])
+        self.getAxisInUnits("y", extent, axesUnits["y"], normUnits["y"])
+        
+        return fieldData, extent
         
 
         

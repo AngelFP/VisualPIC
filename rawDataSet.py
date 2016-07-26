@@ -28,7 +28,20 @@ class RawDataSet:
         self.speciesName = speciesName
         self.totalTimeSteps = totalTimeSteps
         self.internalName = internalName
+        self.LoadBasicData()
         
+    def LoadBasicData(self):
+        fileName = "RAW-" + self.speciesName + "-" + str(0).zfill(6)
+            
+        ending = ".h5"
+        
+        file_path = self.location + "/" + fileName + ending
+
+        file_content = h5py.File(file_path, 'r')
+        
+        self.LoadUnits(file_content)
+        
+        file_content.close()
         
     def LoadData(self, timeStep):
             
@@ -53,14 +66,14 @@ class RawDataSet:
 
         
     def LoadUnits(self, file_content):
-        self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
+        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
         
     def GetRawData(self):
         return self.rawData
         
         
     def GetUnits(self):
-        return self.fieldUnits
+        return self.dataUnits
         
     def GetPlotData(self, timeStep):
         

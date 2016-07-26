@@ -54,89 +54,8 @@ class Subplot:
         self.SetPlottedSpeciesName()
         self.LoadPossiblePlotTypes()
         self.SetDefaultValues()
-        
-    def SetTitleProperty(self, targetProperty, value):
-        self.axisTitleProps[targetProperty] = value
-        
-    def GetTitleProperty(self, targetProperty):
-        return self.axisTitleProps[targetProperty]
-        
-    def SetAxisProperty(self, axis, targetPropery, value):
-        if axis == "x":
-            self.xAxisProps[targetPropery] = value
-        elif axis == "y":
-            self.yAxisProps[targetPropery] = value
-        elif axis == "z":
-            self.zAxisProps[targetPropery] = value
-            
-    def GetAxisProperty(self, axis, targetPropery):
-        if axis == "x":
-            return self.xAxisProps[targetPropery]
-        elif axis == "y":
-            return self.yAxisProps[targetPropery]
-        elif axis == "z":
-            return self.zAxisProps[targetPropery]
-        
-    def GetPosition(self):
-        return self.subplotPosition
-        
-    def SetDefaultValues(self):
-        if self.dataType == "Axis":
-            self.SetAxisProperty("x", "LabelText", self.axisData["x"].GetName())
-            self.SetAxisProperty("y", "LabelText", self.axisData["y"].GetName())
-            if "z" in self.axisData:
-                    self.SetAxisProperty("z", "LabelText", self.axisData["z"].GetName())
-        elif self.dataType == "Field":
-            self.SetAxisProperty("x", "LabelText", "z")
-            self.SetAxisProperty("y", "LabelText", "y")
-            self.SetAxisProperty("z", "LabelText", "x")
-        
-        defaultFontSize = 20  
-        self.SetAxisProperty("x", "LabelSize", defaultFontSize)
-        self.SetAxisProperty("y", "LabelSize", defaultFontSize)
-        self.SetAxisProperty("z", "LabelSize", defaultFontSize)
-        self.SetTitleProperty("FontSize", defaultFontSize)
-        self.SetTitleProperty("Text", self.subplotName)
-        
-    def SetPosition(self, position):
-        self.subplotPosition = position
-        
-    def LoadPossiblePlotTypes(self):
-        self.possiblePlotTypes.clear()
-        if self.dataType == "Field":
-            if len(self.fieldsToPlotList) > 1:
-                self.possiblePlotTypes = ["Image"]
-            else:
-                self.possiblePlotTypes = ["Image", "Surface"]
-                
-        if self.dataType == "Axis":
-            self.possiblePlotTypes = ["Line", "Scatter"]
-            
-    def GetPossiblePlotTypes(self):
-        return self.possiblePlotTypes
-        
-    def SetPlotType(self, plotType):
-        self.plotType = plotType
-        
-    def GetPlotType(self):
-        return self.plotType
-        
-    def GetDataType(self):
-        return self.dataType
-        
-    def AddFieldToPlot(self, fieldToPlot):
-        self.dataType = "Field"
-        self.fieldsToPlotList.append(fieldToPlot)
-        self.SetSubplotName()
-        self.SetPlottedSpeciesName()
-        
-    def AddAxisData(self, data, axis):
-        # axis should be a string ("x", "y", "z" or "weight")
-        self.dataType = "Axis"
-        self.axisData[axis] = data
-        self.SetSubplotName()
-        self.SetPlottedSpeciesName()
-        
+    
+# Initialization    
     def SetSubplotName(self):
         if self.dataType == "Field":
             for fieldToPlot in self.fieldsToPlotList:
@@ -174,7 +93,113 @@ class Subplot:
                 if "z" in self.axisData:
                     zSpeciesName = self.axisData["z"].GetSpeciesName()
                     if zSpeciesName != self.plottedSpeciesName:
-                        self.plottedSpeciesName = "Mult. Species"
+                        self.plottedSpeciesName = "Mult. Species"   
+                        
+    def LoadPossiblePlotTypes(self):
+        self.possiblePlotTypes.clear()
+        if self.dataType == "Field":
+            if len(self.fieldsToPlotList) > 1:
+                self.possiblePlotTypes = ["Image"]
+            else:
+                self.possiblePlotTypes = ["Image", "Surface"]
+                
+        if self.dataType == "Axis":
+            self.possiblePlotTypes = ["Line", "Scatter"]
+            
+    def SetDefaultValues(self):
+        
+        defaultFontSize = 20  
+        if self.dataType == "Axis":
+            self.SetAxisProperty("x", "LabelText", self.axisData["x"].GetName())
+            self.SetAxisProperty("y", "LabelText", self.axisData["y"].GetName())
+            self.SetAxisProperty("x", "Units", self.axisData["x"].GetUnits())
+            self.SetAxisProperty("y", "Units", self.axisData["y"].GetUnits())
+            self.SetAxisProperty("x", "LabelFontSize", defaultFontSize)
+            self.SetAxisProperty("y", "LabelFontSize", defaultFontSize)
+            if "z" in self.axisData:
+                self.SetAxisProperty("z", "LabelText", self.axisData["z"].GetName())
+                self.SetAxisProperty("z", "Units", self.axisData["z"].GetUnits())
+                self.SetAxisProperty("z", "LabelFontSize", defaultFontSize)
+        elif self.dataType == "Field":
+            self.SetAxisProperty("x", "LabelText", "z")
+            self.SetAxisProperty("y", "LabelText", "y")
+            #self.SetAxisProperty("z", "LabelText", "x")
+            
+            self.SetAxisProperty("x", "Units", self.fieldsToPlotList[0].GetAxisUnits("x"))
+            self.SetAxisProperty("y", "Units", self.fieldsToPlotList[0].GetAxisUnits("y"))
+            #self.SetAxisProperty("z", "Units", self.fieldsToPlotList[0].GetAxisUnits("z"))
+            
+            self.SetAxisProperty("x", "LabelFontSize", defaultFontSize)
+            self.SetAxisProperty("y", "LabelFontSize", defaultFontSize)
+        
+        
+        
+        
+        self.SetTitleProperty("FontSize", defaultFontSize)
+        self.SetTitleProperty("Text", self.subplotName)
+    
+# Interface methods
+
+    def AddFieldToPlot(self, fieldToPlot):
+        self.dataType = "Field"
+        self.fieldsToPlotList.append(fieldToPlot)
+        self.SetSubplotName()
+        self.SetPlottedSpeciesName()
+        
+    def AddAxisData(self, data, axis):
+        # axis should be a string ("x", "y", "z" or "weight")
+        self.dataType = "Axis"
+        self.axisData[axis] = data
+        self.SetSubplotName()
+        self.SetPlottedSpeciesName()
+    
+    def GetAxesUnitsOptions(self):
+        return self.fieldsToPlotList[0].GetPossibleAxisUnits()
+        
+    def SetAxisUnits(self, axis, units):
+        self.SetAxisProperty(axis, "Units", units)
+        for fieldToPlot in self.fieldsToPlotList:
+            fieldToPlot.SetAxisUnits(self, axis, units)
+        
+    def SetTitleProperty(self, targetProperty, value):
+        self.axisTitleProps[targetProperty] = value
+        
+    def GetTitleProperty(self, targetProperty):
+        return self.axisTitleProps[targetProperty]
+        
+    def SetAxisProperty(self, axis, targetPropery, value):
+        if axis == "x":
+            self.xAxisProps[targetPropery] = value
+        elif axis == "y":
+            self.yAxisProps[targetPropery] = value
+        elif axis == "z":
+            self.zAxisProps[targetPropery] = value
+            
+    def GetAxisProperty(self, axis, targetPropery):
+        if axis == "x":
+            return self.xAxisProps[targetPropery]
+        elif axis == "y":
+            return self.yAxisProps[targetPropery]
+        elif axis == "z":
+            return self.zAxisProps[targetPropery]
+    
+    def SetPosition(self, position):
+        self.subplotPosition = position
+        
+    def GetPosition(self):
+        return self.subplotPosition
+            
+    def GetPossiblePlotTypes(self):
+        return self.possiblePlotTypes
+        
+    def SetPlotType(self, plotType):
+        self.plotType = plotType
+        
+    def GetPlotType(self):
+        return self.plotType
+        
+    def GetDataType(self):
+        return self.dataType
                         
     def GetName(self):
         return self.subplotName

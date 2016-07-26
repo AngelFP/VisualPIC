@@ -57,7 +57,13 @@ class RawDataSetToPlot:
         self.dataSetUnits = units
         
     def GetDataType(self):
-        return self.dataType    
+        return self.dataType  
+        
+    def GetUnits(self):
+        if self.dataSetUnits != "Norm":
+            return self.dataSetUnits
+        else:
+            return self.dataSet.GetUnits()
         
     def GetDataSetInfo(self):
         

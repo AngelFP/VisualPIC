@@ -249,18 +249,18 @@ class AvailableData:
                         totalTimeSteps = len(os.listdir(fieldLocation))
                         self.AddDomainField(Field(fieldName, fieldLocation, totalTimeSteps))
             
-            elif folder ==  keyFolderNames[2]:
-                phaseFields = os.listdir(subDir)
-                for field in phaseFields:
-                    if os.path.isdir(os.path.join(subDir, field)):
-                        speciesNames = os.listdir(subDir + "/" + field)
-                        for species in speciesNames:
-                            if os.path.isdir(os.path.join(subDir + "/" + field, species)):
-                                self.AddSpecies(Species(species))
-                                fieldLocation = subDir + "/" + field + "/" + species
-                                fieldName = field
-                                totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
+#            elif folder ==  keyFolderNames[2]:
+#                phaseFields = os.listdir(subDir)
+#                for field in phaseFields:
+#                    if os.path.isdir(os.path.join(subDir, field)):
+#                        speciesNames = os.listdir(subDir + "/" + field)
+#                        for species in speciesNames:
+#                            if os.path.isdir(os.path.join(subDir + "/" + field, species)):
+#                                self.AddSpecies(Species(species))
+#                                fieldLocation = subDir + "/" + field + "/" + species
+#                                fieldName = field
+#                                totalTimeSteps = len(os.listdir(fieldLocation))
+#                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
             
             elif folder ==  keyFolderNames[3]:
                 subDir = self.dataLocation + "/" + folder
