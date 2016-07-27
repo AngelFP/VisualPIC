@@ -17,6 +17,8 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
+
 class Subplot:
     
     def __init__(self, subplotPosition, fieldsToPlotList = list(), axisData = {}):
@@ -44,6 +46,11 @@ class Subplot:
         self.xAxisProps = {}
         self.yAxisProps = {}
         self.zAxisProps = {}
+        
+        # colorBar
+        self.colorbarProps = {}
+        
+        # subplot
         self.axisTitleProps = {}
         
         self.xLims = [] # contains min and max values in x axis
@@ -108,36 +115,73 @@ class Subplot:
             
     def SetDefaultValues(self):
         
+        self.LoadDefaultAxesValues()
+        self.SetAxesToDefaultValues()
+        
+        self.LoadDefaultColorBarValues()
+        self.SetColorbarToDefaultValues()
+        
+        self.LoadDefaultTitleValues()
+        self.SetTitleToDefaultValues()
+        
+    def LoadDefaultAxesValues(self):
         defaultFontSize = 20  
         if self.dataType == "Axis":
-            self.SetAxisProperty("x", "LabelText", self.axisData["x"].GetName())
-            self.SetAxisProperty("y", "LabelText", self.axisData["y"].GetName())
-            self.SetAxisProperty("x", "Units", self.axisData["x"].GetUnits())
-            self.SetAxisProperty("y", "Units", self.axisData["y"].GetUnits())
-            self.SetAxisProperty("x", "LabelFontSize", defaultFontSize)
-            self.SetAxisProperty("y", "LabelFontSize", defaultFontSize)
+            self.SetAxisProperty("x", "DefaultLabelText", self.axisData["x"].GetName())
+            self.SetAxisProperty("y", "DefaultLabelText", self.axisData["y"].GetName())
+            self.SetAxisProperty("x", "DefaultUnits", self.axisData["x"].GetUnits())
+            self.SetAxisProperty("y", "DefaultUnits", self.axisData["y"].GetUnits())
+            self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
             if "z" in self.axisData:
-                self.SetAxisProperty("z", "LabelText", self.axisData["z"].GetName())
-                self.SetAxisProperty("z", "Units", self.axisData["z"].GetUnits())
-                self.SetAxisProperty("z", "LabelFontSize", defaultFontSize)
+                self.SetAxisProperty("z", "DefaultLabelText", self.axisData["z"].GetName())
+                self.SetAxisProperty("z", "DefaultUnits", self.axisData["z"].GetUnits())
+                self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
         elif self.dataType == "Field":
-            self.SetAxisProperty("x", "LabelText", "z")
-            self.SetAxisProperty("y", "LabelText", "y")
-            #self.SetAxisProperty("z", "LabelText", "x")
+            self.SetAxisProperty("x", "DefaultLabelText", "z")
+            self.SetAxisProperty("y", "DefaultLabelText", "y")
+            #self.SetAxisProperty("z", "DefaultLabelText", "x")
             
-            self.SetAxisProperty("x", "Units", self.fieldsToPlotList[0].GetAxisUnits("x"))
-            self.SetAxisProperty("y", "Units", self.fieldsToPlotList[0].GetAxisUnits("y"))
-            #self.SetAxisProperty("z", "Units", self.fieldsToPlotList[0].GetAxisUnits("z"))
+            self.SetAxisProperty("x", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("x"))
+            self.SetAxisProperty("y", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("y"))
+            #self.SetAxisProperty("z", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("z"))
             
-            self.SetAxisProperty("x", "LabelFontSize", defaultFontSize)
-            self.SetAxisProperty("y", "LabelFontSize", defaultFontSize)
+            self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+            
+            
+    def SetAxesToDefaultValues(self):
+        self.SetAxisProperty("x", "LabelText", self.GetAxisProperty("x", "DefaultLabelText"))
+        self.SetAxisProperty("y", "LabelText", self.GetAxisProperty("y", "DefaultLabelText"))
+        self.SetAxisProperty("x", "AutoLabel", True)
+        self.SetAxisProperty("y", "AutoLabel", True)
+        self.SetAxisProperty("x", "Units", self.GetAxisProperty("x", "DefaultUnits"))
+        self.SetAxisProperty("y", "Units", self.GetAxisProperty("y", "DefaultUnits"))
+        self.SetAxisProperty("x", "LabelFontSize", self.GetAxisProperty("x", "DefaultLabelFontSize"))
+        self.SetAxisProperty("y", "LabelFontSize", self.GetAxisProperty("y", "DefaultLabelFontSize"))
+        if len(self.zAxisProps)>0:
+            self.SetAxisProperty("z", "LabelText", self.GetAxisProperty("z", "DefaultLabelText"))
+            self.SetAxisProperty("z", "Units", self.GetAxisProperty("z", "DefaultUnits"))
+            self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
+            
+    def LoadDefaultColorBarValues(self):
+        self.colorbarProps["DefaultFontSize"] = 20
+        self.colorbarProps["DefaultAutoTickLabelSpacing"] = True
         
+    def SetColorbarToDefaultValues(self):
+        self.colorbarProps["FontSize"] = self.colorbarProps["DefaultFontSize"]
+        self.colorbarProps["AutoTickLabelSpacing"] = self.colorbarProps["DefaultAutoTickLabelSpacing"]
         
+    def LoadDefaultTitleValues(self):
+        self.SetTitleProperty("DefaultFontSize", 20)
+        self.SetTitleProperty("DefaultText", self.subplotName)
+        self.SetTitleProperty("DefaultAutoText", True)
         
+    def SetTitleToDefaultValues(self):
+        self.SetTitleProperty("FontSize", self.GetTitleProperty("DefaultFontSize"))
+        self.SetTitleProperty("Text", self.GetTitleProperty("DefaultText"))
+        self.SetTitleProperty("AutoText", self.GetTitleProperty("DefaultAutoText"))
         
-        self.SetTitleProperty("FontSize", defaultFontSize)
-        self.SetTitleProperty("Text", self.subplotName)
-    
 # Interface methods
 
     def AddFieldToPlot(self, fieldToPlot):
@@ -156,10 +200,9 @@ class Subplot:
     def GetAxesUnitsOptions(self):
         return self.fieldsToPlotList[0].GetPossibleAxisUnits()
         
-    def SetAxisUnits(self, axis, units):
-        self.SetAxisProperty(axis, "Units", units)
+    def SetFieldAxisUnits(self, axis, units):
         for fieldToPlot in self.fieldsToPlotList:
-            fieldToPlot.SetAxisUnits(self, axis, units)
+            fieldToPlot.SetAxisUnits(axis, units)
         
     def SetTitleProperty(self, targetProperty, value):
         self.axisTitleProps[targetProperty] = value
@@ -182,7 +225,21 @@ class Subplot:
             return self.yAxisProps[targetPropery]
         elif axis == "z":
             return self.zAxisProps[targetPropery]
-    
+            
+    def SetAllAxisProperties(self, axis, properties):
+        if axis == "x":
+            self.xAxisProps = properties
+        elif axis == "y":
+            self.yAxisProps = properties
+        if self.dataType == "Field":    
+            self.SetFieldAxisUnits(axis, properties["Units"])
+            
+    def GetCopyAllAxisProperties(self, axis):
+        if axis == "x":
+            return copy.copy	(self.xAxisProps)
+        elif axis == "y":
+            return copy.copy(self.yAxisProps)
+            
     def SetPosition(self, position):
         self.subplotPosition = position
         
@@ -212,3 +269,21 @@ class Subplot:
         
     def GetAxisData(self):
         return self.axisData
+        
+    def SetColorBarProperty(self, prop, value):
+        self.colorbarProps[prop] = value
+    
+    def GetColorBarProperty(self, prop):
+        return self.colorbarProps[prop]
+    
+    def GetCopyAllColorbarProperties(self):
+        return copy.copy(self.colorbarProps)
+        
+    def SetAllColorbarProperties(self, properties):
+        self.colorbarProps = properties
+        
+    def GetCopyAllTitleProperties(self):
+        return copy.copy(self.axisTitleProps)
+        
+    def SetAllTitleProperties(self, properties):
+        self.axisTitleProps = properties

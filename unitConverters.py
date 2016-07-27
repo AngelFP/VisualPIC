@@ -84,7 +84,7 @@ class OsirisUnitConverter:
         return dataSet.GetPlotData(timeStep)
             
     def getAxisUnitsOptions(self, field):
-        normUnits = field.GetNormalizedUnits("Field")
+        normUnits = field.GetNormalizedUnits("x")
         if self.useNormUnits:
             return  [normUnits, "m", "μm"]    
         else:

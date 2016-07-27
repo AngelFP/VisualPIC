@@ -73,9 +73,9 @@ class DataPlotter:
                     else:
                         im = ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=field_cmap)
                     ax.xaxis.set_major_locator( LinearLocator(5) )
-                    ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + "$["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
-                    ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + "$["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
-                    ax.set_title(field.GetName())
+                    ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
+                    ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
+                    ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
                     if i == 0:
                         pos1 = ax.get_position()
                         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
@@ -90,7 +90,7 @@ class DataPlotter:
                     cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
                     cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
                     cbar.solids.set_edgecolor("face")
-                    cbar.set_label(label="$"+units+"$",size=20)
+                    cbar.set_label(label="$"+units+"$",size=subplot.GetColorBarProperty("FontSize"))
                     i += 1
                     
     def MakeAxisDataPlot(self, figure, subplot, rows, columns, timeStep):    

@@ -26,10 +26,11 @@ except AttributeError:
         return s
 
 class EditPlotFieldWindow(QtGui.QDialog):
-    def __init__(self, subplot):
-        super(EditPlotFieldWindow, self).__init__()
+    def __init__(self, subplot, parent=None):
+        super(EditPlotFieldWindow, self).__init__(parent)
         self.resize(500, 262)
         
+        self.mainWindow = parent
         self.subplot = subplot
         self.selectedFieldIndex = 0
         self.updatingUiData = True
@@ -255,6 +256,36 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.horizontalLayout_14.addWidget(self.yScale_comboBox)
         self.verticalLayout_11.addLayout(self.horizontalLayout_14)
         self.tabWidget_2.addTab(self.tab_4, _fromUtf8(""))
+        self.tab_7 = QtGui.QWidget()
+        self.tab_7.setObjectName(_fromUtf8("tab_7"))
+        self.verticalLayout_13 = QtGui.QVBoxLayout(self.tab_7)
+        self.verticalLayout_13.setObjectName(_fromUtf8("verticalLayout_13"))
+        self.horizontalLayout_12 = QtGui.QHBoxLayout()
+        self.horizontalLayout_12.setObjectName(_fromUtf8("horizontalLayout_12"))
+        self.label_11 = QtGui.QLabel(self.tab_7)
+        self.label_11.setObjectName(_fromUtf8("label_11"))
+        self.horizontalLayout_12.addWidget(self.label_11)
+        self.autoTitle_checkBox = QtGui.QCheckBox(self.tab_7)
+        self.autoTitle_checkBox.setChecked(True)
+        self.autoTitle_checkBox.setObjectName(_fromUtf8("autoTitle_checkBox"))
+        self.horizontalLayout_12.addWidget(self.autoTitle_checkBox)
+        self.autoTitle_lineEdit = QtGui.QLineEdit(self.tab_7)
+        self.autoTitle_lineEdit.setEnabled(False)
+        self.autoTitle_lineEdit.setObjectName(_fromUtf8("autoTitle_lineEdit"))
+        self.horizontalLayout_12.addWidget(self.autoTitle_lineEdit)
+        self.verticalLayout_13.addLayout(self.horizontalLayout_12)
+        self.horizontalLayout_21 = QtGui.QHBoxLayout()
+        self.horizontalLayout_21.setObjectName(_fromUtf8("horizontalLayout_21"))
+        self.label_25 = QtGui.QLabel(self.tab_7)
+        self.label_25.setObjectName(_fromUtf8("label_25"))
+        self.horizontalLayout_21.addWidget(self.label_25)
+        self.titleFontSize_spinBox = QtGui.QSpinBox(self.tab_7)
+        self.titleFontSize_spinBox.setMinimum(1)
+        self.titleFontSize_spinBox.setProperty("value", 20)
+        self.titleFontSize_spinBox.setObjectName(_fromUtf8("titleFontSize_spinBox"))
+        self.horizontalLayout_21.addWidget(self.titleFontSize_spinBox)
+        self.verticalLayout_13.addLayout(self.horizontalLayout_21)
+        self.tabWidget_2.addTab(self.tab_7, _fromUtf8(""))
         self.verticalLayout_9.addWidget(self.tabWidget_2)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
         self.tab_6 = QtGui.QWidget()
@@ -291,20 +322,6 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.verticalLayout_10 = QtGui.QVBoxLayout(self.tab_5)
         self.verticalLayout_10.setObjectName(_fromUtf8("verticalLayout_10"))
-        self.horizontalLayout_12 = QtGui.QHBoxLayout()
-        self.horizontalLayout_12.setObjectName(_fromUtf8("horizontalLayout_12"))
-        self.label_11 = QtGui.QLabel(self.tab_5)
-        self.label_11.setObjectName(_fromUtf8("label_11"))
-        self.horizontalLayout_12.addWidget(self.label_11)
-        self.autoTitle_checkBox = QtGui.QCheckBox(self.tab_5)
-        self.autoTitle_checkBox.setChecked(True)
-        self.autoTitle_checkBox.setObjectName(_fromUtf8("autoTitle_checkBox"))
-        self.horizontalLayout_12.addWidget(self.autoTitle_checkBox)
-        self.autoTitle_lineEdit = QtGui.QLineEdit(self.tab_5)
-        self.autoTitle_lineEdit.setEnabled(False)
-        self.autoTitle_lineEdit.setObjectName(_fromUtf8("autoTitle_lineEdit"))
-        self.horizontalLayout_12.addWidget(self.autoTitle_lineEdit)
-        self.verticalLayout_10.addLayout(self.horizontalLayout_12)
         self.label_14 = QtGui.QLabel(self.tab_5)
         self.label_14.setObjectName(_fromUtf8("label_14"))
         self.verticalLayout_10.addWidget(self.label_14)
@@ -317,6 +334,9 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_8.addItem(spacerItem)
+        self.apply_button = QtGui.QPushButton(self)
+        self.apply_button.setObjectName(_fromUtf8("apply_button"))
+        self.horizontalLayout_8.addWidget(self.apply_button)
         self.accept_button = QtGui.QPushButton(self)
         self.accept_button.setObjectName(_fromUtf8("accept_button"))
         self.horizontalLayout_8.addWidget(self.accept_button)
@@ -325,29 +345,17 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.horizontalLayout_8.addWidget(self.cancel_button)
         self.verticalLayout_5.addLayout(self.horizontalLayout_8)
 
+        self.SetText()
         self.RegisterUIEvents()
-        self.setText()
         self.GetFieldsInfo()
+        self.GetAxisProperties()
+        self.GetColorbarProperties()
+        self.GetTitleProperties()
         self.FillInitialUI()
         #self.LoadColorMaps()
         #self.LoadUnitsOptions()
-
-    def RegisterUIEvents(self):
-        #Fields tab
-        self.field_listView.clicked.connect(self.FieldListView_Clicked)
-        self.auto_checkBox.toggled.connect(self.AutoCheckBox_StatusChanged)
-        self.min_lineEdit.textChanged.connect(self.MinMaxLineEdit_textChanged)
-        self.max_lineEdit.textChanged.connect(self.MinMaxLineEdit_textChanged)
-        self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
-        self.fieldUnits_comboBox.currentIndexChanged.connect(self.SetFieldUnits)
-        self.accept_button.clicked.connect(self.AcceptButton_Clicked)
-        self.cancel_button.clicked.connect(self.CancelButton_Clicked)
         
-        # Axes tab
-        self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
-        self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
-    
-    def setText(self):
+    def SetText(self):
 #        self.FieldName.setText(self.fieldToPlot.GetName())
 #        self.SpeciesName.setText(self.fieldToPlot.GetSpeciesName())
         self.setWindowTitle("Edit plot")
@@ -385,21 +393,72 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.label_22.setText("Tick label spacing:")
         self.cbAutoLabel_checkBox.setText("Auto")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), "Colorbars")
-        self.label_11.setText("Title")
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_7), "Title")
+        self.label_11.setText("Text")
         self.autoTitle_checkBox.setText("Auto")
         self.label_14.setText("Overlay the following lines:")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), "Subplot")
+        self.apply_button.setText("Apply")
         self.accept_button.setText("Accept")
         self.cancel_button.setText("Cancel")
+
+    def RegisterUIEvents(self):
+        #Fields tab
+        self.field_listView.clicked.connect(self.FieldListView_Clicked)
+        self.auto_checkBox.toggled.connect(self.AutoCheckBox_StatusChanged)
+        self.min_lineEdit.textChanged.connect(self.MinMaxLineEdit_textChanged)
+        self.max_lineEdit.textChanged.connect(self.MinMaxLineEdit_textChanged)
+        self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
+        self.fieldUnits_comboBox.currentIndexChanged.connect(self.SetFieldUnits)
+        self.apply_button.clicked.connect(self.ApplyButton_Clicked)
+        self.accept_button.clicked.connect(self.AcceptButton_Clicked)
+        self.cancel_button.clicked.connect(self.CancelButton_Clicked)
+        
+        # Axes tab
+        self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
+        self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
+        self.xAutoLabel_checkBox.toggled.connect(self.XAutoLabelCheckBox_statusChanged)
+        self.yAutoLabel_checkBox.toggled.connect(self.YAutoLabelCheckBox_statusChanged)
+        self.xAutoLabel_lineEdit.textChanged.connect(self.XAutoLabelLineEdit_textChanged)
+        self.yAutoLabel_lineEdit.textChanged.connect(self.YAutoLabelLineEdit_textChanged)
+        self.xFontSize_spinBox.valueChanged.connect(self.XFontSizeSpinBox_valueChanged)
+        self.yFontSize_spinBox.valueChanged.connect(self.YFontSizeSpinBox_valueChanged)
+        self.autoTitle_checkBox.toggled.connect(self.AutoTitleCheckBox_statusChanged)
+        self.titleFontSize_spinBox.valueChanged.connect(self.TitleFontSizeSpinBox_valueChanged)
+        self.autoTitle_lineEdit.textChanged.connect(self.AutoTitleLineEdit_textChanged)
+        # Colorbar tab
+        self.cbAutoLabel_checkBox.toggled.connect(self.CbAutoLabelCheckBox_statusChanged)
+        self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
+        
+        # Subplot Tab
         
     def GetFieldsInfo(self):
         self.fieldInfoList = list()
         for field in self.subplot.GetFieldsToPlot():
             self.fieldInfoList.append(field.GetFieldInfo())
+    
+    def GetAxisProperties(self):
+        self.axisProperties = {
+            "x":self.subplot.GetCopyAllAxisProperties("x"),
+            "y":self.subplot.GetCopyAllAxisProperties("y")
+            }
+            
+    def GetColorbarProperties(self):
+        self.cbProperties = self.subplot.GetCopyAllColorbarProperties()
+        
+    def GetTitleProperties(self):
+        self.titleProperties = self.subplot.GetCopyAllTitleProperties()
         
     def FillInitialUI(self):
+                # use this boolean to determine whether UI data is being updated, 
+        #so that UI events happening during the process wont have any effect 
+        
         self.FillListView()
         self.FillFieldData(self.selectedFieldIndex)
+        self.FillAxesData()
+        self.FillColorbarData()
+        self.FillTitleData()
+        
         
     def FillListView(self):
         model = QtGui.QStandardItemModel()
@@ -414,10 +473,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.field_listView.setModel(model)
     
     def FillFieldData(self, fieldIndex):
-        # use this boolean to determine whether UI data is being updated, 
-        #so that UI events happening during the process wont have any effect 
+
         self.updatingUiData = True
-        
         self.selectedFieldInfo = self.fieldInfoList[fieldIndex]
         self.FieldName.setText(self.selectedFieldInfo["name"])
         self.SpeciesName.setText(self.selectedFieldInfo["speciesName"])
@@ -452,17 +509,48 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def FillAxesData(self):
         
+        self.updatingUiData = True
+        
         self.xUnits_comboBox.clear()
-        self.xUnits_comboBox.addItems(self.selectedFieldInfo["possibleAxisUnits"])
-        index = self.xUnits_comboBox.findText(self.selectedFieldInfo["axisUnits"]);
+        self.xUnits_comboBox.addItems(self.subplot.GetAxesUnitsOptions())
+        index = self.xUnits_comboBox.findText(self.axisProperties["x"]["Units"])
         if index != -1:
             self.xUnits_comboBox.setCurrentIndex(index)
             
         self.yUnits_comboBox.clear()
-        self.yUnits_comboBox.addItems(self.selectedFieldInfo["possibleAxisUnits"])
-        index = self.yUnits_comboBox.findText(self.selectedFieldInfo["axisUnits"]);
+        self.yUnits_comboBox.addItems(self.subplot.GetAxesUnitsOptions())
+        index = self.yUnits_comboBox.findText(self.axisProperties["y"]["Units"])
         if index != -1:
             self.yUnits_comboBox.setCurrentIndex(index)
+        
+        self.xAutoLabel_checkBox.setChecked(self.axisProperties["x"]["AutoLabel"])
+        self.yAutoLabel_checkBox.setChecked(self.axisProperties["y"]["AutoLabel"])
+        self.xAutoLabel_lineEdit.setText(self.axisProperties["x"]["LabelText"])
+        self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["LabelText"])
+        
+        self.xFontSize_spinBox.setValue(self.axisProperties["x"]["LabelFontSize"])
+        self.yFontSize_spinBox.setValue(self.axisProperties["y"]["LabelFontSize"])
+        
+        self.updatingUiData = False
+        
+    def FillColorbarData(self):
+        self.updatingUiData = True
+        
+        self.cbAutoLabel_checkBox.setChecked(self.cbProperties["AutoTickLabelSpacing"])
+        self.cbFontSize_spinBox.setValue(self.cbProperties["FontSize"])
+        
+        self.updatingUiData = False
+        
+    def FillTitleData(self):
+        
+        self.updatingUiData = True
+        
+        self.autoTitle_lineEdit.setText(self.titleProperties["Text"])
+        self.autoTitle_checkBox.setChecked(self.titleProperties["AutoText"])
+        self.titleFontSize_spinBox.setValue(self.titleProperties["FontSize"])
+        
+        self.updatingUiData = False
+        
 # UI Events        
     
     def FieldListView_Clicked(self,index):
@@ -496,24 +584,91 @@ class EditPlotFieldWindow(QtGui.QDialog):
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
         
-    def SetAxisUnits(self):
+    def SetXAxisUnits(self):
         if not self.updatingUiData:
-            units = self.axisUnits_comboBox.currentText()
-            self.selectedFieldInfo["axisUnits"] = units
-        
+            units = self.xUnits_comboBox.currentText()
+            self.axisProperties["x"]["Units"] = units
+    
+    def SetYAxisUnits(self):
+        if not self.updatingUiData:
+            units = self.yUnits_comboBox.currentText()
+            self.axisProperties["y"]["Units"] = units
+            
     def SetFieldUnits(self):
         if not self.updatingUiData:
             units = self.fieldUnits_comboBox.currentText()
             self.selectedFieldInfo["fieldUnits"] = units
-    
+            
+    def ApplyButton_Clicked(self):
+        self.SaveChanges()
+        self.mainWindow.PlotFields()
+        
     def AcceptButton_Clicked(self):
+        self.SaveChanges()
+        self.close() 
+    
+    def CancelButton_Clicked(self):
+        self.close()     
+        
+    def SaveChanges(self):
         i = 0
         for field in self.subplot.GetFieldsToPlot():
             field.SetFieldInfo(self.fieldInfoList[i])
             i+=1
-        self.close() 
+            
+        self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
+        self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
+        self.subplot.SetAllColorbarProperties(self.cbProperties)
+        self.subplot.SetAllTitleProperties(self.titleProperties)
+
+    def XAutoLabelCheckBox_statusChanged(self):
+        if self.xAutoLabel_checkBox.checkState():
+            self.xAutoLabel_lineEdit.setEnabled(False)
+            self.xAutoLabel_lineEdit.setText(self.axisProperties["x"]["DefaultLabelText"] )
+        else:
+            self.xAutoLabel_lineEdit.setEnabled(True)
+        self.axisProperties["x"]["AutoLabel"] = self.xAutoLabel_checkBox.checkState()
+        
+    def YAutoLabelCheckBox_statusChanged(self):
+        if self.yAutoLabel_checkBox.checkState():
+            self.yAutoLabel_lineEdit.setEnabled(False)
+            self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["DefaultLabelText"] )
+        else:
+            self.yAutoLabel_lineEdit.setEnabled(True)
+        self.axisProperties["y"]["AutoLabel"] = self.yAutoLabel_checkBox.checkState()
+        
+    def CbAutoLabelCheckBox_statusChanged(self):
+        if self.cbAutoLabel_checkBox.checkState():
+            self.cbAutoLabel_lineEdit.setEnabled(False)
+        else:
+            self.cbAutoLabel_lineEdit.setEnabled(True)
+        self.cbProperties["AutoTickLabelSpacing"] = self.cbAutoLabel_checkBox.checkState()
+            
+    def AutoTitleCheckBox_statusChanged(self):
+        if self.autoTitle_checkBox.checkState():
+            self.autoTitle_lineEdit.setEnabled(False)
+            self.autoTitle_lineEdit.setText(self.titleProperties["DefaultText"])
+        else:
+            self.autoTitle_lineEdit.setEnabled(True) 
+        self.titleProperties["AutoText"] = self.autoTitle_checkBox.checkState()
+            
+    def XAutoLabelLineEdit_textChanged(self, text):
+        self.axisProperties["x"]["LabelText"] = text
+        
+    def YAutoLabelLineEdit_textChanged(self, text):
+        self.axisProperties["y"]["LabelText"] = text
+        
+    def XFontSizeSpinBox_valueChanged(self, value):
+        self.axisProperties["x"]["LabelFontSize"] = value
+
+    def YFontSizeSpinBox_valueChanged(self, value):
+        self.axisProperties["y"]["LabelFontSize"] = value
+        
+    def CbFontSizeSpinBox_valueChanged(self, value):
+        self.cbProperties["FontSize"] = value
     
-    def CancelButton_Clicked(self):
-        self.close()        
-
-
+    def TitleFontSizeSpinBox_valueChanged(self, value):
+        self.titleProperties["FontSize"] = value
+    
+    def AutoTitleLineEdit_textChanged(self, text):
+        self.titleProperties["Text"] = text
