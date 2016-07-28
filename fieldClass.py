@@ -30,7 +30,24 @@ class Field:
         self.isRaw = isRaw
         self.internalName = internalName
         # si es raw se cargara de una forma y si no, de otra
+        self.LoadBasicData()
         
+    def LoadBasicData(self):
+        
+        fileName = self.name + "-"
+        if self.speciesName != "":
+            fileName += self.speciesName + "-"
+        
+        fileName += str(0).zfill(6)
+            
+        ending = ".h5"
+        
+        file_path = self.location + "/" + fileName + ending
+
+        file_content = h5py.File(file_path, 'r')
+        self.internalName = "/" + list(file_content.keys())[1]
+        self.LoadUnits(file_content)
+        file_content.close()
         
     def LoadData(self, timeStep):
             
@@ -60,10 +77,6 @@ class Field:
         file_content.close()
         
     def LoadFieldData(self,file_content):
-        
-        if not self.isRaw:
-            self.internalName = "/" + list(file_content.keys())[1]
-        
         self.fieldData = file_content[self.internalName][()] #the [()] ending means we get all the data as an array, otherwise we only get some chunks (more efficient, but its not an array, and thus we cant transpose it) 
         
     def LoadDimensions(self, file_content):
@@ -72,9 +85,9 @@ class Field:
         self.xMax = file_content.attrs['XMAX']
         
     def LoadUnits(self, file_content):
-        self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
-        self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])
-        self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
+        self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         
         
     def GetExtent(self):
@@ -103,4 +116,13 @@ class Field:
         
     def GetSpeciesName(self):
         return self.speciesName
+        
+    def GetNormalizedUnits(self, ofWhat):
+        if ofWhat == "x":
+            return self.x1Units
+        if ofWhat == "y":
+            return self.x2Units
+        if ofWhat == "Field":
+            return self.fieldUnits
+        
         

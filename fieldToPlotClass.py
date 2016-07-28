@@ -18,14 +18,15 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 class FieldToPlot:
-    def __init__(self, field, unitConverter, colorMapsCollection, isPartOfMultiplot = False, fieldUnits = "Norm", axisUnits = "Norm", plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
+    def __init__(self, field, unitConverter, colorMapsCollection, isPartOfMultiplot = False, plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
         
         self.field = field
         self.unitConverter = unitConverter
         self.colorMapsCollection = colorMapsCollection
         self.isPartOfMultiplot = isPartOfMultiplot
-        self.fieldUnits = fieldUnits
-        self.axisUnits = axisUnits
+        self.normUnits = {}
+        self.fieldUnits = ""
+        self.axesUnits = {}
         self.plotType = plotType
         self.colorMap = colorMap
         self.position = position
@@ -34,7 +35,17 @@ class FieldToPlot:
         self.vMin = vMin
         self.SetDefaultColorMap()
         self.dataType = "Field"
+        self.SetNormalizedUnits()
     
+    def SetNormalizedUnits(self):
+        self.normUnits["Field"] = self.field.GetNormalizedUnits("Field")
+        self.normUnits["x"] = self.field.GetNormalizedUnits("x")
+        self.normUnits["y"] = self.field.GetNormalizedUnits("y")
+        
+        self.fieldUnits = self.normUnits["Field"]
+        self.axesUnits["x"] = self.normUnits["x"]
+        self.axesUnits["y"] = self.normUnits["y"]
+        
     def SetDefaultColorMap(self):
         if self.isPartOfMultiplot:
             self.colorMap = "Base gray"
@@ -52,7 +63,7 @@ class FieldToPlot:
         
     def GetFieldPlotData(self, timeStep):
         
-        return self.unitConverter.GetPlotDataInUnits(timeStep, self.field, self.fieldUnits, self.axisUnits)
+        return self.unitConverter.GetPlotDataInUnits(timeStep, self.field, self.fieldUnits, self.axesUnits, self.normUnits)
         
     def GetColorMap(self):
         return self.colorMap
@@ -93,14 +104,15 @@ class FieldToPlot:
         return self.fieldUnitsOptions
         
     def GetPossibleAxisUnits(self):
-        self.axisUnitsOptions = self.unitConverter.getAxisUnitsOptions()
+        self.axisUnitsOptions = self.unitConverter.getAxisUnitsOptions(self.field)
         return self.axisUnitsOptions
         
     def SetFieldUnits(self, units):
         self.fieldUnits = units
         
-    def SetAxisUnits(self, units):
-        self.axisUnits = units
+    def SetAxisUnits(self, axis, units):
+        # axis = "x", "y" or "z"
+        self.axesUnits[axis] = units
         
     def GetPossibleColorMaps(self):
         if self.isPartOfMultiplot:
@@ -111,6 +123,14 @@ class FieldToPlot:
     def GetDataType(self):
         return self.dataType
         
+    def GetFieldUnits(self):
+        return self.fieldUnits
+        
+    def GetAxisUnits(self, axis):
+        # axis = "x", "y" or "z"
+        return self.axesUnits[axis]
+
+        
     def GetFieldInfo(self):
         
         info = {
@@ -118,7 +138,7 @@ class FieldToPlot:
             "speciesName":self.GetSpeciesName(), 
             "fieldUnits":self.fieldUnits, 
             "possibleFieldUnits":self.GetPossibleFieldUnits(),
-            "axisUnits":self.axisUnits, 
+            "axesUnits":self.axesUnits, 
             "possibleAxisUnits":self.GetPossibleAxisUnits(),
             "autoScale":not self.IsScaleCustom(),
             "maxVal":self.vMax,
@@ -133,7 +153,7 @@ class FieldToPlot:
     def SetFieldInfo(self, info):
         
         self.fieldUnits = info["fieldUnits"]
-        self.axisUnits = info["axisUnits"]
+        self.axesUnits = info["axesUnits"]
         self.useCustomScale = not info["autoScale"]
         self.vMax = info["maxVal"]
         self.vMin = info["minVal"]

@@ -50,14 +50,20 @@ class RawDataSetToPlot:
         return self.plotType
         
     def GetPossibleDataSetUnits(self):
-        self.dataSetUnitsOptions = self.unitConverter.getRawDataSetUnitsOptions(self.dataSet)
+        self.dataSetUnitsOptions = self.unitConverter.GetRawDataSetUnitsOptions(self.dataSet)
         return self.dataSetUnitsOptions
         
     def SetDataSetUnits(self, units):
         self.dataSetUnits = units
         
     def GetDataType(self):
-        return self.dataType    
+        return self.dataType  
+        
+    def GetUnits(self):
+        if self.dataSetUnits != "Norm":
+            return self.dataSetUnits
+        else:
+            return self.dataSet.GetUnits()
         
     def GetDataSetInfo(self):
         
