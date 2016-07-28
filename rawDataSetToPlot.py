@@ -50,7 +50,7 @@ class RawDataSetToPlot:
         return self.plotType
         
     def GetPossibleDataSetUnits(self):
-        self.dataSetUnitsOptions = self.unitConverter.getRawDataSetUnitsOptions(self.dataSet)
+        self.dataSetUnitsOptions = self.unitConverter.GetRawDataSetUnitsOptions(self.dataSet)
         return self.dataSetUnitsOptions
         
     def SetDataSetUnits(self, units):

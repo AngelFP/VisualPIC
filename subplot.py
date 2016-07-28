@@ -21,15 +21,15 @@ import copy
 
 class Subplot:
     
-    def __init__(self, subplotPosition, fieldsToPlotList = list(), axisData = {}):
+    def __init__(self, subplotPosition, colorMapsCollection, fieldsToPlotList = list(), axisData = {}):
         
         self.subplotName = ""
         self.plottedSpeciesName = ""
         self.subplotPosition = subplotPosition
         
         self.dataType = "" # Two possible data types: "Field" and "Axis".
-        self.plotType = ""
         self.possiblePlotTypes = list()
+        self.colorMapsCollection = colorMapsCollection
         # the fieldsToPlotList would contain 2D fields to plot, which already contain x and y coordinates and the values at each point
         self.fieldsToPlotList = fieldsToPlotList        
         if len(fieldsToPlotList) > 0:
@@ -47,11 +47,14 @@ class Subplot:
         self.yAxisProps = {}
         self.zAxisProps = {}
         
+        self.axisTitleProps = {}
+        
         # colorBar
         self.colorbarProps = {}
         
-        # subplot
-        self.axisTitleProps = {}
+        # plot settings
+        self.plotProps = {}
+        
         
         self.xLims = [] # contains min and max values in x axis
         self.yLims = []
@@ -111,7 +114,7 @@ class Subplot:
                 self.possiblePlotTypes = ["Image", "Surface"]
                 
         if self.dataType == "Axis":
-            self.possiblePlotTypes = ["Line", "Scatter"]
+            self.possiblePlotTypes = ["Histogram", "Scatter"]
             
     def SetDefaultValues(self):
         
@@ -123,6 +126,9 @@ class Subplot:
         
         self.LoadDefaultTitleValues()
         self.SetTitleToDefaultValues()
+        
+        self.LoadDefaultPlotProperties()
+        self.SetPlotPropertiesToDefault()
         
     def LoadDefaultAxesValues(self):
         defaultFontSize = 20  
@@ -182,6 +188,32 @@ class Subplot:
         self.SetTitleProperty("Text", self.GetTitleProperty("DefaultText"))
         self.SetTitleProperty("AutoText", self.GetTitleProperty("DefaultAutoText"))
         
+    def LoadDefaultPlotProperties(self):
+        if self.dataType == "Field":
+            self.plotProps["DefaultPlotType"] = "Image"
+        elif self.dataType == "Axis":
+            self.plotProps["DefaultPlotType"] = "Histogram"
+            self.plotProps["DefaultXBins"] = 100
+            self.plotProps["DefaultYBins"] = 100
+            self.plotProps["DefaultUseChargeWeighting"] = True
+            self.plotProps["DefaultChargeUnits"] = self.axisData["weight"].GetUnits()
+            self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
+            self.plotProps["DefaultDisplayColorbar"] = True
+        self.plotProps["DefaultAxesDimension"] = self.GetAxesDimension(self.plotProps["DefaultPlotType"])
+            
+    def SetPlotPropertiesToDefault(self):
+        if self.dataType == "Field":
+            self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
+        elif self.dataType == "Axis":
+            self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
+            self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
+            self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
+            self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
+            self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
+            self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
+            self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
+        self.plotProps["AxesDimension"] = self.plotProps["DefaultAxesDimension"]
+        
 # Interface methods
 
     def AddFieldToPlot(self, fieldToPlot):
@@ -198,7 +230,35 @@ class Subplot:
         self.SetPlottedSpeciesName()
     
     def GetAxesUnitsOptions(self):
-        return self.fieldsToPlotList[0].GetPossibleAxisUnits()
+        unitsOptions = {}
+        if self.dataType == "Field":
+            unitsOptions["x"] = self.fieldsToPlotList[0].GetPossibleAxisUnits()
+            unitsOptions["y"] = self.fieldsToPlotList[0].GetPossibleAxisUnits()
+        if self.dataType == "Axis":
+            unitsOptions["x"] = self.axisData["x"].GetPossibleDataSetUnits()
+            unitsOptions["y"] = self.axisData["y"].GetPossibleDataSetUnits()
+        return unitsOptions
+        
+    def GetWeightingUnitsOptions(self):
+        return self.axisData["weight"].GetPossibleDataSetUnits()
+        
+    def GetAxisColorMapOptions(self, plotType):
+        if plotType == "Histogram":
+            return self.colorMapsCollection.GetAllColorMapNames()
+        elif plotType == "Scatter":
+            return self.colorMapsCollection.GetAllColorMapNamesWithTransparency()
+            
+    def GetAxisDefaultColorMap(self, plotType):
+        if plotType == "Histogram":
+            return "BlueT"
+        elif plotType == "Scatter":
+            return "Uniform Blue Transparent"
+    def GetAxesDimension(self, plotType):
+        ThreeDplotTypes = ["Surface", "Scatter3D"]
+        if plotType in ThreeDplotTypes:
+            return "3D"
+        else:
+            return "2D"
         
     def SetFieldAxisUnits(self, axis, units):
         for fieldToPlot in self.fieldsToPlotList:
@@ -249,11 +309,8 @@ class Subplot:
     def GetPossiblePlotTypes(self):
         return self.possiblePlotTypes
         
-    def SetPlotType(self, plotType):
-        self.plotType = plotType
-        
     def GetPlotType(self):
-        return self.plotType
+        return self.plotProps["PlotType"]
         
     def GetDataType(self):
         return self.dataType
@@ -287,3 +344,12 @@ class Subplot:
         
     def SetAllTitleProperties(self, properties):
         self.axisTitleProps = properties
+        
+    def GetCopyAllPlotProperties(self):
+        return copy.copy(self.plotProps)
+        
+    def SetAllPlotProperties(self, properties):
+        self.plotProps = properties
+        
+    def GetPlotProperty(self, targetProperty):
+        return self.plotProps[targetProperty]

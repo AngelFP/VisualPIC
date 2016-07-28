@@ -82,6 +82,14 @@ class OsirisUnitConverter:
     def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
         #implement actual unit conversion
         return dataSet.GetPlotData(timeStep)
+        
+    def GetRawDataSetUnitsOptions(self, dataSet):
+        normUnits = dataSet.GetNormalizedUnits()
+        if self.useNormUnits:
+            # add units option for each type of data
+            return  [normUnits]    
+        else:
+            return [normUnits]
             
     def getAxisUnitsOptions(self, field):
         normUnits = field.GetNormalizedUnits("x")

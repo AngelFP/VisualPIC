@@ -24,7 +24,6 @@ import numpy as np
 import gc
 import os
 import sys
-
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
@@ -263,7 +262,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         
     def addRawDataSubplot(self, dataSets):
         plotPosition = len(self.subplotList)+1
-        subplot = Subplot(plotPosition, axisData = dataSets)
+        subplot = Subplot(plotPosition, self.colorMapsCollection, axisData = dataSets)
         self.subplotList.append(subplot)
         self.setAutoColumnsAndRows()
             
@@ -334,7 +333,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
             fldList.append(fieldToPlot)
             
         plotPosition = len(self.subplotList)+1
-        subplot = Subplot(plotPosition, fieldsToPlotList = fldList)
+        subplot = Subplot(plotPosition, self.colorMapsCollection, fieldsToPlotList = fldList)
         self.subplotList.append(subplot)
         self.setAutoColumnsAndRows()
             

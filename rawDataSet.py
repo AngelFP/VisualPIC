@@ -66,7 +66,10 @@ class RawDataSet:
 
         
     def LoadUnits(self, file_content):
-        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
+        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        
+    def GetNormalizedUnits(self):
+        return self.dataUnits
         
     def GetRawData(self):
         return self.rawData

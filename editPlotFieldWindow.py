@@ -32,6 +32,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
         self.mainWindow = parent
         self.subplot = subplot
+        self.dataType = self.subplot.GetDataType()
         self.selectedFieldIndex = 0
         self.updatingUiData = True
         
@@ -141,6 +142,64 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.horizontalLayout_9.addLayout(self.verticalLayout_6)
         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
+        self.axisPlot_tab = QtGui.QWidget()
+        self.axisPlot_tab.setObjectName(_fromUtf8("axisPlot_tab"))
+        self.verticalLayout_14 = QtGui.QVBoxLayout(self.axisPlot_tab)
+        self.verticalLayout_14.setObjectName(_fromUtf8("verticalLayout_14"))
+        self.horizontalLayout_22 = QtGui.QHBoxLayout()
+        self.horizontalLayout_22.setObjectName(_fromUtf8("horizontalLayout_22"))
+        self.label_3 = QtGui.QLabel(self.axisPlot_tab)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.horizontalLayout_22.addWidget(self.label_3)
+        self.axisPlotType_comboBox = QtGui.QComboBox(self.axisPlot_tab)
+        self.axisPlotType_comboBox.setObjectName(_fromUtf8("axisPlotType_comboBox"))
+        self.horizontalLayout_22.addWidget(self.axisPlotType_comboBox)
+        self.verticalLayout_14.addLayout(self.horizontalLayout_22)
+        self.verticalLayout_15 = QtGui.QVBoxLayout()
+        self.verticalLayout_15.setObjectName(_fromUtf8("verticalLayout_15"))
+        self.label_26 = QtGui.QLabel(self.axisPlot_tab)
+        self.label_26.setObjectName(_fromUtf8("label_26"))
+        self.verticalLayout_15.addWidget(self.label_26)
+        self.horizontalLayout_24 = QtGui.QHBoxLayout()
+        self.horizontalLayout_24.setObjectName(_fromUtf8("horizontalLayout_24"))
+        self.chargeWeight_checkBox = QtGui.QCheckBox(self.axisPlot_tab)
+        self.chargeWeight_checkBox.setChecked(True)
+        self.chargeWeight_checkBox.setObjectName(_fromUtf8("chargeWeight_checkBox"))
+        self.horizontalLayout_24.addWidget(self.chargeWeight_checkBox)
+        self.verticalLayout_15.addLayout(self.horizontalLayout_24)
+        self.horizontalLayout_25 = QtGui.QHBoxLayout()
+        self.horizontalLayout_25.setObjectName(_fromUtf8("horizontalLayout_25"))
+        self.label_27 = QtGui.QLabel(self.axisPlot_tab)
+        self.label_27.setObjectName(_fromUtf8("label_27"))
+        self.horizontalLayout_25.addWidget(self.label_27)
+        self.chargeUnits_comboBox = QtGui.QComboBox(self.axisPlot_tab)
+        self.chargeUnits_comboBox.setObjectName(_fromUtf8("chargeUnits_comboBox"))
+        self.horizontalLayout_25.addWidget(self.chargeUnits_comboBox)
+        self.verticalLayout_15.addLayout(self.horizontalLayout_25)
+        self.verticalLayout_14.addLayout(self.verticalLayout_15)
+        self.verticalLayout_16 = QtGui.QVBoxLayout()
+        self.verticalLayout_16.setObjectName(_fromUtf8("verticalLayout_16"))
+        self.label_28 = QtGui.QLabel(self.axisPlot_tab)
+        self.label_28.setObjectName(_fromUtf8("label_28"))
+        self.verticalLayout_16.addWidget(self.label_28)
+        self.horizontalLayout_23 = QtGui.QHBoxLayout()
+        self.horizontalLayout_23.setObjectName(_fromUtf8("horizontalLayout_23"))
+        self.label_7 = QtGui.QLabel(self.axisPlot_tab)
+        self.label_7.setObjectName(_fromUtf8("label_7"))
+        self.horizontalLayout_23.addWidget(self.label_7)
+        self.axisColorMap_comboBox = QtGui.QComboBox(self.axisPlot_tab)
+        self.axisColorMap_comboBox.setObjectName(_fromUtf8("axisColorMap_comboBox"))
+        self.horizontalLayout_23.addWidget(self.axisColorMap_comboBox)
+        self.verticalLayout_16.addLayout(self.horizontalLayout_23)
+        self.horizontalLayout_26 = QtGui.QHBoxLayout()
+        self.horizontalLayout_26.setObjectName(_fromUtf8("horizontalLayout_26"))
+        self.displayColorbar_checkBox = QtGui.QCheckBox(self.axisPlot_tab)
+        self.displayColorbar_checkBox.setChecked(True)
+        self.displayColorbar_checkBox.setObjectName(_fromUtf8("displayColorbar_checkBox"))
+        self.horizontalLayout_26.addWidget(self.displayColorbar_checkBox)
+        self.verticalLayout_16.addLayout(self.horizontalLayout_26)
+        self.verticalLayout_14.addLayout(self.verticalLayout_16)
+        self.tabWidget.addTab(self.axisPlot_tab, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
         self.verticalLayout_9 = QtGui.QVBoxLayout(self.tab_2)
@@ -347,9 +406,11 @@ class EditPlotFieldWindow(QtGui.QDialog):
 
         self.SetText()
         self.RegisterUIEvents()
+        self.SetVisibleTabs()
         self.GetFieldsInfo()
         self.GetAxisProperties()
         self.GetColorbarProperties()
+        self.GetPlotProperties()
         self.GetTitleProperties()
         self.FillInitialUI()
         #self.LoadColorMaps()
@@ -372,6 +433,14 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.label_2.setText("Plot type:")
         self.label.setText("Colormap:")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), "Fields")
+        self.label_3.setText("Plot type:")
+        self.label_26.setText("Options:")
+        self.chargeWeight_checkBox.setText("Use macroparticle charge as weighting parameter (recommended)")
+        self.label_27.setText("Charge units:")
+        self.label_28.setText("Color:")
+        self.label_7.setText("Colormap:")
+        self.displayColorbar_checkBox.setText("Display colorbar")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.axisPlot_tab), "Plot settings")
         self.label_15.setText("Label:")
         self.label_9.setText("Text")
         self.xAutoLabel_checkBox.setText("Auto")
@@ -388,22 +457,23 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.label_24.setText("Units")
         self.label_13.setText("Scale:")
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), "Y axis")
+        self.label_11.setText("Text:")
+        self.autoTitle_checkBox.setText("Auto")
+        self.label_25.setText("Fontsize:")
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_7), "Title")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), "Axes")
         self.label_21.setText("Fontsize:")
         self.label_22.setText("Tick label spacing:")
         self.cbAutoLabel_checkBox.setText("Auto")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), "Colorbars")
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_7), "Title")
-        self.label_11.setText("Text")
-        self.autoTitle_checkBox.setText("Auto")
         self.label_14.setText("Overlay the following lines:")
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), "Subplot")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), "Text")
         self.apply_button.setText("Apply")
         self.accept_button.setText("Accept")
         self.cancel_button.setText("Cancel")
 
     def RegisterUIEvents(self):
-        #Fields tab
+        # Fields tab
         self.field_listView.clicked.connect(self.FieldListView_Clicked)
         self.auto_checkBox.toggled.connect(self.AutoCheckBox_StatusChanged)
         self.min_lineEdit.textChanged.connect(self.MinMaxLineEdit_textChanged)
@@ -413,6 +483,14 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.apply_button.clicked.connect(self.ApplyButton_Clicked)
         self.accept_button.clicked.connect(self.AcceptButton_Clicked)
         self.cancel_button.clicked.connect(self.CancelButton_Clicked)
+        self.plotType_comboBox.currentIndexChanged.connect(self.PlotTypeComboBox_IndexChanged)
+        
+        # Plot settings tab
+        self.axisPlotType_comboBox.currentIndexChanged.connect(self.AxisPlotTypeComboBox_IndexChanged)
+        self.chargeUnits_comboBox.currentIndexChanged.connect(self.ChargeUnitsComboBox_IndexChanged)
+        self.axisColorMap_comboBox.currentIndexChanged.connect(self.AxisColorMapComboBox_IndexChanged)
+        self.chargeWeight_checkBox.toggled.connect(self.ChargeWeightCheckBox_StatusChanged)
+        self.displayColorbar_checkBox.toggled.connect(self.DisplayColorbarCheckBox_StatusChanged)
         
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
@@ -431,6 +509,13 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
         
         # Subplot Tab
+    
+    def SetVisibleTabs(self):
+        
+        if self.dataType == "Field":
+            self.tabWidget.removeTab(1)
+        elif self.dataType == "Axis":
+            self.tabWidget.removeTab(0)
         
     def GetFieldsInfo(self):
         self.fieldInfoList = list()
@@ -449,12 +534,18 @@ class EditPlotFieldWindow(QtGui.QDialog):
     def GetTitleProperties(self):
         self.titleProperties = self.subplot.GetCopyAllTitleProperties()
         
+    def GetPlotProperties(self):
+        self.plotProperties = self.subplot.GetCopyAllPlotProperties()
+        
     def FillInitialUI(self):
                 # use this boolean to determine whether UI data is being updated, 
         #so that UI events happening during the process wont have any effect 
         
         self.FillListView()
-        self.FillFieldData(self.selectedFieldIndex)
+        if self.dataType == "Field":
+            self.FillFieldData(self.selectedFieldIndex)
+        elif self.dataType == "Axis":
+            self.FillPlotSettingsData()
         self.FillAxesData()
         self.FillColorbarData()
         self.FillTitleData()
@@ -486,7 +577,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
         index = self.fieldUnits_comboBox.findText(self.selectedFieldInfo["fieldUnits"])
         if index != -1:
-           self.fieldUnits_comboBox.setCurrentIndex(index)
+            self.fieldUnits_comboBox.setCurrentIndex(index)
+       
        
         
         
@@ -505,20 +597,55 @@ class EditPlotFieldWindow(QtGui.QDialog):
         if index != -1:
            self.colorMap_comboBox.setCurrentIndex(index)
            
+           
+        # Plot type
+        self.plotType_comboBox.clear()
+        self.plotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
+        index = self.plotType_comboBox.findText(self.plotProperties["PlotType"]);
+        if index != -1:
+           self.plotType_comboBox.setCurrentIndex(index)
+           
+        self.updatingUiData = False
+    
+    def FillPlotSettingsData(self):
+        self.updatingUiData = True
+        
+        self.axisPlotType_comboBox.clear()
+        self.axisPlotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
+        index = self.axisPlotType_comboBox.findText(self.plotProperties["PlotType"]);
+        if index != -1:
+            self.axisPlotType_comboBox.setCurrentIndex(index)
+        
+        self.chargeWeight_checkBox.setChecked(self.plotProperties["UseChargeWeighting"])
+        
+        self.chargeUnits_comboBox.clear()
+        self.chargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
+        index = self.chargeUnits_comboBox.findText(self.plotProperties["ChargeUnits"]);
+        if index != -1:
+            self.chargeUnits_comboBox.setCurrentIndex(index)
+        
+        self.axisColorMap_comboBox.clear()
+        self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(self.plotProperties["PlotType"]))
+        index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
+        if index != -1:
+            self.axisColorMap_comboBox.setCurrentIndex(index)
+            
+        self.displayColorbar_checkBox.setChecked(self.plotProperties["DisplayColorbar"])
         self.updatingUiData = False
         
     def FillAxesData(self):
         
         self.updatingUiData = True
+        unitOptions = self.subplot.GetAxesUnitsOptions()
         
         self.xUnits_comboBox.clear()
-        self.xUnits_comboBox.addItems(self.subplot.GetAxesUnitsOptions())
+        self.xUnits_comboBox.addItems(unitOptions["x"])
         index = self.xUnits_comboBox.findText(self.axisProperties["x"]["Units"])
         if index != -1:
             self.xUnits_comboBox.setCurrentIndex(index)
             
         self.yUnits_comboBox.clear()
-        self.yUnits_comboBox.addItems(self.subplot.GetAxesUnitsOptions())
+        self.yUnits_comboBox.addItems(unitOptions["y"])
         index = self.yUnits_comboBox.findText(self.axisProperties["y"]["Units"])
         if index != -1:
             self.yUnits_comboBox.setCurrentIndex(index)
@@ -599,6 +726,12 @@ class EditPlotFieldWindow(QtGui.QDialog):
             units = self.fieldUnits_comboBox.currentText()
             self.selectedFieldInfo["fieldUnits"] = units
             
+    def PlotTypeComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            plotType = self.plotType_comboBox.currentText()
+            self.plotProperties["PlotType"] = plotType
+            self.plotProperties["AxesDimension"] = self.subplot.GetAxesDimension(plotType)
+            
     def ApplyButton_Clicked(self):
         self.SaveChanges()
         self.mainWindow.PlotFields()
@@ -620,6 +753,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
         self.subplot.SetAllTitleProperties(self.titleProperties)
+        self.subplot.SetAllPlotProperties(self.plotProperties)
 
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
@@ -672,3 +806,35 @@ class EditPlotFieldWindow(QtGui.QDialog):
     
     def AutoTitleLineEdit_textChanged(self, text):
         self.titleProperties["Text"] = text
+        
+    # Plot settings tab
+        
+    def AxisPlotTypeComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            plotType = self.axisPlotType_comboBox.currentText()
+            self.plotProperties["PlotType"] = plotType
+            self.plotProperties["AxesDimension"] = self.subplot.GetAxesDimension(plotType)
+            self.axisColorMap_comboBox.clear()
+            self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(plotType))
+            self.plotProperties["CMap"] = self.subplot.GetAxisDefaultColorMap(plotType)
+            index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
+            if index != -1:
+                self.axisColorMap_comboBox.setCurrentIndex(index)
+    
+    def ChargeUnitsComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            units = self.chargeUnits_comboBox.currentText()
+            self.plotProperties["ChargeUnits"] = units
+            
+    def AxisColorMapComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            cMap = self.axisColorMap_comboBox.currentText()
+            self.plotProperties["CMap"] = cMap
+            
+    def ChargeWeightCheckBox_StatusChanged(self):
+        state = self.chargeWeight_checkBox.checkState()
+        self.chargeUnits_comboBox.setEnabled(state)
+        self.plotProperties["UseChargeWeighting"] = state
+        
+    def DisplayColorbarCheckBox_StatusChanged(self):
+        self.plotProperties["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
