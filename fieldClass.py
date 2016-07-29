@@ -47,6 +47,7 @@ class Field:
         file_content = h5py.File(file_path, 'r')
         self.internalName = "/" + list(file_content.keys())[1]
         self.LoadUnits(file_content)
+        self.LoadDimension(file_content)
         file_content.close()
         
     def LoadData(self, timeStep):
@@ -88,7 +89,15 @@ class Field:
         self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        
+    
+    def LoadDimension(self, file_content):
+        if '/AXIS/AXIS3' in file_content:
+            self.fieldDimension = "3D"
+        else:
+            self.fieldDimension = "2D"
+            
+    def GetFieldDimension(self):
+        return self.fieldDimension
         
     def GetExtent(self):
         axisExtent = [self.xMin[0],self.xMax[0], self.xMin[1],self.xMax[1]]

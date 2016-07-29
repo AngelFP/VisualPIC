@@ -68,6 +68,9 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.SetListOfPlotPositions()
         self.CreateCanvasAndFigure()
         self.increaseRowsColumnsCounter = 0
+        
+        self.speciesFieldPlotDimension = "2D"
+        self.domainFieldPlotDimension = "2D"
 
         
     def CreateCanvasAndFigure(self):
@@ -100,11 +103,10 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.columns_spinBox.valueChanged.connect(self.SetListOfPlotPositions)
         self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
-        self.availableSpeciesFields_radioButton.toggled.connect(self.SpeciesFieldsRadioButton_Toggled)
-        self.customSpeciesFields_radioButton.toggled.connect(self.SpeciesFieldsRadioButton_Toggled)
-        self.availableDomainFields_radioButton.toggled.connect(self.DomainFieldsRadioButton_Toggled)
-        self.available1DDomainFields_radioButton.toggled.connect(self.DomainFieldsRadioButton_Toggled)
-        self.customDomainFields_radioButton.toggled.connect(self.DomainFieldsRadioButton_Toggled)
+        self.oneDimSpeciesField_radioButton.toggled.connect(self.SpeciesFieldsRadioButton_Toggled)
+        self.twoDimSpeciesField_radioButton.toggled.connect(self.SpeciesFieldsRadioButton_Toggled)
+        self.oneDimDomainField_radioButton.toggled.connect(self.DomainFieldsRadioButton_Toggled)
+        self.twoDimDomainField_radioButton.toggled.connect(self.DomainFieldsRadioButton_Toggled)
         self.rawPlotType_radioButton_1.toggled.connect(self.rawFieldsRadioButton_Toggled)
         self.rawPlotType_radioButton_2.toggled.connect(self.rawFieldsRadioButton_Toggled)
         self.rawPlotType_radioButton_3.toggled.connect(self.rawFieldsRadioButton_Toggled)
@@ -114,18 +116,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.setNormalization_Button.clicked.connect(self.setNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.addRawFieldButton_Clicked)
     
-    def rawFieldsRadioButton_Toggled(self):
-        if self.rawPlotType_radioButton_1.isChecked():
-            self.freeRaw_widget.setVisible(True)
-            self.premadeRaw_widget.setVisible(False)
-            self.yRaw_comboBox.setEnabled(False)
-        elif self.rawPlotType_radioButton_2.isChecked():
-            self.freeRaw_widget.setVisible(True)
-            self.premadeRaw_widget.setVisible(False)
-            self.yRaw_comboBox.setEnabled(True)
-        elif self.rawPlotType_radioButton_3.isChecked():
-            self.freeRaw_widget.setVisible(False)
-            self.premadeRaw_widget.setVisible(True)
+    
         
         
     def setNormalizationButton_Clicked(self):
@@ -159,26 +150,29 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         CreateAnimationWindow.exec_()
         
     def SpeciesFieldsRadioButton_Toggled(self):
-        if self.availableSpeciesFields_radioButton.isChecked():
-            self.avSpeciesFields_comboBox.setEnabled(True)
-            self.customSpeciesFields_comboBox.setEnabled(False)
-        elif self.customSpeciesFields_radioButton.isChecked():
-            self.avSpeciesFields_comboBox.setEnabled(False)
-            self.customSpeciesFields_comboBox.setEnabled(True)      
+        if self.oneDimSpeciesField_radioButton.isChecked():
+            self.speciesFieldPlotDimension = "1D"
+        elif self.twoDimSpeciesField_radioButton.isChecked(): 
+            self.speciesFieldPlotDimension = "2D"
             
     def DomainFieldsRadioButton_Toggled(self):
-        if self.availableDomainFields_radioButton.isChecked():
-            self.av2DDomainFields_comboBox.setEnabled(True)
-            self.av1DDomainFields_comboBox.setEnabled(False)
-            self.avCustomDomainFields_comboBox.setEnabled(False)
-        elif self.available1DDomainFields_radioButton.isChecked():
-            self.av2DDomainFields_comboBox.setEnabled(False)
-            self.av1DDomainFields_comboBox.setEnabled(True)
-            self.avCustomDomainFields_comboBox.setEnabled(False)  
-        elif self.customDomainFields_radioButton.isChecked():
-            self.av2DDomainFields_comboBox.setEnabled(False)
-            self.av1DDomainFields_comboBox.setEnabled(False)
-            self.avCustomDomainFields_comboBox.setEnabled(True)
+        if self.oneDimDomainField_radioButton.isChecked():
+            self.domainFieldPlotDimension = "1D"
+        elif self.twoDimDomainField_radioButton.isChecked():
+            self.domainFieldPlotDimension = "2D"
+            
+    def rawFieldsRadioButton_Toggled(self):
+        if self.rawPlotType_radioButton_1.isChecked():
+            self.freeRaw_widget.setVisible(True)
+            self.premadeRaw_widget.setVisible(False)
+            self.zRaw_comboBox.setEnabled(False)
+        elif self.rawPlotType_radioButton_2.isChecked():
+            self.freeRaw_widget.setVisible(True)
+            self.premadeRaw_widget.setVisible(False)
+            self.zRaw_comboBox.setEnabled(True)
+        elif self.rawPlotType_radioButton_3.isChecked():
+            self.freeRaw_widget.setVisible(False)
+            self.premadeRaw_widget.setVisible(True)
             
     def TimeStepSlider_valueChanged(self):
         self.timeStep_LineEdit.setText(str(self.timeStep_Slider.value()))
@@ -320,16 +314,16 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.PlotFields()
         
     def addDomainFieldButton_Clicked(self):
-        self.addFieldsToPlot(self.availableData.GetSelectedDomainField())
+        self.addFieldsToPlot(self.availableData.GetSelectedDomainField(), self.domainFieldPlotDimension)
 	
     def addSpeciesFieldButton_Clicked(self):
         self.availableData.SetSelectedSpeciesFields()
-        self.addFieldsToPlot(self.availableData.GetSelectedSpeciesFields())
+        self.addFieldsToPlot(self.availableData.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
         
-    def addFieldsToPlot(self, fields):
+    def addFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
         for fld in fields:
-            fieldToPlot = FieldToPlot(fld, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
+            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
             
         plotPosition = len(self.subplotList)+1

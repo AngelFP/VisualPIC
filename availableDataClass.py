@@ -145,6 +145,16 @@ class AvailableData:
             if species.GetName() == speciesName:
                 return species.GetAvailableFieldNamesList()
                 
+    def GetDomainField(self, fieldName):
+        for field in self.availableDomainFields:
+            if field.GetName() == fieldName:
+                return field
+                
+    def GetSpeciesField(self, speciesName, fieldName):
+        for species in self.availableSpecies:
+            if species.GetName() == speciesName:
+                return species.GetField(fieldName)
+                
     def GetFolderPath(self):
         
         return self.dataLocation

@@ -21,7 +21,7 @@ import copy
 
 class Subplot:
     
-    def __init__(self, subplotPosition, colorMapsCollection, fieldsToPlotList = list(), axisData = {}):
+    def __init__(self, subplotPosition, colorMapsCollection, fieldsToPlotList = list(), axisData = {},):
         
         self.subplotName = ""
         self.plottedSpeciesName = ""
@@ -34,7 +34,7 @@ class Subplot:
         self.fieldsToPlotList = fieldsToPlotList        
         if len(fieldsToPlotList) > 0:
             self.dataType = "Field"
-        
+            
         # axisData, on the other side, would be for plots that are made individually 
         #stating wich quantities go in each axis. For example x1 vs p1.
         # Up to 3 axis can be included (x,y and z). It is a dictionary.
@@ -189,9 +189,7 @@ class Subplot:
         self.SetTitleProperty("AutoText", self.GetTitleProperty("DefaultAutoText"))
         
     def LoadDefaultPlotProperties(self):
-        if self.dataType == "Field":
-            self.plotProps["DefaultPlotType"] = "Image"
-        elif self.dataType == "Axis":
+        if self.dataType == "Axis":
             self.plotProps["DefaultPlotType"] = "Histogram"
             self.plotProps["DefaultXBins"] = 100
             self.plotProps["DefaultYBins"] = 100
@@ -199,12 +197,9 @@ class Subplot:
             self.plotProps["DefaultChargeUnits"] = self.axisData["weight"].GetUnits()
             self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
             self.plotProps["DefaultDisplayColorbar"] = True
-        self.plotProps["DefaultAxesDimension"] = self.GetAxesDimension(self.plotProps["DefaultPlotType"])
             
     def SetPlotPropertiesToDefault(self):
-        if self.dataType == "Field":
-            self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
-        elif self.dataType == "Axis":
+        if self.dataType == "Axis":
             self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
             self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
             self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
@@ -212,7 +207,6 @@ class Subplot:
             self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
             self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
             self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
-        self.plotProps["AxesDimension"] = self.plotProps["DefaultAxesDimension"]
         
 # Interface methods
 
@@ -253,12 +247,17 @@ class Subplot:
             return "BlueT"
         elif plotType == "Scatter":
             return "Uniform Blue Transparent"
-    def GetAxesDimension(self, plotType):
+            
+    def GetAxesDimension(self):
         ThreeDplotTypes = ["Surface", "Scatter3D"]
-        if plotType in ThreeDplotTypes:
-            return "3D"
-        else:
-            return "2D"
+        if self.dataType == "Field":
+            for fieldToPlot in self.fieldsToPlotList:
+                if fieldToPlot.GetPlotType() in ThreeDplotTypes:
+                    return "3D"
+        elif self.dataType == "Axis":
+            if self.plotProps["PlotType"] in ThreeDplotTypes:
+                 return "3D"
+        return "2D"
         
     def SetFieldAxisUnits(self, axis, units):
         for fieldToPlot in self.fieldsToPlotList:
@@ -324,6 +323,15 @@ class Subplot:
     def GetFieldsToPlot(self):
         return self.fieldsToPlotList
         
+    def GetFieldsToPlotWithDimension(self, dimension):
+        fieldList = list()
+        for fieldToPlot in self.fieldsToPlotList:
+            if fieldToPlot.GetDataToPlotDimension() == dimension:
+                fieldList.append(fieldToPlot)
+        return fieldList
+            
+            
+        
     def GetAxisData(self):
         return self.axisData
         
@@ -353,3 +361,6 @@ class Subplot:
         
     def GetPlotProperty(self, targetProperty):
         return self.plotProps[targetProperty]
+        
+    def RemoveField(self, index):
+        del self.fieldsToPlotList[index]
