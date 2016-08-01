@@ -238,11 +238,14 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
             if speciesName == species.GetName():
                 self.xRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
                 self.yRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
+                self.zRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
                 
     def addRawFieldButton_Clicked(self):
         speciesName = self.rawFieldSpecies_comboBox.currentText()
         xDataSetName = self.xRaw_comboBox.currentText()
         yDataSetName = self.yRaw_comboBox.currentText()
+        if self.rawPlotType_radioButton_2.isChecked():
+            zDataSetName = self.zRaw_comboBox.currentText()
         dataSets = {}
         for species in self.availableData.GetAvailableSpecies():
             if species.GetName() == speciesName:
@@ -250,6 +253,9 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
                dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
                yDataSet = species.GetRawDataSet(yDataSetName) 
                dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+               if self.rawPlotType_radioButton_2.isChecked():
+                   zDataSet = species.GetRawDataSet(zDataSetName) 
+                   dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
                weightingDataSet = species.GetRawDataSet("q")
                dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.unitConverter)
                self.addRawDataSubplot(dataSets)

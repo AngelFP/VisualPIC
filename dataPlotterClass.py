@@ -51,6 +51,7 @@ class DataPlotter:
             
         axisTypes = {
             "Scatter":self.MakeScatterPlot,
+            "Scatter3D":self.Make3DScatterPlot,
             "Histogram":self.MakeHistogramPlot
             }
         self.plotTypes = {
@@ -142,18 +143,27 @@ class DataPlotter:
         
         
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        plotData = subplot.GetAxisData()
-        xData = plotData["x"].GetDataSetPlotData(timeStep)
-        yData = plotData["y"].GetDataSetPlotData(timeStep)
-        weightData = plotData["weight"].GetDataSetPlotData(timeStep)
+        axisData = subplot.GetAxisData()
+        xData = axisData["x"].GetDataSetPlotData(timeStep)
+        yData = axisData["y"].GetDataSetPlotData(timeStep)
+        if "z" in axisData:
+            zData = axisData["z"].GetDataSetPlotData(timeStep)
+        weightData = axisData["weight"].GetDataSetPlotData(timeStep)
         
+        plotData = {}
         xValues = xData[0]
+        plotData["x"] = xValues
         yValues = yData[0]
+        plotData["y"] = yValues
+        if "z" in axisData:
+            zValues = zData[0]
+            plotData["z"] = zValues
         weightValues = weightData[0]
+        plotData["weight"] = weightValues
         
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
         
-        im = self.plotTypes["Axis"][subplot.GetPlotProperty("PlotType")](ax, xValues, yValues, weightValues, cMap)
+        im = self.plotTypes["Axis"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
         
         pos1 = ax.get_position()
         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
@@ -168,7 +178,7 @@ class DataPlotter:
         cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
         cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
         cbar.solids.set_edgecolor("face")
-        cbar.set_label(label="$"+plotData["weight"].GetUnits()+"$",size=subplot.GetColorBarProperty("FontSize"))
+        cbar.set_label(label="$"+axisData["weight"].GetUnits()+"$",size=subplot.GetColorBarProperty("FontSize"))
         
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
@@ -209,11 +219,24 @@ class DataPlotter:
         
         
 # Axis data plot types     
-    def MakeHistogramPlot(self, ax, xValues, yValues, weightValues, cMap):
+    def MakeHistogramPlot(self, ax, plotData, cMap):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        weightValues = plotData["weight"]
         H, xedges, yedges = np.histogram2d(xValues, yValues, bins = 80, weights = weightValues)
         extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
         return ax.imshow(H.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
         
-    def MakeScatterPlot(self, ax, xValues, yValues, weightValues, cMap):
+    def MakeScatterPlot(self, ax, plotData, cMap):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        weightValues = plotData["weight"]
         return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
+        
+    def Make3DScatterPlot(self, ax, plotData, cMap):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        zValues = plotData["z"]
+        weightValues = plotData["weight"]
+        return ax.scatter(xValues, yValues, zValues, c=weightValues, cmap=cMap, linewidths=0)
     

@@ -114,7 +114,10 @@ class Subplot:
                 self.possiblePlotTypes = ["Image", "Surface"]
                 
         if self.dataType == "Axis":
-            self.possiblePlotTypes = ["Histogram", "Scatter"]
+            if "z" in self.axisData:
+                self.possiblePlotTypes = ["Scatter3D"]
+            else:
+                self.possiblePlotTypes = ["Histogram", "Scatter"]
             
     def SetDefaultValues(self):
         
@@ -190,7 +193,7 @@ class Subplot:
         
     def LoadDefaultPlotProperties(self):
         if self.dataType == "Axis":
-            self.plotProps["DefaultPlotType"] = "Histogram"
+            self.plotProps["DefaultPlotType"] = self.possiblePlotTypes[0]
             self.plotProps["DefaultXBins"] = 100
             self.plotProps["DefaultYBins"] = 100
             self.plotProps["DefaultUseChargeWeighting"] = True
@@ -231,6 +234,8 @@ class Subplot:
         if self.dataType == "Axis":
             unitsOptions["x"] = self.axisData["x"].GetPossibleDataSetUnits()
             unitsOptions["y"] = self.axisData["y"].GetPossibleDataSetUnits()
+            if "z" in self.axisData:
+                unitsOptions["z"] = self.axisData["z"].GetPossibleDataSetUnits()
         return unitsOptions
         
     def GetWeightingUnitsOptions(self):
@@ -239,7 +244,7 @@ class Subplot:
     def GetAxisColorMapOptions(self, plotType):
         if plotType == "Histogram":
             return self.colorMapsCollection.GetAllColorMapNames()
-        elif plotType == "Scatter":
+        elif plotType == "Scatter" or plotType == "Scatter3D":
             return self.colorMapsCollection.GetAllColorMapNamesWithTransparency()
             
     def GetAxisDefaultColorMap(self, plotType):
