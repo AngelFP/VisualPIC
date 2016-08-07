@@ -106,7 +106,7 @@ class Subplot:
                         self.plottedSpeciesName = "Mult. Species"   
                         
     def LoadPossiblePlotTypes(self):
-        self.possiblePlotTypes.clear()
+        self.possiblePlotTypes[:] = []
         if self.dataType == "Field":
             if len(self.fieldsToPlotList) > 1:
                 self.possiblePlotTypes = ["Image"]

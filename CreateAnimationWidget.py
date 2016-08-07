@@ -143,7 +143,7 @@ class CreateAnimationWidget(QtGui.QDialog):
         firstTimeStep = int(self.firstStep_lineEdit.text())
         lastTimeStep = int(self.lastStep_lineEdit.text())
         freq = int(self.frequency_lineEdit.text())
-        animDir = self.mainWindow.folderLocation_lineEdit.text() + "/Animation"
+        animDir = str(self.mainWindow.folderLocation_lineEdit.text()) + "/Animation"
         charLen = len(str(totalSimulationTimeSteps))
         file_paths = list()
         if not os.path.exists(animDir):

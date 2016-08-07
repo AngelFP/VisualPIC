@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import h5py
 
 class RawDataSet:
@@ -66,7 +67,10 @@ class RawDataSet:
 
         
     def LoadUnits(self, file_content):
-        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        if sys.version_info[0] < 3:
+            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])#[2:-1].replace("\\\\","\\")
+        else:
+            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         
     def GetNormalizedUnits(self):
         return self.dataUnits

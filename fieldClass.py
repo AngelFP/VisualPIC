@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import h5py
 
 class Field:
@@ -86,9 +87,15 @@ class Field:
         self.xMax = file_content.attrs['XMAX']
         
     def LoadUnits(self, file_content):
-        self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+
+        if sys.version_info[0] < 3:
+            self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])#[2:-1].replace("\\\\","\\")
+            self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])#[2:-1].replace("\\\\","\\")
+            self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])#[2:-1].replace("\\\\","\\")
+        else:
+            self.x1Units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.x2Units = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.fieldUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
     
     def LoadDimension(self, file_content):
         if '/AXIS/AXIS3' in file_content:

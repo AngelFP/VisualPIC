@@ -846,29 +846,29 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def SetColorMap(self):
         if not self.updatingUiData:
-            cMap = self.colorMap_comboBox.currentText()
+            cMap = str(self.colorMap_comboBox.currentText())
             self.selectedFieldInfo["cMap"] = cMap
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
         
     def SetXAxisUnits(self):
         if not self.updatingUiData:
-            units = self.xUnits_comboBox.currentText()
+            units = str(self.xUnits_comboBox.currentText())
             self.axisProperties["x"]["Units"] = units
     
     def SetYAxisUnits(self):
         if not self.updatingUiData:
-            units = self.yUnits_comboBox.currentText()
+            units = str(self.yUnits_comboBox.currentText())
             self.axisProperties["y"]["Units"] = units
             
     def SetFieldUnits(self):
         if not self.updatingUiData:
-            units = self.fieldUnits_comboBox.currentText()
+            units = str(self.fieldUnits_comboBox.currentText())
             self.selectedFieldInfo["fieldUnits"] = units
             
     def PlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            plotType = self.plotType_comboBox.currentText()
+            plotType = str(self.plotType_comboBox.currentText())
             self.selectedFieldInfo["plotType"] = plotType
     
     def RemoveFieldButton_Clicked(self):
@@ -957,7 +957,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def AxisPlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            plotType = self.axisPlotType_comboBox.currentText()
+            plotType = str(self.axisPlotType_comboBox.currentText())
             self.plotProperties["PlotType"] = plotType
             self.axisColorMap_comboBox.clear()
             self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(plotType))
@@ -968,12 +968,12 @@ class EditPlotFieldWindow(QtGui.QDialog):
     
     def ChargeUnitsComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            units = self.chargeUnits_comboBox.currentText()
+            units = str(self.chargeUnits_comboBox.currentText())
             self.plotProperties["ChargeUnits"] = units
             
     def AxisColorMapComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            cMap = self.axisColorMap_comboBox.currentText()
+            cMap = str(self.axisColorMap_comboBox.currentText())
             self.plotProperties["CMap"] = cMap
             
     def ChargeWeightCheckBox_StatusChanged(self):
@@ -995,11 +995,11 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def AddSliceButton_Clicked(self):
         if self.speciesFieldsSlice_radioButton.isChecked():
-            speciesName = self.speciesSelectorSlice_comboBox.currentText()
-            fieldName = self.speciesFieldSelectorSlice_comboBox.currentText()
+            speciesName = str(self.speciesSelectorSlice_comboBox.currentText())
+            fieldName = str(self.speciesFieldSelectorSlice_comboBox.currentText())
             field = self.mainWindow.availableData.GetSpeciesField(speciesName, fieldName)
         else:
-            fieldName = self.domainFieldSelecteorSlice_comboBox.currentText()
+            fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
             field = self.mainWindow.availableData.GetDomainField(fieldName)
             
         fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)

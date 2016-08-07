@@ -81,7 +81,7 @@ class AvailableData:
             self.selectedSpecies = speciesList;
     
     def SetSelectedSpeciesFields(self):
-        self.selectedSpeciesFields.clear()
+        self.selectedSpeciesFields[:] = []
         for species in self.selectedSpecies:
             self.selectedSpeciesFields.append(species.GetField(self.selectedSpeciesFieldName))
             self.numberOfTimeSteps = species.GetField(self.selectedSpeciesFieldName).GetTotalTimeSteps()
@@ -190,7 +190,7 @@ class AvailableData:
     
     def SetDataFolderLocation(self, folderLocation):
         
-        self.dataLocation = folderLocation
+        self.dataLocation = str(folderLocation)
         
     def GetCommonlyAvailableFields(self):
         
