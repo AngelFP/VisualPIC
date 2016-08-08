@@ -29,6 +29,7 @@ $RECYCLE.BIN/
 
 # Visual Studio Files
 *.suo
+*.sln
 *.pyproj
 
 # =========================
