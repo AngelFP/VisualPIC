@@ -19,10 +19,10 @@ $RECYCLE.BIN/
 
 # Visual Studio Files
 *.suo
+*.pyproj
 
 # Windows shortcuts
 *.lnk
-*.pyproj
 
 # =========================
 # Operating System Files
