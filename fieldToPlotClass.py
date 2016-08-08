@@ -203,7 +203,7 @@ class FieldToPlot:
         elementsX = len(fieldData[0]) # number of elements in the longitudinal direction
         elementsY = len(fieldData) # number of elements in the transverse direction
         
-        selectedRow = round(elementsY*(slicePosition/100))
+        selectedRow = round(elementsY*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow] # Y data
         
         X = np.linspace(xMin, xMax, elementsX) # X data

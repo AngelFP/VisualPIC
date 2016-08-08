@@ -207,8 +207,8 @@ class DataPlotter:
         X, Y = np.meshgrid(x,y)
         Z = plotData[0]
         
-        cStride = round(elementsX/40)
-        rStride = round(elementsY/40)
+        cStride = int(round(elementsX/40))
+        rStride = int(round(elementsY/40))
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
     def MakeLinePlot(self, ax, plotData):

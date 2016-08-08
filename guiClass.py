@@ -201,9 +201,9 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.rows_spinBox.setValue(1)
         self.columns_spinBox.setValue(1)
         self.fieldsToPlot_listWidget.clear()
-        self.currentAxesFieldsToPlot.clear()
+        self.currentAxesFieldsToPlot[:] = []
         #self.fieldsToPlot.clear()
-        self.subplotList.clear()
+        self.subplotList[:] = []
         
     def LoadFolderData(self):
         
@@ -424,13 +424,13 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()  
-        if len(self.fieldsToPlot) > 0:
+        if len(self.subplotList) > 0:
             if self.increaseRowsColumnsCounter % 2 == 0:        
-                if len(self.fieldsToPlot) <= rows*(columns-1):
+                if len(self.subplotList) <= rows*(columns-1):
                     self.decreaseColumns()
                     self.increaseRowsColumnsCounter -= 1
             else:
-                if len(self.fieldsToPlot) <= (rows-1)*columns:
+                if len(self.subplotList) <= (rows-1)*columns:
                     self.decreaseRows()
                     self.increaseRowsColumnsCounter -= 1
 #        
