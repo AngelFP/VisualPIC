@@ -14,8 +14,22 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+# Compiled python files
+*.pyc
+
+# Visual Studio Files
+*.suo
+*.pyproj
+
 # Windows shortcuts
 *.lnk
+
+# Compiled files
+*.pyc
+
+# Visual Studio Files
+*.suo
+*.pyproj
 
 # =========================
 # Operating System Files

@@ -16,17 +16,20 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+import numpy as np
 
-from fieldClass import Field
 class FieldToPlot:
-    def __init__(self, field: Field, unitConverter, colorMapsCollection, isPartOfMultiplot = False, fieldUnits = "Norm", axisUnits = "Norm", plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
+    def __init__(self, field, dataToPlotDimension, unitConverter, colorMapsCollection, isPartOfMultiplot = False, plotType = None, colorMap = None, position = 1, useCustomScale = False, vMax = 1, vMin = 0):
         
         self.field = field
+        self.dataToPlotDimension = dataToPlotDimension # dimension of the data we want to plot
+        self.fieldDimension = field.GetFieldDimension() # original dimension of the field, as simulated
         self.unitConverter = unitConverter
         self.colorMapsCollection = colorMapsCollection
         self.isPartOfMultiplot = isPartOfMultiplot
-        self.fieldUnits = fieldUnits
-        self.axisUnits = axisUnits
+        self.normUnits = {}
+        self.fieldUnits = ""
+        self.axesUnits = {}
         self.plotType = plotType
         self.colorMap = colorMap
         self.position = position
@@ -34,7 +37,20 @@ class FieldToPlot:
         self.vMax = vMax
         self.vMin = vMin
         self.SetDefaultColorMap()
+        self.dataType = "Field"
+        self.SetNormalizedUnits()
+        self.LoadPlotTypeOptions()
+        self.SetDefaultPlotType()
     
+    def SetNormalizedUnits(self):
+        self.normUnits["Field"] = self.field.GetNormalizedUnits("Field")
+        self.normUnits["x"] = self.field.GetNormalizedUnits("x")
+        self.normUnits["y"] = self.field.GetNormalizedUnits("y")
+        
+        self.fieldUnits = self.normUnits["Field"]
+        self.axesUnits["x"] = self.normUnits["x"]
+        self.axesUnits["y"] = self.normUnits["y"]
+        
     def SetDefaultColorMap(self):
         if self.isPartOfMultiplot:
             self.colorMap = "Base gray"
@@ -47,12 +63,37 @@ class FieldToPlot:
             else:
                 self.colorMap = "jet"
     
+    def LoadPlotTypeOptions(self):
+        if self.dataToPlotDimension == "2D":
+            self.plotTypeOptions = ["Image", "Surface"]
+        elif self.dataToPlotDimension == "1D":
+            self.plotTypeOptions = ["Line"]
+            
+    def GetPlotTypeOptions(self):
+        return self.plotTypeOptions        
+        
+    def SetDefaultPlotType(self):
+        self.plotType = self.plotTypeOptions[0]
+    
     def GetPosition(self):
         return self.position
         
     def GetFieldPlotData(self, timeStep):
+        if self.fieldDimension == "3D":
+            raise NotImplementedError
+            
+        elif self.fieldDimension == "2D":
+            if self.dataToPlotDimension == "2D":
+                return self.GetFieldData(timeStep)
+            elif self.dataToPlotDimension == "1D":
+                return self.Get1DSlice(50, timeStep)
         
-        return self.unitConverter.GetPlotDataInUnits(timeStep, self.field, self.fieldUnits, self.axisUnits)
+    def GetFieldData(self, timeStep):
+        #returns fieldData, extent
+        return self.unitConverter.GetPlotDataInUnits(timeStep, self.field, self.fieldUnits, self.axesUnits, self.normUnits)
+        
+    def GetDataToPlotDimension(self):
+        return self.dataToPlotDimension
         
     def GetColorMap(self):
         return self.colorMap
@@ -82,7 +123,7 @@ class FieldToPlot:
     def SetPlotType(self, plotType):
         self.plotType = plotType
         
-    def GetPlotType(self, plotType):
+    def GetPlotType(self):
         return self.plotType
         
     def IsScaleCustom(self):
@@ -93,20 +134,32 @@ class FieldToPlot:
         return self.fieldUnitsOptions
         
     def GetPossibleAxisUnits(self):
-        self.axisUnitsOptions = self.unitConverter.getAxisUnitsOptions()
+        self.axisUnitsOptions = self.unitConverter.getAxisUnitsOptions(self.field)
         return self.axisUnitsOptions
         
     def SetFieldUnits(self, units):
         self.fieldUnits = units
         
-    def SetAxisUnits(self, units):
-        self.axisUnits = units
+    def SetAxisUnits(self, axis, units):
+        # axis = "x", "y" or "z"
+        self.axesUnits[axis] = units
         
     def GetPossibleColorMaps(self):
         if self.isPartOfMultiplot:
             return self.colorMapsCollection.GetTransparentColorMapsNames()
         else:
             return self.colorMapsCollection.GetSingleColorMapsNamesList()
+            
+    def GetDataType(self):
+        return self.dataType
+        
+    def GetFieldUnits(self):
+        return self.fieldUnits
+        
+    def GetAxisUnits(self, axis):
+        # axis = "x", "y" or "z"
+        return self.axesUnits[axis]
+
         
     def GetFieldInfo(self):
         
@@ -115,14 +168,15 @@ class FieldToPlot:
             "speciesName":self.GetSpeciesName(), 
             "fieldUnits":self.fieldUnits, 
             "possibleFieldUnits":self.GetPossibleFieldUnits(),
-            "axisUnits":self.axisUnits, 
+            "axesUnits":self.axesUnits, 
             "possibleAxisUnits":self.GetPossibleAxisUnits(),
             "autoScale":not self.IsScaleCustom(),
             "maxVal":self.vMax,
             "minVal":self.vMin,
             "cMap":self.colorMap,
             "possibleColorMaps":self.GetPossibleColorMaps(),
-            "plotType":self.plotType
+            "plotType":self.plotType,
+            "possiblePlotTypes":self.GetPlotTypeOptions()
         }
         
         return info
@@ -130,11 +184,30 @@ class FieldToPlot:
     def SetFieldInfo(self, info):
         
         self.fieldUnits = info["fieldUnits"]
-        self.axisUnits = info["axisUnits"]
-        if info["autoScale"]:
-            self.SetAutoScale()
-        else:
-            self.vMax = info["maxVal"]
-            self.vMin = info["minVal"]
+        self.axesUnits = info["axesUnits"]
+        self.useCustomScale = not info["autoScale"]
+        self.vMax = info["maxVal"]
+        self.vMin = info["minVal"]
         self.colorMap = info["cMap"]
         self.plotType = info["plotType"]
+        
+    def Get1DSlice(self, slicePosition, timeStep):
+        # slice along the longitudinal axis
+        # slicePosition has to be a double between 0 and 100
+        #this gives the position in the transverse axis as a %
+        plotData = self.GetFieldData(timeStep)
+        fieldData = plotData[0]
+        extent = plotData[1]
+        xMin = extent[0]
+        xMax = extent[1]
+        elementsX = len(fieldData[0]) # number of elements in the longitudinal direction
+        elementsY = len(fieldData) # number of elements in the transverse direction
+        
+        selectedRow = round(elementsY*(float(slicePosition)/100))
+        fieldSlice = fieldData[selectedRow] # Y data
+        
+        X = np.linspace(xMin, xMax, elementsX) # X data
+        
+        return X, fieldSlice
+    
+        

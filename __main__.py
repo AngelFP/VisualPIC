@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 #Copyright 2016 Ángel Ferran Pousa
 #
 #This file is part of VisualPIC.
@@ -14,6 +16,7 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+
 
 from guiClass import GUI_MainWindow
 

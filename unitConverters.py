@@ -17,7 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import math
+import codecs
 import numpy as np
 
 class OsirisUnitConverter:
@@ -27,6 +29,11 @@ class OsirisUnitConverter:
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.useNormUnits = False
+        #special units (with non ascii characters)
+        if sys.version_info[0] < 3:
+            self.um = u"μm"
+        else:
+            self.um = "μm"
     
     def allowNormUnits(self, value)  :
         self.useNormUnits = value
@@ -42,23 +49,23 @@ class OsirisUnitConverter:
     def getFieldUnitsOptions(self, field):
         fieldName = field.GetName()
         speciesName = field.GetSpeciesName()
+        normUnits = field.GetNormalizedUnits("Field")
         if self.useNormUnits:
             if speciesName == "":
                 if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
-                    return ["Norm", "V/m", "GV/m"]
+                    return [normUnits, "V/m", "GV/m"]
                 else:
-                    return ["Norm"]
+                    return [normUnits]
             elif "charge" in fieldName:
-                return ["Norm", "C/m^2", "n/n_0"]
+                return [normUnits, "C/m^2", "n/n_0"]
             else:
-                return ["Norm"]
+                return [normUnits]
         else:
-            return ["Norm"]
+            return [normUnits]
             
-    def getFieldInUnits(self, fieldName, fieldData, units):
-        
+    def getFieldInUnits(self, fieldName, fieldData, units, normUnits):
         if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
-            if units == "Norm":
+            if units == normUnits:
                 pass
             elif units == "V/m":
                 fieldData *= self.E0
@@ -68,7 +75,7 @@ class OsirisUnitConverter:
                 pass
                 
         elif "charge" in fieldName:
-            if units == "Norm":
+            if units == normUnits:
                 pass
             elif units == "C/m^2":
                 fieldData *= self.e * (self.w_p / self.c)**2
@@ -79,40 +86,54 @@ class OsirisUnitConverter:
         else:
             pass  
     
-    def getAxisUnitsOptions(self):
+    def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
+        #implement actual unit conversion
+        return dataSet.GetPlotData(timeStep)
+        
+    def GetRawDataSetUnitsOptions(self, dataSet):
+        normUnits = dataSet.GetNormalizedUnits()
         if self.useNormUnits:
-            return  ["Norm", "m", "μm"]    
+            # add units option for each type of data
+            return  [normUnits]    
         else:
-            return ["Norm"]
+            return [normUnits]
             
-    def getAxisInUnits(self, extent, units):
-        if units == "Norm":
-            pass
-        elif units == "m":
-            extent *= self.c / self.w_p 
-        elif units == "μm":
-            extent *= 1e6 * self.c / self.w_p 
+    def getAxisUnitsOptions(self, field):
+        normUnits = field.GetNormalizedUnits("x")
+        if self.useNormUnits:
+            return  [normUnits, "m", self.um]
+        else:
+            return [normUnits]
             
-    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axisUnits):
+    def getAxisInUnits(self, axis, extent, units, normUnits):
+        if axis == "x":
+            if units == normUnits:
+                pass
+            elif units == "m":
+                extent[0:2] *= self.c / self.w_p 
+            elif units == self.um:
+                extent[0:2] *= 1e6 * self.c / self.w_p 
+        elif axis == "y":
+            if units == normUnits:
+                pass
+            elif units == "m":
+                extent[2:4] *= self.c / self.w_p 
+            elif units == self.um:
+                extent[2:4] *= 1e6 * self.c / self.w_p 
+            
+    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
         fieldName = field.GetName()
         data = field.GetPlotData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
-        units = list(data[2])
         
-        self.getFieldInUnits(fieldName, fieldData, fieldUnits)
-        self.getAxisInUnits(extent, axisUnits)
-        if axisUnits != "Norm":
-            units[0] = axisUnits
-            units[1] = axisUnits
-        else:
-            units[0] = units[0][2:-1].replace("\\\\","\\")
-            units[1] = units[1][2:-1].replace("\\\\","\\")
-        if fieldUnits != "Norm":
-            units[2] = fieldUnits
-        else:
-            units[2] = units[2][2:-1].replace("\\\\","\\")
-        return fieldData, extent, units
+        self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])
+        self.getAxisInUnits("x", extent, axesUnits["x"], normUnits["x"])
+        self.getAxisInUnits("y", extent, axesUnits["y"], normUnits["y"])
+        
+        return fieldData, extent
+        
+
         
         
         

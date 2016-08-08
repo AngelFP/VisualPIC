@@ -30,18 +30,6 @@ class CustomColorMap:
     
     def GetColorMap(self):
         return self.colormap
-
-class CompoundColorMap:
-    
-    def __init__(self, name, colorMapList):
-        self.name = name
-        self.colorMapList = colorMapList
-        
-    def GetName(self):
-        return self.name
-        
-    def GetColorMapList(self):
-        return self.colorMapList
         
 class ColorMapsCollection:
     def __init__(self):
@@ -62,23 +50,17 @@ class ColorMapsCollection:
                               "pink", "prism", "rainbow", "seismic", "spectral",
                               "spring", "summer", "terrain", "winter"]
                               
-                         
-        #self.CompoundColorMapList = [self.CreateChargeCompoundColorMap()]
         self.CreateTransparentColorMapList()              
-        
-        #self.CreateListOfAllMapNames()
-#        
-#    def CreateListOfAllMapNames(self):
-#        self.allMapsNames = list(self.SingleColorMapsNamesList)
-#        for cmap in self.CompoundColorMapList:
-#            self.allMapsNames.append(cmap.GetName())
+        self.CreateUniformColorMapsWithTransparency()
     
 
     def CreateTransparentColorMapList(self):
         self.TransparentColorMapList = list()
         gray_cmap = matplotlib.cm.get_cmap('gray')
-        #gray_cmap._init()
-        
+        gray_cmap._init()
+        alphas = np.abs(np.linspace(1.0, 0, gray_cmap.N))
+        gray_cmap._lut[:-3,-1] = alphas
+
         base_gray = CustomColorMap("Base gray", gray_cmap)
         self.TransparentColorMapList.append(base_gray)
         
@@ -113,43 +95,40 @@ class ColorMapsCollection:
         
         purple = CustomColorMap("PurpleT", bupu_cmap)
         self.TransparentColorMapList.append(purple)
+    
+    def CreateUniformColorMapsWithTransparency(self):
         
-#    def CreateChargeCompoundColorMap(self):
-#        colorMapList = list()
-#        gray_cmap = matplotlib.cm.get_cmap('gray')
-#        gray_cmap._init()
-#        
-#        colorMapList.append(gray_cmap)
-#        
-#        afmhot_cmap = matplotlib.cm.get_cmap('afmhot')
-#        afmhot_cmap._init()
-#        alphas = np.abs(np.linspace(1.0, 0, afmhot_cmap.N))
-#        afmhot_cmap._lut[:-3,-1] = alphas  
-#        colorMapList.append(afmhot_cmap)
-#        
-#        blues_cmap = matplotlib.cm.get_cmap('Blues_r')
-#        blues_cmap._init()
-#        alphas = np.abs(np.linspace(1.0, 0, blues_cmap.N))
-#        blues_cmap._lut[:-3,-1] = alphas  
-#        colorMapList.append(blues_cmap)
-#        
-#        greens_cmap = matplotlib.cm.get_cmap('Greens_r')
-#        greens_cmap._init()
-#        alphas = np.abs(np.linspace(1.0, 0, greens_cmap.N))
-#        greens_cmap._lut[:-3,-1] = alphas  
-#        colorMapList.append(greens_cmap)
-#        
-#        bupu_cmap = matplotlib.cm.get_cmap('BuPu_r')
-#        bupu_cmap._init()
-#        alphas = np.abs(np.linspace(1.0, 0, bupu_cmap.N))
-#        bupu_cmap._lut[:-3,-1] = alphas  
-#        colorMapList.append(bupu_cmap)
-#        
-#        colorMap = CompoundColorMap("charge multiple", colorMapList)
-#        return colorMap
+        self.UniformCMapsWithTransparency = list()
+        # Blue
+        cdictBlue = {'red':   ((0.0, 0.0, 0.0),
+                   (1.0, 0.0, 0.0)),
+
+         'green': ((0.0, 0.4, 0.4),
+                   (1.0, 0.4, 0.4)),
+
+         'blue':  ((0.0, 0.7, 0.7),
+                   (1.0, 0.7, 0.7)),
+
+         'alpha': ((0.0, 1.0, 1.0),
+                   (0.02, 0.6, 0.6),
+                   (0.1, 0.3, 0.3),
+                   (0.2, 0.2, 0.2),
+                   (0.5, 0.1, 0.1),
+                   (1.0, 0.0, 0.0))
+        }
+        matplotlib.cm.register_cmap(name='Uniform Blue Transparent', data=cdictBlue)
         
-#    def GetAllMapsNames(self):
-#        return self.allMapsNames
+        blueTransp = CustomColorMap('Uniform Blue Transparent', matplotlib.cm.get_cmap('Uniform Blue Transparent'))
+        self.UniformCMapsWithTransparency.append(blueTransp)
+        
+    def GetAllColorMapNames(self):
+        cmapList = list()
+        cmapList = self.GetUniformColorMapsWithTransparencyNames() + self.GetTransparentColorMapsNames() + self.GetSingleColorMapsNamesList()
+        return cmapList
+    def GetAllColorMapNamesWithTransparency(self):
+        cmapList = list()
+        cmapList = self.GetUniformColorMapsWithTransparencyNames() + self.GetTransparentColorMapsNames()
+        return cmapList
         
     def GetSingleColorMapsNamesList(self):
         return self.SingleColorMapsNamesList
@@ -157,6 +136,12 @@ class ColorMapsCollection:
     def GetTransparentColorMapsNames(self):
         namesList = list()
         for cmap in self.TransparentColorMapList:
+            namesList.append(cmap.GetName())
+        return namesList
+        
+    def GetUniformColorMapsWithTransparencyNames(self):
+        namesList = list()
+        for cmap in self.UniformCMapsWithTransparency:
             namesList.append(cmap.GetName())
         return namesList
         
@@ -170,6 +155,6 @@ class ColorMapsCollection:
             if cmap.GetName() == colorMapName:
                 return cmap.GetColorMap()
                 
-#        for cmap in self.CompoundColorMapList:
-#            if cmap.GetName() == colorMapName:
-#                return cmap.GetColorMapList()
+        for cmap in self.UniformCMapsWithTransparency:
+            if cmap.GetName() == colorMapName:
+                return cmap.GetColorMap()

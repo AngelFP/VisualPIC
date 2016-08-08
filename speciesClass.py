@@ -17,8 +17,6 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-from fieldClass import Field
-
 class Species:
     
     def __init__(self, name):
@@ -26,17 +24,30 @@ class Species:
         self.name = name
         self.availableFields = list()
         self.customFields = list()
+        self.rawDataSets = list()
+        self.hasFields = False
+        self.hasRawData = False
         
     def AddAvailableField(self,field):
         
-        if isinstance(field, Field):
-            if field not in self.availableFields:
-                self.availableFields.append(field)
+        self.hasFields = True
+        if field not in self.availableFields:
+            self.availableFields.append(field)
         
     def AddCustomField(self, field):
         
-        if isinstance(field, Field):
-            self.customFields.append(field)
+        self.customFields.append(field)
+            
+    def AddRawDataSet(self, dataSet):
+        
+        self.hasRawData = True
+        self.rawDataSets.append(dataSet)
+        
+    def HasFields(self):
+        return self.hasFields
+        
+    def HasRawData(self):
+        return self.hasRawData
             
     def GetFieldPlotData(self, fieldName, timeStep):
         
@@ -47,7 +58,13 @@ class Species:
         for field in self.customFields:
             if field.GetName() == fieldName:
                 return field.GetPlotData(timeStep)
-                
+    
+    def GetRawDataSetPlotData(self, dataSetName, timeStep):
+        
+        for dataSet in self.rawDataSets:
+            if dataSet.GetName() == dataSetName:
+                return dataSet.GetPlotData(timeStep)
+            
     def GetAvailableFieldNamesList(self):
         fieldNames = list()
         for field in self.availableFields:
@@ -61,15 +78,30 @@ class Species:
             fieldNames.append(field.GetName())
         
         return fieldNames
+        
+    def GetRawDataSetsNamesList(self):
+        dataSetNames = list()
+        for dataSet in self.rawDataSets:
+            dataSetNames.append(dataSet.GetName())
+        
+        return dataSetNames
     
     def GetName(self):
         
         return self.name
+        
+        
+        
     
     def GetField(self, fieldName):
         for field in self.availableFields:
             if field.GetName() == fieldName:
                 return field
+                
+    def GetRawDataSet(self, dataSetName):
+        for dataSet in self.rawDataSets:
+            if dataSet.GetName() == dataSetName:
+                return dataSet
         
     def LoadCustomFields(self):
         #to do
