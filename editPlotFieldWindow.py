@@ -17,7 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from PyQt4 import QtCore, QtGui
+from fieldToPlotClass import FieldToPlot
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -28,7 +30,7 @@ except AttributeError:
 class EditPlotFieldWindow(QtGui.QDialog):
     def __init__(self, subplot, parent=None):
         super(EditPlotFieldWindow, self).__init__(parent)
-        self.resize(500, 262)
+        self.resize(500, 312)
         
         self.mainWindow = parent
         self.subplot = subplot
@@ -36,9 +38,19 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.selectedFieldIndex = 0
         self.updatingUiData = True
         
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
         self.verticalLayout_5 = QtGui.QVBoxLayout(self)
         self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
         self.tabWidget = QtGui.QTabWidget(self)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
+        self.tabWidget.setSizePolicy(sizePolicy)
         self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
         self.tabWidget.setTabShape(QtGui.QTabWidget.Rounded)
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
@@ -87,9 +99,9 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.verticalLayout_6.addLayout(self.verticalLayout_3)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.Scale = QtGui.QLabel(self.tab)
-        self.Scale.setObjectName(_fromUtf8("Scale"))
-        self.verticalLayout.addWidget(self.Scale)
+        self.scale_label = QtGui.QLabel(self.tab)
+        self.scale_label.setObjectName(_fromUtf8("scale_label"))
+        self.verticalLayout.addWidget(self.scale_label)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.verticalLayout_2 = QtGui.QVBoxLayout()
@@ -121,6 +133,20 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.verticalLayout_6.addLayout(self.verticalLayout)
+        self.horizontalLayout_5 = QtGui.QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
+        self.color_label = QtGui.QLabel(self.tab)
+        self.color_label.setObjectName(_fromUtf8("color_label"))
+        self.horizontalLayout_5.addWidget(self.color_label)
+        self.colorMap_comboBox = QtGui.QComboBox(self.tab)
+        self.colorMap_comboBox.setObjectName(_fromUtf8("colorMap_comboBox"))
+        self.horizontalLayout_5.addWidget(self.colorMap_comboBox)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_5)
+        self.line_2 = QtGui.QFrame(self.tab)
+        self.line_2.setFrameShape(QtGui.QFrame.HLine)
+        self.line_2.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line_2.setObjectName(_fromUtf8("line_2"))
+        self.verticalLayout_6.addWidget(self.line_2)
         self.horizontalLayout_6 = QtGui.QHBoxLayout()
         self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
         self.label_2 = QtGui.QLabel(self.tab)
@@ -130,15 +156,16 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.plotType_comboBox.setObjectName(_fromUtf8("plotType_comboBox"))
         self.horizontalLayout_6.addWidget(self.plotType_comboBox)
         self.verticalLayout_6.addLayout(self.horizontalLayout_6)
-        self.horizontalLayout_5 = QtGui.QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
-        self.label = QtGui.QLabel(self.tab)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.horizontalLayout_5.addWidget(self.label)
-        self.colorMap_comboBox = QtGui.QComboBox(self.tab)
-        self.colorMap_comboBox.setObjectName(_fromUtf8("colorMap_comboBox"))
-        self.horizontalLayout_5.addWidget(self.colorMap_comboBox)
-        self.verticalLayout_6.addLayout(self.horizontalLayout_5)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_6.addItem(spacerItem)
+        self.horizontalLayout_32 = QtGui.QHBoxLayout()
+        self.horizontalLayout_32.setObjectName(_fromUtf8("horizontalLayout_32"))
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_32.addItem(spacerItem1)
+        self.removeField_button = QtGui.QPushButton(self.tab)
+        self.removeField_button.setObjectName(_fromUtf8("removeField_button"))
+        self.horizontalLayout_32.addWidget(self.removeField_button)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_32)
         self.horizontalLayout_9.addLayout(self.verticalLayout_6)
         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
@@ -146,6 +173,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.axisPlot_tab.setObjectName(_fromUtf8("axisPlot_tab"))
         self.verticalLayout_14 = QtGui.QVBoxLayout(self.axisPlot_tab)
         self.verticalLayout_14.setObjectName(_fromUtf8("verticalLayout_14"))
+        self.verticalLayout_17 = QtGui.QVBoxLayout()
+        self.verticalLayout_17.setObjectName(_fromUtf8("verticalLayout_17"))
         self.horizontalLayout_22 = QtGui.QHBoxLayout()
         self.horizontalLayout_22.setObjectName(_fromUtf8("horizontalLayout_22"))
         self.label_3 = QtGui.QLabel(self.axisPlot_tab)
@@ -154,7 +183,38 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.axisPlotType_comboBox = QtGui.QComboBox(self.axisPlot_tab)
         self.axisPlotType_comboBox.setObjectName(_fromUtf8("axisPlotType_comboBox"))
         self.horizontalLayout_22.addWidget(self.axisPlotType_comboBox)
-        self.verticalLayout_14.addLayout(self.horizontalLayout_22)
+        self.verticalLayout_17.addLayout(self.horizontalLayout_22)
+        self.histogramSettings_widget = QtGui.QWidget(self.axisPlot_tab)
+        self.histogramSettings_widget.setObjectName(_fromUtf8("histogramSettings_widget"))
+        self.horizontalLayout_28 = QtGui.QHBoxLayout(self.histogramSettings_widget)
+        self.horizontalLayout_28.setObjectName(_fromUtf8("horizontalLayout_28"))
+        self.horizontalLayout_27 = QtGui.QHBoxLayout()
+        self.horizontalLayout_27.setObjectName(_fromUtf8("horizontalLayout_27"))
+        self.label_29 = QtGui.QLabel(self.histogramSettings_widget)
+        self.label_29.setObjectName(_fromUtf8("label_29"))
+        self.horizontalLayout_27.addWidget(self.label_29)
+        self.label_31 = QtGui.QLabel(self.histogramSettings_widget)
+        self.label_31.setObjectName(_fromUtf8("label_31"))
+        self.horizontalLayout_27.addWidget(self.label_31)
+        self.xBins_spinBox = QtGui.QSpinBox(self.histogramSettings_widget)
+        self.xBins_spinBox.setMinimumSize(QtCore.QSize(60, 0))
+        self.xBins_spinBox.setWrapping(False)
+        self.xBins_spinBox.setFrame(True)
+        self.xBins_spinBox.setSuffix(_fromUtf8(""))
+        self.xBins_spinBox.setObjectName(_fromUtf8("xBins_spinBox"))
+        self.horizontalLayout_27.addWidget(self.xBins_spinBox)
+        self.label_30 = QtGui.QLabel(self.histogramSettings_widget)
+        self.label_30.setObjectName(_fromUtf8("label_30"))
+        self.horizontalLayout_27.addWidget(self.label_30)
+        self.yBins_spinBox = QtGui.QSpinBox(self.histogramSettings_widget)
+        self.yBins_spinBox.setMinimumSize(QtCore.QSize(60, 0))
+        self.yBins_spinBox.setObjectName(_fromUtf8("yBins_spinBox"))
+        self.horizontalLayout_27.addWidget(self.yBins_spinBox)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_27.addItem(spacerItem2)
+        self.horizontalLayout_28.addLayout(self.horizontalLayout_27)
+        self.verticalLayout_17.addWidget(self.histogramSettings_widget)
+        self.verticalLayout_14.addLayout(self.verticalLayout_17)
         self.verticalLayout_15 = QtGui.QVBoxLayout()
         self.verticalLayout_15.setObjectName(_fromUtf8("verticalLayout_15"))
         self.label_26 = QtGui.QLabel(self.axisPlot_tab)
@@ -260,6 +320,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.xScale_comboBox.setObjectName(_fromUtf8("xScale_comboBox"))
         self.horizontalLayout_11.addWidget(self.xScale_comboBox)
         self.verticalLayout_8.addLayout(self.horizontalLayout_11)
+        spacerItem3 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_8.addItem(spacerItem3)
         self.tabWidget_2.addTab(self.tab_3, _fromUtf8(""))
         self.tab_4 = QtGui.QWidget()
         self.tab_4.setObjectName(_fromUtf8("tab_4"))
@@ -314,6 +376,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.yScale_comboBox.setObjectName(_fromUtf8("yScale_comboBox"))
         self.horizontalLayout_14.addWidget(self.yScale_comboBox)
         self.verticalLayout_11.addLayout(self.horizontalLayout_14)
+        spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_11.addItem(spacerItem4)
         self.tabWidget_2.addTab(self.tab_4, _fromUtf8(""))
         self.tab_7 = QtGui.QWidget()
         self.tab_7.setObjectName(_fromUtf8("tab_7"))
@@ -344,6 +408,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.titleFontSize_spinBox.setObjectName(_fromUtf8("titleFontSize_spinBox"))
         self.horizontalLayout_21.addWidget(self.titleFontSize_spinBox)
         self.verticalLayout_13.addLayout(self.horizontalLayout_21)
+        spacerItem5 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_13.addItem(spacerItem5)
         self.tabWidget_2.addTab(self.tab_7, _fromUtf8(""))
         self.verticalLayout_9.addWidget(self.tabWidget_2)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
@@ -376,6 +442,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.cbAutoLabel_lineEdit.setObjectName(_fromUtf8("cbAutoLabel_lineEdit"))
         self.horizontalLayout_18.addWidget(self.cbAutoLabel_lineEdit)
         self.verticalLayout_12.addLayout(self.horizontalLayout_18)
+        spacerItem6 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_12.addItem(spacerItem6)
         self.tabWidget.addTab(self.tab_6, _fromUtf8(""))
         self.tab_5 = QtGui.QWidget()
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
@@ -388,11 +456,61 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.overlaytext_listView.setObjectName(_fromUtf8("overlaytext_listView"))
         self.verticalLayout_10.addWidget(self.overlaytext_listView)
         self.tabWidget.addTab(self.tab_5, _fromUtf8(""))
+        self.tab_8 = QtGui.QWidget()
+        self.tab_8.setObjectName(_fromUtf8("tab_8"))
+        self.verticalLayout_18 = QtGui.QVBoxLayout(self.tab_8)
+        self.verticalLayout_18.setObjectName(_fromUtf8("verticalLayout_18"))
+        self.label_32 = QtGui.QLabel(self.tab_8)
+        self.label_32.setObjectName(_fromUtf8("label_32"))
+        self.verticalLayout_18.addWidget(self.label_32)
+        self.speciesFieldsSlice_radioButton = QtGui.QRadioButton(self.tab_8)
+        self.speciesFieldsSlice_radioButton.setChecked(True)
+        self.speciesFieldsSlice_radioButton.setObjectName(_fromUtf8("speciesFieldsSlice_radioButton"))
+        self.verticalLayout_18.addWidget(self.speciesFieldsSlice_radioButton)
+        self.horizontalLayout_29 = QtGui.QHBoxLayout()
+        self.horizontalLayout_29.setObjectName(_fromUtf8("horizontalLayout_29"))
+        self.label_33 = QtGui.QLabel(self.tab_8)
+        self.label_33.setObjectName(_fromUtf8("label_33"))
+        self.horizontalLayout_29.addWidget(self.label_33)
+        self.speciesSelectorSlice_comboBox = QtGui.QComboBox(self.tab_8)
+        self.speciesSelectorSlice_comboBox.setObjectName(_fromUtf8("speciesSelectorSlice_comboBox"))
+        self.horizontalLayout_29.addWidget(self.speciesSelectorSlice_comboBox)
+        self.label_34 = QtGui.QLabel(self.tab_8)
+        self.label_34.setObjectName(_fromUtf8("label_34"))
+        self.horizontalLayout_29.addWidget(self.label_34)
+        self.speciesFieldSelectorSlice_comboBox = QtGui.QComboBox(self.tab_8)
+        self.speciesFieldSelectorSlice_comboBox.setObjectName(_fromUtf8("speciesFieldSelectorSlice_comboBox"))
+        self.horizontalLayout_29.addWidget(self.speciesFieldSelectorSlice_comboBox)
+        self.verticalLayout_18.addLayout(self.horizontalLayout_29)
+        self.domainFieldsSlice_radioButton = QtGui.QRadioButton(self.tab_8)
+        self.domainFieldsSlice_radioButton.setObjectName(_fromUtf8("domainFieldsSlice_radioButton"))
+        self.verticalLayout_18.addWidget(self.domainFieldsSlice_radioButton)
+        self.horizontalLayout_30 = QtGui.QHBoxLayout()
+        self.horizontalLayout_30.setObjectName(_fromUtf8("horizontalLayout_30"))
+        self.label_35 = QtGui.QLabel(self.tab_8)
+        self.label_35.setObjectName(_fromUtf8("label_35"))
+        self.horizontalLayout_30.addWidget(self.label_35)
+        self.domainFieldSelecteorSlice_comboBox = QtGui.QComboBox(self.tab_8)
+        self.domainFieldSelecteorSlice_comboBox.setEnabled(False)
+        self.domainFieldSelecteorSlice_comboBox.setObjectName(_fromUtf8("domainFieldSelecteorSlice_comboBox"))
+        self.horizontalLayout_30.addWidget(self.domainFieldSelecteorSlice_comboBox)
+        self.verticalLayout_18.addLayout(self.horizontalLayout_30)
+        spacerItem7 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_18.addItem(spacerItem7)
+        self.horizontalLayout_31 = QtGui.QHBoxLayout()
+        self.horizontalLayout_31.setObjectName(_fromUtf8("horizontalLayout_31"))
+        spacerItem8 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_31.addItem(spacerItem8)
+        self.addSlice_button = QtGui.QPushButton(self.tab_8)
+        self.addSlice_button.setObjectName(_fromUtf8("addSlice_button"))
+        self.horizontalLayout_31.addWidget(self.addSlice_button)
+        self.verticalLayout_18.addLayout(self.horizontalLayout_31)
+        self.tabWidget.addTab(self.tab_8, _fromUtf8(""))
         self.verticalLayout_5.addWidget(self.tabWidget)
         self.horizontalLayout_8 = QtGui.QHBoxLayout()
         self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem)
+        spacerItem9 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem9)
         self.apply_button = QtGui.QPushButton(self)
         self.apply_button.setObjectName(_fromUtf8("apply_button"))
         self.horizontalLayout_8.addWidget(self.apply_button)
@@ -424,16 +542,20 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.FieldName.setText("Field")
         self.SpeciesName.setText("Species")
         self.label_4.setText("Units:")
-        self.Scale.setText("Scale")
+        self.scale_label.setText("Scale")
         self.auto_checkBox.setText("Auto")
         self.label_5.setText("Min")
         self.min_lineEdit.setText("0")
         self.label_6.setText("Max")
         self.max_lineEdit.setText("1")
+        self.color_label.setText("Colormap:")
         self.label_2.setText("Plot type:")
-        self.label.setText("Colormap:")
+        self.removeField_button.setText("Remove Field from Subplot")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), "Fields")
         self.label_3.setText("Plot type:")
+        self.label_29.setText("Number of bins:")
+        self.label_31.setText("x:")
+        self.label_30.setText("y:")
         self.label_26.setText("Options:")
         self.chargeWeight_checkBox.setText("Use macroparticle charge as weighting parameter (recommended)")
         self.label_27.setText("Charge units:")
@@ -468,6 +590,14 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), "Colorbars")
         self.label_14.setText("Overlay the following lines:")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), "Text")
+        self.label_32.setText("Add 1D field slices to current subplot")
+        self.speciesFieldsSlice_radioButton.setText("Species Fields")
+        self.label_33.setText("Select species")
+        self.label_34.setText("Select field")
+        self.domainFieldsSlice_radioButton.setText("Domain Fields")
+        self.label_35.setText("Select field")
+        self.addSlice_button.setText("Add to Subplot")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_8), "1D Slices")
         self.apply_button.setText("Apply")
         self.accept_button.setText("Accept")
         self.cancel_button.setText("Cancel")
@@ -484,6 +614,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.accept_button.clicked.connect(self.AcceptButton_Clicked)
         self.cancel_button.clicked.connect(self.CancelButton_Clicked)
         self.plotType_comboBox.currentIndexChanged.connect(self.PlotTypeComboBox_IndexChanged)
+        self.removeField_button.clicked.connect(self.RemoveFieldButton_Clicked)
         
         # Plot settings tab
         self.axisPlotType_comboBox.currentIndexChanged.connect(self.AxisPlotTypeComboBox_IndexChanged)
@@ -508,7 +639,11 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.cbAutoLabel_checkBox.toggled.connect(self.CbAutoLabelCheckBox_statusChanged)
         self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
         
-        # Subplot Tab
+        # 1D Slices tab
+        self.speciesFieldsSlice_radioButton.toggled.connect(self.FieldSliceTypeRadioButton_Toggled)
+        self.domainFieldsSlice_radioButton.toggled.connect(self.FieldSliceTypeRadioButton_Toggled)
+        self.speciesSelectorSlice_comboBox.currentIndexChanged.connect(self.SpeciesSelectorSliceComboBox_IndexChanged)
+        self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
     
     def SetVisibleTabs(self):
         
@@ -549,6 +684,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.FillAxesData()
         self.FillColorbarData()
         self.FillTitleData()
+        self.Fill1DSlicesData()
         
         
     def FillListView(self):
@@ -600,8 +736,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
            
         # Plot type
         self.plotType_comboBox.clear()
-        self.plotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
-        index = self.plotType_comboBox.findText(self.plotProperties["PlotType"]);
+        self.plotType_comboBox.addItems(self.selectedFieldInfo["possiblePlotTypes"])
+        index = self.plotType_comboBox.findText(self.selectedFieldInfo["plotType"]);
         if index != -1:
            self.plotType_comboBox.setCurrentIndex(index)
            
@@ -678,6 +814,11 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
         self.updatingUiData = False
         
+    def Fill1DSlicesData(self):
+        self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableSpeciesNames())
+        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+        self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableDomainFieldsNames())
+        
 # UI Events        
     
     def FieldListView_Clicked(self,index):
@@ -706,32 +847,44 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def SetColorMap(self):
         if not self.updatingUiData:
-            cMap = self.colorMap_comboBox.currentText()
+            cMap = str(self.colorMap_comboBox.currentText())
             self.selectedFieldInfo["cMap"] = cMap
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
         
     def SetXAxisUnits(self):
         if not self.updatingUiData:
-            units = self.xUnits_comboBox.currentText()
+            if sys.version_info[0] < 3:
+                units = unicode(self.xUnits_comboBox.currentText())
+            else:
+                units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
     
     def SetYAxisUnits(self):
         if not self.updatingUiData:
-            units = self.yUnits_comboBox.currentText()
+            if sys.version_info[0] < 3:
+                units = unicode(self.yUnits_comboBox.currentText())
+            else:
+                units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
             
     def SetFieldUnits(self):
         if not self.updatingUiData:
-            units = self.fieldUnits_comboBox.currentText()
+            units = str(self.fieldUnits_comboBox.currentText())
             self.selectedFieldInfo["fieldUnits"] = units
             
     def PlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            plotType = self.plotType_comboBox.currentText()
-            self.plotProperties["PlotType"] = plotType
-            self.plotProperties["AxesDimension"] = self.subplot.GetAxesDimension(plotType)
-            
+            plotType = str(self.plotType_comboBox.currentText())
+            self.selectedFieldInfo["plotType"] = plotType
+    
+    def RemoveFieldButton_Clicked(self):
+        self.subplot.RemoveField(self.selectedFieldIndex)
+        del self.fieldInfoList[self.selectedFieldIndex]
+        self.FillListView()
+        self.FillFieldData(0)
+        
+        
     def ApplyButton_Clicked(self):
         self.SaveChanges()
         self.mainWindow.PlotFields()
@@ -811,9 +964,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def AxisPlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            plotType = self.axisPlotType_comboBox.currentText()
+            plotType = str(self.axisPlotType_comboBox.currentText())
             self.plotProperties["PlotType"] = plotType
-            self.plotProperties["AxesDimension"] = self.subplot.GetAxesDimension(plotType)
             self.axisColorMap_comboBox.clear()
             self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(plotType))
             self.plotProperties["CMap"] = self.subplot.GetAxisDefaultColorMap(plotType)
@@ -823,12 +975,12 @@ class EditPlotFieldWindow(QtGui.QDialog):
     
     def ChargeUnitsComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            units = self.chargeUnits_comboBox.currentText()
+            units = str(self.chargeUnits_comboBox.currentText())
             self.plotProperties["ChargeUnits"] = units
             
     def AxisColorMapComboBox_IndexChanged(self):
         if not self.updatingUiData:
-            cMap = self.axisColorMap_comboBox.currentText()
+            cMap = str(self.axisColorMap_comboBox.currentText())
             self.plotProperties["CMap"] = cMap
             
     def ChargeWeightCheckBox_StatusChanged(self):
@@ -838,3 +990,28 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def DisplayColorbarCheckBox_StatusChanged(self):
         self.plotProperties["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
+        
+    def FieldSliceTypeRadioButton_Toggled(self):
+        self.speciesSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
+        self.speciesFieldSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
+        self.domainFieldSelecteorSlice_comboBox.setEnabled(not self.speciesFieldsSlice_radioButton.isChecked())
+        
+    def SpeciesSelectorSliceComboBox_IndexChanged(self):
+        self.speciesFieldSelectorSlice_comboBox.clear()
+        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+        
+    def AddSliceButton_Clicked(self):
+        if self.speciesFieldsSlice_radioButton.isChecked():
+            speciesName = str(self.speciesSelectorSlice_comboBox.currentText())
+            fieldName = str(self.speciesFieldSelectorSlice_comboBox.currentText())
+            field = self.mainWindow.availableData.GetSpeciesField(speciesName, fieldName)
+        else:
+            fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
+            field = self.mainWindow.availableData.GetDomainField(fieldName)
+            
+        fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
+        self.subplot.AddFieldToPlot(fieldToPlot)
+        self.fieldInfoList.append(fieldToPlot.GetFieldInfo())
+        self.FillListView()
+        self.FillFieldData(0)
+        

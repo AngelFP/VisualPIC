@@ -81,7 +81,7 @@ class AvailableData:
             self.selectedSpecies = speciesList;
     
     def SetSelectedSpeciesFields(self):
-        self.selectedSpeciesFields.clear()
+        self.selectedSpeciesFields[:] = []
         for species in self.selectedSpecies:
             self.selectedSpeciesFields.append(species.GetField(self.selectedSpeciesFieldName))
             self.numberOfTimeSteps = species.GetField(self.selectedSpeciesFieldName).GetTotalTimeSteps()
@@ -89,7 +89,6 @@ class AvailableData:
     def SetSelectedSpeciesField(self, fieldName):
         self.selectedSpeciesFieldName = fieldName
 
-	
     def AddDomainField(self,field):
         
         if isinstance(field, Field):
@@ -145,6 +144,16 @@ class AvailableData:
             if species.GetName() == speciesName:
                 return species.GetAvailableFieldNamesList()
                 
+    def GetDomainField(self, fieldName):
+        for field in self.availableDomainFields:
+            if field.GetName() == fieldName:
+                return field
+                
+    def GetSpeciesField(self, speciesName, fieldName):
+        for species in self.availableSpecies:
+            if species.GetName() == speciesName:
+                return species.GetField(fieldName)
+                
     def GetFolderPath(self):
         
         return self.dataLocation
@@ -174,13 +183,13 @@ class AvailableData:
             
     def GetSelectedDomainFieldName(self):
         return self.selectedDomainField.GetName();
-		
+
     def GetSelectedSpeciesFields(self):
         return self.selectedSpeciesFields
     
     def SetDataFolderLocation(self, folderLocation):
         
-        self.dataLocation = folderLocation
+        self.dataLocation = str(folderLocation)
         
     def GetCommonlyAvailableFields(self):
         

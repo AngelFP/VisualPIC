@@ -17,7 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import math
+import codecs
 import numpy as np
 
 class OsirisUnitConverter:
@@ -27,6 +29,11 @@ class OsirisUnitConverter:
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.useNormUnits = False
+        #special units (with non ascii characters)
+        if sys.version_info[0] < 3:
+            self.um = u"μm"
+        else:
+            self.um = "μm"
     
     def allowNormUnits(self, value)  :
         self.useNormUnits = value
@@ -94,7 +101,7 @@ class OsirisUnitConverter:
     def getAxisUnitsOptions(self, field):
         normUnits = field.GetNormalizedUnits("x")
         if self.useNormUnits:
-            return  [normUnits, "m", "μm"]    
+            return  [normUnits, "m", self.um]
         else:
             return [normUnits]
             
@@ -104,14 +111,14 @@ class OsirisUnitConverter:
                 pass
             elif units == "m":
                 extent[0:2] *= self.c / self.w_p 
-            elif units == "μm":
+            elif units == self.um:
                 extent[0:2] *= 1e6 * self.c / self.w_p 
         elif axis == "y":
             if units == normUnits:
                 pass
             elif units == "m":
                 extent[2:4] *= self.c / self.w_p 
-            elif units == "μm":
+            elif units == self.um:
                 extent[2:4] *= 1e6 * self.c / self.w_p 
             
     def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
