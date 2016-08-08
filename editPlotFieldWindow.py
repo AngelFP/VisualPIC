@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from PyQt4 import QtCore, QtGui
 from fieldToPlotClass import FieldToPlot
 
@@ -853,12 +854,18 @@ class EditPlotFieldWindow(QtGui.QDialog):
         
     def SetXAxisUnits(self):
         if not self.updatingUiData:
-            units = str(self.xUnits_comboBox.currentText())
+            if sys.version_info[0] < 3:
+                units = unicode(self.xUnits_comboBox.currentText())
+            else:
+                units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
     
     def SetYAxisUnits(self):
         if not self.updatingUiData:
-            units = str(self.yUnits_comboBox.currentText())
+            if sys.version_info[0] < 3:
+                units = unicode(self.yUnits_comboBox.currentText())
+            else:
+                units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
             
     def SetFieldUnits(self):

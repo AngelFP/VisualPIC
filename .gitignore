@@ -17,8 +17,12 @@ $RECYCLE.BIN/
 # Compiled python files
 *.pyc
 
+# Visual Studio Files
+*.suo
+
 # Windows shortcuts
 *.lnk
+*.pyproj
 
 # =========================
 # Operating System Files

@@ -89,7 +89,6 @@ class AvailableData:
     def SetSelectedSpeciesField(self, fieldName):
         self.selectedSpeciesFieldName = fieldName
 
-	
     def AddDomainField(self,field):
         
         if isinstance(field, Field):
@@ -184,7 +183,7 @@ class AvailableData:
             
     def GetSelectedDomainFieldName(self):
         return self.selectedDomainField.GetName();
-		
+
     def GetSelectedSpeciesFields(self):
         return self.selectedSpeciesFields
     

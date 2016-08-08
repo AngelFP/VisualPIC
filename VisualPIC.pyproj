@@ -57,8 +57,8 @@
     <Folder Include="Logo" />
   </ItemGroup>
   <ItemGroup>
+    <InterpreterReference Include="{2695a283-2595-44c6-957f-b67fa1f98701}\2.7" />
     <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
-    <InterpreterReference Include="{ab268e8f-5a48-4d49-aa81-22d108c2b0c0}\2.7" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
