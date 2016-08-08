@@ -20,6 +20,10 @@ $RECYCLE.BIN/
 # Compiled files
 *.pyc
 
+# Visual Studio Files
+*.suo
+*.pyproj
+
 # =========================
 # Operating System Files
 # =========================
