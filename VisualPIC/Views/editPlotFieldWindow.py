@@ -19,7 +19,7 @@
 
 import sys
 from PyQt4 import QtCore, QtGui
-from fieldToPlotClass import FieldToPlot
+from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

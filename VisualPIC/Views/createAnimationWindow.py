@@ -19,15 +19,15 @@
 
 from PyQt4 import QtCore, QtGui
 import os
-import images2gif
+from VisualPIC.Tools import images2gif
 from PIL import Image
 import numpy as np
 
 
-class CreateAnimationWidget(QtGui.QDialog):
+class CreateAnimationWindow(QtGui.QDialog):
     def __init__(self,parent=None):
         
-        super(CreateAnimationWidget, self).__init__(parent)
+        super(CreateAnimationWindow, self).__init__(parent)
         
         self.mainWindow = parent
         self.verticalLayout = QtGui.QVBoxLayout(self)
