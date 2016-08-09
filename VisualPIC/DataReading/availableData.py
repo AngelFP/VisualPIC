@@ -17,9 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-from speciesClass import Species
-from fieldClass import Field
-from rawDataSet import RawDataSet
+from VisualPIC.DataReading.species import Species
+from VisualPIC.DataReading.field import Field
+from VisualPIC.DataReading.rawDataSet import RawDataSet
 import os
 import h5py
 

@@ -29,15 +29,15 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-from CreateAnimationWidget import CreateAnimationWidget
-from availableDataClass import AvailableData
-from dataPlotterClass import DataPlotter
-from fieldToPlotClass import FieldToPlot
-from rawDataSetToPlot import RawDataSetToPlot
-from subplot import Subplot
-from colorMapsCollectionClass import ColorMapsCollection
-from plotFieldItem import PlotFieldItem
-import unitConverters
+from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
+from VisualPIC.DataReading.availableData import AvailableData 
+from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
+from VisualPIC.DataPlotting.dataPlotter import DataPlotter
+from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
+from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
+from VisualPIC.DataHandling.subplot import Subplot
+from VisualPIC.Controls.plotFieldItem import PlotFieldItem
+import VisualPIC.DataHandling.unitConverters as unitConverters
 
 #from navigationToolbar2Class import NavigationToolbar2QT as NavigationToolbar
 
@@ -52,9 +52,9 @@ guipath = os.path.join( bundle_dir, 'DataVisualizerGUI.ui' )
 Ui_MainWindow, QMainWindow = loadUiType(guipath)
 
 	
-class GUI_MainWindow(QMainWindow, Ui_MainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        super(GUI_MainWindow, self).__init__()
+        super(MainWindow, self).__init__()
         self.setupUi(self)
         self.unitConverter = unitConverters.OsirisUnitConverter()
         self.availableData = AvailableData()
@@ -146,8 +146,8 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         self.availableData.SetDataFolderLocation(folderPath)
     
     def actionMakeVideo_toggled(self):
-        CreateAnimationWindow = CreateAnimationWidget(self)
-        CreateAnimationWindow.exec_()
+        AnimationWindow = CreateAnimationWindow(self)
+        AnimationWindow.exec_()
         
     def SpeciesFieldsRadioButton_Toggled(self):
         if self.oneDimSpeciesField_radioButton.isChecked():
@@ -321,7 +321,7 @@ class GUI_MainWindow(QMainWindow, Ui_MainWindow):
         
     def addDomainFieldButton_Clicked(self):
         self.addFieldsToPlot(self.availableData.GetSelectedDomainField(), self.domainFieldPlotDimension)
-	
+        	
     def addSpeciesFieldButton_Clicked(self):
         self.availableData.SetSelectedSpeciesFields()
         self.addFieldsToPlot(self.availableData.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)

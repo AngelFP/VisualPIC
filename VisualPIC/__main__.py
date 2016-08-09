@@ -18,15 +18,21 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from guiClass import GUI_MainWindow
+# Add VisualPIC folder to python path, so that folders can be called as modules
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+os.sys.path.insert(0,parentdir) 
 
  
 if __name__ == '__main__':
+    from VisualPIC.Views.mainWindow import MainWindow
     import sys
     from PyQt4 import QtGui
  
     app = QtGui.QApplication(sys.argv)
-    mainWindow = GUI_MainWindow()
+    mainWindow = MainWindow()
     mainWindow.show()
     sys.exit(app.exec_())
     
