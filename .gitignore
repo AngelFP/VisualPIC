@@ -25,7 +25,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # Compiled files
-*.pyc
+#*.pyc
 
 # Visual Studio Files
 *.suo
