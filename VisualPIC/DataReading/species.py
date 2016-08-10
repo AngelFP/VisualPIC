@@ -20,7 +20,6 @@
 class Species:
     
     def __init__(self, name):
-        
         self.name = name
         self.availableFields = list()
         self.customFields = list()
@@ -29,17 +28,14 @@ class Species:
         self.hasRawData = False
         
     def AddAvailableField(self,field):
-        
         self.hasFields = True
         if field not in self.availableFields:
             self.availableFields.append(field)
         
     def AddCustomField(self, field):
-        
         self.customFields.append(field)
             
     def AddRawDataSet(self, dataSet):
-        
         self.hasRawData = True
         self.rawDataSets.append(dataSet)
         
@@ -50,7 +46,6 @@ class Species:
         return self.hasRawData
             
     def GetFieldPlotData(self, fieldName, timeStep):
-        
         for field in self.availableFields:
             if field.GetName() == fieldName:
                 return field.GetPlotData(timeStep)
@@ -60,7 +55,6 @@ class Species:
                 return field.GetPlotData(timeStep)
     
     def GetRawDataSetPlotData(self, dataSetName, timeStep):
-        
         for dataSet in self.rawDataSets:
             if dataSet.GetName() == dataSetName:
                 return dataSet.GetPlotData(timeStep)
@@ -76,7 +70,6 @@ class Species:
         fieldNames = list()
         for field in self.customFields:
             fieldNames.append(field.GetName())
-        
         return fieldNames
         
     def GetRawDataSetsNamesList(self):
@@ -87,11 +80,7 @@ class Species:
         return dataSetNames
     
     def GetName(self):
-        
         return self.name
-        
-        
-        
     
     def GetField(self, fieldName):
         for field in self.availableFields:

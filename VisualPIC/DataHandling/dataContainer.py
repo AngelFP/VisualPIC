@@ -17,17 +17,14 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-from VisualPIC.DataReading.species import Species
-from VisualPIC.DataReading.field import Field
-from VisualPIC.DataReading.rawDataSet import RawDataSet
-import os
-import h5py
+from VisualPIC.DataReading.folderDataReader import FolderDataReader
 
-class AvailableData:
+class DataContainer:
     
     def __init__(self):
-        
-        # species (may vontain fields and raw data)
+        self.folderDataReader = FolderDataReader()
+
+        # species (may contain fields and raw data)
         self.availableSpecies = list()
         self.selectedSpecies = list()
         self.selectedSpeciesFieldName = None
@@ -41,40 +38,19 @@ class AvailableData:
 
         self.numberOfTimeSteps = 0
         self.dataLocation = ""
-        
-    def AddSpecies(self, species):
-        
-        if isinstance(species, Species):
-            addSpecies = True
-            for avSpecies in self.availableSpecies:
-                if avSpecies.GetName() == species.GetName():
-                    addSpecies =  False
-            if addSpecies:
-                self.availableSpecies.append(species)
+    
+    def SetDataFolderLocation(self, folderLocation):
+        self.folderDataReader.SetDataLocation(str(folderLocation))
                 
     def AddSelectedSpecies(self, speciesName):
-        
         for species in self.availableSpecies:
             if species.GetName() == speciesName:
                 self.selectedSpecies.append(species)
          
     def RemoveSelectedSpecies(self, speciesName):
-        
         for species in self.selectedSpecies:
             if species.GetName() == speciesName:
                 self.selectedSpecies.remove(species)
-    
-    def AddFieldToSpecies(self, speciesName, field):
-        
-        for species in self.availableSpecies:
-            if species.GetName() == speciesName:
-                species.AddAvailableField(field)
-                
-    def AddRawDataToSpecies(self, speciesName, dataSet):
-        
-        for species in self.availableSpecies:
-            if species.GetName() == speciesName:
-                species.AddRawDataSet(dataSet)
 
     def SetSelectedSpecies(self, speciesList):
         if speciesList is list:
@@ -88,58 +64,36 @@ class AvailableData:
             
     def SetSelectedSpeciesField(self, fieldName):
         self.selectedSpeciesFieldName = fieldName
-
-    def AddDomainField(self,field):
-        
-        if isinstance(field, Field):
-            self.availableDomainFields.append(field)
-            
-    def AddCustomField(self, field):
-        
-        if field is Field:
-            self.customDomainFields.append(field)
     
     def GetAvailableSpecies(self):
-
         return self.availableSpecies
         
     def GetSpeciesWithRawData(self):
-
         speciesList = list()
         for species in self.availableSpecies:
             if species.HasRawData():
                 speciesList.append(species)
-                
         return speciesList
         
     def GetAvailableSpeciesNames(self):
-
         namesList = list()
         for species in self.availableSpecies:
             namesList.append(species.GetName())
         return namesList
 
     def GetSelectedSpecies(self):
-
         return self.selectedSpecies  
         
     def GetAvailableDomainFields(self):
-        
         return self.availableDomainFields
         
     def GetAvailableDomainFieldsNames(self):
-        
         namesList = list()
         for field in self.availableDomainFields:
             namesList.append(field.GetName())
         return namesList
         
-    def GetCustomDomainFields(self):
-        
-        return self.customDomainFields
-        
     def GetAvailableFieldsInSpecies(self, speciesName):
-        
         for species in self.availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetAvailableFieldNamesList()
@@ -155,19 +109,14 @@ class AvailableData:
                 return species.GetField(fieldName)
                 
     def GetFolderPath(self):
-        
-        return self.dataLocation
+        return self.folderDataReader.GetDataLocation()
     
     def SetNumberOfTimeSteps(self, number):
-        
         if isinstance(number, int):
             self.numberOfTimeSteps = number;
             
     def GetNumberOfTimeSteps(self):
-        
         return self.numberOfTimeSteps
-        
-    
         
     def SetSelectedDomainField(self, fieldName):
         for field in self.availableDomainFields:
@@ -186,13 +135,8 @@ class AvailableData:
 
     def GetSelectedSpeciesFields(self):
         return self.selectedSpeciesFields
-    
-    def SetDataFolderLocation(self, folderLocation):
-        
-        self.dataLocation = str(folderLocation)
         
     def GetCommonlyAvailableFields(self):
-        
         commonlyAvailableFields = list()
         fieldsToRemove = list()
         i = 0
@@ -205,14 +149,11 @@ class AvailableData:
                     if field not in speciesFields:
                         fieldsToRemove.append(field)
             i+=1
-            
         for field in fieldsToRemove:
             commonlyAvailableFields.remove(field)
-            
         return commonlyAvailableFields
 
     def ClearData(self):
-        
         self.availableSpecies = list()
         self.availableDomainFields = list()
         self.customDomainFields = list()
@@ -220,70 +161,3 @@ class AvailableData:
         self.selectedDomainField = None
         self.selectedSpeciesFieldName = None
         self.numberOfTimeSteps = 0
-        
-    # Data loading methods
-    
-    def LoadFolderData(self):
-        
-        self.ClearData()
-        
-        keyFolderNames = ["DENSITY", "FLD", "PHA", "RAW" ]
-        
-        #completeSubfolderList = list(os.walk(self.dataLocation))
-        
-        mainFolders = os.listdir(self.dataLocation)
-        
-        for folder in mainFolders:
-            subDir = self.dataLocation + "/" + folder
-            
-            if folder == keyFolderNames[0]:
-                speciesNames = os.listdir(subDir)
-                for species in speciesNames:
-                    if os.path.isdir(os.path.join(subDir, species)):
-                        self.AddSpecies(Species(species))
-                        speciesFields = os.listdir(subDir + "/" + species)
-                        for field in speciesFields:
-                            if os.path.isdir(os.path.join(subDir + "/" + species, field)):
-                                fieldLocation = subDir + "/" + species + "/" + field
-                                fieldName = field
-                                totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
-                        
-            elif folder == keyFolderNames[1]:
-                domainFields = os.listdir(subDir)
-                for field in domainFields:
-                    if os.path.isdir(os.path.join(subDir, field)):
-                        fieldLocation = subDir + "/" + field
-                        fieldName = field
-                        totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(fieldName, fieldLocation, totalTimeSteps))
-            
-#            elif folder ==  keyFolderNames[2]:
-#                phaseFields = os.listdir(subDir)
-#                for field in phaseFields:
-#                    if os.path.isdir(os.path.join(subDir, field)):
-#                        speciesNames = os.listdir(subDir + "/" + field)
-#                        for species in speciesNames:
-#                            if os.path.isdir(os.path.join(subDir + "/" + field, species)):
-#                                self.AddSpecies(Species(species))
-#                                fieldLocation = subDir + "/" + field + "/" + species
-#                                fieldName = field
-#                                totalTimeSteps = len(os.listdir(fieldLocation))
-#                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
-            
-            elif folder ==  keyFolderNames[3]:
-                subDir = self.dataLocation + "/" + folder
-                self.LoadRawData(subDir)
-                        
-    def LoadRawData(self, subDir):
-        speciesNames = os.listdir(subDir)
-        for species in speciesNames:
-            if os.path.isdir(os.path.join(subDir, species)):
-                self.AddSpecies(Species(species))
-                dataSetLocation = subDir + "/" + species
-                totalTimeSteps = len(os.listdir(dataSetLocation))
-                
-                file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
-                file_content = h5py.File(file_path, 'r')
-                for dataSetName in list(file_content):
-                    self.AddRawDataToSpecies(species, RawDataSet(dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
