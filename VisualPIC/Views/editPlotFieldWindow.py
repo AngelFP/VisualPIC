@@ -18,7 +18,9 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+
 from PyQt4 import QtCore, QtGui
+
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 
 try:
@@ -26,6 +28,7 @@ try:
 except AttributeError:
     def _fromUtf8(s):
         return s
+
 
 class EditPlotFieldWindow(QtGui.QDialog):
     def __init__(self, subplot, parent=None):
@@ -531,9 +534,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.GetPlotProperties()
         self.GetTitleProperties()
         self.FillInitialUI()
-        #self.LoadColorMaps()
-        #self.LoadUnitsOptions()
-        
+
     def SetText(self):
 #        self.FieldName.setText(self.fieldToPlot.GetName())
 #        self.SpeciesName.setText(self.fieldToPlot.GetSpeciesName())
@@ -615,14 +616,12 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.cancel_button.clicked.connect(self.CancelButton_Clicked)
         self.plotType_comboBox.currentIndexChanged.connect(self.PlotTypeComboBox_IndexChanged)
         self.removeField_button.clicked.connect(self.RemoveFieldButton_Clicked)
-        
         # Plot settings tab
         self.axisPlotType_comboBox.currentIndexChanged.connect(self.AxisPlotTypeComboBox_IndexChanged)
         self.chargeUnits_comboBox.currentIndexChanged.connect(self.ChargeUnitsComboBox_IndexChanged)
         self.axisColorMap_comboBox.currentIndexChanged.connect(self.AxisColorMapComboBox_IndexChanged)
         self.chargeWeight_checkBox.toggled.connect(self.ChargeWeightCheckBox_StatusChanged)
         self.displayColorbar_checkBox.toggled.connect(self.DisplayColorbarCheckBox_StatusChanged)
-        
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
         self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
@@ -638,44 +637,39 @@ class EditPlotFieldWindow(QtGui.QDialog):
         # Colorbar tab
         self.cbAutoLabel_checkBox.toggled.connect(self.CbAutoLabelCheckBox_statusChanged)
         self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
-        
         # 1D Slices tab
         self.speciesFieldsSlice_radioButton.toggled.connect(self.FieldSliceTypeRadioButton_Toggled)
         self.domainFieldsSlice_radioButton.toggled.connect(self.FieldSliceTypeRadioButton_Toggled)
         self.speciesSelectorSlice_comboBox.currentIndexChanged.connect(self.SpeciesSelectorSliceComboBox_IndexChanged)
         self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
-    
+
     def SetVisibleTabs(self):
-        
         if self.dataType == "Field":
             self.tabWidget.removeTab(1)
         elif self.dataType == "Axis":
             self.tabWidget.removeTab(0)
-        
+
     def GetFieldsInfo(self):
         self.fieldInfoList = list()
         for field in self.subplot.GetFieldsToPlot():
             self.fieldInfoList.append(field.GetFieldInfo())
-    
+
     def GetAxisProperties(self):
         self.axisProperties = {
             "x":self.subplot.GetCopyAllAxisProperties("x"),
             "y":self.subplot.GetCopyAllAxisProperties("y")
             }
-            
+
     def GetColorbarProperties(self):
         self.cbProperties = self.subplot.GetCopyAllColorbarProperties()
-        
+
     def GetTitleProperties(self):
         self.titleProperties = self.subplot.GetCopyAllTitleProperties()
-        
+
     def GetPlotProperties(self):
         self.plotProperties = self.subplot.GetCopyAllPlotProperties()
-        
+
     def FillInitialUI(self):
-                # use this boolean to determine whether UI data is being updated, 
-        #so that UI events happening during the process wont have any effect 
-        
         self.FillListView()
         if self.dataType == "Field":
             self.FillFieldData(self.selectedFieldIndex)
@@ -685,146 +679,113 @@ class EditPlotFieldWindow(QtGui.QDialog):
         self.FillColorbarData()
         self.FillTitleData()
         self.Fill1DSlicesData()
-        
-        
+
     def FillListView(self):
         model = QtGui.QStandardItemModel()
-        
         for field in self.subplot.GetFieldsToPlot():
             listLabel = field.GetName()
             if field.GetSpeciesName() != '':
                 listLabel += " / " + field.GetSpeciesName()
             item = QtGui.QStandardItem(listLabel)
             model.appendRow(item)
-        
         self.field_listView.setModel(model)
-    
-    def FillFieldData(self, fieldIndex):
 
+    def FillFieldData(self, fieldIndex):
         self.updatingUiData = True
         self.selectedFieldInfo = self.fieldInfoList[fieldIndex]
         self.FieldName.setText(self.selectedFieldInfo["name"])
         self.SpeciesName.setText(self.selectedFieldInfo["speciesName"])
-        
         # Units
         self.fieldUnits_comboBox.clear()
-        
         self.fieldUnits_comboBox.addItems(self.selectedFieldInfo["possibleFieldUnits"])
-        
         index = self.fieldUnits_comboBox.findText(self.selectedFieldInfo["fieldUnits"])
         if index != -1:
             self.fieldUnits_comboBox.setCurrentIndex(index)
-       
-       
-        
-        
         # Scale
         self.auto_checkBox.setChecked(self.selectedFieldInfo["autoScale"])
         self.min_lineEdit.setText(str(self.selectedFieldInfo["minVal"]))
         self.max_lineEdit.setText(str(self.selectedFieldInfo["maxVal"]))
-        
-        # PlotType
-        
-        
         # ColorMap
         self.colorMap_comboBox.clear()
         self.colorMap_comboBox.addItems(self.selectedFieldInfo["possibleColorMaps"])
         index = self.colorMap_comboBox.findText(self.selectedFieldInfo["cMap"]);
         if index != -1:
            self.colorMap_comboBox.setCurrentIndex(index)
-           
-           
         # Plot type
         self.plotType_comboBox.clear()
         self.plotType_comboBox.addItems(self.selectedFieldInfo["possiblePlotTypes"])
         index = self.plotType_comboBox.findText(self.selectedFieldInfo["plotType"]);
         if index != -1:
            self.plotType_comboBox.setCurrentIndex(index)
-           
         self.updatingUiData = False
-    
+
     def FillPlotSettingsData(self):
         self.updatingUiData = True
-        
         self.axisPlotType_comboBox.clear()
         self.axisPlotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
         index = self.axisPlotType_comboBox.findText(self.plotProperties["PlotType"]);
         if index != -1:
             self.axisPlotType_comboBox.setCurrentIndex(index)
-        
         self.chargeWeight_checkBox.setChecked(self.plotProperties["UseChargeWeighting"])
-        
         self.chargeUnits_comboBox.clear()
         self.chargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
         index = self.chargeUnits_comboBox.findText(self.plotProperties["ChargeUnits"]);
         if index != -1:
             self.chargeUnits_comboBox.setCurrentIndex(index)
-        
         self.axisColorMap_comboBox.clear()
         self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(self.plotProperties["PlotType"]))
         index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
         if index != -1:
             self.axisColorMap_comboBox.setCurrentIndex(index)
-            
         self.displayColorbar_checkBox.setChecked(self.plotProperties["DisplayColorbar"])
         self.updatingUiData = False
-        
+
     def FillAxesData(self):
-        
         self.updatingUiData = True
         unitOptions = self.subplot.GetAxesUnitsOptions()
-        
         self.xUnits_comboBox.clear()
         self.xUnits_comboBox.addItems(unitOptions["x"])
         index = self.xUnits_comboBox.findText(self.axisProperties["x"]["Units"])
         if index != -1:
             self.xUnits_comboBox.setCurrentIndex(index)
-            
         self.yUnits_comboBox.clear()
         self.yUnits_comboBox.addItems(unitOptions["y"])
         index = self.yUnits_comboBox.findText(self.axisProperties["y"]["Units"])
         if index != -1:
             self.yUnits_comboBox.setCurrentIndex(index)
-        
         self.xAutoLabel_checkBox.setChecked(self.axisProperties["x"]["AutoLabel"])
         self.yAutoLabel_checkBox.setChecked(self.axisProperties["y"]["AutoLabel"])
         self.xAutoLabel_lineEdit.setText(self.axisProperties["x"]["LabelText"])
         self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["LabelText"])
-        
         self.xFontSize_spinBox.setValue(self.axisProperties["x"]["LabelFontSize"])
         self.yFontSize_spinBox.setValue(self.axisProperties["y"]["LabelFontSize"])
-        
         self.updatingUiData = False
-        
+
     def FillColorbarData(self):
         self.updatingUiData = True
-        
         self.cbAutoLabel_checkBox.setChecked(self.cbProperties["AutoTickLabelSpacing"])
         self.cbFontSize_spinBox.setValue(self.cbProperties["FontSize"])
-        
         self.updatingUiData = False
-        
+
     def FillTitleData(self):
-        
         self.updatingUiData = True
-        
         self.autoTitle_lineEdit.setText(self.titleProperties["Text"])
         self.autoTitle_checkBox.setChecked(self.titleProperties["AutoText"])
         self.titleFontSize_spinBox.setValue(self.titleProperties["FontSize"])
-        
         self.updatingUiData = False
-        
+
     def Fill1DSlicesData(self):
-        self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableSpeciesNames())
-        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
-        self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableDomainFieldsNames())
-        
-# UI Events        
-    
+        self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableSpeciesNames())
+        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+        self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableDomainFieldsNames())
+
+    """
+    UI event handlers
+    """
     def FieldListView_Clicked(self,index):
         self.selectedFieldIndex = index.row()
         self.FillFieldData(self.selectedFieldIndex)
-    
+
     def AutoCheckBox_StatusChanged(self):
         if self.auto_checkBox.checkState():
             self.min_lineEdit.setEnabled(False)
@@ -836,22 +797,21 @@ class EditPlotFieldWindow(QtGui.QDialog):
             self.max_lineEdit.setEnabled(True)
             if not self.updatingUiData:
                 self.selectedFieldInfo["autoScale"] = False
-        
+
     def MinMaxLineEdit_textChanged(self):
         if not self.updatingUiData:
             vMin = float(self.min_lineEdit.text())
             vMax = float(self.max_lineEdit.text())
             self.selectedFieldInfo["minVal"] = vMin
             self.selectedFieldInfo["maxVal"] = vMax
-    
-        
+
     def SetColorMap(self):
         if not self.updatingUiData:
             cMap = str(self.colorMap_comboBox.currentText())
             self.selectedFieldInfo["cMap"] = cMap
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
-        
+
     def SetXAxisUnits(self):
         if not self.updatingUiData:
             if sys.version_info[0] < 3:
@@ -859,7 +819,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
             else:
                 units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
-    
+
     def SetYAxisUnits(self):
         if not self.updatingUiData:
             if sys.version_info[0] < 3:
@@ -867,41 +827,39 @@ class EditPlotFieldWindow(QtGui.QDialog):
             else:
                 units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
-            
+
     def SetFieldUnits(self):
         if not self.updatingUiData:
             units = str(self.fieldUnits_comboBox.currentText())
             self.selectedFieldInfo["fieldUnits"] = units
-            
+
     def PlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
             plotType = str(self.plotType_comboBox.currentText())
             self.selectedFieldInfo["plotType"] = plotType
-    
+
     def RemoveFieldButton_Clicked(self):
         self.subplot.RemoveField(self.selectedFieldIndex)
         del self.fieldInfoList[self.selectedFieldIndex]
         self.FillListView()
         self.FillFieldData(0)
-        
-        
+
     def ApplyButton_Clicked(self):
         self.SaveChanges()
         self.mainWindow.PlotFields()
-        
+
     def AcceptButton_Clicked(self):
         self.SaveChanges()
         self.close() 
-    
+
     def CancelButton_Clicked(self):
         self.close()     
-        
+
     def SaveChanges(self):
         i = 0
         for field in self.subplot.GetFieldsToPlot():
             field.SetFieldInfo(self.fieldInfoList[i])
             i+=1
-            
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
@@ -915,7 +873,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
         else:
             self.xAutoLabel_lineEdit.setEnabled(True)
         self.axisProperties["x"]["AutoLabel"] = self.xAutoLabel_checkBox.checkState()
-        
+
     def YAutoLabelCheckBox_statusChanged(self):
         if self.yAutoLabel_checkBox.checkState():
             self.yAutoLabel_lineEdit.setEnabled(False)
@@ -923,14 +881,14 @@ class EditPlotFieldWindow(QtGui.QDialog):
         else:
             self.yAutoLabel_lineEdit.setEnabled(True)
         self.axisProperties["y"]["AutoLabel"] = self.yAutoLabel_checkBox.checkState()
-        
+
     def CbAutoLabelCheckBox_statusChanged(self):
         if self.cbAutoLabel_checkBox.checkState():
             self.cbAutoLabel_lineEdit.setEnabled(False)
         else:
             self.cbAutoLabel_lineEdit.setEnabled(True)
         self.cbProperties["AutoTickLabelSpacing"] = self.cbAutoLabel_checkBox.checkState()
-            
+
     def AutoTitleCheckBox_statusChanged(self):
         if self.autoTitle_checkBox.checkState():
             self.autoTitle_lineEdit.setEnabled(False)
@@ -938,30 +896,29 @@ class EditPlotFieldWindow(QtGui.QDialog):
         else:
             self.autoTitle_lineEdit.setEnabled(True) 
         self.titleProperties["AutoText"] = self.autoTitle_checkBox.checkState()
-            
+
     def XAutoLabelLineEdit_textChanged(self, text):
         self.axisProperties["x"]["LabelText"] = text
-        
+
     def YAutoLabelLineEdit_textChanged(self, text):
         self.axisProperties["y"]["LabelText"] = text
-        
+
     def XFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["x"]["LabelFontSize"] = value
 
     def YFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["y"]["LabelFontSize"] = value
-        
+
     def CbFontSizeSpinBox_valueChanged(self, value):
         self.cbProperties["FontSize"] = value
-    
+
     def TitleFontSizeSpinBox_valueChanged(self, value):
         self.titleProperties["FontSize"] = value
-    
+
     def AutoTitleLineEdit_textChanged(self, text):
         self.titleProperties["Text"] = text
-        
+
     # Plot settings tab
-        
     def AxisPlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
             plotType = str(self.axisPlotType_comboBox.currentText())
@@ -972,46 +929,45 @@ class EditPlotFieldWindow(QtGui.QDialog):
             index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
             if index != -1:
                 self.axisColorMap_comboBox.setCurrentIndex(index)
-    
+
     def ChargeUnitsComboBox_IndexChanged(self):
         if not self.updatingUiData:
             units = str(self.chargeUnits_comboBox.currentText())
             self.plotProperties["ChargeUnits"] = units
-            
+
     def AxisColorMapComboBox_IndexChanged(self):
         if not self.updatingUiData:
             cMap = str(self.axisColorMap_comboBox.currentText())
             self.plotProperties["CMap"] = cMap
-            
+
     def ChargeWeightCheckBox_StatusChanged(self):
         state = self.chargeWeight_checkBox.checkState()
         self.chargeUnits_comboBox.setEnabled(state)
         self.plotProperties["UseChargeWeighting"] = state
-        
+
     def DisplayColorbarCheckBox_StatusChanged(self):
         self.plotProperties["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
-        
+
     def FieldSliceTypeRadioButton_Toggled(self):
         self.speciesSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
         self.speciesFieldSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
         self.domainFieldSelecteorSlice_comboBox.setEnabled(not self.speciesFieldsSlice_radioButton.isChecked())
-        
+
     def SpeciesSelectorSliceComboBox_IndexChanged(self):
         self.speciesFieldSelectorSlice_comboBox.clear()
-        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.availableData.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
-        
+        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+
     def AddSliceButton_Clicked(self):
         if self.speciesFieldsSlice_radioButton.isChecked():
             speciesName = str(self.speciesSelectorSlice_comboBox.currentText())
             fieldName = str(self.speciesFieldSelectorSlice_comboBox.currentText())
-            field = self.mainWindow.availableData.GetSpeciesField(speciesName, fieldName)
+            field = self.mainWindow.dataContainer.GetSpeciesField(speciesName, fieldName)
         else:
             fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
-            field = self.mainWindow.availableData.GetDomainField(fieldName)
+            field = self.mainWindow.dataContainer.GetDomainField(fieldName)
             
         fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
         self.subplot.AddFieldToPlot(fieldToPlot)
         self.fieldInfoList.append(fieldToPlot.GetFieldInfo())
         self.FillListView()
         self.FillFieldData(0)
-        

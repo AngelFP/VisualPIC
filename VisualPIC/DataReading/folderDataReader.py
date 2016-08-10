@@ -31,6 +31,7 @@ class FolderDataReader:
         self.__dataLocation = ""
         self.__availableSpecies = list()
         self.__availableFields = list()
+        self.CreateCodeDictionaries()
     
     def CreateCodeDictionaries(self):
         self.__codeName = {"MS":"Osiris",
@@ -46,7 +47,6 @@ class FolderDataReader:
     """
     Data managing. Methods for adding the detected species, fields...
     """
-
     def AddSpecies(self, species):
         addSpecies = True
         # the species will not be added if it already exists
@@ -67,15 +67,14 @@ class FolderDataReader:
                 species.AddRawDataSet(dataSet)
 
     def AddDomainField(self,field):
-        if isinstance(field, Field):
-            self.__availableFields.append(field)
+        self.__availableFields.append(field)
 
     """
     Main data loader. It will automatically call the specific loader for a particular simulation code
     """
-
     def LoadData(self):
         self.__loadDataFrom[self.DetectSimulationCodeName()]()
+        return self.__availableSpecies, self.__availableFields
 
     def DetectSimulationCodeName(self):
         dataFolderName = os.path.basename(self.__dataLocation)
@@ -84,10 +83,8 @@ class FolderDataReader:
     """
     Specific data loaders
     """
-
     def LoadOsirisData(self):
         """Osiris Loader"""
-
         keyFolderNames = ["DENSITY", "FLD", "PHA", "RAW" ]
         mainFolders = os.listdir(self.__dataLocation)
         for folder in mainFolders:
@@ -103,7 +100,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
+                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self.__codeName))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -111,7 +108,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(fieldName, fieldLocation, totalTimeSteps))
+                        self.AddDomainField(Field(fieldName, fieldLocation, totalTimeSteps, simulationCode = self.__codeName))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -123,7 +120,7 @@ class FolderDataReader:
             #                    fieldLocation = subDir + "/" + field + "/" + species
             #                    fieldName = field
             #                    totalTimeSteps = len(os.listdir(fieldLocation))
-            #                    self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species))
+            #                    self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self.__codeName))
             elif folder ==  keyFolderNames[3]:
                 subDir = self.__dataLocation + "/" + folder
                 speciesNames = os.listdir(subDir)
@@ -135,9 +132,8 @@ class FolderDataReader:
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
-                            self.AddRawDataToSpecies(species, RawDataSet(dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                            self.AddRawDataToSpecies(species, RawDataSet(dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName, simulationCode = self.__codeName))
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
-
         raise NotImplementedError

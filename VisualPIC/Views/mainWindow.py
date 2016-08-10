@@ -85,7 +85,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.yRaw_comboBox.setEnabled(True)
     
     def RegisterUIEvents(self):
-        self.browse_Button.clicked.connect(self.self.BrowseButton_Clicked)
+        self.browse_Button.clicked.connect(self.BrowseButton_Clicked)
         self.folderLocation_lineEdit.textChanged.connect(self.FolderLocationlineEdit_TextChanged)
         self.loadData_Button.clicked.connect(self.LoadDataButton_Cicked)
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
@@ -221,11 +221,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.PlotFields()
         
     def AddDomainFieldButton_Clicked(self):
-        self.addFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
+        self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
         	
     def AddSpeciesFieldButton_Clicked(self):
         self.dataContainer.SetSelectedSpeciesFields()
-        self.addFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+        self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
 
     """
     Called from UI event handlers
@@ -251,12 +251,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             positionsList.append(str(int(item)))
         self.plotPosition_comboBox.addItems(positionsList)
 
-
     def AddRawDataSubplot(self, dataSets):
         plotPosition = len(self.subplotList)+1
         subplot = Subplot(plotPosition, self.colorMapsCollection, axisData = dataSets)
         self.subplotList.append(subplot)
-        self.setAutoColumnsAndRows()
+        self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
@@ -291,7 +290,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList[:] = []
         
     def LoadFolderData(self):
-        self.dataContainer.LoadFolderData()
+        self.dataContainer.LoadData()
         self.av2DDomainFields_comboBox.clear()
         self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
         self.FillAvailableSpeciesList()
@@ -320,7 +319,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.yRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
                 self.zRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
         
-    def addFieldsToPlot(self, fields, fieldPlotDimension):
+    def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
         for fld in fields:
             fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
@@ -328,33 +327,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         plotPosition = len(self.subplotList)+1
         subplot = Subplot(plotPosition, self.colorMapsCollection, fieldsToPlotList = fldList)
         self.subplotList.append(subplot)
-        self.setAutoColumnsAndRows()
+        self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
             
-    def setAutoColumnsAndRows(self):
+    def SetAutoColumnsAndRows(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
         if rows*columns < len(self.subplotList):
             if self.increaseRowsColumnsCounter % 2 == 0:
-                self.increaseRows()
+                self.IncreaseRows()
             else:
-                self.increaseColumns()
+                self.IncreaseColumns()
             self.increaseRowsColumnsCounter += 1
                 
-    def increaseColumns(self):
+    def IncreaseColumns(self):
         self.columns_spinBox.stepUp()
         
-    def increaseRows(self):
+    def IncreaseRows(self):
         self.rows_spinBox.stepUp()
         
-    def decreaseColumns(self):
+    def DecreaseColumns(self):
         self.columns_spinBox.stepDown()
         
-    def decreaseRows(self):
+    def DecreaseRows(self):
         self.rows_spinBox.stepDown()
         
     def PlotFields(self):
@@ -396,9 +395,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(self.subplotList) > 0:
             if self.increaseRowsColumnsCounter % 2 == 0:
                 if len(self.subplotList) <= rows*(columns-1):
-                    self.decreaseColumns()
+                    self.DecreaseColumns()
                     self.increaseRowsColumnsCounter -= 1
             else:
                 if len(self.subplotList) <= (rows-1)*columns:
-                    self.decreaseRows()
+                    self.DecreaseRows()
                     self.increaseRowsColumnsCounter -= 1

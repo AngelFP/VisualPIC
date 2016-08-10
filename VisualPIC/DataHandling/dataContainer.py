@@ -19,128 +19,126 @@
 
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
 
+
 class DataContainer:
     
     def __init__(self):
-        self.folderDataReader = FolderDataReader()
-
+        self.__folderDataReader = FolderDataReader()
         # species (may contain fields and raw data)
-        self.availableSpecies = list()
-        self.selectedSpecies = list()
-        self.selectedSpeciesFieldName = None
-        self.selectedSpeciesFields = list()
-        
+        self.__availableSpecies = list()
+        self.__selectedSpecies = list()
+        self.__selectedSpeciesFieldName = None
+        self.__selectedSpeciesFields = list()
         # domain fields
-        self.availableDomainFields = list()
-        self.customDomainFields = list()
-        self.selectedDomainField = None
-        self.selectedField = None
-
-        self.numberOfTimeSteps = 0
-        self.dataLocation = ""
+        self.__availableDomainFields = list()
+        self.__selectedDomainField = None
+        self.__numberOfTimeSteps = 0
     
+    def LoadData(self):
+        self.__availableSpecies, self.__availableDomainFields = self.__folderDataReader.LoadData()
+
     def SetDataFolderLocation(self, folderLocation):
-        self.folderDataReader.SetDataLocation(str(folderLocation))
+        self.__folderDataReader.SetDataLocation(str(folderLocation))
                 
     def AddSelectedSpecies(self, speciesName):
-        for species in self.availableSpecies:
+        for species in self.__availableSpecies:
             if species.GetName() == speciesName:
-                self.selectedSpecies.append(species)
+                self.__selectedSpecies.append(species)
          
     def RemoveSelectedSpecies(self, speciesName):
-        for species in self.selectedSpecies:
+        for species in self.__selectedSpecies:
             if species.GetName() == speciesName:
-                self.selectedSpecies.remove(species)
+                self.__selectedSpecies.remove(species)
 
     def SetSelectedSpecies(self, speciesList):
         if speciesList is list:
-            self.selectedSpecies = speciesList;
+            self.__selectedSpecies = speciesList;
     
     def SetSelectedSpeciesFields(self):
-        self.selectedSpeciesFields[:] = []
-        for species in self.selectedSpecies:
-            self.selectedSpeciesFields.append(species.GetField(self.selectedSpeciesFieldName))
-            self.numberOfTimeSteps = species.GetField(self.selectedSpeciesFieldName).GetTotalTimeSteps()
+        self.__selectedSpeciesFields[:] = []
+        for species in self.__selectedSpecies:
+            self.__selectedSpeciesFields.append(species.GetField(self.__selectedSpeciesFieldName))
+            self.__numberOfTimeSteps = species.GetField(self.__selectedSpeciesFieldName).GetTotalTimeSteps()
             
     def SetSelectedSpeciesField(self, fieldName):
-        self.selectedSpeciesFieldName = fieldName
+        self.__selectedSpeciesFieldName = fieldName
     
     def GetAvailableSpecies(self):
-        return self.availableSpecies
+        return self.__availableSpecies
         
     def GetSpeciesWithRawData(self):
         speciesList = list()
-        for species in self.availableSpecies:
+        for species in self.__availableSpecies:
             if species.HasRawData():
                 speciesList.append(species)
         return speciesList
         
     def GetAvailableSpeciesNames(self):
         namesList = list()
-        for species in self.availableSpecies:
+        for species in self.__availableSpecies:
             namesList.append(species.GetName())
         return namesList
 
     def GetSelectedSpecies(self):
-        return self.selectedSpecies  
+        return self.__selectedSpecies  
         
     def GetAvailableDomainFields(self):
-        return self.availableDomainFields
+        return self.__availableDomainFields
         
     def GetAvailableDomainFieldsNames(self):
         namesList = list()
-        for field in self.availableDomainFields:
+        for field in self.__availableDomainFields:
             namesList.append(field.GetName())
         return namesList
         
     def GetAvailableFieldsInSpecies(self, speciesName):
-        for species in self.availableSpecies:
+        for species in self.__availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetAvailableFieldNamesList()
                 
     def GetDomainField(self, fieldName):
-        for field in self.availableDomainFields:
+        for field in self.__availableDomainFields:
             if field.GetName() == fieldName:
                 return field
                 
     def GetSpeciesField(self, speciesName, fieldName):
-        for species in self.availableSpecies:
+        for species in self.__availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetField(fieldName)
                 
     def GetFolderPath(self):
-        return self.folderDataReader.GetDataLocation()
+        return self.__folderDataReader.GetDataLocation()
     
     def SetNumberOfTimeSteps(self, number):
         if isinstance(number, int):
-            self.numberOfTimeSteps = number;
+            self.__numberOfTimeSteps = number;
             
     def GetNumberOfTimeSteps(self):
-        return self.numberOfTimeSteps
+        return self.__numberOfTimeSteps
         
     def SetSelectedDomainField(self, fieldName):
-        for field in self.availableDomainFields:
+        for field in self.__availableDomainFields:
             if field.GetName() == fieldName:
-                self.selectedDomainField = field
-                self.numberOfTimeSteps = self.selectedDomainField.GetTotalTimeSteps()
+                self.__selectedDomainField = field
+                self.__numberOfTimeSteps = self.__selectedDomainField.GetTotalTimeSteps()
     
     def GetSelectedDomainField(self):
         # return a list to keep consistency with GetSelectedSpeciesFields()
         fldList = list()
-        fldList.append(self.selectedDomainField)
+        fldList.append(self.__selectedDomainField)
         return fldList;
             
     def GetSelectedDomainFieldName(self):
-        return self.selectedDomainField.GetName();
+        return self.__selectedDomainField.GetName();
 
     def GetSelectedSpeciesFields(self):
-        return self.selectedSpeciesFields
+        return self.__selectedSpeciesFields
         
     def GetCommonlyAvailableFields(self):
         commonlyAvailableFields = list()
         fieldsToRemove = list()
         i = 0
-        for species in self.selectedSpecies:
+        for species in self.__selectedSpecies:
             if i == 0:
                 commonlyAvailableFields = species.GetAvailableFieldNamesList()
             else:
@@ -154,10 +152,9 @@ class DataContainer:
         return commonlyAvailableFields
 
     def ClearData(self):
-        self.availableSpecies = list()
-        self.availableDomainFields = list()
-        self.customDomainFields = list()
-        self.selectedSpecies = list()
-        self.selectedDomainField = None
-        self.selectedSpeciesFieldName = None
-        self.numberOfTimeSteps = 0
+        self.__availableSpecies = list()
+        self.__availableDomainFields = list()
+        self.__selectedSpecies = list()
+        self.__selectedDomainField = None
+        self.__selectedSpeciesFieldName = None
+        self.__numberOfTimeSteps = 0
