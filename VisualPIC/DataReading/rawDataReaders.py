@@ -24,55 +24,44 @@ import h5py
 from VisualPIC.DataReading.dataReader import DataReader
 
 
-class RawDataReader(DataReader):
+class RawDataReaderBase(DataReader):
     """Parent class for all rawDataReaders"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName):
-        DataReader.__init__(self, location, speciesName, dataName)
+    def __init__(self, location, speciesName, dataName, internalName):
+        DataReader.__init__(self, location, speciesName, dataName, internalName)
+        self.__internalName = dataName
 
 
-class OsirisRawDataReader(RawDataReader):
-    def __init__(self, location, speciesName, dataName):
-        RawDataReader.__init__(self, location, speciesName, dataName)
+class OsirisRawDataReader(RawDataReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
 
-    def OpenFileAndReadData(self):
+    def __OpenFileAndReadData(self):
         fileName = "RAW-" + self.__speciesName + "-" + str(self.__currentTimeStep).zfill(6)
         ending = ".h5"
         file_path = self.__location + "/" + fileName + ending
         file_content = h5py.File(file_path, 'r')
-        self.ReadRawData(file_content)
+        self.__data = file_content[self.__internalName][()]
         file_content.close()
 
-    def OpenFileAndReadUnits(self):
+    def __OpenFileAndReadUnits(self):
         fileName = "RAW-" + self.__speciesName + "-" + str(0).zfill(6)
         ending = ".h5"
         file_path = self.__location + "/" + fileName + ending
         file_content = h5py.File(file_path, 'r')
-        self.ReadUnits(file_content)
-        file_content.close()
-        
-    def ReadData(self,file_content):
-        self.__data = file_content[self.internalName][()] #the [()] ending means we get all the data as an array, otherwise we only get some chunks (more efficient, but its not an array, and thus we cant transpose it) 
-
-    def ReadUnits(self, file_content):
         if sys.version_info[0] < 3:
-            self.__dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
+            self.__dataUnits = str(list(file_content[self.__internalName].attrs["UNITS"])[0])
         else:
-            self.__dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.__dataUnits = str(list(file_content[self.__internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        file_content.close()
 
 
-class HiPACERawDataReader(RawDataReader):
-    def __init__(self, location, speciesName, dataName):
-        RawDataReader.__init__(self, location, speciesName, dataName)
+class HiPACERawDataReader(RawDataReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
 
-    def OpenFileAndReadData(self):
+    def __OpenFileAndReadData(self):
         raise NotImplementedError
 
-    def OpenFileAndReadUnits(self):
-        raise NotImplementedError
-        
-    def ReadData(self,file_content):
-        raise NotImplementedError
-
-    def ReadUnits(self, file_content):
+    def __OpenFileAndReadUnits(self):
         raise NotImplementedError

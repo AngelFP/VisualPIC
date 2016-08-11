@@ -100,7 +100,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self.__codeName))
+                                self.AddFieldToSpecies(species, Field(self.__codeName, fieldName, fieldLocation, totalTimeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -108,7 +108,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(fieldName, fieldLocation, totalTimeSteps, simulationCode = self.__codeName))
+                        self.AddDomainField(Field(self.__codeName, fieldName, fieldLocation, totalTimeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -132,7 +132,7 @@ class FolderDataReader:
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
-                            self.AddRawDataToSpecies(species, RawDataSet(dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName, simulationCode = self.__codeName))
+                            self.AddRawDataToSpecies(species, RawDataSet(self.__codeName, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
 
     def LoadHiPaceData(self):
         """HiPACE loader"""

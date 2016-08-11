@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016 ?ngel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -18,10 +18,20 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from VisualPIC.DataReading.rawDataReaders import *
+from VisualPIC.DataReading.fieldReaders import *
 
 class RawDataReaderSelector:
     dataReaders = {"Osiris": OsirisRawDataReader,
                    "HiPACE": HiPACERawDataReader
+                   }
+    @classmethod
+    def GetReader(cls, simulationCode, location, speciesName, dataName):
+        return cls.dataReaders[simulationCode](location, speciesName, dataName)
+
+
+class FieldReaderSelector:
+    dataReaders = {"Osiris": OsirisFieldReader,
+                   "HiPACE": HiPACEFieldReader
                    }
     @classmethod
     def GetReader(cls, simulationCode, location, speciesName, dataName):

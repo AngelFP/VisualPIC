@@ -23,10 +23,11 @@ import abc
 class DataReader(object):
     """Parent class for all data readers (fieldReaders and rawDataReaders)"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName):
+    def __init__(self, location, speciesName, dataName, internalName = ""):
         self.__location = location
         self.__speciesName = speciesName
         self.__dataName = dataName
+        self.__internalName = internalName
         self.__currentTimeStep = 0
         self.__dataUnits = ""
         self.__data = None
@@ -34,28 +35,20 @@ class DataReader(object):
     def GetData(self, timeStep):
         if timeStep != self.__currenTimeStep:
             self.__currentTimeStep = timeStep
-            self.OpenFileAndReadData()
+            self.__OpenFileAndReadData()
         return self.__data
 
-    def GetUnits(self):
-        if self.__dataUnits != "":
-            self.OpenFileAndReadUnits()
+    def GetDataUnits(self):
+        if self.__dataUnits == "":
+            self.__OpenFileAndReadUnits()
         return self.__dataUnits
 
     @abc.abstractmethod
-    def OpenFileAndReadData(self):
+    def __OpenFileAndReadData(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def OpenFileAndReadUnits(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def ReadData(self, file_content):
-        raise NotImplementedError
-    
-    @abc.abstractmethod
-    def ReadUnits(self, file_content):
+    def __OpenFileAndReadUnits(self):
         raise NotImplementedError
 
 

@@ -19,53 +19,19 @@
 
 import sys
 import h5py
-from VisualPIC.DataReading.rawDataReaders import RawDataReaderSelector
+
+from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 
 class RawDataSet:
     
-    def __init__(self, name, location, totalTimeSteps, speciesName, internalName = "", simulationCode = ""):
+    def __init__(self, simulationCode, name, location, totalTimeSteps, speciesName, internalName):
         self.name = name
         self.location = location
         self.speciesName = speciesName
         self.totalTimeSteps = totalTimeSteps
-        self.internalName = internalName
-        self.simulationCode = simulationCode
-        self.dataReader = RawDataReaderSelector.GetReader(self.simulationCode, self.location, self.speciesName, self.internalName)
-        self.LoadBasicData()
-
-    """
-    Data Loading
-    """      
-    def LoadBasicData(self):
-        fileName = "RAW-" + self.speciesName + "-" + str(0).zfill(6)
-        ending = ".h5"
-        file_path = self.location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
-        self.LoadUnits(file_content)
-        file_content.close()
-        
-    def LoadData(self, timeStep):
-        fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
-        ending = ".h5"
-        file_path = self.location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
-        self.LoadRawData(file_content)
-        self.LoadUnits(file_content)
-        file_content.close()
-        
-    def LoadRawData(self,file_content):
-        self.rawData = file_content[self.internalName][()] #the [()] ending means we get all the data as an array, otherwise we only get some chunks (more efficient, but its not an array, and thus we cant transpose it) 
-        
-    def LoadUnits(self, file_content):
-        if sys.version_info[0] < 3:
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
-        else:
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-
-    """
-    Setters and Getters
-    """        
+        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
+ 
     def GetNormalizedUnits(self):
         return self.dataUnits
         
