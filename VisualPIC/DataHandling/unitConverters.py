@@ -22,6 +22,7 @@ import math
 import codecs
 import numpy as np
 
+
 class OsirisUnitConverter:
     def __init__(self):
         self.c = 299792458 #m/s
@@ -35,9 +36,8 @@ class OsirisUnitConverter:
         else:
             self.um = "μm"
     
-    def allowNormUnits(self, value)  :
+    def allowNormUnits(self, value):
         self.useNormUnits = value
-        
         
     def setPlasmaDensity(self, dens):
         #[dens] = 10^18 cm^-3
@@ -73,7 +73,6 @@ class OsirisUnitConverter:
                 fieldData *= self.E0 *1e-9
             else:
                 pass
-                
         elif "charge" in fieldName:
             if units == normUnits:
                 pass
@@ -126,11 +125,9 @@ class OsirisUnitConverter:
         data = field.GetPlotData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
-        
         self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])
         self.getAxisInUnits("x", extent, axesUnits["x"], normUnits["x"])
         self.getAxisInUnits("y", extent, axesUnits["y"], normUnits["y"])
-        
         return fieldData, extent
         
 

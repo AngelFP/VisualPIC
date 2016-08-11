@@ -19,13 +19,11 @@
 
 class RawDataSetToPlot:
     def __init__(self, dataSet, unitConverter, dataSetUnits = "Norm", plotType = None, position = 1):
-        
         self.dataSet = dataSet
         self.unitConverter = unitConverter
         self.dataSetUnits = dataSetUnits
         self.plotType = plotType
         self.position = position
-        self.dataType = "Raw"
     
     def GetPosition(self):
         return self.position
@@ -56,9 +54,6 @@ class RawDataSetToPlot:
     def SetDataSetUnits(self, units):
         self.dataSetUnits = units
         
-    def GetDataType(self):
-        return self.dataType  
-        
     def GetUnits(self):
         if self.dataSetUnits != "Norm":
             return self.dataSetUnits
@@ -66,7 +61,6 @@ class RawDataSetToPlot:
             return self.dataSet.GetUnits()
         
     def GetDataSetInfo(self):
-        
         info = {
             "name":self.GetName(), 
             "speciesName":self.GetSpeciesName(), 
@@ -74,10 +68,8 @@ class RawDataSetToPlot:
             "possibleDataSetUnits":self.GetPossibleDataSetUnits(),
             "plotType":self.plotType
         }
-        
         return info
         
     def SetDataSetInfo(self, info):
-        
         self.dataSetUnits = info["dataSetUnits"]
         self.plotType = info["plotType"]

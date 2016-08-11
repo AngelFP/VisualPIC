@@ -19,6 +19,7 @@
 
 import sys
 import h5py
+from VisualPIC.DataReading.rawDataReaders import RawDataReaderSelector
 
 
 class RawDataSet:
@@ -30,6 +31,7 @@ class RawDataSet:
         self.totalTimeSteps = totalTimeSteps
         self.internalName = internalName
         self.simulationCode = simulationCode
+        self.dataReader = RawDataReaderSelector.GetReader(self.simulationCode, self.location, self.speciesName, self.internalName)
         self.LoadBasicData()
 
     """
