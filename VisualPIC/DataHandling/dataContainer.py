@@ -21,7 +21,7 @@ from VisualPIC.DataReading.folderDataReader import FolderDataReader
 
 
 class DataContainer:
-    
+    """Contains all the fields and rawDataSets available on the simulation folder"""
     def __init__(self):
         self.__folderDataReader = FolderDataReader()
         # species (may contain fields and raw data)

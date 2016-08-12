@@ -25,8 +25,8 @@ class RawDataReaderSelector:
                    "HiPACE": HiPACERawDataReader
                    }
     @classmethod
-    def GetReader(cls, simulationCode, location, speciesName, dataName):
-        return cls.dataReaders[simulationCode](location, speciesName, dataName)
+    def GetReader(cls, simulationCode, location, speciesName, dataName, internalName):
+        return cls.dataReaders[simulationCode](location, speciesName, dataName, internalName)
 
 
 class FieldReaderSelector:

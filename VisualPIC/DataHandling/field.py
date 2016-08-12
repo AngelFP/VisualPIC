@@ -17,27 +17,18 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import abc
+import sys
+
+from VisualPIC.DataHandling.dataElement import DataElement
+from VisualPIC.DataReading.dataReaderSelectors import FieldReaderSelector
 
 
-class DataReader(object):
-    """Parent class for all data readers (fieldReaders and rawDataReaders)"""
-    __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName, internalName = ""):
-        self.location = location
-        self.speciesName = speciesName
-        self.dataName = dataName
-        self.internalName = internalName
-        self.currentTimeStep = 0
-        self.dataUnits = ""
-        self.data = None
-
-    @abc.abstractmethod
-    def OpenFileAndReadData(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def OpenFileAndReadUnits(self):
-        raise NotImplementedError
-
-
+class Field(DataElement):
+    def __init__(self, simulationCode, name, location, totalTimeSteps, speciesName=""):
+        DataElement.__init__(self, simulationCode, name, location, totalTimeSteps, speciesName)
+        self.dataReader = FieldReaderSelector.GetReader(simulationCode, location, speciesName, name)
+          
+    def GetFieldDimension(self):
+        return self.dataReader.fieldDimension
+        
+        

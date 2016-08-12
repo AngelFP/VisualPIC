@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016 ?ngel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import abc
 import sys
 import h5py
@@ -29,39 +30,51 @@ class RawDataReaderBase(DataReader):
     __metaclass__  = abc.ABCMeta
     def __init__(self, location, speciesName, dataName, internalName):
         DataReader.__init__(self, location, speciesName, dataName, internalName)
-        self.__internalName = dataName
+        self.internalName = dataName
+
+    def GetData(self, timeStep):
+        if timeStep != self.currenTimeStep:
+            self.currentTimeStep = timeStep
+            self.OpenFileAndReadData()
+        return self.data
+
+    def GetDataUnits(self):
+        if self.dataUnits == "":
+            self.OpenFileAndReadUnits()
+        return self.dataUnits
 
 
 class OsirisRawDataReader(RawDataReaderBase):
     def __init__(self, location, speciesName, dataName, internalName):
         RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
 
-    def __OpenFileAndReadData(self):
-        fileName = "RAW-" + self.__speciesName + "-" + str(self.__currentTimeStep).zfill(6)
-        ending = ".h5"
-        file_path = self.__location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
-        self.__data = file_content[self.__internalName][()]
+    def OpenFileAndReadData(self):
+        file_content = self.OpenFile()
+        self.data = file_content[self.internalName][()]
         file_content.close()
 
-    def __OpenFileAndReadUnits(self):
-        fileName = "RAW-" + self.__speciesName + "-" + str(0).zfill(6)
-        ending = ".h5"
-        file_path = self.__location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
+    def OpenFileAndReadUnits(self):
+        file_content = self.OpenFile()
         if sys.version_info[0] < 3:
-            self.__dataUnits = str(list(file_content[self.__internalName].attrs["UNITS"])[0])
+            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
         else:
-            self.__dataUnits = str(list(file_content[self.__internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         file_content.close()
+
+    def OpenFile(self):
+        fileName = "RAW-" + self.speciesName + "-" + str(0).zfill(6)
+        ending = ".h5"
+        file_path = self.location + "/" + fileName + ending
+        file_content = h5py.File(file_path, 'r')
+        return file_content
 
 
 class HiPACERawDataReader(RawDataReaderBase):
     def __init__(self, location, speciesName, dataName, internalName):
         RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
 
-    def __OpenFileAndReadData(self):
+    def OpenFileAndReadData(self):
         raise NotImplementedError
 
-    def __OpenFileAndReadUnits(self):
+    def OpenFileAndReadUnits(self):
         raise NotImplementedError

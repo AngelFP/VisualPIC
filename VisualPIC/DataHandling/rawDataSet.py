@@ -18,39 +18,13 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import h5py
 
+from VisualPIC.DataHandling.dataElement import DataElement
 from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 
-class RawDataSet:
-    
+class RawDataSet(DataElement):
     def __init__(self, simulationCode, name, location, totalTimeSteps, speciesName, internalName):
-        self.name = name
-        self.location = location
-        self.speciesName = speciesName
-        self.totalTimeSteps = totalTimeSteps
+        DataElement.__init__(self, simulationCode, name, location, totalTimeSteps, speciesName, internalName)
         self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
- 
-    def GetNormalizedUnits(self):
-        return self.dataUnits
-        
-    def GetRawData(self):
-        return self.rawData
-        
-    def GetUnits(self):
-        return self.dataUnits
-        
-    def GetPlotData(self, timeStep):
-        self.LoadData(timeStep)
-        return self.GetRawData(), self.GetUnits()
-        
-    def GetName(self):
-        return self.name
-        
-    def GetTotalTimeSteps(self):
-        return self.totalTimeSteps
-        
-    def GetSpeciesName(self):
-        return self.speciesName
         

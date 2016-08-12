@@ -20,9 +20,9 @@
 import os
 import h5py
 
-from VisualPIC.DataReading.species import Species
-from VisualPIC.DataReading.rawDataSet import RawDataSet
-from VisualPIC.DataReading.field import Field
+from VisualPIC.DataHandling.species import Species
+from VisualPIC.DataHandling.rawDataSet import RawDataSet
+from VisualPIC.DataHandling.field import Field
 
 
 class FolderDataReader:
@@ -31,6 +31,7 @@ class FolderDataReader:
         self.__dataLocation = ""
         self.__availableSpecies = list()
         self.__availableFields = list()
+        self.__simulationCode = ""
         self.CreateCodeDictionaries()
     
     def CreateCodeDictionaries(self):
@@ -73,7 +74,8 @@ class FolderDataReader:
     Main data loader. It will automatically call the specific loader for a particular simulation code
     """
     def LoadData(self):
-        self.__loadDataFrom[self.DetectSimulationCodeName()]()
+        self.__simulationCode = self.DetectSimulationCodeName()
+        self.__loadDataFrom[self.__simulationCode]()
         return self.__availableSpecies, self.__availableFields
 
     def DetectSimulationCodeName(self):
@@ -100,7 +102,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(self.__codeName, fieldName, fieldLocation, totalTimeSteps, species))
+                                self.AddFieldToSpecies(species, Field(self.__simulationCode, fieldName, fieldLocation, totalTimeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -108,7 +110,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(self.__codeName, fieldName, fieldLocation, totalTimeSteps))
+                        self.AddDomainField(Field(self.__simulationCode, fieldName, fieldLocation, totalTimeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -132,7 +134,7 @@ class FolderDataReader:
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
-                            self.AddRawDataToSpecies(species, RawDataSet(self.__codeName, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                            self.AddRawDataToSpecies(species, RawDataSet(self.__simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
