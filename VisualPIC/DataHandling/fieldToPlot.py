@@ -30,8 +30,10 @@ class FieldToPlot:
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(), 
             "fieldUnits":field.GetDataUnits()[0], 
+            "originalFieldUnits":field.GetDataUnits()[0], 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
             "axesUnits":field.GetDataUnits()[1], 
+            "originalAxesUnits":field.GetDataUnits()[1], 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
@@ -97,15 +99,15 @@ class FieldToPlot:
     def SetFieldProperties(self, props):
         self.__fieldProperties = props
        
-    def __GetFieldData(self, timeStep):
+    def __GetAllData(self, timeStep):
         #returns fieldData, extent
-        return self.__unitConverter.GetPlotDataInUnits(timeStep, self.__field, self.__fieldProperties["fieldUnits"], self.__fieldProperties["axesUnits"])
+        return self.__unitConverter.GetDataInUnits(timeStep, self.__field, self.GetProperty("fieldUnits"), self.GetProperty("axesUnits"), self.GetProperty("originalFieldUnits"), self.GetProperty("originalAxesUnits"))
             
     def __Get1DSlice(self, slicePosition, timeStep):
         # slice along the longitudinal axis
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a %
-        plotData = self.__GetFieldData(timeStep)
+        plotData = self.__GetAllData(timeStep)
         fieldData = plotData[0]
         extent = plotData[1]
         xMin = extent[0]
@@ -120,12 +122,11 @@ class FieldToPlot:
         
         return X, fieldSlice
     
-    def GetFieldPlotData(self, timeStep):
+    def GetData(self, timeStep):
         if self.__fieldDimension == "3D":
             raise NotImplementedError
-            
         elif self.__fieldDimension == "2D":
             if self.__dataToPlotDimension == "2D":
-                return self.__GetFieldData(timeStep)
+                return self.__GetAllData(timeStep)
             elif self.__dataToPlotDimension == "1D":
                 return self.__Get1DSlice(50, timeStep)

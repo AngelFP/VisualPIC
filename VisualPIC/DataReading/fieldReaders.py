@@ -37,7 +37,7 @@ class FieldReaderBase(DataReader):
         self.ReadBasicData()
     
     def GetData(self, timeStep):
-        if timeStep != self.currenTimeStep:
+        if timeStep != self.currentTimeStep:
             self.currentTimeStep = timeStep
             self.OpenFileAndReadData()
         return self.data, self.axisExtent
@@ -57,10 +57,6 @@ class FieldReaderBase(DataReader):
 
     @abc.abstractmethod
     def DetermineFieldDimension(self, file_content):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def ReadAxisExtent(self, file_content):
         raise NotImplementedError
 
 
@@ -83,12 +79,10 @@ class OsirisFieldReader(FieldReaderBase):
         else:
             self.fieldDimension = "2D"
 
-    def ReadAxisExtent(self, file_content):
-        self.axisExtent = file_content.attrs['XMIN'], file_content.attrs['XMAX']
-
     def OpenFileAndReadData(self):
         file_content = self.OpenFile(self.currentTimeStep)
         self.data = file_content[self.internalName][()]
+        self.axisExtent = file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1]
         file_content.close()
 
     def OpenFileAndReadUnits(self):
@@ -125,9 +119,6 @@ class HiPACEFieldReader(FieldReaderBase):
         raise NotImplementedError
 
     def DetermineFieldDimension(self, file_content):
-        raise NotImplementedError
-
-    def ReadAxisExtent(self, file_content):
         raise NotImplementedError
 
     def OpenFileAndReadData(self):

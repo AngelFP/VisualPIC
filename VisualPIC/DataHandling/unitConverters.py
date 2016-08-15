@@ -120,14 +120,14 @@ class OsirisUnitConverter:
             elif units == self.um:
                 extent[2:4] *= 1e6 * self.c / self.w_p 
             
-    def GetDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
+    def GetDataInUnits(self, timeStep, field, fieldUnits, axesUnits, originalFieldUnits, originalAxisUnits):
         fieldName = field.GetName()
         data = field.GetData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
-        self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])
-        self.getAxisInUnits("x", extent, axesUnits["x"], normUnits["x"])
-        self.getAxisInUnits("y", extent, axesUnits["y"], normUnits["y"])
+        self.getFieldInUnits(fieldName, fieldData, fieldUnits, originalFieldUnits)
+        self.getAxisInUnits("x", extent, axesUnits["x"], originalAxisUnits["x"])
+        self.getAxisInUnits("y", extent, axesUnits["y"], originalAxisUnits["y"])
         return fieldData, extent
         
 

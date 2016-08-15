@@ -49,20 +49,20 @@ class OsirisRawDataReader(RawDataReaderBase):
         RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
 
     def OpenFileAndReadData(self):
-        file_content = self.OpenFile()
+        file_content = self.OpenFile(self.currentTimeStep)
         self.data = file_content[self.internalName][()]
         file_content.close()
 
     def OpenFileAndReadUnits(self):
-        file_content = self.OpenFile()
+        file_content = self.OpenFile(0)
         if sys.version_info[0] < 3:
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
         else:
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
-    def OpenFile(self):
-        fileName = "RAW-" + self.speciesName + "-" + str(0).zfill(6)
+    def OpenFile(self, timeStep):
+        fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = h5py.File(file_path, 'r')

@@ -211,7 +211,7 @@ class FieldSubplot(Subplot):
     def GetAxesDimension(self):
         ThreeDplotTypes = ["Surface", "Scatter3D"]
         for fieldToPlot in self.dataToPlot:
-            if fieldToPlot.GetPlotType() in ThreeDplotTypes:
+            if fieldToPlot.GetProperty("plotType") in ThreeDplotTypes:
                 return "3D"
         return "2D"
         
