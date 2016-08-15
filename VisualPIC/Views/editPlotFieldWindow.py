@@ -22,6 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
+from VisualPIC.DataHandling.subplot import *
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -30,9 +31,18 @@ except AttributeError:
         return s
 
 
-class EditPlotFieldWindow(QtGui.QDialog):
+class EditPlotWindowSelector:
+    @classmethod
+    def GetEditPlotWindow(cls, subplot, mainWindow):
+        if isinstance(subplot, FieldSubplot):
+            return EditFieldPlotWindow(subplot, mainWindow)
+        else:
+            return EditRawPlotWindow(subplot, mainWindow)
+
+
+class EditPlotWindow(QtGui.QDialog):
     def __init__(self, subplot, parent=None):
-        super(EditPlotFieldWindow, self).__init__(parent)
+        super(EditPlotWindow, self).__init__(parent)
         self.resize(500, 312)
         
         self.mainWindow = parent
@@ -650,9 +660,9 @@ class EditPlotFieldWindow(QtGui.QDialog):
             self.tabWidget.removeTab(0)
 
     def GetFieldsInfo(self):
-        self.fieldInfoList = list()
+        self.fieldPropertiesList = list()
         for field in self.subplot.GetFieldsToPlot():
-            self.fieldInfoList.append(field.GetFieldInfo())
+            self.fieldPropertiesList.append(field.GetFieldProperties())
 
     def GetAxisProperties(self):
         self.axisProperties = {
@@ -683,38 +693,38 @@ class EditPlotFieldWindow(QtGui.QDialog):
     def FillListView(self):
         model = QtGui.QStandardItemModel()
         for field in self.subplot.GetFieldsToPlot():
-            listLabel = field.GetName()
-            if field.GetSpeciesName() != '':
-                listLabel += " / " + field.GetSpeciesName()
+            listLabel = field.GetProperty("name")
+            if field.GetProperty("speciesName") != '':
+                listLabel += " / " + field.GetProperty("speciesName")
             item = QtGui.QStandardItem(listLabel)
             model.appendRow(item)
         self.field_listView.setModel(model)
 
     def FillFieldData(self, fieldIndex):
         self.updatingUiData = True
-        self.selectedFieldInfo = self.fieldInfoList[fieldIndex]
-        self.FieldName.setText(self.selectedFieldInfo["name"])
-        self.SpeciesName.setText(self.selectedFieldInfo["speciesName"])
+        self.selectedFieldProperties = self.fieldPropertiesList[fieldIndex]
+        self.FieldName.setText(self.selectedFieldProperties["name"])
+        self.SpeciesName.setText(self.selectedFieldProperties["speciesName"])
         # Units
         self.fieldUnits_comboBox.clear()
-        self.fieldUnits_comboBox.addItems(self.selectedFieldInfo["possibleFieldUnits"])
-        index = self.fieldUnits_comboBox.findText(self.selectedFieldInfo["fieldUnits"])
+        self.fieldUnits_comboBox.addItems(self.selectedFieldProperties["possibleFieldUnits"])
+        index = self.fieldUnits_comboBox.findText(self.selectedFieldProperties["fieldUnits"])
         if index != -1:
             self.fieldUnits_comboBox.setCurrentIndex(index)
         # Scale
-        self.auto_checkBox.setChecked(self.selectedFieldInfo["autoScale"])
-        self.min_lineEdit.setText(str(self.selectedFieldInfo["minVal"]))
-        self.max_lineEdit.setText(str(self.selectedFieldInfo["maxVal"]))
+        self.auto_checkBox.setChecked(self.selectedFieldProperties["autoScale"])
+        self.min_lineEdit.setText(str(self.selectedFieldProperties["minVal"]))
+        self.max_lineEdit.setText(str(self.selectedFieldProperties["maxVal"]))
         # ColorMap
         self.colorMap_comboBox.clear()
-        self.colorMap_comboBox.addItems(self.selectedFieldInfo["possibleColorMaps"])
-        index = self.colorMap_comboBox.findText(self.selectedFieldInfo["cMap"]);
+        self.colorMap_comboBox.addItems(self.selectedFieldProperties["possibleColorMaps"])
+        index = self.colorMap_comboBox.findText(self.selectedFieldProperties["cMap"]);
         if index != -1:
            self.colorMap_comboBox.setCurrentIndex(index)
         # Plot type
         self.plotType_comboBox.clear()
-        self.plotType_comboBox.addItems(self.selectedFieldInfo["possiblePlotTypes"])
-        index = self.plotType_comboBox.findText(self.selectedFieldInfo["plotType"]);
+        self.plotType_comboBox.addItems(self.selectedFieldProperties["possiblePlotTypes"])
+        index = self.plotType_comboBox.findText(self.selectedFieldProperties["plotType"]);
         if index != -1:
            self.plotType_comboBox.setCurrentIndex(index)
         self.updatingUiData = False
@@ -791,24 +801,24 @@ class EditPlotFieldWindow(QtGui.QDialog):
             self.min_lineEdit.setEnabled(False)
             self.max_lineEdit.setEnabled(False)
             if not self.updatingUiData:
-                self.selectedFieldInfo["autoScale"] = True
+                self.selectedFieldProperties["autoScale"] = True
         else:
             self.min_lineEdit.setEnabled(True)
             self.max_lineEdit.setEnabled(True)
             if not self.updatingUiData:
-                self.selectedFieldInfo["autoScale"] = False
+                self.selectedFieldProperties["autoScale"] = False
 
     def MinMaxLineEdit_textChanged(self):
         if not self.updatingUiData:
             vMin = float(self.min_lineEdit.text())
             vMax = float(self.max_lineEdit.text())
-            self.selectedFieldInfo["minVal"] = vMin
-            self.selectedFieldInfo["maxVal"] = vMax
+            self.selectedFieldProperties["minVal"] = vMin
+            self.selectedFieldProperties["maxVal"] = vMax
 
     def SetColorMap(self):
         if not self.updatingUiData:
             cMap = str(self.colorMap_comboBox.currentText())
-            self.selectedFieldInfo["cMap"] = cMap
+            self.selectedFieldProperties["cMap"] = cMap
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
 
@@ -819,6 +829,8 @@ class EditPlotFieldWindow(QtGui.QDialog):
             else:
                 units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
+            for fieldProperties in self.fieldPropertiesList:
+                fieldProperties["axesUnits"]["x"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
@@ -827,20 +839,22 @@ class EditPlotFieldWindow(QtGui.QDialog):
             else:
                 units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
+            for fieldProperties in self.fieldPropertiesList:
+                fieldProperties["axesUnits"]["y"] = units
 
     def SetFieldUnits(self):
         if not self.updatingUiData:
             units = str(self.fieldUnits_comboBox.currentText())
-            self.selectedFieldInfo["fieldUnits"] = units
+            self.selectedFieldProperties["fieldUnits"] = units
 
     def PlotTypeComboBox_IndexChanged(self):
         if not self.updatingUiData:
             plotType = str(self.plotType_comboBox.currentText())
-            self.selectedFieldInfo["plotType"] = plotType
+            self.selectedFieldProperties["plotType"] = plotType
 
     def RemoveFieldButton_Clicked(self):
         self.subplot.RemoveField(self.selectedFieldIndex)
-        del self.fieldInfoList[self.selectedFieldIndex]
+        del self.fieldPropertiesList[self.selectedFieldIndex]
         self.FillListView()
         self.FillFieldData(0)
 
@@ -858,7 +872,7 @@ class EditPlotFieldWindow(QtGui.QDialog):
     def SaveChanges(self):
         i = 0
         for field in self.subplot.GetFieldsToPlot():
-            field.SetFieldInfo(self.fieldInfoList[i])
+            field.SetFieldProperties(self.fieldPropertiesList[i])
             i+=1
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
@@ -968,6 +982,14 @@ class EditPlotFieldWindow(QtGui.QDialog):
             
         fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
         self.subplot.AddFieldToPlot(fieldToPlot)
-        self.fieldInfoList.append(fieldToPlot.GetFieldInfo())
+        self.fieldPropertiesList.append(fieldToPlot.GetFieldProperties())
         self.FillListView()
         self.FillFieldData(0)
+
+class EditFieldPlotWindow(EditPlotWindow):
+    def __init__(self, subplot, parent = None):
+        return super().__init__(subplot, parent)    
+
+class EditRawPlotWindow(EditPlotWindow):
+    def __init__(self, subplot, parent = None):
+        return super().__init__(subplot, parent)

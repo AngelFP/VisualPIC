@@ -94,11 +94,11 @@ class OsirisFieldReader(FieldReaderBase):
     def OpenFileAndReadUnits(self):
         file_content = self.OpenFile(0)
         if sys.version_info[0] < 3:
-            self.axisUnits["z"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
+            self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
             self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
         else:
-            self.axisUnits["z"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
             self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         file_content.close()

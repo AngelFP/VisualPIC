@@ -49,7 +49,7 @@ class OsirisUnitConverter:
     def getFieldUnitsOptions(self, field):
         fieldName = field.GetName()
         speciesName = field.GetSpeciesName()
-        normUnits = field.GetNormalizedUnits("Field")
+        normUnits = field.GetDataUnits()[0]
         if self.useNormUnits:
             if speciesName == "":
                 if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
@@ -90,15 +90,15 @@ class OsirisUnitConverter:
         return dataSet.GetPlotData(timeStep)
         
     def GetRawDataSetUnitsOptions(self, dataSet):
-        normUnits = dataSet.GetNormalizedUnits()
+        normUnits = dataSet.GetDataUnits()
         if self.useNormUnits:
             # add units option for each type of data
-            return  [normUnits]    
+            return [normUnits]    
         else:
             return [normUnits]
             
     def getAxisUnitsOptions(self, field):
-        normUnits = field.GetNormalizedUnits("x")
+        normUnits = field.GetDataUnits()[1]["x"]
         if self.useNormUnits:
             return  [normUnits, "m", self.um]
         else:

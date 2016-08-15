@@ -33,7 +33,7 @@ from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
-from VisualPIC.DataHandling.subplot import Subplot
+from VisualPIC.DataHandling.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.plotFieldItem import PlotFieldItem
@@ -253,7 +253,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def AddRawDataSubplot(self, dataSets):
         plotPosition = len(self.subplotList)+1
-        subplot = Subplot(plotPosition, self.colorMapsCollection, axisData = dataSets)
+        subplot = RawDataSubplot(plotPosition, self.colorMapsCollection, dataSets)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
@@ -325,7 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
         plotPosition = len(self.subplotList)+1
-        subplot = Subplot(plotPosition, self.colorMapsCollection, fieldsToPlotList = fldList)
+        subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)

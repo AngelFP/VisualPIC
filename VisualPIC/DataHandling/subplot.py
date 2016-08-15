@@ -19,108 +19,35 @@
 
 import copy
 
-class Subplot:
-    
-    def __init__(self, subplotPosition, colorMapsCollection, fieldsToPlotList = list(), axisData = {},):
-        
+class Subplot(object):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
         self.subplotName = ""
         self.plottedSpeciesName = ""
         self.subplotPosition = subplotPosition
-        
-        self.dataType = "" # Two possible data types: "Field" and "Axis".
-        self.possiblePlotTypes = list()
         self.colorMapsCollection = colorMapsCollection
-        # the fieldsToPlotList would contain 2D fields to plot, which already contain x and y coordinates and the values at each point
-        self.fieldsToPlotList = fieldsToPlotList        
-        if len(fieldsToPlotList) > 0:
-            self.dataType = "Field"
-            
-        # axisData, on the other side, would be for plots that are made individually 
-        #stating wich quantities go in each axis. For example x1 vs p1.
-        # Up to 3 axis can be included (x,y and z). It is a dictionary.
-        self.axisData = axisData
-        if len(axisData) > 0:
-            self.dataType = "Axis"
-        
-        # axis properties
-        self.xAxisProps = {}
-        self.yAxisProps = {}
-        self.zAxisProps = {}
-        
+        self.dataToPlot = dataToPlot
+        self.possiblePlotTypes = list()
+        self.axisProps = {"x":{},
+                          "y":{},
+                          "z":{}}
         self.axisTitleProps = {}
-        
-        # colorBar
         self.colorbarProps = {}
-        
-        # plot settings
-        self.plotProps = {}
-        
-        
-        self.xLims = [] # contains min and max values in x axis
-        self.yLims = []
-        self.zLims = []
-        
-        self.SetSubplotName()  
-        self.SetPlottedSpeciesName()
-        self.LoadPossiblePlotTypes()
-        self.SetDefaultValues()
+        self._SetSubplotName()  
+        self._SetPlottedSpeciesName()
+        self._LoadPossiblePlotTypes()
+        self._SetDefaultValues()
     
 # Initialization    
-    def SetSubplotName(self):
-        if self.dataType == "Field":
-            for fieldToPlot in self.fieldsToPlotList:
-                if self.subplotName == "":
-                    self.subplotName = fieldToPlot.GetName()
-                elif self.subplotName != fieldToPlot.GetName():
-                    self.subplotName = "Mult. fields"
-                    
-        elif self.dataType == "Axis":
-            if len(self.axisData) > 1:
-                xName = self.axisData["x"].GetName()
-                yName = self.axisData["y"].GetName()
-                self.subplotName = xName + " vs " + yName
-                
-                if "z" in self.axisData:
-                    zName = self.axisData["z"].GetName()
-                    self.subplotName += " vs " + zName
+    def _SetSubplotName(self):
+        raise NotImplementedError
         
-    def SetPlottedSpeciesName(self):
-        if self.dataType == "Field":
-            for fieldToPlot in self.fieldsToPlotList:
-                if self.plottedSpeciesName == "":
-                    self.plottedSpeciesName = fieldToPlot.GetSpeciesName()
-                elif self.plottedSpeciesName != fieldToPlot.GetSpeciesName():
-                    self.plottedSpeciesName = "Mult. species"
-                    
-        elif self.dataType == "Axis":
-            if len(self.axisData) > 1:
-                xSpeciesName = self.axisData["x"].GetSpeciesName()
-                self.plottedSpeciesName = xSpeciesName
-                
-                ySpeciesName = self.axisData["y"].GetSpeciesName()
-                if ySpeciesName != self.plottedSpeciesName:
-                    self.plottedSpeciesName = "Mult. Species"
-                if "z" in self.axisData:
-                    zSpeciesName = self.axisData["z"].GetSpeciesName()
-                    if zSpeciesName != self.plottedSpeciesName:
-                        self.plottedSpeciesName = "Mult. Species"   
+    def _SetPlottedSpeciesName(self):
+        raise NotImplementedError   
                         
-    def LoadPossiblePlotTypes(self):
-        self.possiblePlotTypes[:] = []
-        if self.dataType == "Field":
-            if len(self.fieldsToPlotList) > 1:
-                self.possiblePlotTypes = ["Image"]
-            else:
-                self.possiblePlotTypes = ["Image", "Surface"]
-                
-        if self.dataType == "Axis":
-            if "z" in self.axisData:
-                self.possiblePlotTypes = ["Scatter3D"]
-            else:
-                self.possiblePlotTypes = ["Histogram", "Scatter"]
+    def _LoadPossiblePlotTypes(self):
+        raise NotImplementedError
             
-    def SetDefaultValues(self):
-        
+    def _SetDefaultValues(self):
         self.LoadDefaultAxesValues()
         self.SetAxesToDefaultValues()
         
@@ -130,34 +57,8 @@ class Subplot:
         self.LoadDefaultTitleValues()
         self.SetTitleToDefaultValues()
         
-        self.LoadDefaultPlotProperties()
-        self.SetPlotPropertiesToDefault()
-        
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
-        if self.dataType == "Axis":
-            self.SetAxisProperty("x", "DefaultLabelText", self.axisData["x"].GetName())
-            self.SetAxisProperty("y", "DefaultLabelText", self.axisData["y"].GetName())
-            self.SetAxisProperty("x", "DefaultUnits", self.axisData["x"].GetUnits())
-            self.SetAxisProperty("y", "DefaultUnits", self.axisData["y"].GetUnits())
-            self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-            self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
-            if "z" in self.axisData:
-                self.SetAxisProperty("z", "DefaultLabelText", self.axisData["z"].GetName())
-                self.SetAxisProperty("z", "DefaultUnits", self.axisData["z"].GetUnits())
-                self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
-        elif self.dataType == "Field":
-            self.SetAxisProperty("x", "DefaultLabelText", "z")
-            self.SetAxisProperty("y", "DefaultLabelText", "y")
-            #self.SetAxisProperty("z", "DefaultLabelText", "x")
-            
-            self.SetAxisProperty("x", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("x"))
-            self.SetAxisProperty("y", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("y"))
-            #self.SetAxisProperty("z", "DefaultUnits", self.fieldsToPlotList[0].GetAxisUnits("z"))
-            
-            self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-            self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
-            
+        raise NotImplementedError
             
     def SetAxesToDefaultValues(self):
         self.SetAxisProperty("x", "LabelText", self.GetAxisProperty("x", "DefaultLabelText"))
@@ -168,7 +69,7 @@ class Subplot:
         self.SetAxisProperty("y", "Units", self.GetAxisProperty("y", "DefaultUnits"))
         self.SetAxisProperty("x", "LabelFontSize", self.GetAxisProperty("x", "DefaultLabelFontSize"))
         self.SetAxisProperty("y", "LabelFontSize", self.GetAxisProperty("y", "DefaultLabelFontSize"))
-        if len(self.zAxisProps)>0:
+        if len(self.axisProps["z"])>0:
             self.SetAxisProperty("z", "LabelText", self.GetAxisProperty("z", "DefaultLabelText"))
             self.SetAxisProperty("z", "Units", self.GetAxisProperty("z", "DefaultUnits"))
             self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
@@ -191,82 +92,12 @@ class Subplot:
         self.SetTitleProperty("Text", self.GetTitleProperty("DefaultText"))
         self.SetTitleProperty("AutoText", self.GetTitleProperty("DefaultAutoText"))
         
-    def LoadDefaultPlotProperties(self):
-        if self.dataType == "Axis":
-            self.plotProps["DefaultPlotType"] = self.possiblePlotTypes[0]
-            self.plotProps["DefaultXBins"] = 100
-            self.plotProps["DefaultYBins"] = 100
-            self.plotProps["DefaultUseChargeWeighting"] = True
-            self.plotProps["DefaultChargeUnits"] = self.axisData["weight"].GetUnits()
-            self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
-            self.plotProps["DefaultDisplayColorbar"] = True
-            
-    def SetPlotPropertiesToDefault(self):
-        if self.dataType == "Axis":
-            self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
-            self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
-            self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
-            self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
-            self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
-            self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
-            self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
-        
 # Interface methods
-
-    def AddFieldToPlot(self, fieldToPlot):
-        self.dataType = "Field"
-        self.fieldsToPlotList.append(fieldToPlot)
-        self.SetSubplotName()
-        self.SetPlottedSpeciesName()
-        
-    def AddAxisData(self, data, axis):
-        # axis should be a string ("x", "y", "z" or "weight")
-        self.dataType = "Axis"
-        self.axisData[axis] = data
-        self.SetSubplotName()
-        self.SetPlottedSpeciesName()
-    
     def GetAxesUnitsOptions(self):
-        unitsOptions = {}
-        if self.dataType == "Field":
-            unitsOptions["x"] = self.fieldsToPlotList[0].GetPossibleAxisUnits()
-            unitsOptions["y"] = self.fieldsToPlotList[0].GetPossibleAxisUnits()
-        if self.dataType == "Axis":
-            unitsOptions["x"] = self.axisData["x"].GetPossibleDataSetUnits()
-            unitsOptions["y"] = self.axisData["y"].GetPossibleDataSetUnits()
-            if "z" in self.axisData:
-                unitsOptions["z"] = self.axisData["z"].GetPossibleDataSetUnits()
-        return unitsOptions
-        
-    def GetWeightingUnitsOptions(self):
-        return self.axisData["weight"].GetPossibleDataSetUnits()
-        
-    def GetAxisColorMapOptions(self, plotType):
-        if plotType == "Histogram":
-            return self.colorMapsCollection.GetAllColorMapNames()
-        elif plotType == "Scatter" or plotType == "Scatter3D":
-            return self.colorMapsCollection.GetAllColorMapNamesWithTransparency()
-            
-    def GetAxisDefaultColorMap(self, plotType):
-        if plotType == "Histogram":
-            return "BlueT"
-        elif plotType == "Scatter":
-            return "Uniform Blue Transparent"
+        raise NotImplementedError
             
     def GetAxesDimension(self):
-        ThreeDplotTypes = ["Surface", "Scatter3D"]
-        if self.dataType == "Field":
-            for fieldToPlot in self.fieldsToPlotList:
-                if fieldToPlot.GetPlotType() in ThreeDplotTypes:
-                    return "3D"
-        elif self.dataType == "Axis":
-            if self.plotProps["PlotType"] in ThreeDplotTypes:
-                 return "3D"
-        return "2D"
-        
-    def SetFieldAxisUnits(self, axis, units):
-        for fieldToPlot in self.fieldsToPlotList:
-            fieldToPlot.SetAxisUnits(axis, units)
+        raise NotImplementedError
         
     def SetTitleProperty(self, targetProperty, value):
         self.axisTitleProps[targetProperty] = value
@@ -275,34 +106,16 @@ class Subplot:
         return self.axisTitleProps[targetProperty]
         
     def SetAxisProperty(self, axis, targetPropery, value):
-        if axis == "x":
-            self.xAxisProps[targetPropery] = value
-        elif axis == "y":
-            self.yAxisProps[targetPropery] = value
-        elif axis == "z":
-            self.zAxisProps[targetPropery] = value
+        self.axisProps[axis][targetPropery] = value
             
     def GetAxisProperty(self, axis, targetPropery):
-        if axis == "x":
-            return self.xAxisProps[targetPropery]
-        elif axis == "y":
-            return self.yAxisProps[targetPropery]
-        elif axis == "z":
-            return self.zAxisProps[targetPropery]
+        return self.axisProps[axis][targetPropery]
             
     def SetAllAxisProperties(self, axis, properties):
-        if axis == "x":
-            self.xAxisProps = properties
-        elif axis == "y":
-            self.yAxisProps = properties
-        if self.dataType == "Field":    
-            self.SetFieldAxisUnits(axis, properties["Units"])
+        self.axisProps[axis] = properties
             
     def GetCopyAllAxisProperties(self, axis):
-        if axis == "x":
-            return copy.copy	(self.xAxisProps)
-        elif axis == "y":
-            return copy.copy(self.yAxisProps)
+        return copy.copy(self.axisProps[axis])
             
     def SetPosition(self, position):
         self.subplotPosition = position
@@ -312,33 +125,12 @@ class Subplot:
             
     def GetPossiblePlotTypes(self):
         return self.possiblePlotTypes
-        
-    def GetPlotType(self):
-        return self.plotProps["PlotType"]
-        
-    def GetDataType(self):
-        return self.dataType
                         
     def GetName(self):
         return self.subplotName
         
     def GetPlottedSpeciesName(self):
         return self.plottedSpeciesName
-        
-    def GetFieldsToPlot(self):
-        return self.fieldsToPlotList
-        
-    def GetFieldsToPlotWithDimension(self, dimension):
-        fieldList = list()
-        for fieldToPlot in self.fieldsToPlotList:
-            if fieldToPlot.GetDataToPlotDimension() == dimension:
-                fieldList.append(fieldToPlot)
-        return fieldList
-            
-            
-        
-    def GetAxisData(self):
-        return self.axisData
         
     def SetColorBarProperty(self, prop, value):
         self.colorbarProps[prop] = value
@@ -357,7 +149,187 @@ class Subplot:
         
     def SetAllTitleProperties(self, properties):
         self.axisTitleProps = properties
+
+    def GetDataToPlot(self):
+        return self.dataToPlot
+
+
+class FieldSubplot(Subplot):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
+        return super(FieldSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+    # Initialization    
+    def _SetSubplotName(self):
+        for fieldToPlot in self.dataToPlot:
+            if self.subplotName == "":
+                self.subplotName = fieldToPlot.GetProperty("name")
+            elif self.subplotName != fieldToPlot.GetProperty("name"):
+                self.subplotName = "Mult. fields"
         
+    def _SetPlottedSpeciesName(self):
+        for fieldToPlot in self.dataToPlot:
+            if self.plottedSpeciesName == "":
+                self.plottedSpeciesName = fieldToPlot.GetProperty("speciesName")
+            elif self.plottedSpeciesName != fieldToPlot.GetProperty("speciesName"):
+                self.plottedSpeciesName = "Mult. species"
+                        
+    def _LoadPossiblePlotTypes(self):
+        self.possiblePlotTypes[:] = []
+        if len(self.dataToPlot) > 1:
+            self.possiblePlotTypes = ["Image"]
+        else:
+            self.possiblePlotTypes = ["Image", "Surface"]
+        
+    def LoadDefaultAxesValues(self):
+        defaultFontSize = 20  
+        self.SetAxisProperty("x", "DefaultLabelText", "z")
+        self.SetAxisProperty("y", "DefaultLabelText", "y")
+        #self.SetAxisProperty("z", "DefaultLabelText", "x")
+        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["x"])
+        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["y"])
+        #self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
+        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+
+    # Interface methods
+    def AddFieldToPlot(self, fieldToPlot):
+        self.dataType = "Field"
+        self.dataToPlot.append(fieldToPlot)
+        self._SetSubplotName()
+        self._SetPlottedSpeciesName()
+    
+    def GetAxesUnitsOptions(self):
+        unitsOptions = {}
+        unitsOptions["x"] = self.dataToPlot[0].GetProperty("possibleAxisUnits")
+        unitsOptions["y"] = self.dataToPlot[0].GetProperty("possibleAxisUnits")
+        return unitsOptions
+            
+    def GetAxesDimension(self):
+        ThreeDplotTypes = ["Surface", "Scatter3D"]
+        for fieldToPlot in self.dataToPlot:
+            if fieldToPlot.GetPlotType() in ThreeDplotTypes:
+                return "3D"
+        return "2D"
+        
+    def GetFieldsToPlotWithDimension(self, dimension):
+        fieldList = list()
+        for fieldToPlot in self.dataToPlot:
+            if fieldToPlot.GetDataToPlotDimension() == dimension:
+                fieldList.append(fieldToPlot)
+        return fieldList
+        
+    def RemoveField(self, index):
+        del self.dataToPlot[index]
+
+
+class RawDataSubplot(Subplot):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
+        self.plotProps = {}
+        super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+
+    # Initialization    
+    def _SetSubplotName(self):
+        if len(self.dataToPlot) > 1:
+            xName = self.dataToPlot["x"].GetProperty("name")
+            yName = self.dataToPlot["y"].GetProperty("name")
+            self.subplotName = xName + " vs " + yName
+            if "z" in self.dataToPlot:
+                zName = self.dataToPlot["z"].GetProperty("name")
+                self.subplotName += " vs " + zName
+        
+    def _SetPlottedSpeciesName(self):
+        if len(self.dataToPlot) > 1:
+            xSpeciesName = self.dataToPlot["x"].GetProperty("speciesName")
+            self.plottedSpeciesName = xSpeciesName
+            ySpeciesName = self.dataToPlot["y"].GetProperty("speciesName")
+            if ySpeciesName != self.plottedSpeciesName:
+                self.plottedSpeciesName = "Mult. Species"
+            if "z" in self.dataToPlot:
+                zSpeciesName = self.dataToPlot["z"].GetProperty("speciesName")
+                if zSpeciesName != self.plottedSpeciesName:
+                    self.plottedSpeciesName = "Mult. Species"   
+                        
+    def _LoadPossiblePlotTypes(self):
+        self.possiblePlotTypes[:] = []
+        if "z" in self.dataToPlot:
+            self.possiblePlotTypes = ["Scatter3D"]
+        else:
+            self.possiblePlotTypes = ["Histogram", "Scatter"]
+    
+    def _SetDefaultValues(self):
+        super(RawDataSubplot, self)._SetDefaultValues()
+        self.LoadDefaultPlotProperties()
+        self.SetPlotPropertiesToDefault()
+
+    def LoadDefaultAxesValues(self):
+        defaultFontSize = 20  
+        self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot["x"].GetProperty("name"))
+        self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot["y"].GetProperty("name"))
+        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot["x"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot["y"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+        if "z" in self.dataToPlot:
+            self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot["z"].GetProperty("name"))
+            self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot["z"].GetProperty("dataSetUnits"))
+            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+        
+    def LoadDefaultPlotProperties(self):
+        self.plotProps["DefaultPlotType"] = self.possiblePlotTypes[0]
+        self.plotProps["DefaultXBins"] = 100
+        self.plotProps["DefaultYBins"] = 100
+        self.plotProps["DefaultUseChargeWeighting"] = True
+        self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
+        self.plotProps["DefaultDisplayColorbar"] = True
+            
+    def SetPlotPropertiesToDefault(self):
+        self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
+        self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
+        self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
+        self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
+        self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
+        self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
+        self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
+        
+# Interface methods
+    def AddDataToPlot(self, data, axis):
+        # axis should be a string ("x", "y", "z" or "weight")
+        self.dataToPlot[axis] = data
+        self._SetSubplotName()
+        self._SetPlottedSpeciesName()
+
+    def GetAxisColorMapOptions(self, plotType):
+        if plotType == "Histogram":
+            return self.colorMapsCollection.GetAllColorMapNames()
+        elif plotType == "Scatter" or plotType == "Scatter3D":
+            return self.colorMapsCollection.GetAllColorMapNamesWithTransparency()
+            
+    def GetAxisDefaultColorMap(self, plotType):
+        if plotType == "Histogram":
+            return "BlueT"
+        elif plotType == "Scatter":
+            return "Uniform Blue Transparent"
+    
+    def GetAxesUnitsOptions(self):
+        unitsOptions = {}
+        unitsOptions["x"] = self.dataToPlot["x"].GetProperty("possibleDataSetUnits")
+        unitsOptions["y"] = self.dataToPlot["y"].GetProperty("possibleDataSetUnits")
+        if "z" in self.dataToPlot:
+            unitsOptions["z"] = self.dataToPlot["z"].GetProperty("possibleDataSetUnits")
+        return unitsOptions
+        
+    def GetWeightingUnitsOptions(self):
+        return self.dataToPlot["weight"].GetProperty("possibleDataSetUnits")
+
+    def GetAxesDimension(self):
+        ThreeDplotTypes = ["Surface", "Scatter3D"]
+        if self.plotProps["PlotType"] in ThreeDplotTypes:
+                return "3D"
+        return "2D"
+        
+    def GetPlotType(self):
+        return self.plotProps["PlotType"]
+
     def GetCopyAllPlotProperties(self):
         return copy.copy(self.plotProps)
         
@@ -366,6 +338,3 @@ class Subplot:
         
     def GetPlotProperty(self, targetProperty):
         return self.plotProps[targetProperty]
-        
-    def RemoveField(self, index):
-        del self.fieldsToPlotList[index]

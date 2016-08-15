@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from VisualPIC.Views.editPlotFieldWindow import EditPlotFieldWindow
+from VisualPIC.Views.editPlotFieldWindow import EditPlotWindowSelector
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -68,7 +68,7 @@ class PlotFieldItem(QtGui.QWidget):
         self.deleteButton.clicked.connect(self.deleteButton_Clicked)
         
     def editButton_Clicked(self):
-        EditWindow = EditPlotFieldWindow(self.subplot, self.mainWindow)
+        EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.mainWindow)
         EditWindow.exec_()
         
     def deleteButton_Clicked(self):
