@@ -27,6 +27,7 @@ class Subplot(object):
         self.colorMapsCollection = colorMapsCollection
         self.dataToPlot = dataToPlot
         self.possiblePlotTypes = list()
+        self.dataType = ""
         self.axisProps = {"x":{},
                           "y":{},
                           "z":{}}
@@ -153,10 +154,15 @@ class Subplot(object):
     def GetDataToPlot(self):
         return self.dataToPlot
 
+    def GetDataType(self):
+        return self.dataType
+
 
 class FieldSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
-        return super(FieldSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+        super(FieldSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+        self.dataType = "Field"
+
     # Initialization    
     def _SetSubplotName(self):
         for fieldToPlot in self.dataToPlot:
@@ -192,7 +198,6 @@ class FieldSubplot(Subplot):
 
     # Interface methods
     def AddFieldToPlot(self, fieldToPlot):
-        self.dataType = "Field"
         self.dataToPlot.append(fieldToPlot)
         self._SetSubplotName()
         self._SetPlottedSpeciesName()
@@ -225,6 +230,7 @@ class RawDataSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
         self.plotProps = {}
         super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+        self.dataType = "Raw"
 
     # Initialization    
     def _SetSubplotName(self):

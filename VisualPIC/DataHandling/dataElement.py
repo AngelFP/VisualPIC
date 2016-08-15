@@ -37,8 +37,8 @@ class DataElement(object):
     def GetTotalTimeSteps(self):
         return self.totalTimeSteps
 
-    def GetData(self):
-        return self.dataReader.GetData()
+    def GetData(self, timeStep):
+        return self.dataReader.GetData(timeStep)
         
     def GetDataUnits(self):
         return self.dataReader.GetDataUnits()

@@ -19,26 +19,26 @@
 
 class RawDataSetToPlot:
     def __init__(self, dataSet, unitConverter):
-        self.__dataSet = dataSet
-        self.__unitConverter = unitConverter
-        self.__dataProperties = {
+        self._dataSet = dataSet
+        self._unitConverter = unitConverter
+        self._dataProperties = {
             "name":dataSet.GetName(), 
             "speciesName":dataSet.GetSpeciesName(), 
             "dataSetUnits":dataSet.GetDataUnits(), 
-            "possibleDataSetUnits":self.__GetPossibleDataSetUnits()
+            "possibleDataSetUnits":self._GetPossibleDataSetUnits()
         }
             
-    def __GetPossibleDataSetUnits(self):
-        return self.__unitConverter.GetRawDataSetUnitsOptions(self.__dataSet)
+    def _GetPossibleDataSetUnits(self):
+        return self._unitConverter.GetRawDataSetUnitsOptions(self._dataSet)
         
     def GetDataSetPlotData(self, timeStep):
-        return self.__unitConverter.GetRawDataInUnits(timeStep, self.__dataSet, __dataProperties["dataSetUnits"])
+        return self._unitConverter.GetRawDataInUnits(timeStep, self._dataSet, self._dataProperties["dataSetUnits"])
     
     def GetProperty(self, propertyName):
-        return self.__dataProperties[propertyName]
+        return self._dataProperties[propertyName]
 
     def GetDataProperties(self):
-        return self.__dataProperties
+        return self._dataProperties
         
     def SetDataProperties(self, props):
-        self.__dataProperties = props
+        self._dataProperties = props

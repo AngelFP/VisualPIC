@@ -33,7 +33,7 @@ class RawDataReaderBase(DataReader):
         self.internalName = dataName
 
     def GetData(self, timeStep):
-        if timeStep != self.currenTimeStep:
+        if timeStep != self.currentTimeStep:
             self.currentTimeStep = timeStep
             self.OpenFileAndReadData()
         return self.data

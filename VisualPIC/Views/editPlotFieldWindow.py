@@ -47,7 +47,6 @@ class EditPlotWindow(QtGui.QDialog):
         
         self.mainWindow = parent
         self.subplot = subplot
-        self.dataType = self.subplot.GetDataType()
         self.selectedFieldIndex = 0
         self.updatingUiData = True
         
@@ -538,12 +537,9 @@ class EditPlotWindow(QtGui.QDialog):
         self.SetText()
         self.RegisterUIEvents()
         self.SetVisibleTabs()
-        self.GetFieldsInfo()
         self.GetAxisProperties()
         self.GetColorbarProperties()
-        self.GetPlotProperties()
         self.GetTitleProperties()
-        self.FillInitialUI()
 
     def SetText(self):
 #        self.FieldName.setText(self.fieldToPlot.GetName())
@@ -654,15 +650,7 @@ class EditPlotWindow(QtGui.QDialog):
         self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
 
     def SetVisibleTabs(self):
-        if self.dataType == "Field":
-            self.tabWidget.removeTab(1)
-        elif self.dataType == "Axis":
-            self.tabWidget.removeTab(0)
-
-    def GetFieldsInfo(self):
-        self.fieldPropertiesList = list()
-        for field in self.subplot.GetFieldsToPlot():
-            self.fieldPropertiesList.append(field.GetFieldProperties())
+        raise NotImplementedError
 
     def GetAxisProperties(self):
         self.axisProperties = {
@@ -676,29 +664,8 @@ class EditPlotWindow(QtGui.QDialog):
     def GetTitleProperties(self):
         self.titleProperties = self.subplot.GetCopyAllTitleProperties()
 
-    def GetPlotProperties(self):
-        self.plotProperties = self.subplot.GetCopyAllPlotProperties()
-
     def FillInitialUI(self):
-        self.FillListView()
-        if self.dataType == "Field":
-            self.FillFieldData(self.selectedFieldIndex)
-        elif self.dataType == "Axis":
-            self.FillPlotSettingsData()
-        self.FillAxesData()
-        self.FillColorbarData()
-        self.FillTitleData()
-        self.Fill1DSlicesData()
-
-    def FillListView(self):
-        model = QtGui.QStandardItemModel()
-        for field in self.subplot.GetFieldsToPlot():
-            listLabel = field.GetProperty("name")
-            if field.GetProperty("speciesName") != '':
-                listLabel += " / " + field.GetProperty("speciesName")
-            item = QtGui.QStandardItem(listLabel)
-            model.appendRow(item)
-        self.field_listView.setModel(model)
+        raise NotImplementedError
 
     def FillFieldData(self, fieldIndex):
         self.updatingUiData = True
@@ -853,10 +820,7 @@ class EditPlotWindow(QtGui.QDialog):
             self.selectedFieldProperties["plotType"] = plotType
 
     def RemoveFieldButton_Clicked(self):
-        self.subplot.RemoveField(self.selectedFieldIndex)
-        del self.fieldPropertiesList[self.selectedFieldIndex]
-        self.FillListView()
-        self.FillFieldData(0)
+        raise NotImplementedError
 
     def ApplyButton_Clicked(self):
         self.SaveChanges()
@@ -870,10 +834,6 @@ class EditPlotWindow(QtGui.QDialog):
         self.close()     
 
     def SaveChanges(self):
-        i = 0
-        for field in self.subplot.GetFieldsToPlot():
-            field.SetFieldProperties(self.fieldPropertiesList[i])
-            i+=1
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
@@ -988,8 +948,64 @@ class EditPlotWindow(QtGui.QDialog):
 
 class EditFieldPlotWindow(EditPlotWindow):
     def __init__(self, subplot, parent = None):
-        return super().__init__(subplot, parent)    
+        super(EditFieldPlotWindow, self).__init__(subplot, parent)  
+        self.GetFieldsInfo()
+        self.FillInitialUI()
+
+    def SetVisibleTabs(self):
+        self.tabWidget.removeTab(1)
+
+    def GetFieldsInfo(self):
+        self.fieldPropertiesList = list()
+        for field in self.subplot.GetDataToPlot():
+            self.fieldPropertiesList.append(field.GetFieldProperties())
+
+    def FillInitialUI(self):
+        self.FillListView()
+        self.FillFieldData(self.selectedFieldIndex)
+        self.FillAxesData()
+        self.FillColorbarData()
+        self.FillTitleData()
+        self.Fill1DSlicesData()
+
+    def FillListView(self):
+        model = QtGui.QStandardItemModel()
+        for field in self.subplot.GetDataToPlot():
+            listLabel = field.GetProperty("name")
+            if field.GetProperty("speciesName") != '':
+                listLabel += " / " + field.GetProperty("speciesName")
+            item = QtGui.QStandardItem(listLabel)
+            model.appendRow(item)
+        self.field_listView.setModel(model)
+
+    def RemoveFieldButton_Clicked(self):
+        self.subplot.RemoveField(self.selectedFieldIndex)
+        del self.fieldPropertiesList[self.selectedFieldIndex]
+        self.FillListView()
+        self.FillFieldData(0)
+
+    def SaveChanges(self):
+        i = 0
+        for field in self.subplot.GetDataToPlot():
+            field.SetFieldProperties(self.fieldPropertiesList[i])
+            i+=1
+        super(EditFieldPlotWindow, self).SaveChanges()
 
 class EditRawPlotWindow(EditPlotWindow):
     def __init__(self, subplot, parent = None):
-        return super().__init__(subplot, parent)
+        super(EditRawPlotWindow, self).__init__(subplot, parent)
+        self.GetPlotProperties()
+        self.FillInitialUI()
+
+    def GetPlotProperties(self):
+        self.plotProperties = self.subplot.GetCopyAllPlotProperties()
+
+    def SetVisibleTabs(self):
+        self.tabWidget.removeTab(0)
+
+    def FillInitialUI(self):
+        self.FillPlotSettingsData()
+        self.FillAxesData()
+        self.FillColorbarData()
+        self.FillTitleData()
+        self.Fill1DSlicesData()

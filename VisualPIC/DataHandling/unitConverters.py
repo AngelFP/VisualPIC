@@ -87,7 +87,7 @@ class OsirisUnitConverter:
     
     def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
         #implement actual unit conversion
-        return dataSet.GetPlotData(timeStep)
+        return dataSet.GetData(timeStep)
         
     def GetRawDataSetUnitsOptions(self, dataSet):
         normUnits = dataSet.GetDataUnits()
@@ -120,9 +120,9 @@ class OsirisUnitConverter:
             elif units == self.um:
                 extent[2:4] *= 1e6 * self.c / self.w_p 
             
-    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
+    def GetDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
         fieldName = field.GetName()
-        data = field.GetPlotData(timeStep)
+        data = field.GetData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
         self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])

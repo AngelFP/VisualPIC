@@ -39,7 +39,7 @@ class DataPlotter:
         
         self.PlotFromDataType = {
             "Field":self.MakeFieldPlot,
-            "Axis":self.MakeAxisDataPlot
+            "Raw":self.MakeAxisDataPlot
             }
             
     def LoadPlotTypes(self):
@@ -56,7 +56,7 @@ class DataPlotter:
             }
         self.plotTypes = {
             "Field":fieldTypes,
-            "Axis":axisTypes
+            "Raw":axisTypes
             }
 
             
@@ -143,27 +143,17 @@ class DataPlotter:
         
         
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        axisData = subplot.GetAxisData()
-        xData = axisData["x"].GetDataSetPlotData(timeStep)
-        yData = axisData["y"].GetDataSetPlotData(timeStep)
-        if "z" in axisData:
-            zData = axisData["z"].GetDataSetPlotData(timeStep)
-        weightData = axisData["weight"].GetDataSetPlotData(timeStep)
-        
+        axisData = subplot.GetDataToPlot()
         plotData = {}
-        xValues = xData[0]
-        plotData["x"] = xValues
-        yValues = yData[0]
-        plotData["y"] = yValues
+        plotData["x"] = axisData["x"].GetDataSetPlotData(timeStep)
+        plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
         if "z" in axisData:
-            zValues = zData[0]
-            plotData["z"] = zValues
-        weightValues = weightData[0]
-        plotData["weight"] = weightValues
+            plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
+        plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
         
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
         
-        im = self.plotTypes["Axis"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
+        im = self.plotTypes["Raw"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
         
         pos1 = ax.get_position()
         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
@@ -178,7 +168,7 @@ class DataPlotter:
         cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
         cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
         cbar.solids.set_edgecolor("face")
-        cbar.set_label(label="$"+axisData["weight"].GetUnits()+"$",size=subplot.GetColorBarProperty("FontSize"))
+        cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
