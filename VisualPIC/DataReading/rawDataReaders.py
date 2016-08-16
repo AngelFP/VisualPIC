@@ -21,6 +21,7 @@
 import abc
 import sys
 import h5py
+import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
 
@@ -50,7 +51,7 @@ class OsirisRawDataReader(RawDataReaderBase):
 
     def OpenFileAndReadData(self):
         file_content = self.OpenFile(self.currentTimeStep)
-        self.data = file_content[self.internalName][()]
+        self.data = np.array(file_content.get(self.internalName))
         file_content.close()
 
     def OpenFileAndReadUnits(self):
