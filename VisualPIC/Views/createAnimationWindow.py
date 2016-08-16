@@ -111,7 +111,7 @@ class CreateAnimationWindow(QtGui.QDialog):
         self.label_2.setText("Last time step:")
         self.label_3.setText("Frequency:")
         self.firstStep_lineEdit.setText("0")
-        self.lastStep_lineEdit.setText(str(self.mainWindow.availableData.GetNumberOfTimeSteps()-1))
+        self.lastStep_lineEdit.setText(str(self.mainWindow.dataContainer.GetNumberOfTimeSteps()-1))
         self.frequency_lineEdit.setText("1")
         self.onlySnaps_checkBox.setText("Create only snapshots")
         self.label_5.setText("Gif properties:")
@@ -139,7 +139,7 @@ class CreateAnimationWindow(QtGui.QDialog):
             self.gifTime_lineEdit.setEnabled(True)
     
     def createAnimation(self):
-        totalSimulationTimeSteps = self.mainWindow.availableData.GetNumberOfTimeSteps()
+        totalSimulationTimeSteps = self.mainWindow.dataContainer.GetNumberOfTimeSteps()
         firstTimeStep = int(self.firstStep_lineEdit.text())
         lastTimeStep = int(self.lastStep_lineEdit.text())
         freq = int(self.frequency_lineEdit.text())

@@ -22,6 +22,7 @@ import math
 import codecs
 import numpy as np
 
+
 class OsirisUnitConverter:
     def __init__(self):
         self.c = 299792458 #m/s
@@ -35,9 +36,8 @@ class OsirisUnitConverter:
         else:
             self.um = "μm"
     
-    def allowNormUnits(self, value)  :
+    def allowNormUnits(self, value):
         self.useNormUnits = value
-        
         
     def setPlasmaDensity(self, dens):
         #[dens] = 10^18 cm^-3
@@ -49,7 +49,7 @@ class OsirisUnitConverter:
     def getFieldUnitsOptions(self, field):
         fieldName = field.GetName()
         speciesName = field.GetSpeciesName()
-        normUnits = field.GetNormalizedUnits("Field")
+        normUnits = field.GetDataUnits()[0]
         if self.useNormUnits:
             if speciesName == "":
                 if "e1" in fieldName or "e2" in fieldName or "e3" in fieldName:
@@ -73,7 +73,6 @@ class OsirisUnitConverter:
                 fieldData *= self.E0 *1e-9
             else:
                 pass
-                
         elif "charge" in fieldName:
             if units == normUnits:
                 pass
@@ -88,18 +87,18 @@ class OsirisUnitConverter:
     
     def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
         #implement actual unit conversion
-        return dataSet.GetPlotData(timeStep)
+        return dataSet.GetData(timeStep)
         
     def GetRawDataSetUnitsOptions(self, dataSet):
-        normUnits = dataSet.GetNormalizedUnits()
+        normUnits = dataSet.GetDataUnits()
         if self.useNormUnits:
             # add units option for each type of data
-            return  [normUnits]    
+            return [normUnits]    
         else:
             return [normUnits]
             
     def getAxisUnitsOptions(self, field):
-        normUnits = field.GetNormalizedUnits("x")
+        normUnits = field.GetDataUnits()[1]["x"]
         if self.useNormUnits:
             return  [normUnits, "m", self.um]
         else:
@@ -121,16 +120,14 @@ class OsirisUnitConverter:
             elif units == self.um:
                 extent[2:4] *= 1e6 * self.c / self.w_p 
             
-    def GetPlotDataInUnits(self, timeStep, field, fieldUnits, axesUnits, normUnits):
+    def GetDataInUnits(self, timeStep, field, fieldUnits, axesUnits, originalFieldUnits, originalAxisUnits):
         fieldName = field.GetName()
-        data = field.GetPlotData(timeStep)
+        data = field.GetData(timeStep)
         fieldData = data[0]
         extent = np.array(data[1])
-        
-        self.getFieldInUnits(fieldName, fieldData, fieldUnits, normUnits["Field"])
-        self.getAxisInUnits("x", extent, axesUnits["x"], normUnits["x"])
-        self.getAxisInUnits("y", extent, axesUnits["y"], normUnits["y"])
-        
+        self.getFieldInUnits(fieldName, fieldData, fieldUnits, originalFieldUnits)
+        self.getAxisInUnits("x", extent, axesUnits["x"], originalAxisUnits["x"])
+        self.getAxisInUnits("y", extent, axesUnits["y"], originalAxisUnits["y"])
         return fieldData, extent
         
 

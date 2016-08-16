@@ -25,13 +25,17 @@ $RECYCLE.BIN/
 *.lnk
 
 # Compiled files
-#*.pyc
+*.pyc
 
 # Visual Studio Files
 *.suo
 *.sln
 *.pyproj
 *.user
+*.TMP
+
+# ArgoUML files
+*.zargo~
 
 # =========================
 # Operating System Files

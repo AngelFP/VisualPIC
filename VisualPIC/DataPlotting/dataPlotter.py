@@ -22,12 +22,9 @@ from matplotlib.ticker import LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
     
- 
 
 class DataPlotter:
-    
     def __init__(self, colorMapsCollection):
-        
         self.testprop = 0
         self.currentAxesNumber = 1
         self.colorMapsCollection = colorMapsCollection
@@ -36,10 +33,9 @@ class DataPlotter:
         self.LoadPlotTypes()
      
     def LoadPlotFromDataTypes(self):
-        
         self.PlotFromDataType = {
             "Field":self.MakeFieldPlot,
-            "Axis":self.MakeAxisDataPlot
+            "Raw":self.MakeAxisDataPlot
             }
             
     def LoadPlotTypes(self):
@@ -56,17 +52,14 @@ class DataPlotter:
             }
         self.plotTypes = {
             "Field":fieldTypes,
-            "Axis":axisTypes
+            "Raw":axisTypes
             }
-
             
     def MakePlot(self, figure, subplotList, rows, columns, timeStep):
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
-        
         figure.subplots_adjust(hspace=.3, top=.93, bottom=.09, right = .93, left = .09)
-        
         for subplot in subplotList:
             if subplot != None:
                 # create axes
@@ -76,7 +69,6 @@ class DataPlotter:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition())
                 # make plot on axes
                 self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
-                
                     
     def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
         num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
@@ -84,54 +76,48 @@ class DataPlotter:
         ax.hold(False)
         i = 0
         for field in subplot.GetFieldsToPlotWithDimension("2D"):
-            
-            plotData = field.GetFieldPlotData(timeStep)
-            units = field.GetFieldUnits()
-            field_cmap = self.colorMapsCollection.GetColorMap(field.GetColorMap())
-            scale = field.GetScale()
-            isScaleCustom = field.IsScaleCustom()
-            
-            im = self.plotTypes["Field"][field.GetPlotType()](ax, plotData, field_cmap, scale, isScaleCustom)
-            
+            plotData = field.GetData(timeStep)
+            units = field.GetProperty("fieldUnits")
+            field_cmap = self.colorMapsCollection.GetColorMap(field.GetProperty("cMap"))
+            scale = field.GetProperty("minVal"), field.GetProperty("maxVal")
+            autoScale = field.GetProperty("autoScale")
+            # make plot
+            im = self.plotTypes["Field"][field.GetProperty("plotType")](ax, plotData, field_cmap, scale, autoScale)
+            # change plot size to make room for the colorBar
             if i == 0:
                 pos1 = ax.get_position()
                 pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
                 ax.set_position(pos2)
             ax.hold(True)
-            
+            # colorBar
             cbWidth = 0.015
             cbHeight = (pos2[3]-(num2DFields-1)*self.cbSpacing)/num2DFields
             cbX = pos2[0] + pos2[2] + 0.02
             cbY = pos2[1] + i*(cbHeight + self.cbSpacing)
-            
             cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
             cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
             cbar.solids.set_edgecolor("face")
             cbar.set_label(label="$"+units+"$",size=subplot.GetColorBarProperty("FontSize"))
             i += 1
-            
             # label axes
             ax.xaxis.set_major_locator( LinearLocator(5) )
             ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
             ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
             ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
-        
         if num1DFields > 0 and num2DFields > 0:
             axPos = ax.get_position()
             newAxPos = [axPos.x0, axPos.y0 ,  axPos.width-0.07, axPos.height]
             ax.set_position(newAxPos)
         for field in subplot.GetFieldsToPlotWithDimension("1D"):
-            units = field.GetFieldUnits()
+            units = field.GetProperty("fieldUnits")
             if num2DFields > 0:
                 axPos = ax.get_position()
                 axis1D = ax.twinx()
                 axis1D.set_position(axPos)
             else:
                 axis1D = ax
-                
-            plotData = field.GetFieldPlotData(timeStep)
-            self.plotTypes["Field"][field.GetPlotType()](axis1D, plotData)   
-            
+            plotData = field.GetData(timeStep)
+            self.plotTypes["Field"][field.GetProperty("plotType")](axis1D, plotData)  
             if num2DFields > 0:
                 axis1D.set_ylabel("$"+units+"$")
             else:
@@ -140,46 +126,31 @@ class DataPlotter:
                 axis1D.set_ylabel("$"+units+"$")
                 axis1D.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
         
-        
-        
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        axisData = subplot.GetAxisData()
-        xData = axisData["x"].GetDataSetPlotData(timeStep)
-        yData = axisData["y"].GetDataSetPlotData(timeStep)
-        if "z" in axisData:
-            zData = axisData["z"].GetDataSetPlotData(timeStep)
-        weightData = axisData["weight"].GetDataSetPlotData(timeStep)
-        
+        axisData = subplot.GetDataToPlot()
         plotData = {}
-        xValues = xData[0]
-        plotData["x"] = xValues
-        yValues = yData[0]
-        plotData["y"] = yValues
+        plotData["x"] = axisData["x"].GetDataSetPlotData(timeStep)
+        plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
         if "z" in axisData:
-            zValues = zData[0]
-            plotData["z"] = zValues
-        weightValues = weightData[0]
-        plotData["weight"] = weightValues
-        
+            plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
+        plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
-        
-        im = self.plotTypes["Axis"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
-        
+        # make plot
+        im = self.plotTypes["Raw"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
+        # change plot size to make room for the colorBar
         pos1 = ax.get_position()
         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
         ax.set_position(pos2)
         ax.hold(True)
-        
+        # colorBar
         cbWidth = 0.015
         cbHeight = pos2[3]
         cbX = pos2[0] + pos2[2] + 0.02
         cbY = pos2[1]
-        
         cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
         cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
         cbar.solids.set_edgecolor("face")
-        cbar.set_label(label="$"+axisData["weight"].GetUnits()+"$",size=subplot.GetColorBarProperty("FontSize"))
-        
+        cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
@@ -187,14 +158,13 @@ class DataPlotter:
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
         
 # Field data plot types
-    def MakeImagePlot(self, ax, plotData, cMap, scale, isScaleCustom):  
-        if not isScaleCustom:
+    def MakeImagePlot(self, ax, plotData, cMap, scale, autoScale):  
+        if autoScale:
             scale = [None, None]
-            
         return ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1])
         
-    def MakeSurfacePlot(self, ax, plotData, cMap, scale, isScaleCustom):  
-        if not isScaleCustom:
+    def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
+        if autoScale:
             scale = [None, None]
         elementsX = len(plotData[0][0]) # longitudinal
         elementsY = len(plotData[0]) # transverse
@@ -206,7 +176,6 @@ class DataPlotter:
         y = np.linspace(yMin, yMax, elementsY)
         X, Y = np.meshgrid(x,y)
         Z = plotData[0]
-        
         cStride = int(round(elementsX/40))
         rStride = int(round(elementsY/40))
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
@@ -216,7 +185,6 @@ class DataPlotter:
         yValues = plotData[1]
         ax.plot(xValues, yValues)
         ax.set_xlim([xValues[0], xValues[-1]])
-        
         
 # Axis data plot types     
     def MakeHistogramPlot(self, ax, plotData, cMap):
