@@ -31,15 +31,6 @@ except AttributeError:
         return s
 
 
-class EditPlotWindowSelector:
-    @classmethod
-    def GetEditPlotWindow(cls, subplot, mainWindow):
-        if isinstance(subplot, FieldSubplot):
-            return EditFieldPlotWindow(subplot, mainWindow)
-        else:
-            return EditRawPlotWindow(subplot, mainWindow)
-
-
 class EditPlotWindow(QtGui.QDialog):
     def __init__(self, subplot, parent=None):
         super(EditPlotWindow, self).__init__(parent)
@@ -945,6 +936,7 @@ class EditPlotWindow(QtGui.QDialog):
         self.FillListView()
         self.FillFieldData(0)
 
+
 class EditFieldPlotWindow(EditPlotWindow):
     def __init__(self, subplot, parent = None):
         super(EditFieldPlotWindow, self).__init__(subplot, parent)  
@@ -990,6 +982,7 @@ class EditFieldPlotWindow(EditPlotWindow):
             i+=1
         super(EditFieldPlotWindow, self).SaveChanges()
 
+
 class EditRawPlotWindow(EditPlotWindow):
     def __init__(self, subplot, parent = None):
         super(EditRawPlotWindow, self).__init__(subplot, parent)
@@ -1013,3 +1006,12 @@ class EditRawPlotWindow(EditPlotWindow):
     def SaveChanges(self):
         super(EditRawPlotWindow, self).SaveChanges()
         self.subplot.SetAllPlotProperties(self.plotProperties)
+
+
+class EditPlotWindowSelector:
+    editWindows = {"Field": EditFieldPlotWindow,
+                   "Raw": EditRawPlotWindow
+                   }
+    @classmethod
+    def GetEditPlotWindow(cls, subplot, mainWindow):
+        return cls.editWindows[subplot.GetDataType()](subplot, mainWindow)

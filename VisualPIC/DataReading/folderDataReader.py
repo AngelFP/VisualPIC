@@ -27,23 +27,22 @@ from VisualPIC.DataHandling.field import Field
 
 class FolderDataReader:
     """Scans the simulation folder and creates all the necessary species, fields and rawDataSets objects"""
-    def __init__(self):
-        self.__dataLocation = ""
-        self.__availableSpecies = list()
-        self.__availableFields = list()
-        self.__simulationCode = ""
+    def __init__(self, parentDataContainer):
+        self._dataContainer = parentDataContainer
+        self._dataLocation = ""
+        self._simulationCode = ""
         self.CreateCodeDictionaries()
     
     def CreateCodeDictionaries(self):
-        self.__codeName = {"MS":"Osiris",
+        self._codeName = {"MS":"Osiris",
                            "Something":"HiPACE"}
-        self.__loadDataFrom = {"Osiris": self.LoadOsirisData,
+        self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                                "HiPACE": self.LoadHiPaceData}
     def SetDataLocation(self, dataLocation):
-        self.__dataLocation = dataLocation
+        self._dataLocation = dataLocation
 
     def GetDataLocation(self):
-        return self.__dataLocation
+        return self._dataLocation
 
     """
     Data managing. Methods for adding the detected species, fields...
@@ -51,36 +50,36 @@ class FolderDataReader:
     def AddSpecies(self, species):
         addSpecies = True
         # the species will not be added if it already exists
-        for avSpecies in self.__availableSpecies:
+        for avSpecies in self._dataContainer._availableSpecies:
             if avSpecies.GetName() == species.GetName():
                 addSpecies =  False
         if addSpecies:
-            self.__availableSpecies.append(species)
+            self._dataContainer._availableSpecies.append(species)
 
     def AddFieldToSpecies(self, speciesName, field):
-        for species in self.__availableSpecies:
+        for species in self._dataContainer._availableSpecies:
             if species.GetName() == speciesName:
                 species.AddAvailableField(field)
 
     def AddRawDataToSpecies(self, speciesName, dataSet):
-        for species in self.__availableSpecies:
+        for species in self._dataContainer._availableSpecies:
             if species.GetName() == speciesName:
                 species.AddRawDataSet(dataSet)
 
     def AddDomainField(self,field):
-        self.__availableFields.append(field)
+        self._dataContainer._availableDomainFields.append(field)
 
     """
     Main data loader. It will automatically call the specific loader for a particular simulation code
     """
     def LoadData(self):
-        self.__simulationCode = self.DetectSimulationCodeName()
-        self.__loadDataFrom[self.__simulationCode]()
-        return self.__availableSpecies, self.__availableFields
+        self._DetectSimulationCodeName()
+        self._loadDataFrom[self._simulationCode]()
 
-    def DetectSimulationCodeName(self):
-        dataFolderName = os.path.basename(self.__dataLocation)
-        return self.__codeName[dataFolderName]
+    def _DetectSimulationCodeName(self):
+        dataFolderName = os.path.basename(self._dataLocation)
+        self._simulationCode = self._codeName[dataFolderName]
+        self._dataContainer._simulationCode = self._simulationCode
 
     """
     Specific data loaders
@@ -88,9 +87,9 @@ class FolderDataReader:
     def LoadOsirisData(self):
         """Osiris Loader"""
         keyFolderNames = ["DENSITY", "FLD", "PHA", "RAW" ]
-        mainFolders = os.listdir(self.__dataLocation)
+        mainFolders = os.listdir(self._dataLocation)
         for folder in mainFolders:
-            subDir = self.__dataLocation + "/" + folder
+            subDir = self._dataLocation + "/" + folder
             if folder == keyFolderNames[0]:
                 speciesNames = os.listdir(subDir)
                 for species in speciesNames:
@@ -102,7 +101,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(self.__simulationCode, fieldName, fieldLocation, totalTimeSteps, species))
+                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, fieldLocation, totalTimeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -110,7 +109,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(self.__simulationCode, fieldName, fieldLocation, totalTimeSteps))
+                        self.AddDomainField(Field(self._simulationCode, fieldName, fieldLocation, totalTimeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -122,9 +121,9 @@ class FolderDataReader:
             #                    fieldLocation = subDir + "/" + field + "/" + species
             #                    fieldName = field
             #                    totalTimeSteps = len(os.listdir(fieldLocation))
-            #                    self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self.__codeName))
+            #                    self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self._codeName))
             elif folder ==  keyFolderNames[3]:
-                subDir = self.__dataLocation + "/" + folder
+                subDir = self._dataLocation + "/" + folder
                 speciesNames = os.listdir(subDir)
                 for species in speciesNames:
                     if os.path.isdir(os.path.join(subDir, species)):
@@ -134,7 +133,7 @@ class FolderDataReader:
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
-                            self.AddRawDataToSpecies(species, RawDataSet(self.__simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                            self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
