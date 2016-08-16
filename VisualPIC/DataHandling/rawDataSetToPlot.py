@@ -24,6 +24,7 @@ class RawDataSetToPlot:
         self._dataProperties = {
             "name":dataSet.GetName(), 
             "speciesName":dataSet.GetSpeciesName(), 
+            "totalTimeSteps":dataSet.GetTotalTimeSteps(),
             "dataSetUnits":dataSet.GetDataUnits(), 
             "possibleDataSetUnits":self._GetPossibleDataSetUnits()
         }

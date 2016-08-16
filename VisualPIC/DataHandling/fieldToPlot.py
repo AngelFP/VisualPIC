@@ -28,7 +28,8 @@ class FieldToPlot:
         self.__isPartOfMultiplot = isPartOfMultiplot
         self.__fieldProperties = {
             "name":field.GetName(), 
-            "speciesName":field.GetSpeciesName(), 
+            "speciesName":field.GetSpeciesName(),
+            "totalTimeSteps":field.GetTotalTimeSteps(), 
             "fieldUnits":field.GetDataUnits()[0], 
             "originalFieldUnits":field.GetDataUnits()[0], 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),

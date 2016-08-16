@@ -32,6 +32,10 @@ $RECYCLE.BIN/
 *.sln
 *.pyproj
 *.user
+*.TMP
+
+# ArgoUML files
+*.zargo~
 
 # =========================
 # Operating System Files

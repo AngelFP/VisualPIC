@@ -148,6 +148,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def LoadDataButton_Cicked(self):
         self.ClearData()
+        self.dataContainer.ClearData()
         self.LoadFolderData()
         
     def FolderLocationlineEdit_TextChanged(self):
@@ -217,7 +218,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
-        self.timeStep_Slider.setMaximum(self.dataContainer.GetNumberOfTimeSteps()-1)
         self.PlotFields()
         
     def AddDomainFieldButton_Clicked(self):
@@ -252,6 +252,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plotPosition_comboBox.addItems(positionsList)
 
     def AddRawDataSubplot(self, dataSets):
+        self.timeStep_Slider.setMaximum(dataSets["x"].GetProperty("totalTimeSteps")-1)
         plotPosition = len(self.subplotList)+1
         subplot = RawDataSubplot(plotPosition, self.colorMapsCollection, dataSets)
         self.subplotList.append(subplot)
@@ -321,6 +322,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
+        self.timeStep_Slider.setMaximum(fields[0].GetTotalTimeSteps()-1)
         for fld in fields:
             fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
