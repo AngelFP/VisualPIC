@@ -134,6 +134,7 @@ class FolderDataReader:
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
                             self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                        file_content.close()
 
     def LoadHiPaceData(self):
         """HiPACE loader"""

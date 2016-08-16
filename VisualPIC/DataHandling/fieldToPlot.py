@@ -122,10 +122,26 @@ class FieldToPlot:
         X = np.linspace(xMin, xMax, elementsX) # X data
         
         return X, fieldSlice
+
+    def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
+        plotData = self.__GetAllData(timeStep)
+        fieldData = plotData[0]
+        extent = plotData[1]
+        elementsX1 = len(fieldData[0][0]) # number of elements in the longitudinal direction
+        elementsX2 = len(fieldData[0]) # number of elements in the transverse direction
+        elementsX3 = len(fieldData) # number of elements in the transverse direction
+
+        selectedRow = round(elementsX3*(float(slicePosition)/100))
+        fieldSlice = fieldData[selectedRow]
+        extent2D = extent[0:4]
+        return fieldSlice, extent2D
     
     def GetData(self, timeStep):
         if self.__fieldDimension == "3D":
-            raise NotImplementedError
+            if self.__dataToPlotDimension == "2D":
+                return self.__Get2DSlice("x", 50, timeStep)
+            else:
+                raise NotImplementedError
         elif self.__fieldDimension == "2D":
             if self.__dataToPlotDimension == "2D":
                 return self.__GetAllData(timeStep)

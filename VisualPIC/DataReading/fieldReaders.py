@@ -84,6 +84,9 @@ class OsirisFieldReader(FieldReaderBase):
         file_content = self.OpenFile(self.currentTimeStep)
         self.data = np.array(file_content.get(self.internalName))
         self.axisExtent = file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1]
+        if self.fieldDimension == "3D":
+            x3extent = file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2]
+            self.axisExtent += x3extent
         file_content.close()
 
     def OpenFileAndReadUnits(self):
