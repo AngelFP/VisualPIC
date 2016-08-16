@@ -838,7 +838,6 @@ class EditPlotWindow(QtGui.QDialog):
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
         self.subplot.SetAllTitleProperties(self.titleProperties)
-        self.subplot.SetAllPlotProperties(self.plotProperties)
 
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
@@ -1001,6 +1000,7 @@ class EditRawPlotWindow(EditPlotWindow):
         self.plotProperties = self.subplot.GetCopyAllPlotProperties()
 
     def SetVisibleTabs(self):
+        self.tabWidget.removeTab(5)
         self.tabWidget.removeTab(0)
 
     def FillInitialUI(self):
@@ -1009,3 +1009,7 @@ class EditRawPlotWindow(EditPlotWindow):
         self.FillColorbarData()
         self.FillTitleData()
         self.Fill1DSlicesData()
+
+    def SaveChanges(self):
+        super(EditRawPlotWindow, self).SaveChanges()
+        self.subplot.SetAllPlotProperties(self.plotProperties)
