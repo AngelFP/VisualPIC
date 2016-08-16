@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
+import copy
 
 class FieldToPlot:
     def __init__(self, field, dataToPlotDimension, unitConverter, colorMapsCollection, isPartOfMultiplot = False):
@@ -31,10 +32,10 @@ class FieldToPlot:
             "speciesName":field.GetSpeciesName(),
             "totalTimeSteps":field.GetTotalTimeSteps(), 
             "fieldUnits":field.GetDataUnits()[0], 
-            "originalFieldUnits":field.GetDataUnits()[0], 
+            "originalFieldUnits":copy.copy(field.GetDataUnits()[0]), 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
             "axesUnits":field.GetDataUnits()[1], 
-            "originalAxesUnits":field.GetDataUnits()[1], 
+            "originalAxesUnits":copy.copy(field.GetDataUnits()[1]), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
