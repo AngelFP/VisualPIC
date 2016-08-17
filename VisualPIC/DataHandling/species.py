@@ -78,6 +78,9 @@ class Species:
             dataSetNames.append(dataSet.GetName())
         
         return dataSetNames
+
+    def GetAllRawDataSets(self):
+        return self.rawDataSets
     
     def GetName(self):
         return self.name
