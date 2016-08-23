@@ -69,7 +69,7 @@ class DataPlotter:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition())
                 # make plot on axes
                 self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
-                    
+
     def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
         num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
         num2DFields = len(subplot.GetFieldsToPlotWithDimension("2D"))
@@ -133,7 +133,8 @@ class DataPlotter:
         plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
         if "z" in axisData:
             plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
-        plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
+        if "weight" in axisData:
+            plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
         # make plot
         im = self.plotTypes["Raw"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
@@ -143,14 +144,15 @@ class DataPlotter:
         ax.set_position(pos2)
         ax.hold(True)
         # colorBar
-        cbWidth = 0.015
-        cbHeight = pos2[3]
-        cbX = pos2[0] + pos2[2] + 0.02
-        cbY = pos2[1]
-        cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
-        cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
-        cbar.solids.set_edgecolor("face")
-        cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+        if "weight" in axisData:
+            cbWidth = 0.015
+            cbHeight = pos2[3]
+            cbX = pos2[0] + pos2[2] + 0.02
+            cbY = pos2[1]
+            cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
+            cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
+            cbar.solids.set_edgecolor("face")
+            cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
@@ -198,13 +200,19 @@ class DataPlotter:
     def MakeScatterPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
-        weightValues = plotData["weight"]
-        return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
+        if "weight" in plotData:
+            weightValues = plotData["weight"]
+            return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
+        else:
+            return ax.scatter(xValues, yValues, cmap=cMap, linewidths=0)
         
     def Make3DScatterPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         zValues = plotData["z"]
-        weightValues = plotData["weight"]
-        return ax.scatter(xValues, yValues, zValues, c=weightValues, cmap=cMap, linewidths=0)
+        if "weight" in plotData:
+            weightValues = plotData["weight"]
+            return ax.scatter(xValues, yValues, zValues, c=weightValues, cmap=cMap, linewidths=0)
+        else:
+            return ax.scatter(xValues, yValues, zValues, cmap=cMap, linewidths=0)
     

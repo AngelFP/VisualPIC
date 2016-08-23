@@ -30,7 +30,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
-from VisualPIC.Views.particleTracker import ParticleTracker
+from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
@@ -158,7 +158,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataContainer.SetDataFolderLocation(folderPath)
     
     def ActionParticleTracker_Toggled(self):
-        self.particleTracker = ParticleTracker(self.dataContainer)
+        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.unitConverter, self.colorMapsCollection, self.dataPlotter)
         self.particleTracker.show()
 
     def ActionMakeVideo_Toggled(self):

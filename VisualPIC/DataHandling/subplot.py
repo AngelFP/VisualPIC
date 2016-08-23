@@ -284,7 +284,8 @@ class RawDataSubplot(Subplot):
         self.plotProps["DefaultXBins"] = 100
         self.plotProps["DefaultYBins"] = 100
         self.plotProps["DefaultUseChargeWeighting"] = True
-        self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        if "weight" in self.dataToPlot:
+            self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
         self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
         self.plotProps["DefaultDisplayColorbar"] = True
             
@@ -293,7 +294,8 @@ class RawDataSubplot(Subplot):
         self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
         self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
         self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
-        self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
+        if "weight" in self.dataToPlot:
+            self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
         self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
         self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
         
@@ -335,6 +337,9 @@ class RawDataSubplot(Subplot):
         
     def GetPlotType(self):
         return self.plotProps["PlotType"]
+
+    def SetPlotType(self, plotType):
+        self.plotProps["PlotType"] = plotType
 
     def GetCopyAllPlotProperties(self):
         return copy.copy(self.plotProps)

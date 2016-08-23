@@ -106,6 +106,11 @@ class DataContainer:
         for species in self._availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetField(fieldName)
+    
+    def GetSpeciesRawDataSet(self, speciesName, dataSetName):
+        for species in self._availableSpecies:
+            if species.GetName() == speciesName:
+                return species.GetRawDataSet(dataSetName)
                 
     def GetFolderPath(self):
         return self._folderDataReader.GetDataLocation()

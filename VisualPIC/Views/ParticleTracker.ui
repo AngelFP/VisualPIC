@@ -18,7 +18,7 @@
     <widget class="QTabWidget" name="mainTabWidget">
      <property name="maximumSize">
       <size>
-       <width>300</width>
+       <width>360</width>
        <height>16777215</height>
       </size>
      </property>
@@ -45,15 +45,22 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>250</height>
+           <height>360</height>
           </size>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>360</height>
+          </size>
+         </property>
+         <layout class="QVBoxLayout" name="selectorPlot_layout"/>
         </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QSlider" name="spectorTimeStep_Slider">
+          <widget class="QSlider" name="selectorTimeStep_Slider">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -105,7 +112,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="mainPlot_widget" native="true"/>
+    <widget class="QWidget" name="mainPlot_widget" native="true">
+     <layout class="QVBoxLayout" name="mainPlot_layout"/>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -38,10 +38,22 @@ class Particle():
 
 class ParticleTracker():
     def __init__(self, dataContainer):
-        self.dataContainer = dataContainer
-        self._speciesList = self.dataContainer.GetSpeciesWithRawData()
+        self._dataContainer = dataContainer
+        self._speciesList = self._dataContainer.GetSpeciesWithRawData()
         self._speciesToAnalyze = None
         self._particlesList = list()
+
+    def GetSpeciesNames(self):
+        names = list()
+        for species in self._speciesList:
+            names.append(species.GetName())
+        return names
+
+    def GetTotalTimeSteps(self):
+        return self._speciesList[0].GetAllRawDataSets()[0].GetTotalTimeSteps()
+
+    def GetSpeciesDataSet(self, speciesName, dataSetName):
+        return self._dataContainer.GetSpeciesRawDataSet(speciesName, dataSetName)
 
     def FindParticles(self, timeStep, speciesName, filters):
         """filters is a dictionary where the keys are the names of the variables 
