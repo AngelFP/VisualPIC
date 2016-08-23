@@ -47,7 +47,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>Icons/icon-ios7-arrow-left-128.png</normaloff>Icons/icon-ios7-arrow-left-128.png</iconset>
+            <normaloff>../Icons/icon-ios7-arrow-left-128.png</normaloff>../Icons/icon-ios7-arrow-left-128.png</iconset>
           </property>
          </widget>
         </item>
@@ -791,6 +791,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionParticle_Tracker"/>
     <addaction name="actionMake_video"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -816,6 +817,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionParticle_Tracker">
+   <property name="text">
+    <string>Particle Tracker</string>
    </property>
   </action>
  </widget>

@@ -30,6 +30,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
+from VisualPIC.Views.particleTracker import ParticleTracker
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
@@ -106,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawPlotType_radioButton_2.toggled.connect(self.RawFieldsRadioButton_Toggled)
         self.rawPlotType_radioButton_3.toggled.connect(self.RawFieldsRadioButton_Toggled)
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
+        self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
         self.normalizedUnits_checkBox.toggled.connect(self.NormalizedUnitsCheckBox_StatusChanged)
         self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
@@ -155,6 +157,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         folderPath = str(self.folderLocation_lineEdit.text())
         self.dataContainer.SetDataFolderLocation(folderPath)
     
+    def ActionParticleTracker_Toggled(self):
+        self.particleTracker = ParticleTracker(self.dataContainer)
+        self.particleTracker.show()
+
     def ActionMakeVideo_Toggled(self):
         AnimationWindow = CreateAnimationWindow(self)
         AnimationWindow.exec_()
