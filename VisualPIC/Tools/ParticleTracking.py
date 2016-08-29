@@ -61,12 +61,12 @@ class ParticleTracker():
         (the lower and higher limit)"""
         for species in self._speciesList:
             if species.GetName() == speciesName:
-                self.speciesToAnalyze = species
+                self._speciesToAnalyze = species
         indicesList = list()
         for rawDataSetName, range in filters.iteritems():
-            indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, speciesToAnalyze, rawDataSetName, range))
+            indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
-        particles = self._GetParticlesFromIndices(timeStep, speciesToAnalyze, indicesOfFoundParticles)
+        particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
         return particles
     
     def _GetIndicesOfParticlesInRange(self, timeStep, species, rawDataSetName, range):

@@ -38,7 +38,37 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="speciesSelector_comboBox"/>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QComboBox" name="speciesSelector_comboBox"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="individualSelection_Button">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Single</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rectangleSelection_Button">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Rect</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QWidget" name="selectorPlot_widget" native="true">

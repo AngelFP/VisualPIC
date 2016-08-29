@@ -25,6 +25,7 @@ from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
 import numpy as np
 from matplotlib.figure import Figure
+from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
@@ -96,6 +97,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_Slider.valueChanged.connect(self.SelectorTimeStepSlider_ValueChanged)
         self.selectorTimeStep_Slider.sliderReleased.connect(self.SelectorTimeStepSlider_Released)
         self.speciesSelector_comboBox.currentIndexChanged.connect(self.SpeciesSelectorComboBox_IndexChanged)
+        self.rectangleSelection_Button.clicked.connect(self.RectangleSelectionButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -115,6 +117,47 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def SpeciesSelectorComboBox_IndexChanged(self):
         self.MakeSelectorPlot()
+
+    def RectangleSelectionButton_Clicked(self):
+        ax = self.selectorFigure.axes[0]
+        if sys.version_info[0] < 3:
+            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                           drawtype='box', useblit=True,
+                                           button=[1, 3],  # don't use middle button
+                                           minspanx=5, minspany=5,
+                                           spancoords='pixels')
+        else:
+            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                           drawtype='box', useblit=True,
+                                           button=[1, 3],  # don't use middle button
+                                           minspanx=5, minspany=5,
+                                           spancoords='pixels',
+                                           interactive = True)
+        ax.callbacks.connect('key_press_event', self.toggle_selector_event)
+
+    """
+    Rectangle Selector
+    """
+    def line_select_callback(self,eclick, erelease):
+        'eclick and erelease are the press and release events'
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+        filter = {}
+        filter["x1"] = (min(x1,x2), max(x1,x2))
+        filter["x2"] = (min(y1,y2), max(y1,y2))
+        self.particleTracker.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
+        print("(%3.2f, %3.2f) --> (%3.2f, %3.2f)" % (x1, y1, x2, y2))
+        print(" The button you used were: %s %s" % (eclick.button, erelease.button))
+
+
+    def toggle_selector_event(self, event):
+        print(' Key pressed.')
+        if event.key in ['Q', 'q'] and self.toggle_selector.active:
+            print(' RectangleSelector deactivated.')
+            self.toggle_selector.set_active(False)
+        if event.key in ['A', 'a'] and not self.toggle_selector.active:
+            print(' RectangleSelector activated.')
+            self.toggle_selector.set_active(True)
 
     """
     Other functions
