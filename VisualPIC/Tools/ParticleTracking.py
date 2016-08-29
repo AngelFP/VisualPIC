@@ -80,7 +80,9 @@ class ParticleTracker():
     def _GetCommonElementsInListOfArrays(self, listOfArrays):
         n = len(listOfArrays)
         commonEls = listOfArrays[0]
-        for i in np.linspace(1,n-1,n-1):
+        test = np.arange(1,n)
+        for i in np.arange(1,n):
+            a = np.intersect1d(listOfArrays[i], commonEls)
             commonEls = np.intersect1d(listOfArrays[i], commonEls)
         return commonEls
 
@@ -88,7 +90,7 @@ class ParticleTracker():
         rawDataSets = species.GetAllRawDataSets()
         dataSetValues = {}
         for dataSet in rawDataSets:
-            dataSetValues[dataSet.GetName()]=append(dataSet.GetData(timeStep))
+            dataSetValues[dataSet.GetName()]=dataSet.GetData(timeStep)
         particlesList = list()
         for index in indices:
             particle = Particle(index)
@@ -115,3 +117,6 @@ class ParticleTracker():
         rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
         for dataSet in rawDataSets:
             self._FillEvolutionOfDataSetInParticles(dataSet)
+
+    def SetParticlesToTrack(self, particleList):
+        self._particlesList = particleList
