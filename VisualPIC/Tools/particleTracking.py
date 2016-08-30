@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import numpy as np
 
 from VisualPIC.DataHandling.species import Species
@@ -63,8 +64,12 @@ class ParticleTracker():
             if species.GetName() == speciesName:
                 self._speciesToAnalyze = species
         indicesList = list()
-        for rawDataSetName, range in filters.iteritems():
-            indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        if sys.version_info[0] < 3:
+            for rawDataSetName, range in filters.iteritems():
+                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        else:
+            for rawDataSetName, range in filters.items():
+                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
         particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
         return particles
@@ -94,8 +99,12 @@ class ParticleTracker():
         particlesList = list()
         for index in indices:
             particle = Particle(index)
-            for dataSetName, values in dataSetValues.iteritems():
-                particle.AddTimeStepQuantity(dataSetName, values[index])
+            if sys.version_info[0] < 3:
+                for dataSetName, values in dataSetValues.iteritems():
+                    particle.AddTimeStepQuantity(dataSetName, values[index])
+            else:
+                for dataSetName, values in dataSetValues.items():
+                    particle.AddTimeStepQuantity(dataSetName, values[index])
             particlesList.append(particle)
         return particlesList
 
