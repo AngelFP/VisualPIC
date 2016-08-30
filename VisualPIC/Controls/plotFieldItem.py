@@ -59,7 +59,6 @@ class PlotFieldItem(QtGui.QWidget):
         self.registerUiEvents()
 
     def setText(self):
-        
         self.FieldName.setText(self.subplot.GetName())
         self.SpeciesName.setText(self.subplot.GetPlottedSpeciesName())
 

@@ -350,10 +350,24 @@ class RawDataSubplot(Subplot):
     def GetPlotProperty(self, targetProperty):
         return self.plotProps[targetProperty]
 
-class RawDataEvolutionSubplot(RawDataSubplot):
-    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
+
+class RawDataEvolutionSubplot(Subplot):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot, speciesName):
         super(RawDataEvolutionSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "RawEvolution"
+        self.plottedSpeciesName = speciesName
+
+    def _SetSubplotName(self):
+        if len(self.dataToPlot[0]) > 1:
+            xName = self.dataToPlot[0]["x"].GetProperty("name")
+            yName = self.dataToPlot[0]["y"].GetProperty("name")
+            self.subplotName = xName + " vs " + yName
+            if "z" in self.dataToPlot[0]:
+                zName = self.dataToPlot[0]["z"].GetProperty("name")
+                self.subplotName += " vs " + zName
+        
+    def _SetPlottedSpeciesName(self):
+        pass
 
     def _LoadPossiblePlotTypes(self):
         self.possiblePlotTypes[:] = []
@@ -362,9 +376,21 @@ class RawDataEvolutionSubplot(RawDataSubplot):
         else:
             self.possiblePlotTypes = ["Line", "Scatter"]
 
+    def LoadDefaultAxesValues(self):
+        defaultFontSize = 20  
+        self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
+        self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
+        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+        if "z" in self.dataToPlot[0]:
+            self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
+            self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
+            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+
     def GetAxesDimension(self):
-        ThreeDplotTypes = ["Line3D", "Scatter3D"]
-        if self.plotProps["PlotType"] in ThreeDplotTypes:
+        if "z" in self.dataToPlot[0]:
                 return "3D"
         return "2D"
 
@@ -373,3 +399,6 @@ class RawDataEvolutionSubplot(RawDataSubplot):
             
     def GetAxisDefaultColorMap(self, plotType):
         return "BlueT"
+
+    def RemoveParticle(self, index):
+        del self.dataToPlot[index]

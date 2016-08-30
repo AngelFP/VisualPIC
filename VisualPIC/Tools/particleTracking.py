@@ -49,6 +49,15 @@ class Particle():
     def GetWholeSimulationQuantity(self, quantityName):
         return self._wholeSimulationQuantities[quantityName]
 
+    def GetDataAtTimeStep(self, timeStep):
+        timeStepQuantities = {}
+        for key in self._timeStepQuantities:
+            timeStepQuantities[key] = self._wholeSimulationQuantities[key][timeStep]
+        return timeStepQuantities
+
+    def GetTotalTimeSteps(self):
+        return len(timeStepQuantities[timeStepQuantities.keys()[0]])
+
 
 class ParticleTracker():
     def __init__(self, dataContainer, unitConverter):
@@ -152,8 +161,13 @@ class ParticleTracker():
         allParticlesData = list()
         for particle in self._particleList:
             singleParticleData = {}
-            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle.GetWholeSimulationQuantity(xDataName))#, self.unitConverter)
-            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle.GetWholeSimulationQuantity(yDataName))#, self.unitConverter)
+            singleParticleData["particle"] = particle
+            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)#, self.unitConverter)
+            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)#, self.unitConverter)
             if zDataName != None:
-                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle.GetWholeSimulationQuantity(zDataName))#, self.unitConverter)
+                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)#, self.unitConverter)
             allParticlesData.append(singleParticleData)
+        return allParticlesData
+
+    def GetTrackedSpeciesName(self):
+        return self._speciesToAnalyze.GetName()

@@ -19,20 +19,20 @@
 
 class RawDataEvolutionToPlot:
     # todo: implement unitConverter
-    def __init__(self, dataSetName, dataSet): #, unitConverter):
-        self._dataSet = dataSet
-        self._unitConverter = unitConverter
+    def __init__(self, dataSetName, particle): #, unitConverter):
+        self._dataSet = particle.GetWholeSimulationQuantity(dataSetName)
+        #self._unitConverter = unitConverter
         self._dataProperties = {
             "name":dataSetName,
-            "dataSetUnits":dataSet["units"], 
+            "dataSetUnits":self._dataSet["units"], 
             "possibleDataSetUnits":self._GetPossibleDataSetUnits()
         }
             
     def _GetPossibleDataSetUnits(self):
         return self._dataSet["units"]
         
-    def GetDataSetPlotData(self, timeStep):
-        return self._unitConverter.GetRawDataInUnits(timeStep, self._dataSet, self._dataProperties["dataSetUnits"])
+    def GetDataSetPlotData(self):
+        return self._dataSet["values"]
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]
