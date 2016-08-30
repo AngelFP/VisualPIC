@@ -23,6 +23,7 @@ import sys
 
 from PyQt4.uic import loadUiType
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import *
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
@@ -98,6 +99,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_Slider.sliderReleased.connect(self.SelectorTimeStepSlider_Released)
         self.speciesSelector_comboBox.currentIndexChanged.connect(self.SpeciesSelectorComboBox_IndexChanged)
         self.rectangleSelection_Button.clicked.connect(self.RectangleSelectionButton_Clicked)
+        self.trackParticles_Button.clicked.connect(self.TrackParticlesButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -135,6 +137,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
                                            interactive = True)
         ax.callbacks.connect('key_press_event', self.toggle_selector_event)
 
+    def TrackParticlesButton_Clicked(self):
+        self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
+
     """
     Rectangle Selector
     """
@@ -145,10 +150,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         filter = {}
         filter["x1"] = (min(x1,x2), max(x1,x2))
         filter["x2"] = (min(y1,y2), max(y1,y2))
-        self.particleTracker.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
-        print("(%3.2f, %3.2f) --> (%3.2f, %3.2f)" % (x1, y1, x2, y2))
-        print(" The button you used were: %s %s" % (eclick.button, erelease.button))
-
+        self.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
 
     def toggle_selector_event(self, event):
         print(' Key pressed.')
@@ -162,6 +164,45 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     """
     Other functions
     """
+
+    def FindParticles(self, timeStep, speciesName, filter):
+        self.particleList = self.particleTracker.FindParticles(timeStep, speciesName, filter)
+        self.CreateParticleTable()
+
+    def CreateParticleTable(self):
+        n = len(self.particleList)
+        variableNames = self.particleList[0].GetNamesOfAvailableQuantities()
+        allParticlesData = list()
+        tableData = {}
+        for particle in self.particleList:
+            allParticlesData.append(particle.GetCurrentTimeStepQuantities())
+        for variableName in variableNames:
+            varValues = np.zeros(n)
+            for i in np.arange(0,n):
+                varValues[i] = allParticlesData[i][variableName]
+            tableData[variableName] = varValues
+        self.particleList_tableWidget.setColumnCount(len(variableNames)+1)
+        self.particleList_tableWidget.setRowCount(n)
+        tableHeaders = variableNames
+        tableHeaders.insert(0," ")
+        for i in np.arange(0,n):
+            newItem = QTableWidgetItem()
+            newItem.setCheckState(QtCore.Qt.Unchecked)
+            self.particleList_tableWidget.setItem(i, 0, newItem)
+        for n, key in enumerate(tableData.keys()):
+            for m, item in enumerate(tableData[key]):
+                newItem = QTableWidgetItem(str(item))
+                self.particleList_tableWidget.setItem(m, n+1, newItem)
+        self.particleList_tableWidget.resizeColumnsToContents()
+        self.particleList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
+
+    def GetSelectedParticles(self):
+        selectedParticles = list()
+        for row in np.arange(0, self.particleList_tableWidget.rowCount()):
+            item = self.particleList_tableWidget.item(row, 0)
+            if item.checkState():
+                selectedParticles.append(self.particleList[row])
+        return selectedParticles
 
     def MakeSelectorPlot(self):
         if self.speciesSelector_comboBox.currentText() != "Select Species":

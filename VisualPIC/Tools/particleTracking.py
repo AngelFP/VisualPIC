@@ -36,6 +36,16 @@ class Particle():
     def AddWholeSimulationQuantity(self, quantityName, quantityValues):
         self._wholeSimulationQuantities[quantityName] = quantityValues
 
+    def GetNamesOfAvailableQuantities(self):
+        quantitiesList = list()
+        for key in self._timeStepQuantities:
+            quantitiesList.append(key)
+        return quantitiesList
+
+    def GetCurrentTimeStepQuantities(self):
+        return self._timeStepQuantities
+
+
 
 class ParticleTracker():
     def __init__(self, dataContainer):
@@ -85,9 +95,7 @@ class ParticleTracker():
     def _GetCommonElementsInListOfArrays(self, listOfArrays):
         n = len(listOfArrays)
         commonEls = listOfArrays[0]
-        test = np.arange(1,n)
         for i in np.arange(1,n):
-            a = np.intersect1d(listOfArrays[i], commonEls)
             commonEls = np.intersect1d(listOfArrays[i], commonEls)
         return commonEls
 
@@ -95,7 +103,7 @@ class ParticleTracker():
         rawDataSets = species.GetAllRawDataSets()
         dataSetValues = {}
         for dataSet in rawDataSets:
-            dataSetValues[dataSet.GetName()]=dataSet.GetData(timeStep)
+            dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep)
         particlesList = list()
         for index in indices:
             particle = Particle(index)
@@ -107,9 +115,6 @@ class ParticleTracker():
                     particle.AddTimeStepQuantity(dataSetName, values[index])
             particlesList.append(particle)
         return particlesList
-
-    def SetParticlesToTrack(self, particlesList):
-        self._particlesList = particlesList
 
     def _FillEvolutionOfDataSetInParticles(self, dataSet):
         totalTimeSteps = dataSet.GetTotalTimeSteps()
@@ -128,4 +133,4 @@ class ParticleTracker():
             self._FillEvolutionOfDataSetInParticles(dataSet)
 
     def SetParticlesToTrack(self, particleList):
-        self._particlesList = particleList
+        self._particleList = particleList
