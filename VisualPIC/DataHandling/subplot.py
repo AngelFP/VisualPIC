@@ -349,3 +349,27 @@ class RawDataSubplot(Subplot):
         
     def GetPlotProperty(self, targetProperty):
         return self.plotProps[targetProperty]
+
+class RawDataEvolutionSubplot(RawDataSubplot):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
+        super(RawDataEvolutionSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+        self.dataType = "RawEvolution"
+
+    def _LoadPossiblePlotTypes(self):
+        self.possiblePlotTypes[:] = []
+        if "z" in self.dataToPlot:
+            self.possiblePlotTypes = ["Line3D", "Scatter3D"]
+        else:
+            self.possiblePlotTypes = ["Line", "Scatter"]
+
+    def GetAxesDimension(self):
+        ThreeDplotTypes = ["Line3D", "Scatter3D"]
+        if self.plotProps["PlotType"] in ThreeDplotTypes:
+                return "3D"
+        return "2D"
+
+    def GetAxisColorMapOptions(self, plotType):
+        return self.colorMapsCollection.GetAllColorMapNames()
+            
+    def GetAxisDefaultColorMap(self, plotType):
+        return "BlueT"

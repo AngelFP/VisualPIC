@@ -22,6 +22,7 @@ import numpy as np
 
 from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.rawDataSet import RawDataSet
+from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 
 
 class Particle():
@@ -33,8 +34,8 @@ class Particle():
     def AddTimeStepQuantity(self, quantityName, quantityValue):
         self._timeStepQuantities[quantityName] = quantityValue
 
-    def AddWholeSimulationQuantity(self, quantityName, quantityValues):
-        self._wholeSimulationQuantities[quantityName] = quantityValues
+    def AddWholeSimulationQuantity(self, quantityName, quantityValues, quantityUnits):
+        self._wholeSimulationQuantities[quantityName] = {"values":quantityValues, "units":quantityUnits}
 
     def GetNamesOfAvailableQuantities(self):
         quantitiesList = list()
@@ -45,14 +46,17 @@ class Particle():
     def GetCurrentTimeStepQuantities(self):
         return self._timeStepQuantities
 
+    def GetWholeSimulationQuantity(self, quantityName):
+        return self._wholeSimulationQuantities[quantityName]
 
 
 class ParticleTracker():
-    def __init__(self, dataContainer):
+    def __init__(self, dataContainer, unitConverter):
         self._dataContainer = dataContainer
+        self.unitConverter = unitConverter
         self._speciesList = self._dataContainer.GetSpeciesWithRawData()
         self._speciesToAnalyze = None
-        self._particlesList = list()
+        self._particleList = list()
 
     def GetSpeciesNames(self):
         names = list()
@@ -120,12 +124,12 @@ class ParticleTracker():
         totalTimeSteps = dataSet.GetTotalTimeSteps()
         numberOfParticles = len(self._particleList)
         timeValues = np.zeros([numberOfParticles, totalTimeSteps])
-        for timeStep in np.linspace(0,totalTimeSteps-1, totalTimeSteps):
+        for timeStep in np.arange(0,totalTimeSteps):
             data = dataSet.GetData(timeStep)
             for particle in self._particleList:
                 timeValues[self._particleList.index(particle), timeStep] = data[particle.index]
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), timeValues[self._particleList.index(particle)])
+            particle.AddWholeSimulationQuantity(dataSet.GetName(), timeValues[self._particleList.index(particle)], dataSet.GetDataUnits())
 
     def FillEvolutionOfAllDataSetsInParticles(self):
         rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
@@ -134,3 +138,22 @@ class ParticleTracker():
 
     def SetParticlesToTrack(self, particleList):
         self._particleList = particleList
+
+    def GetTrackedParticles(self):
+        return self._particleList
+
+    def GetAvailableQuantitiesInParticles(self):
+        return self._particleList[0].GetNamesOfAvailableQuantities()
+
+    def GetTotalNumberOfTrackedParticles(self):
+        return len(self._particleList)
+
+    def GetTrackedParticlesDataToPlot(self, xDataName, yDataName, zDataName = None):
+        allParticlesData = list()
+        for particle in self._particleList:
+            singleParticleData = {}
+            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle.GetWholeSimulationQuantity(xDataName))#, self.unitConverter)
+            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle.GetWholeSimulationQuantity(yDataName))#, self.unitConverter)
+            if zDataName != None:
+                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle.GetWholeSimulationQuantity(zDataName))#, self.unitConverter)
+            allParticlesData.append(singleParticleData)

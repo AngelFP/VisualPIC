@@ -86,7 +86,7 @@ class OsirisUnitConverter:
             pass  
     
     def GetRawDataInUnits(self, timeStep, dataSet, dataSetUnits):
-        #implement actual unit conversion
+        # todo: implement actual unit conversion
         return dataSet.GetData(timeStep)
         
     def GetRawDataSetUnitsOptions(self, dataSet):

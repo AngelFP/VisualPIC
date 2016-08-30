@@ -58,10 +58,11 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         super(ParticleTrackerWindow, self).__init__()
         self.setupUi(self)
         self.unitConverter = unitConverter
-        self.particleTracker = ParticleTracker(dataContainer)
+        self.particleTracker = ParticleTracker(dataContainer, unitConverter)
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
         self.selectorSubplot = None
+        self.subplotList = list()
         self.CreateCanvasAndFigures()
         self.FillInitialUI();
         #self.CreateSelectorSubplotObject()
@@ -100,6 +101,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.speciesSelector_comboBox.currentIndexChanged.connect(self.SpeciesSelectorComboBox_IndexChanged)
         self.rectangleSelection_Button.clicked.connect(self.RectangleSelectionButton_Clicked)
         self.trackParticles_Button.clicked.connect(self.TrackParticlesButton_Clicked)
+        self.plotType_radioButton_1.toggled.connect(self.PlotTypeRadioButton_Toggled)
+        self.plotType_radioButton_2.toggled.connect(self.PlotTypeRadioButton_Toggled)
+        self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -107,10 +111,18 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.speciesSelector_comboBox.addItems(comboBoxItems)
         self.selectorTimeStep_Slider.setMaximum(self.particleTracker.GetTotalTimeSteps()-1)
 
+    def FillPlotUI(self):
+        self.x_comboBox.clear()
+        self.y_comboBox.clear()
+        self.z_comboBox.clear()
+        self.x_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
+        self.y_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
+        self.z_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
+        self.trackedParticles_Label.setText("Tracking " + str(self.particleTracker.GetTotalNumberOfTrackedParticles())+ " particle(s)")
+
     """
     UI Events
     """
-
     def SelectorTimeStepSlider_ValueChanged(self):
         self.selectorTimeStep_lineEdit.setText(str(self.selectorTimeStep_Slider.value()))
 
@@ -139,6 +151,26 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def TrackParticlesButton_Clicked(self):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
+        self.particleTracker.FillEvolutionOfAllDataSetsInParticles()
+        self.FillPlotUI()
+
+    def PlotTypeRadioButton_Toggled(self):
+        self.z_comboBox.setEnabled(self.plotType_radioButton_2.isChecked())
+
+    def AddToPlotButton_Clicked(self):
+        xDataSetName = self.x_comboBox.currentText()
+        yDataSetName = self.y_comboBox.currentText()
+        if self.plotType_radioButton_2.isChecked():
+            zDataSetName = self.z_comboBox.currentText()
+        plotPosition = len(self.subplotList)+1
+        subplot = RawDataEvolutionSubplot(plotPosition, self.colormapsCollection, self.particleTracker.GetTrackedParticlesDataToPlot())
+        self.subplotList.append(subplot)
+        self.SetAutoColumnsAndRows()
+        wid = PlotFieldItem(subplot, self)
+        wid2 = QtGui.QListWidgetItem()
+        wid2.setSizeHint(QtCore.QSize(100, 40))
+        self.subplots_listWidget.addItem(wid2)
+        self.subplots_listWidget.setItemWidget(wid2, wid)
 
     """
     Rectangle Selector
@@ -164,7 +196,6 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     """
     Other functions
     """
-
     def FindParticles(self, timeStep, speciesName, filter):
         self.particleList = self.particleTracker.FindParticles(timeStep, speciesName, filter)
         self.CreateParticleTable()
