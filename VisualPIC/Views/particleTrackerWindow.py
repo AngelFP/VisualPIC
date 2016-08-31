@@ -107,6 +107,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.plotType_radioButton_1.toggled.connect(self.PlotTypeRadioButton_Toggled)
         self.plotType_radioButton_2.toggled.connect(self.PlotTypeRadioButton_Toggled)
         self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
+        self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -176,10 +177,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.subplots_listWidget.addItem(wid2)
         self.subplots_listWidget.setItemWidget(wid2, wid)
 
+    def PlotPushButton_Clicked(self):
+        self.MakePlots()
+
     """
     Rectangle Selector
     """
-    def line_select_callback(self,eclick, erelease):
+    def line_select_callback(self, eclick, erelease):
         'eclick and erelease are the press and release events'
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
@@ -272,4 +276,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
                 if len(self.subplotList) <= (self.subplotRows-1)*self.subplotColumns:
                     self.subplotRows -= 1
                     self.increaseRowsColumnsCounter -= 1
+
+    def MakePlots(self):
+        self.dataPlotter.MakePlot(self.mainFigure, self.subplotList, self.subplotRows, self.subplotColumns)
+        self.mainCanvas.draw()
         

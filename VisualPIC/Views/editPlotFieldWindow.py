@@ -815,7 +815,7 @@ class EditPlotWindow(QtGui.QDialog):
 
     def ApplyButton_Clicked(self):
         self.SaveChanges()
-        self.mainWindow.PlotFields()
+        self.mainWindow.MakePlots()
 
     def AcceptButton_Clicked(self):
         self.SaveChanges()

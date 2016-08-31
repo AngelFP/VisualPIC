@@ -35,7 +35,8 @@ class DataPlotter:
     def LoadPlotFromDataTypes(self):
         self.PlotFromDataType = {
             "Field":self.MakeFieldPlot,
-            "Raw":self.MakeAxisDataPlot
+            "Raw":self.MakeAxisDataPlot,
+            "RawEvolution":self.MakeRawEvolutionDataPlot
             }
             
     def LoadPlotTypes(self):
@@ -44,18 +45,22 @@ class DataPlotter:
             "Surface":self.MakeSurfacePlot,
             "Line":self.MakeLinePlot
             }
-            
         axisTypes = {
             "Scatter":self.MakeScatterPlot,
             "Scatter3D":self.Make3DScatterPlot,
             "Histogram":self.MakeHistogramPlot
             }
+        evolutionTypes = {
+            "2D":self.MakeLinePlot_E,
+            "3D":self.Make3DLinePlot_E
+            }
         self.plotTypes = {
             "Field":fieldTypes,
-            "Raw":axisTypes
+            "Raw":axisTypes,
+            "RawEvolution":evolutionTypes
             }
-            
-    def MakePlot(self, figure, subplotList, rows, columns, timeStep):
+    # todo: remove timeStep from input variables. Allow to have diferent number of input variables.        
+    def MakePlot(self, figure, subplotList, rows, columns, timeStep = None):
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
@@ -158,8 +163,28 @@ class DataPlotter:
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
         ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
-        
-# Field data plot types
+
+    def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
+        ax.hold(False)
+        allPaticlesData = subplot.GetDataToPlot() # list of dictionaries (with keys "particle", "x", "y" and "z")
+        for particleData in allPaticlesData:
+            plotData = {}
+            plotData["x"] = particleData["x"].GetDataSetPlotData()
+            plotData["y"] = particleData["y"].GetDataSetPlotData()
+            if "z" in particleData:
+                plotData["z"] = particleData["z"].GetDataSetPlotData()
+            # make plot
+            im = self.plotTypes["RawEvolution"][subplot.GetAxesDimension()](ax, plotData, particleData["plotStyle"])
+            ax.hold(True)
+        # label axes
+        ax.xaxis.set_major_locator( LinearLocator(5) )
+        ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
+        ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
+        ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+
+    """
+    Field data plot types
+    """
     def MakeImagePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
@@ -182,13 +207,15 @@ class DataPlotter:
         rStride = int(round(elementsY/40))
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
-    def MakeLinePlot(self, ax, plotData):
+    def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
         xValues = plotData[0]
         yValues = plotData[1]
-        ax.plot(xValues, yValues)
+        ax.plot(xValues, yValues, plotStyle)
         ax.set_xlim([xValues[0], xValues[-1]])
         
-# Axis data plot types     
+    """
+    Raw (non-evolving) data plot types
+    """    
     def MakeHistogramPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
@@ -216,3 +243,14 @@ class DataPlotter:
         else:
             return ax.scatter(xValues, yValues, zValues, cmap=cMap, linewidths=0)
     
+    """
+    Raw (evolving) data plot types
+    """ 
+    def MakeLinePlot_E(self, ax, plotData, plotStyle = "b-"):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        ax.plot(xValues, yValues, plotStyle)
+        ax.set_xlim([xValues[0], xValues[-1]])
+
+    def Make3DLinePlot_E(self, ax, plotData, plotStyle = "b-"):
+        raise NotImplementedError

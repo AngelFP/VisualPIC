@@ -370,14 +370,10 @@ class RawDataEvolutionSubplot(Subplot):
         pass
 
     def _LoadPossiblePlotTypes(self):
-        self.possiblePlotTypes[:] = []
-        if "z" in self.dataToPlot:
-            self.possiblePlotTypes = ["Line3D", "Scatter3D"]
-        else:
-            self.possiblePlotTypes = ["Line", "Scatter"]
+        pass
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
+        defaultFontSize = 20
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
@@ -396,9 +392,6 @@ class RawDataEvolutionSubplot(Subplot):
 
     def GetAxisColorMapOptions(self, plotType):
         return self.colorMapsCollection.GetAllColorMapNames()
-            
-    def GetAxisDefaultColorMap(self, plotType):
-        return "BlueT"
 
     def RemoveParticle(self, index):
         del self.dataToPlot[index]

@@ -126,7 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.SetSelectedSpeciesField()
 
     def TimeStepSlider_Released(self):
-        self.PlotFields()
+        self.MakePlots()
 
     def RowsSpinBox_ValueChanged(self):
         self.SetListOfPlotPositions()
@@ -196,12 +196,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def NextButton_Clicked(self):
         ts = self.timeStep_Slider.value()
         self.timeStep_Slider.setValue(ts + 1)
-        self.PlotFields()
+        self.MakePlots()
         
     def PrevButton_Clicked(self):
         ts = self.timeStep_Slider.value()
         self.timeStep_Slider.setValue(ts - 1)
-        self.PlotFields()
+        self.MakePlots()
         
     def AddRawFieldButton_Clicked(self):
         speciesName = self.rawFieldSpecies_comboBox.currentText()
@@ -224,7 +224,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
-        self.PlotFields()
+        self.MakePlots()
         
     def AddDomainFieldButton_Clicked(self):
         self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
@@ -364,7 +364,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def DecreaseRows(self):
         self.rows_spinBox.stepDown()
         
-    def PlotFields(self):
+    def MakePlots(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
         timeStep = self.timeStep_Slider.value()

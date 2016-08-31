@@ -161,6 +161,7 @@ class ParticleTracker():
         allParticlesData = list()
         for particle in self._particleList:
             singleParticleData = {}
+            singleParticleData["plotStyle"] = "b-" # todo: find a better place for storing the plotStyles in all dataTypes (Field, Raw and RawEvolution)
             singleParticleData["particle"] = particle
             singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)#, self.unitConverter)
             singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)#, self.unitConverter)
