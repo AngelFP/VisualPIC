@@ -250,7 +250,7 @@ class DataPlotter:
         xValues = plotData["x"]
         yValues = plotData["y"]
         ax.plot(xValues, yValues, plotStyle)
-        ax.set_xlim([xValues[0], xValues[-1]])
+        ax.set_xlim([min(xValues), max(xValues)])
 
     def Make3DLinePlot_E(self, ax, plotData, plotStyle = "b-"):
         raise NotImplementedError

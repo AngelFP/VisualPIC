@@ -242,7 +242,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             newItem = QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.particleList_tableWidget.setItem(i, 0, newItem)
-        for n, key in enumerate(tableData.keys()):
+        for n, key in enumerate(tableHeaders[1:]):
             for m, item in enumerate(tableData[key]):
                 newItem = QTableWidgetItem(str(item))
                 self.particleList_tableWidget.setItem(m, n+1, newItem)

@@ -154,7 +154,7 @@ class ParticleTracker():
                         lastTimeStep = timeStep
                 if particleExitedDomain:
                     break
-        timeValues = timeValues[:,firstTimeStep:lastTimeStep+1] # remove the colums in which the particle is not in the domain
+        timeValues = timeValues[:,firstTimeStep:lastTimeStep] # remove the colums in which the particle is not in the domain
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), timeValues[self._particleList.index(particle)], dataSet.GetDataUnits())
     
