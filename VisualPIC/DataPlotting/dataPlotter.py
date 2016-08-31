@@ -188,7 +188,7 @@ class DataPlotter:
     def MakeImagePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
-        return ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1])
+        return ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
         
     def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
