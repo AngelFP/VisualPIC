@@ -47,7 +47,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../Icons/icon-ios7-arrow-left-128.png</normaloff>../Icons/icon-ios7-arrow-left-128.png</iconset>
+            <normaloff>Icons/icon-ios7-arrow-left-128.png</normaloff>Icons/icon-ios7-arrow-left-128.png</iconset>
           </property>
          </widget>
         </item>
