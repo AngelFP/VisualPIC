@@ -24,8 +24,10 @@ class Species:
         self.availableFields = list()
         self.customFields = list()
         self.rawDataSets = list()
+        self.rawDataTags = None # it will be a RawDataTags instance
         self.hasFields = False
         self.hasRawData = False
+        self.hasRawDataTags = False
         
     def AddAvailableField(self,field):
         self.hasFields = True
@@ -38,12 +40,19 @@ class Species:
     def AddRawDataSet(self, dataSet):
         self.hasRawData = True
         self.rawDataSets.append(dataSet)
-        
+
+    def AddRawDataTags(self, tags):
+        self.hasRawDataTags = True
+        self.rawDataTags = tags
+
     def HasFields(self):
         return self.hasFields
         
     def HasRawData(self):
         return self.hasRawData
+
+    def HasRawDataTags(self):
+        return self.hasRawDataTags
             
     def GetFieldPlotData(self, fieldName, timeStep):
         for field in self.availableFields:
@@ -58,6 +67,9 @@ class Species:
         for dataSet in self.rawDataSets:
             if dataSet.GetName() == dataSetName:
                 return dataSet.GetPlotData(timeStep)
+
+    def GetRawDataTags(self, timeStep):
+        return self.rawDataTags.GetTags(timeStep)
             
     def GetAvailableFieldNamesList(self):
         fieldNames = list()

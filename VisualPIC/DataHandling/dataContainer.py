@@ -73,6 +73,13 @@ class DataContainer:
             if species.HasRawData():
                 speciesList.append(species)
         return speciesList
+
+    def GetSpeciesWithTrackingData(self):
+        speciesList = list()
+        for species in self._availableSpecies:
+            if species.HasRawDataTags():
+                speciesList.append(species)
+        return speciesList
         
     def GetAvailableSpeciesNames(self):
         namesList = list()

@@ -111,9 +111,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
-        comboBoxItems.insert(0, "Select Species")
+        if len(comboBoxItems) > 0:
+            comboBoxItems.insert(0, "Select Species")
+            self.selectorTimeStep_Slider.setMaximum(self.particleTracker.GetTotalTimeSteps()-1)
+        else:
+            comboBoxItems.insert(0, "No species available")
         self.speciesSelector_comboBox.addItems(comboBoxItems)
-        self.selectorTimeStep_Slider.setMaximum(self.particleTracker.GetTotalTimeSteps()-1)
+        
 
     def FillPlotUI(self):
         self.x_comboBox.clear()
@@ -244,7 +248,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         return selectedParticles
 
     def MakeSelectorPlot(self):
-        if self.speciesSelector_comboBox.currentText() != "Select Species":
+        if self.speciesSelector_comboBox.currentText() not in ["Select Species", "No species available"]:
             self.CreateSelectorSubplotObject()
             sbpList = list()
             sbpList.append(self.selectorSubplot) # we need to create a list of only one subplot because the DataPlotter only accepts lists.

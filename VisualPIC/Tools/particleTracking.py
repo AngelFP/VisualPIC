@@ -26,8 +26,8 @@ from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 
 
 class Particle():
-    def __init__(self, index):
-        self.index = index
+    def __init__(self, tag):
+        self.tag = tag
         self._timeStepQuantities = {}
         self._wholeSimulationQuantities = {}
 
@@ -63,7 +63,7 @@ class ParticleTracker():
     def __init__(self, dataContainer, unitConverter):
         self._dataContainer = dataContainer
         self.unitConverter = unitConverter
-        self._speciesList = self._dataContainer.GetSpeciesWithRawData()
+        self._speciesList = self._dataContainer.GetSpeciesWithTrackingData()
         self._speciesToAnalyze = None
         self._particleList = list()
 
@@ -86,18 +86,18 @@ class ParticleTracker():
         for species in self._speciesList:
             if species.GetName() == speciesName:
                 self._speciesToAnalyze = species
-        indicesList = list()
+        tagsList = list()
         if sys.version_info[0] < 3:
             for rawDataSetName, range in filters.iteritems():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+                tagsList.append(self._GetTagsOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         else:
             for rawDataSetName, range in filters.items():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
-        indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
-        particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
+                tagsList.append(self._GetTagsOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        tagsOfFoundParticles = self._GetCommonElementsInListOfArrays(tagsList)
+        particles = self._GetParticlesFromTags(timeStep, self._speciesToAnalyze, tagsOfFoundParticles)
         return particles
     
-    def _GetIndicesOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
+    def _GetTagsOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
         dataSet = species.GetRawDataSet(rawDataSetName)
         data = dataSet.GetData(timeStep)
         iLowRange = np.where(data > range[0])
@@ -112,20 +112,20 @@ class ParticleTracker():
             commonEls = np.intersect1d(listOfArrays[i], commonEls)
         return commonEls
 
-    def _GetParticlesFromIndices(self, timeStep, species, indices):
+    def _GetParticlesFromTags(self, timeStep, species, tags):
         rawDataSets = species.GetAllRawDataSets()
         dataSetValues = {}
         for dataSet in rawDataSets:
             dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep)
         particlesList = list()
-        for index in indices:
-            particle = Particle(index)
+        for tag in tags:
+            particle = Particle(tag)
             if sys.version_info[0] < 3:
                 for dataSetName, values in dataSetValues.iteritems():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
+                    particle.AddTimeStepQuantity(dataSetName, values[tag])
             else:
                 for dataSetName, values in dataSetValues.items():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
+                    particle.AddTimeStepQuantity(dataSetName, values[tag])
             particlesList.append(particle)
         return particlesList
 
@@ -136,7 +136,7 @@ class ParticleTracker():
         for timeStep in np.arange(0,totalTimeSteps):
             data = dataSet.GetData(timeStep)
             for particle in self._particleList:
-                timeValues[self._particleList.index(particle), timeStep] = data[particle.index]
+                timeValues[self._particleList.index(particle), timeStep] = data[particle.tag]
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), timeValues[self._particleList.index(particle)], dataSet.GetDataUnits())
 
