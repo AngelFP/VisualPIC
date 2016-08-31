@@ -108,6 +108,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.plotType_radioButton_2.toggled.connect(self.PlotTypeRadioButton_Toggled)
         self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
+        self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -183,6 +184,16 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def PlotPushButton_Clicked(self):
         self.MakePlots()
+
+    def SelectAllCheckBox_StatusChanged(self):
+        if self.selectAll_checkBox.checkState():
+            for row in np.arange(0, self.particleList_tableWidget.rowCount()):
+                item = self.particleList_tableWidget.item(row, 0)
+                item.setCheckState(QtCore.Qt.Checked)
+        else:
+            for row in np.arange(0, self.particleList_tableWidget.rowCount()):
+                item = self.particleList_tableWidget.item(row, 0)
+                item.setCheckState(QtCore.Qt.Unchecked)
 
     """
     Rectangle Selector
