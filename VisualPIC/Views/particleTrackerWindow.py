@@ -118,7 +118,6 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         else:
             comboBoxItems.insert(0, "No species available")
         self.speciesSelector_comboBox.addItems(comboBoxItems)
-        
 
     def FillPlotUI(self):
         self.x_comboBox.clear()
