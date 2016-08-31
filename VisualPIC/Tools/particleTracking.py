@@ -86,18 +86,18 @@ class ParticleTracker():
         for species in self._speciesList:
             if species.GetName() == speciesName:
                 self._speciesToAnalyze = species
-        tagsList = list()
+        indicesList = list()
         if sys.version_info[0] < 3:
             for rawDataSetName, range in filters.iteritems():
-                tagsList.append(self._GetTagsOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         else:
             for rawDataSetName, range in filters.items():
-                tagsList.append(self._GetTagsOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
-        tagsOfFoundParticles = self._GetCommonElementsInListOfArrays(tagsList)
-        particles = self._GetParticlesFromTags(timeStep, self._speciesToAnalyze, tagsOfFoundParticles)
+                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
+        particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
         return particles
     
-    def _GetTagsOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
+    def _GetIndicesOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
         dataSet = species.GetRawDataSet(rawDataSetName)
         data = dataSet.GetData(timeStep)
         iLowRange = np.where(data > range[0])
@@ -112,20 +112,21 @@ class ParticleTracker():
             commonEls = np.intersect1d(listOfArrays[i], commonEls)
         return commonEls
 
-    def _GetParticlesFromTags(self, timeStep, species, tags):
+    def _GetParticlesFromIndices(self, timeStep, species, indices):
         rawDataSets = species.GetAllRawDataSets()
+        particleTags = species.GetRawDataTags(timeStep)
         dataSetValues = {}
         for dataSet in rawDataSets:
-            dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep)
+            dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep) # particle data in selected time step
         particlesList = list()
-        for tag in tags:
-            particle = Particle(tag)
+        for index in indices:
+            particle = Particle(particleTags[index]) # create particle instance with corresponding tag
             if sys.version_info[0] < 3:
                 for dataSetName, values in dataSetValues.iteritems():
-                    particle.AddTimeStepQuantity(dataSetName, values[tag])
+                    particle.AddTimeStepQuantity(dataSetName, values[index])
             else:
                 for dataSetName, values in dataSetValues.items():
-                    particle.AddTimeStepQuantity(dataSetName, values[tag])
+                    particle.AddTimeStepQuantity(dataSetName, values[index])
             particlesList.append(particle)
         return particlesList
 
@@ -134,11 +135,18 @@ class ParticleTracker():
         numberOfParticles = len(self._particleList)
         timeValues = np.zeros([numberOfParticles, totalTimeSteps])
         for timeStep in np.arange(0,totalTimeSteps):
+            particleTags = self._speciesToAnalyze.GetRawDataTags(timeStep)
             data = dataSet.GetData(timeStep)
             for particle in self._particleList:
-                timeValues[self._particleList.index(particle), timeStep] = data[particle.tag]
+                timeValues[self._particleList.index(particle), timeStep] = data[self.GetParticleIndexFromTag(particle.tag, particleTags)]
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), timeValues[self._particleList.index(particle)], dataSet.GetDataUnits())
+    
+    def GetParticleIndexFromTag(self, particleTag, allTags):
+        n = len(allTags)
+        for i in np.arange(0,n):
+            if (allTags[i] == particleTag).all():
+                return i
 
     def FillEvolutionOfAllDataSetsInParticles(self):
         rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
