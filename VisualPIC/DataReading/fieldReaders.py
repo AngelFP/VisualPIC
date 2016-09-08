@@ -34,19 +34,30 @@ class FieldReaderBase(DataReader):
         self.internalName = ""
         self.fieldDimension = ""
         self.axisUnits = {}
-        self.axisExtent = ()
+        self.axisExtent = {}
         self.ReadBasicData()
     
     def GetData(self, timeStep):
         if timeStep != self.currentTimeStep:
             self.currentTimeStep = timeStep
             self.OpenFileAndReadData()
-        return self.data, self.axisExtent
+        return self.data
 
     def GetDataUnits(self):
         if self.dataUnits == "":
             self.OpenFileAndReadUnits()
-        return self.dataUnits, self.axisUnits
+        return self.dataUnits
+
+    def GetAxisData(self):
+        if timeStep != self.currentTimeStep:
+            self.currentTimeStep = timeStep
+            self.OpenFileAndReadData()
+        return self.axisExtent
+
+    def GetAxisUnits(self):
+        if self.dataUnits == "":
+            self.OpenFileAndReadUnits()
+        return self.axisUnits
 
     @abc.abstractmethod
     def ReadBasicData(self):
@@ -83,10 +94,10 @@ class OsirisFieldReader(FieldReaderBase):
     def OpenFileAndReadData(self):
         file_content = self.OpenFile(self.currentTimeStep)
         self.data = np.array(file_content.get(self.internalName))
-        self.axisExtent = file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1]
+        self.axisExtent["x"] = file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0]
+        self.axisExtent["y"] = file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1]
         if self.fieldDimension == "3D":
-            x3extent = file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2]
-            self.axisExtent += x3extent
+            self.axisExtent["z"] = file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2]
         file_content.close()
 
     def OpenFileAndReadUnits(self):
