@@ -57,7 +57,7 @@ class GeneralUnitConverter:
         elif dataISUnits == "T":
             return ["T", "V/m"]
         elif dataISUnits == "C/m^2":
-            return ["C/m^2", "n/n_0"]
+            return ["C/m^2"] #, "n/n_0"]
 
     def GetAxisUnitsOptions(self, field):
         originalUnits = list()
@@ -74,47 +74,34 @@ class GeneralUnitConverter:
     def _GetAllOtherAxisUnitsOptions(self):
         return ["m", self.um]
 
-    def GetDataInUnits(self, dataElement, units):
-        dataISUnits = self.GetDataISUnits(dataElement)
+    def GetDataInUnits(self, dataElement, units, timeStep):
         if self.hasNonISUnits:
-            pass
-        data
-        if dataISUnits == "V/m":
-            if units == normUnits:
-                pass
-            elif units == "V/m":
-                fieldData *= self.E0
-            elif units == "GV/m":
-                fieldData *= self.E0 *1e-9
-            else:
-                pass
-        elif "charge" in dataElementName:
-            if units == normUnits:
-                pass
-            elif units == "C/m^2":
-                fieldData *= self.e * (self.w_p / self.c)**2
-            elif units == "n/n_0":
-                fieldData = abs(fieldData)
-            else:
-                pass
+            if units == dataElement.GetDataUnits():
+                return self._GetDataInOriginalUnits(dataElement, timeStep)
+        if units == self.GetDataISUnits(dataElement):
+            return self.GetDataInISUnits(dataElement, timeStep)
         else:
-            pass 
+            dataInISUnits = self.GetDataInISUnits(dataElement, timeStep)
+            dataISUnits = self.GetDataISUnits(dataElement)
+            if dataISUnits == "V/m":
+                if units == "GV/m":
+                    return dataInISUnits * 1e-9
+            elif dataISUnits == "C/m^2":
+                pass
+            elif dataISUnits == "T":
+                if units == "V/m":
+                    return dataInISUnits * self.c
 
-    def GetAxisInUnits(self, axis, extent, units, normUnits):
-        if axis == "x":
-            if units == normUnits:
-                pass
-            elif units == "m":
-                extent[0:2] *= self.c / self.w_p 
-            elif units == self.um:
-                extent[0:2] *= 1e6 * self.c / self.w_p 
-        elif axis == "y":
-            if units == normUnits:
-                pass
-            elif units == "m":
-                extent[2:4] *= self.c / self.w_p 
-            elif units == self.um:
-                extent[2:4] *= 1e6 * self.c / self.w_p 
+    def GetAxisInUnits(self, axis, dataElement, units, timeStep):
+        if self.hasNonISUnits:
+            if units == dataElement.GetAxisUnits():
+                return self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
+        if units == "m":
+            return self.GetAxisInSIUnits(axis, dataElement, timeStep)
+        else:
+            axisDataInISUnits = self.GetAxisInSIUnits(axis, dataElement, timeStep)
+            if units == self.um:
+                return axisDataInISUnits * 1e6
 
     """
     To implement by children classes
