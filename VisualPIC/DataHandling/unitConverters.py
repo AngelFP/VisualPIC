@@ -29,7 +29,7 @@ class UnitConverterSelector:
                    }
     @classmethod
     def GetUnitConverter(cls, simulationCode):
-        return cls.dataReaders[simulationCode]
+        return cls.unitConverters[simulationCode]
 
 
 class GeneralUnitConverter:

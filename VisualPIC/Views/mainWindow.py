@@ -56,7 +56,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.unitConverter = unitConverters.OsirisUnitConverter()
         self.dataContainer = DataContainer()
         self.colorMapsCollection = ColorMapsCollection()
         self.dataPlotter = DataPlotter(self.colorMapsCollection)
@@ -109,7 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
         self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
-        self.normalizedUnits_checkBox.toggled.connect(self.NormalizedUnitsCheckBox_StatusChanged)
+        #self.normalizedUnits_checkBox.toggled.connect(self.NormalizedUnitsCheckBox_StatusChanged)
         self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
@@ -136,22 +135,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def SetNormalizationButton_Clicked(self):
         n_p = float(self.plasmaDensity_lineEdit.text())
-        self.unitConverter.setPlasmaDensity(n_p)
+        self.unitConverter.SetNormalizationFactor(n_p)
     
-    def NormalizedUnitsCheckBox_StatusChanged(self):
-        if self.normalizedUnits_checkBox.checkState():
-            self.plasmaDensity_lineEdit.setEnabled(True)
-            self.setNormalization_Button.setEnabled(True)
-            self.unitConverter.allowNormUnits(True)
-        else:
-            self.plasmaDensity_lineEdit.setEnabled(False)
-            self.setNormalization_Button.setEnabled(False)
-            self.unitConverter.allowNormUnits(False)
+    #def NormalizedUnitsCheckBox_StatusChanged(self):
+    #    if self.normalizedUnits_checkBox.checkState():
+    #        self.plasmaDensity_lineEdit.setEnabled(True)
+    #        self.setNormalization_Button.setEnabled(True)
+    #        self.unitConverter.allowNormUnits(True)
+    #    else:
+    #        self.plasmaDensity_lineEdit.setEnabled(False)
+    #        self.setNormalization_Button.setEnabled(False)
+    #        self.unitConverter.allowNormUnits(False)
     
     def LoadDataButton_Cicked(self):
         self.ClearData()
         self.dataContainer.ClearData()
         self.LoadFolderData()
+        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())

@@ -40,6 +40,9 @@ class DataContainer:
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
+
+    def GetSimulationCodeName(self):
+        return self._simulationCode
                 
     def AddSelectedSpecies(self, speciesName):
         for species in self._availableSpecies:

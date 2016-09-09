@@ -668,13 +668,6 @@
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout">
                   <item>
-                   <widget class="QCheckBox" name="normalizedUnits_checkBox">
-                    <property name="text">
-                     <string>Allow plotting in non-normalized units</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
                     <item>
                      <widget class="QLabel" name="label_9">
@@ -686,7 +679,7 @@
                     <item>
                      <widget class="QLineEdit" name="plasmaDensity_lineEdit">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
@@ -695,7 +688,7 @@
                   <item>
                    <widget class="QPushButton" name="setNormalization_Button">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="text">
                      <string>Set</string>
