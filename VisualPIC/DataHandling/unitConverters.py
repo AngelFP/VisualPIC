@@ -23,6 +23,15 @@ import codecs
 import numpy as np
 
 
+class UnitConverterSelector:
+    unitConverters = {"Osiris": OsirisUnitConverter,
+                   "HiPACE": HiPACEUnitConverter
+                   }
+    @classmethod
+    def GetUnitConverter(cls, simulationCode):
+        return cls.dataReaders[simulationCode]
+
+
 class GeneralUnitConverter:
     def __init__(self):
         self.c = 299792458 #m/s
@@ -183,6 +192,11 @@ class OsirisUnitConverter(GeneralUnitConverter):
 
     def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
         return dataElement.GetAxisData(timeStep)[axis]
+
+class HiPACEUnitConverter(GeneralUnitConverter):
+    def __init__(self):
+        super(HiPACEUnitConverter, self).__init__()
+        self.hasNonISUnits = True
         
 
         
