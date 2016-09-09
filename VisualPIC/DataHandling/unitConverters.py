@@ -23,15 +23,6 @@ import codecs
 import numpy as np
 
 
-class UnitConverterSelector:
-    unitConverters = {"Osiris": OsirisUnitConverter,
-                   "HiPACE": HiPACEUnitConverter
-                   }
-    @classmethod
-    def GetUnitConverter(cls, simulationCode):
-        return cls.unitConverters[simulationCode]()
-
-
 class GeneralUnitConverter:
     def __init__(self):
         self.c = 299792458 #m/s
@@ -103,7 +94,7 @@ class GeneralUnitConverter:
 
     def GetAxisInUnits(self, axis, dataElement, units, timeStep):
         if self.hasNonISUnits:
-            if units == dataElement.GetAxisUnits():
+            if units == dataElement.GetAxisUnits()[axis]:
                 return self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
         if units == "m":
             return self.GetAxisInSIUnits(axis, dataElement, timeStep)
@@ -142,7 +133,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
         """ In OSIRIS the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
         self.normalizationFactor = value * 1e24
         self.normalizationFactorIsSet = True
-        self.w_p = math.sqrt(self.n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
+        self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         self.s_d = self.c / self.w_p  #skin depth (m)
         self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
     
@@ -154,7 +145,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
             return "V/m"
         elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
             return "T"
-        elif "charge" in fieldName:
+        elif "charge" in dataElementName:
             return "C/m^2"
         elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
             return "m"
@@ -172,7 +163,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
             return data*self.E0 # V/m
         elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
             return data*self.E0/self.c # T
-        elif "charge" in fieldName:
+        elif "charge" in dataElementName:
             return data * self.e * (self.w_p / self.c)**2 # C/m^2
         elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
             return data*self.s_d # m
@@ -198,6 +189,14 @@ class HiPACEUnitConverter(GeneralUnitConverter):
         super(HiPACEUnitConverter, self).__init__()
         self.hasNonISUnits = True
         
+
+class UnitConverterSelector:
+    unitConverters = {"Osiris": OsirisUnitConverter,
+                   "HiPACE": HiPACEUnitConverter
+                   }
+    @classmethod
+    def GetUnitConverter(cls, simulationCode):
+        return cls.unitConverters[simulationCode]()
 
         
         

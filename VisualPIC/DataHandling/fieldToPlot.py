@@ -31,11 +31,11 @@ class FieldToPlot:
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(),
             "totalTimeSteps":field.GetTotalTimeSteps(), 
-            "fieldUnits":field.GetDataUnits()[0], 
-            "originalFieldUnits":copy.copy(field.GetDataUnits()[0]), 
+            "fieldUnits":copy.copy(field.GetDataUnits()), 
+            "originalFieldUnits":field.GetDataUnits(), 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
-            "axesUnits":field.GetDataUnits()[1], #dictionary
-            "originalAxesUnits":copy.copy(field.GetDataUnits()[1]), 
+            "axesUnits":copy.copy(field.GetAxisUnits()), #dictionary
+            "originalAxesUnits":field.GetAxisUnits(), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
@@ -113,8 +113,8 @@ class FieldToPlot:
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a %
         fieldData = self.__GetAllData(timeStep)
-        matrixSize = self.fieldData.shape()
-        elementsY = len(matrixSize[-2])
+        matrixSize = fieldData.shape
+        elementsY = matrixSize[-2]
         selectedRow = round(elementsY*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow] # Y data
         
@@ -122,10 +122,10 @@ class FieldToPlot:
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
         fieldData = self.__GetAllData(timeStep)
-        matrixSize = self.fieldData.shape()
-        elementsX1 = len(matrixSize[-1]) # number of elements in the longitudinal direction
-        elementsX2 = len(matrixSize[-2]) # number of elements in the transverse direction
-        elementsX3 = len(matrixSize[-3]) # number of elements in the transverse direction
+        matrixSize = self.fieldData.shape
+        elementsX1 = matrixSize[-1] # number of elements in the longitudinal direction
+        elementsX2 = matrixSize[-2] # number of elements in the transverse direction
+        elementsX3 = matrixSize[-3] # number of elements in the transverse direction
         selectedRow = round(elementsX3*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow]
         return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),fieldSlice
