@@ -150,7 +150,7 @@ class CreateAnimationWindow(QtGui.QDialog):
             os.makedirs(animDir)
         for i in np.arange(firstTimeStep,lastTimeStep + 1,freq):
             self.mainWindow.timeStep_Slider.setValue(i)
-            self.mainWindow.PlotFields()
+            self.mainWindow.MakePlots()
             fileName = animDir + "/frame" + str(i).zfill(charLen)
             self.mainWindow.figure.savefig(fileName)
             file_paths.append(fileName + ".png")

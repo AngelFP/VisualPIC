@@ -22,6 +22,7 @@ import h5py
 
 from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.rawDataSet import RawDataSet
+from VisualPIC.DataHandling.rawDataTags import RawDataTags
 from VisualPIC.DataHandling.field import Field
 
 
@@ -65,6 +66,11 @@ class FolderDataReader:
         for species in self._dataContainer._availableSpecies:
             if species.GetName() == speciesName:
                 species.AddRawDataSet(dataSet)
+
+    def AddRawDataTagsToSpecies(self, speciesName, tags):
+        for species in self._dataContainer._availableSpecies:
+            if species.GetName() == speciesName:
+                species.AddRawDataTags(tags)
 
     def AddDomainField(self,field):
         self._dataContainer._availableDomainFields.append(field)
@@ -133,7 +139,10 @@ class FolderDataReader:
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
-                            self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                            if dataSetName == "tag":
+                                self.AddRawDataTagsToSpecies(species, RawDataTags(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                            else:
+                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
                         file_content.close()
 
     def LoadHiPaceData(self):

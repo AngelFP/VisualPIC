@@ -40,6 +40,9 @@ class DataContainer:
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
+
+    def GetSimulationCodeName(self):
+        return self._simulationCode
                 
     def AddSelectedSpecies(self, speciesName):
         for species in self._availableSpecies:
@@ -71,6 +74,13 @@ class DataContainer:
         speciesList = list()
         for species in self._availableSpecies:
             if species.HasRawData():
+                speciesList.append(species)
+        return speciesList
+
+    def GetSpeciesWithTrackingData(self):
+        speciesList = list()
+        for species in self._availableSpecies:
+            if species.HasRawDataTags():
                 speciesList.append(species)
         return speciesList
         
@@ -106,6 +116,11 @@ class DataContainer:
         for species in self._availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetField(fieldName)
+    
+    def GetSpeciesRawDataSet(self, speciesName, dataSetName):
+        for species in self._availableSpecies:
+            if species.GetName() == speciesName:
+                return species.GetRawDataSet(dataSetName)
                 
     def GetFolderPath(self):
         return self._folderDataReader.GetDataLocation()

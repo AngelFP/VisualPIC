@@ -35,7 +35,8 @@ class DataPlotter:
     def LoadPlotFromDataTypes(self):
         self.PlotFromDataType = {
             "Field":self.MakeFieldPlot,
-            "Raw":self.MakeAxisDataPlot
+            "Raw":self.MakeAxisDataPlot,
+            "RawEvolution":self.MakeRawEvolutionDataPlot
             }
             
     def LoadPlotTypes(self):
@@ -44,18 +45,22 @@ class DataPlotter:
             "Surface":self.MakeSurfacePlot,
             "Line":self.MakeLinePlot
             }
-            
         axisTypes = {
             "Scatter":self.MakeScatterPlot,
             "Scatter3D":self.Make3DScatterPlot,
             "Histogram":self.MakeHistogramPlot
             }
+        evolutionTypes = {
+            "2D":self.MakeLinePlot_E,
+            "3D":self.Make3DLinePlot_E
+            }
         self.plotTypes = {
             "Field":fieldTypes,
-            "Raw":axisTypes
+            "Raw":axisTypes,
+            "RawEvolution":evolutionTypes
             }
-            
-    def MakePlot(self, figure, subplotList, rows, columns, timeStep):
+    # todo: remove timeStep from input variables. Allow to have diferent number of input variables.        
+    def MakePlot(self, figure, subplotList, rows, columns, timeStep = None):
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
@@ -69,7 +74,7 @@ class DataPlotter:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition())
                 # make plot on axes
                 self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
-                    
+
     def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
         num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
         num2DFields = len(subplot.GetFieldsToPlotWithDimension("2D"))
@@ -133,7 +138,8 @@ class DataPlotter:
         plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
         if "z" in axisData:
             plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
-        plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
+        if "weight" in axisData:
+            plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
         # make plot
         im = self.plotTypes["Raw"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
@@ -143,50 +149,71 @@ class DataPlotter:
         ax.set_position(pos2)
         ax.hold(True)
         # colorBar
-        cbWidth = 0.015
-        cbHeight = pos2[3]
-        cbX = pos2[0] + pos2[2] + 0.02
-        cbY = pos2[1]
-        cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
-        cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
-        cbar.solids.set_edgecolor("face")
-        cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+        if "weight" in axisData:
+            cbWidth = 0.015
+            cbHeight = pos2[3]
+            cbX = pos2[0] + pos2[2] + 0.02
+            cbY = pos2[1]
+            cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
+            cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
+            cbar.solids.set_edgecolor("face")
+            cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
         ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
-        
-# Field data plot types
+
+    def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
+        ax.hold(False)
+        allPaticlesData = subplot.GetDataToPlot() # list of dictionaries (with keys "particle", "x", "y" and "z")
+        for particleData in allPaticlesData:
+            plotData = {}
+            plotData["x"] = particleData["x"].GetDataSetPlotData()
+            plotData["y"] = particleData["y"].GetDataSetPlotData()
+            if "z" in particleData:
+                plotData["z"] = particleData["z"].GetDataSetPlotData()
+            # make plot
+            im = self.plotTypes["RawEvolution"][subplot.GetAxesDimension()](ax, plotData, particleData["plotStyle"])
+            ax.hold(True)
+        # label axes
+        ax.xaxis.set_major_locator( LinearLocator(5) )
+        ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
+        ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
+        ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+
+    """
+    Field data plot types
+    """
     def MakeImagePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
-        return ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1])
+        fieldData = plotData[-1]
+        yAxisData = plotData[-2]
+        xAxisData = plotData[-3]
+        axesLimits =[min(xAxisData), max(xAxisData), min(yAxisData), max(yAxisData)]
+        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
         
     def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
-        elementsX = len(plotData[0][0]) # longitudinal
-        elementsY = len(plotData[0]) # transverse
-        xMin = plotData[1][0]
-        xMax = plotData[1][1]
-        yMin = plotData[1][2]
-        yMax = plotData[1][3]
-        x = np.linspace(xMin, xMax, elementsX)
-        y = np.linspace(yMin, yMax, elementsY)
+        x = plotData[-3]
+        y = plotData[-2]
         X, Y = np.meshgrid(x,y)
-        Z = plotData[0]
-        cStride = int(round(elementsX/40))
-        rStride = int(round(elementsY/40))
+        Z = plotData[-1]
+        cStride = 100
+        rStride = 100
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
-    def MakeLinePlot(self, ax, plotData):
-        xValues = plotData[0]
-        yValues = plotData[1]
-        ax.plot(xValues, yValues)
+    def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
+        xValues = plotData[-2]
+        yValues = plotData[-1]
+        ax.plot(xValues, yValues, plotStyle)
         ax.set_xlim([xValues[0], xValues[-1]])
         
-# Axis data plot types     
+    """
+    Raw (non-evolving) data plot types
+    """    
     def MakeHistogramPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
@@ -198,13 +225,30 @@ class DataPlotter:
     def MakeScatterPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
-        weightValues = plotData["weight"]
-        return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
+        if "weight" in plotData:
+            weightValues = plotData["weight"]
+            return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
+        else:
+            return ax.scatter(xValues, yValues, cmap=cMap, linewidths=0)
         
     def Make3DScatterPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         zValues = plotData["z"]
-        weightValues = plotData["weight"]
-        return ax.scatter(xValues, yValues, zValues, c=weightValues, cmap=cMap, linewidths=0)
+        if "weight" in plotData:
+            weightValues = plotData["weight"]
+            return ax.scatter(xValues, yValues, zValues, c=weightValues, cmap=cMap, linewidths=0)
+        else:
+            return ax.scatter(xValues, yValues, zValues, cmap=cMap, linewidths=0)
     
+    """
+    Raw (evolving) data plot types
+    """ 
+    def MakeLinePlot_E(self, ax, plotData, plotStyle = "b-"):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        ax.plot(xValues, yValues, plotStyle)
+        ax.set_xlim([min(xValues), max(xValues)])
+
+    def Make3DLinePlot_E(self, ax, plotData, plotStyle = "b-"):
+        raise NotImplementedError

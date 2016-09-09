@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
+import copy
 
 class FieldToPlot:
     def __init__(self, field, dataToPlotDimension, unitConverter, colorMapsCollection, isPartOfMultiplot = False):
@@ -30,11 +31,11 @@ class FieldToPlot:
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(),
             "totalTimeSteps":field.GetTotalTimeSteps(), 
-            "fieldUnits":field.GetDataUnits()[0], 
-            "originalFieldUnits":field.GetDataUnits()[0], 
+            "fieldUnits":copy.copy(field.GetDataUnits()), 
+            "originalFieldUnits":field.GetDataUnits(), 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
-            "axesUnits":field.GetDataUnits()[1], 
-            "originalAxesUnits":field.GetDataUnits()[1], 
+            "axesUnits":copy.copy(field.GetAxisUnits()), #dictionary
+            "originalAxesUnits":field.GetAxisUnits(), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
@@ -51,10 +52,10 @@ class FieldToPlot:
         self.__SetDefaultPlotType()
                
     def __GetPossibleFieldUnits(self):
-        return self.__unitConverter.getFieldUnitsOptions(self.__field)
+        return self.__unitConverter.GetPossibleDataUnits(self.__field)
                 
     def __GetPossibleAxisUnits(self):
-        return self.__unitConverter.getAxisUnitsOptions(self.__field)
+        return self.__unitConverter.GetPossibleAxisUnits(self.__field)
             
     def __GetPossibleColorMaps(self):
         if self.__isPartOfMultiplot:
@@ -73,10 +74,10 @@ class FieldToPlot:
         if self.__isPartOfMultiplot:
             colorMap = "Base gray"
         else:
-            name = self.__fieldProperties["name"]
-            if "e1" in name or "e2" in name or "e3" in name or "b1" in name or "b2" in name or "b3" in name:
+            fieldISUnits = self.__unitConverter.GetDataISUnits(self.__field)
+            if fieldISUnits== "V/m" or fieldISUnits== "T":
                 colorMap = "RdBu"
-            elif "charge" in name:
+            elif fieldISUnits== "C/m^2":
                 colorMap = "YlGnBu"
             else:
                 colorMap = "jet"
@@ -102,48 +103,44 @@ class FieldToPlot:
        
     def __GetAllData(self, timeStep):
         #returns fieldData, extent
-        return self.__unitConverter.GetDataInUnits(timeStep, self.__field, self.GetProperty("fieldUnits"), self.GetProperty("axesUnits"), self.GetProperty("originalFieldUnits"), self.GetProperty("originalAxesUnits"))
+        return self.__unitConverter.GetDataInUnits(self.__field, self.GetProperty("fieldUnits"), timeStep)
+
+    def __GetAxisData(self, axis, timeStep):
+        return self.__unitConverter.GetAxisInUnits( axis, self.__field, self.GetProperty("axesUnits")[axis], timeStep)
             
     def __Get1DSlice(self, slicePosition, timeStep):
         # slice along the longitudinal axis
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a %
-        plotData = self.__GetAllData(timeStep)
-        fieldData = plotData[0]
-        extent = plotData[1]
-        xMin = extent[0]
-        xMax = extent[1]
-        elementsX = len(fieldData[0]) # number of elements in the longitudinal direction
-        elementsY = len(fieldData) # number of elements in the transverse direction
-        
+        fieldData = self.__GetAllData(timeStep)
+        matrixSize = fieldData.shape
+        elementsY = matrixSize[-2]
         selectedRow = round(elementsY*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow] # Y data
         
-        X = np.linspace(xMin, xMax, elementsX) # X data
-        
-        return X, fieldSlice
+        return self.__GetAxisData("x", timeStep), fieldSlice
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
-        plotData = self.__GetAllData(timeStep)
-        fieldData = plotData[0]
-        extent = plotData[1]
-        elementsX1 = len(fieldData[0][0]) # number of elements in the longitudinal direction
-        elementsX2 = len(fieldData[0]) # number of elements in the transverse direction
-        elementsX3 = len(fieldData) # number of elements in the transverse direction
-
+        fieldData = self.__GetAllData(timeStep)
+        matrixSize = self.fieldData.shape
+        elementsX1 = matrixSize[-1] # number of elements in the longitudinal direction
+        elementsX2 = matrixSize[-2] # number of elements in the transverse direction
+        elementsX3 = matrixSize[-3] # number of elements in the transverse direction
         selectedRow = round(elementsX3*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow]
-        extent2D = extent[0:4]
-        return fieldSlice, extent2D
+        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),fieldSlice
+
+    def __Get2DField(self, timeStep):
+        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),self.__GetAllData(timeStep)
     
     def GetData(self, timeStep):
         if self.__fieldDimension == "3D":
             if self.__dataToPlotDimension == "2D":
-                return self.__Get2DSlice("x", 50, timeStep)
+                return self.__Get2DSlice("z", 50, timeStep)
             else:
                 raise NotImplementedError
         elif self.__fieldDimension == "2D":
             if self.__dataToPlotDimension == "2D":
-                return self.__GetAllData(timeStep)
+                return self.__Get2DField(timeStep)
             elif self.__dataToPlotDimension == "1D":
                 return self.__Get1DSlice(50, timeStep)

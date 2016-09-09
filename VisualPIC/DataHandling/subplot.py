@@ -284,7 +284,8 @@ class RawDataSubplot(Subplot):
         self.plotProps["DefaultXBins"] = 100
         self.plotProps["DefaultYBins"] = 100
         self.plotProps["DefaultUseChargeWeighting"] = True
-        self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        if "weight" in self.dataToPlot:
+            self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
         self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
         self.plotProps["DefaultDisplayColorbar"] = True
             
@@ -293,7 +294,8 @@ class RawDataSubplot(Subplot):
         self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
         self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
         self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
-        self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
+        if "weight" in self.dataToPlot:
+            self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
         self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
         self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
         
@@ -336,6 +338,9 @@ class RawDataSubplot(Subplot):
     def GetPlotType(self):
         return self.plotProps["PlotType"]
 
+    def SetPlotType(self, plotType):
+        self.plotProps["PlotType"] = plotType
+
     def GetCopyAllPlotProperties(self):
         return copy.copy(self.plotProps)
         
@@ -344,3 +349,49 @@ class RawDataSubplot(Subplot):
         
     def GetPlotProperty(self, targetProperty):
         return self.plotProps[targetProperty]
+
+
+class RawDataEvolutionSubplot(Subplot):
+    def __init__(self, subplotPosition, colorMapsCollection, dataToPlot, speciesName):
+        super(RawDataEvolutionSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
+        self.dataType = "RawEvolution"
+        self.plottedSpeciesName = speciesName
+
+    def _SetSubplotName(self):
+        if len(self.dataToPlot[0]) > 1:
+            xName = self.dataToPlot[0]["x"].GetProperty("name")
+            yName = self.dataToPlot[0]["y"].GetProperty("name")
+            self.subplotName = xName + " vs " + yName
+            if "z" in self.dataToPlot[0]:
+                zName = self.dataToPlot[0]["z"].GetProperty("name")
+                self.subplotName += " vs " + zName
+        
+    def _SetPlottedSpeciesName(self):
+        pass
+
+    def _LoadPossiblePlotTypes(self):
+        pass
+
+    def LoadDefaultAxesValues(self):
+        defaultFontSize = 20
+        self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
+        self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
+        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
+        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+        if "z" in self.dataToPlot[0]:
+            self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
+            self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
+            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+
+    def GetAxesDimension(self):
+        if "z" in self.dataToPlot[0]:
+                return "3D"
+        return "2D"
+
+    def GetAxisColorMapOptions(self, plotType):
+        return self.colorMapsCollection.GetAllColorMapNames()
+
+    def RemoveParticle(self, index):
+        del self.dataToPlot[index]

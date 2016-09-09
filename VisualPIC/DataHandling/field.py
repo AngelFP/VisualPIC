@@ -30,5 +30,11 @@ class Field(DataElement):
           
     def GetFieldDimension(self):
         return self.dataReader.fieldDimension
+
+    def GetAxisData(self, timeStep):
+        return self.dataReader.GetAxisData(timeStep) #dictionary
+        
+    def GetAxisUnits(self):
+        return self.dataReader.GetAxisUnits()
         
         

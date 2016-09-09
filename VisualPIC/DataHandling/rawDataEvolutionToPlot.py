@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016 ?ngel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -17,23 +17,22 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-class RawDataSetToPlot:
-    def __init__(self, dataSet, unitConverter):
-        self._dataSet = dataSet
-        self._unitConverter = unitConverter
+class RawDataEvolutionToPlot:
+    # todo: implement unitConverter
+    def __init__(self, dataSetName, particle): #, unitConverter):
+        self._dataSet = particle.GetWholeSimulationQuantity(dataSetName)
+        #self._unitConverter = unitConverter
         self._dataProperties = {
-            "name":dataSet.GetName(), 
-            "speciesName":dataSet.GetSpeciesName(), 
-            "totalTimeSteps":dataSet.GetTotalTimeSteps(),
-            "dataSetUnits":dataSet.GetDataUnits(), 
+            "name":dataSetName,
+            "dataSetUnits":self._dataSet["units"], 
             "possibleDataSetUnits":self._GetPossibleDataSetUnits()
         }
             
     def _GetPossibleDataSetUnits(self):
-        return self._unitConverter.GetPossibleDataUnits(self._dataSet)
+        return self._dataSet["units"]
         
-    def GetDataSetPlotData(self, timeStep):
-        return self._unitConverter.GetDataInUnits(self._dataSet, self._dataProperties["dataSetUnits"], timeStep)
+    def GetDataSetPlotData(self):
+        return self._dataSet["values"]
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]

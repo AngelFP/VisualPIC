@@ -30,6 +30,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
+from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
@@ -55,7 +56,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.unitConverter = unitConverters.OsirisUnitConverter()
         self.dataContainer = DataContainer()
         self.colorMapsCollection = ColorMapsCollection()
         self.dataPlotter = DataPlotter(self.colorMapsCollection)
@@ -68,6 +68,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.increaseRowsColumnsCounter = 0
         self.speciesFieldPlotDimension = "2D"
         self.domainFieldPlotDimension = "2D"
+        """ Backups for removed UI items for each simulation code """
+        self.removedNormalizationTab = None
         
     def CreateCanvasAndFigure(self):
         self.figure = Figure()
@@ -106,8 +108,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.rawPlotType_radioButton_2.toggled.connect(self.RawFieldsRadioButton_Toggled)
         self.rawPlotType_radioButton_3.toggled.connect(self.RawFieldsRadioButton_Toggled)
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
+        self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
-        self.normalizedUnits_checkBox.toggled.connect(self.NormalizedUnitsCheckBox_StatusChanged)
         self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
@@ -124,7 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.SetSelectedSpeciesField()
 
     def TimeStepSlider_Released(self):
-        self.PlotFields()
+        self.MakePlots()
 
     def RowsSpinBox_ValueChanged(self):
         self.SetListOfPlotPositions()
@@ -134,27 +136,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def SetNormalizationButton_Clicked(self):
         n_p = float(self.plasmaDensity_lineEdit.text())
-        self.unitConverter.setPlasmaDensity(n_p)
-    
-    def NormalizedUnitsCheckBox_StatusChanged(self):
-        if self.normalizedUnits_checkBox.checkState():
-            self.plasmaDensity_lineEdit.setEnabled(True)
-            self.setNormalization_Button.setEnabled(True)
-            self.unitConverter.allowNormUnits(True)
-        else:
-            self.plasmaDensity_lineEdit.setEnabled(False)
-            self.setNormalization_Button.setEnabled(False)
-            self.unitConverter.allowNormUnits(False)
+        self.unitConverter.SetNormalizationFactor(n_p)
     
     def LoadDataButton_Cicked(self):
         self.ClearData()
         self.dataContainer.ClearData()
         self.LoadFolderData()
+        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
+        self.AdaptUIToSpecificSimulationCode()
+
+    def AdaptUIToSpecificSimulationCode(self):
+        simulationCode = self.dataContainer.GetSimulationCodeName()
+        codesWithNormalizedUnits = ["Osiris", "HiPACE"]
+        if simulationCode not in codesWithNormalizedUnits:
+            self.removedNormalizationTab = self.tabWidget_2.widget(2)
+            self.tabWidget_2.removeTab(2)
+        elif self.removedNormalizationTab != None:
+            self.tabWidget_2.addTab(self.removedNormalizationTab, "Normalization")
+            self.removedNormalizationTab = None
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
         self.dataContainer.SetDataFolderLocation(folderPath)
     
+    def ActionParticleTracker_Toggled(self):
+        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.unitConverter, self.colorMapsCollection, self.dataPlotter)
+        self.particleTracker.show()
+
     def ActionMakeVideo_Toggled(self):
         AnimationWindow = CreateAnimationWindow(self)
         AnimationWindow.exec_()
@@ -190,12 +198,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def NextButton_Clicked(self):
         ts = self.timeStep_Slider.value()
         self.timeStep_Slider.setValue(ts + 1)
-        self.PlotFields()
+        self.MakePlots()
         
     def PrevButton_Clicked(self):
         ts = self.timeStep_Slider.value()
         self.timeStep_Slider.setValue(ts - 1)
-        self.PlotFields()
+        self.MakePlots()
         
     def AddRawFieldButton_Clicked(self):
         speciesName = self.rawFieldSpecies_comboBox.currentText()
@@ -218,7 +226,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
-        self.PlotFields()
+        self.MakePlots()
         
     def AddDomainFieldButton_Clicked(self):
         self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
@@ -358,7 +366,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def DecreaseRows(self):
         self.rows_spinBox.stepDown()
         
-    def PlotFields(self):
+    def MakePlots(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
         timeStep = self.timeStep_Slider.value()
