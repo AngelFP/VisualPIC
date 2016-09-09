@@ -79,3 +79,14 @@ class HiPACERawDataReader(RawDataReaderBase):
 
     def OpenFileAndReadUnits(self):
         raise NotImplementedError
+
+
+class PIConGPURawDataReader(RawDataReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
+
+    def OpenFileAndReadData(self):
+        raise NotImplementedError
+
+    def OpenFileAndReadUnits(self):
+        raise NotImplementedError

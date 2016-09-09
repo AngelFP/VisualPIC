@@ -190,11 +190,18 @@ class HiPACEUnitConverter(GeneralUnitConverter):
     def __init__(self):
         super(HiPACEUnitConverter, self).__init__()
         self.hasNonISUnits = True
+
+
+class PIConGPUUnitConverter(GeneralUnitConverter):
+    def __init__(self):
+        super(HiPACEUnitConverter, self).__init__()
+        self.hasNonISUnits = True
         
 
 class UnitConverterSelector:
     unitConverters = {"Osiris": OsirisUnitConverter,
-                   "HiPACE": HiPACEUnitConverter
+                   "HiPACE": HiPACEUnitConverter,
+                   "PIConGPU":PIConGPUUnitConverter
                    }
     @classmethod
     def GetUnitConverter(cls, simulationCode):

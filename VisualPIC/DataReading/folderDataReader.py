@@ -36,9 +36,12 @@ class FolderDataReader:
     
     def CreateCodeDictionaries(self):
         self._codeName = {"MS":"Osiris",
-                           "Something":"HiPACE"}
+                          "Something":"HiPACE",
+                          "simOutput":"PIConGPU"}
         self._loadDataFrom = {"Osiris": self.LoadOsirisData,
-                               "HiPACE": self.LoadHiPaceData}
+                               "HiPACE": self.LoadHiPaceData,
+                               "PIConGPU":self.LoadPIConGPUData}
+
     def SetDataLocation(self, dataLocation):
         self._dataLocation = dataLocation
 
@@ -147,4 +150,24 @@ class FolderDataReader:
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
+        raise NotImplementedError
+        """
+        HOW TO USE:
+        
+        This function has to scan the folder where the simulation data is stored.
+        It will create a Species, Field, RawDataSet or RawDataTags object for each
+        species, field, raw (particle) data set and particle tags found in the folder.
+
+        To add this data into the dataContainer the following functions have to be used:
+
+        self.AddSpecies(..)
+        self.AddFieldToSpecies(..)
+        self.AddDomainField(..)
+        self.AddRawDataToSpecies(..)
+        self.AddRawDataTagsToSpecies(..)
+        """
+        
+
+    def LoadPIConGPUData(self):
+        """PIConGPU loader"""
         raise NotImplementedError

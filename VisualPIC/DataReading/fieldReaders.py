@@ -145,3 +145,23 @@ class HiPACEFieldReader(FieldReaderBase):
 
     def OpenFileAndReadUnits(self):
         raise NotImplementedError
+
+
+class PIConGPUFieldReader(FieldReaderBase):
+    def __init__(self, location, speciesName, dataName):
+        FieldReaderBase.__init__(self, location, speciesName, dataName)
+
+    def ReadBasicData(self):
+        raise NotImplementedError
+        
+    def ReadInternalName(self, file_content):
+        raise NotImplementedError
+
+    def DetermineFieldDimension(self, file_content):
+        raise NotImplementedError
+
+    def OpenFileAndReadData(self):
+        raise NotImplementedError
+
+    def OpenFileAndReadUnits(self):
+        raise NotImplementedError
