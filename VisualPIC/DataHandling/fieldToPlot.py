@@ -74,10 +74,10 @@ class FieldToPlot:
         if self.__isPartOfMultiplot:
             colorMap = "Base gray"
         else:
-            name = self.__fieldProperties["name"]
-            if "e1" in name or "e2" in name or "e3" in name or "b1" in name or "b2" in name or "b3" in name:
+            fieldISUnits = self.__unitConverter.GetDataISUnits(self.__field)
+            if fieldISUnits== "V/m" or fieldISUnits== "T":
                 colorMap = "RdBu"
-            elif "charge" in name:
+            elif fieldISUnits== "C/m^2":
                 colorMap = "YlGnBu"
             else:
                 colorMap = "jet"
