@@ -30,10 +30,10 @@ class RawDataSetToPlot:
         }
             
     def _GetPossibleDataSetUnits(self):
-        return self._unitConverter.GetRawDataSetUnitsOptions(self._dataSet)
+        return self._unitConverter.GetPossibleDataUnits(self._dataSet)
         
     def GetDataSetPlotData(self, timeStep):
-        return self._unitConverter.GetRawDataInUnits(timeStep, self._dataSet, self._dataProperties["dataSetUnits"])
+        return self._unitConverter.GetDataInUnits(self._dataSet, self._dataProperties["dataSetUnits"], timeStep)
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]

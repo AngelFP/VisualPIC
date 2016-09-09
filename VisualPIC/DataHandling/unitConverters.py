@@ -58,6 +58,8 @@ class GeneralUnitConverter:
             return ["T", "V/m"]
         elif dataISUnits == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
+        else:
+            return list()
 
     def GetPossibleAxisUnits(self, dataElement):
         originalUnits = list()
