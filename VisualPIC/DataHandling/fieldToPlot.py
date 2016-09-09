@@ -34,7 +34,7 @@ class FieldToPlot:
             "fieldUnits":field.GetDataUnits()[0], 
             "originalFieldUnits":copy.copy(field.GetDataUnits()[0]), 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
-            "axesUnits":field.GetDataUnits()[1], 
+            "axesUnits":field.GetDataUnits()[1], #dictionary
             "originalAxesUnits":copy.copy(field.GetDataUnits()[1]), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
@@ -104,47 +104,43 @@ class FieldToPlot:
     def __GetAllData(self, timeStep):
         #returns fieldData, extent
         return self.__unitConverter.GetDataInUnits(self.__field, self.GetProperty("fieldUnits"), timeStep)
+
+    def __GetAxisData(self, axis, timeStep):
+        return self.__unitConverter.GetAxisInUnits( axis, self.__field, self.GetProperty("axesUnits")[axis], timeStep)
             
     def __Get1DSlice(self, slicePosition, timeStep):
         # slice along the longitudinal axis
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a %
-        plotData = self.__GetAllData(timeStep)
-        fieldData = plotData[0]
-        extent = plotData[1]
-        xMin = extent[0]
-        xMax = extent[1]
-        elementsX = len(fieldData[0]) # number of elements in the longitudinal direction
-        elementsY = len(fieldData) # number of elements in the transverse direction
-        
+        fieldData = self.__GetAllData(timeStep)
+        matrixSize = self.fieldData.shape()
+        elementsY = len(matrixSize[-2])
         selectedRow = round(elementsY*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow] # Y data
         
-        X = np.linspace(xMin, xMax, elementsX) # X data
-        
-        return X, fieldSlice
+        return self.__GetAxisData("x", timeStep), fieldSlice
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
-        plotData = self.__GetAllData(timeStep)
-        fieldData = plotData[0]
-        extent = plotData[1]
-        elementsX1 = len(fieldData[0][0]) # number of elements in the longitudinal direction
-        elementsX2 = len(fieldData[0]) # number of elements in the transverse direction
-        elementsX3 = len(fieldData) # number of elements in the transverse direction
-
+        fieldData = self.__GetAllData(timeStep)
+        matrixSize = self.fieldData.shape()
+        elementsX1 = len(matrixSize[-1]) # number of elements in the longitudinal direction
+        elementsX2 = len(matrixSize[-2]) # number of elements in the transverse direction
+        elementsX3 = len(matrixSize[-3]) # number of elements in the transverse direction
         selectedRow = round(elementsX3*(float(slicePosition)/100))
         fieldSlice = fieldData[selectedRow]
-        extent2D = extent[0:4]
-        return fieldSlice, extent2D
+        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),fieldSlice
+
+    def __Get2DField(self, timeStep):
+        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),self.__GetAllData(timeStep)
     
     def GetData(self, timeStep):
         if self.__fieldDimension == "3D":
             if self.__dataToPlotDimension == "2D":
-                return self.__Get2DSlice("x", 50, timeStep)
+                return self.__Get2DSlice("z", 50, timeStep)
             else:
                 raise NotImplementedError
         elif self.__fieldDimension == "2D":
             if self.__dataToPlotDimension == "2D":
-                return self.__GetAllData(timeStep)
+                return self.__Get2DField(timeStep)
             elif self.__dataToPlotDimension == "1D":
                 return self.__Get1DSlice(50, timeStep)

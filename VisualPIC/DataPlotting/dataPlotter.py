@@ -188,28 +188,26 @@ class DataPlotter:
     def MakeImagePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
-        return ax.imshow(plotData[0], extent = plotData[1], aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
+        fieldData = plotData[-1]
+        yAxisData = plotData[-2]
+        xAxisData = plotData[-3]
+        axesLimits =[min(xAxisData), max(xAxisData), min(yAxisData), max(yAxisData)]
+        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
         
     def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
             scale = [None, None]
-        elementsX = len(plotData[0][0]) # longitudinal
-        elementsY = len(plotData[0]) # transverse
-        xMin = plotData[1][0]
-        xMax = plotData[1][1]
-        yMin = plotData[1][2]
-        yMax = plotData[1][3]
-        x = np.linspace(xMin, xMax, elementsX)
-        y = np.linspace(yMin, yMax, elementsY)
+        x = plotData[-3]
+        y = plotData[-2]
         X, Y = np.meshgrid(x,y)
-        Z = plotData[0]
-        cStride = int(round(elementsX/40))
-        rStride = int(round(elementsY/40))
+        Z = plotData[-1]
+        cStride = 100
+        rStride = 100
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
     def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
-        xValues = plotData[0]
-        yValues = plotData[1]
+        xValues = plotData[-2]
+        yValues = plotData[-1]
         ax.plot(xValues, yValues, plotStyle)
         ax.set_xlim([xValues[0], xValues[-1]])
         
