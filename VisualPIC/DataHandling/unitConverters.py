@@ -29,7 +29,7 @@ class UnitConverterSelector:
                    }
     @classmethod
     def GetUnitConverter(cls, simulationCode):
-        return cls.unitConverters[simulationCode]
+        return cls.unitConverters[simulationCode]()
 
 
 class GeneralUnitConverter:
@@ -68,7 +68,7 @@ class GeneralUnitConverter:
         elif dataISUnits == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
 
-    def GetAxisUnitsOptions(self, field):
+    def GetPossibleAxisUnits(self, dataElement):
         originalUnits = list()
         allOtherUnits = list()
         if self.hasNonISUnits:

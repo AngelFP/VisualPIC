@@ -52,10 +52,10 @@ class FieldToPlot:
         self.__SetDefaultPlotType()
                
     def __GetPossibleFieldUnits(self):
-        return self.__unitConverter.getFieldUnitsOptions(self.__field)
+        return self.__unitConverter.GetPossibleDataUnits(self.__field)
                 
     def __GetPossibleAxisUnits(self):
-        return self.__unitConverter.getAxisUnitsOptions(self.__field)
+        return self.__unitConverter.GetPossibleAxisUnits(self.__field)
             
     def __GetPossibleColorMaps(self):
         if self.__isPartOfMultiplot:
@@ -103,7 +103,7 @@ class FieldToPlot:
        
     def __GetAllData(self, timeStep):
         #returns fieldData, extent
-        return self.__unitConverter.GetDataInUnits(timeStep, self.__field, self.GetProperty("fieldUnits"), self.GetProperty("axesUnits"), self.GetProperty("originalFieldUnits"), self.GetProperty("originalAxesUnits"))
+        return self.__unitConverter.GetDataInUnits(self.__field, self.GetProperty("fieldUnits"), timeStep)
             
     def __Get1DSlice(self, slicePosition, timeStep):
         # slice along the longitudinal axis
