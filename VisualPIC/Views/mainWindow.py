@@ -68,6 +68,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.increaseRowsColumnsCounter = 0
         self.speciesFieldPlotDimension = "2D"
         self.domainFieldPlotDimension = "2D"
+        """ Backups for removed UI items for each simulation code """
+        self.removedNormalizationTab = None
         
     def CreateCanvasAndFigure(self):
         self.figure = Figure()
@@ -108,7 +110,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
         self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
-        #self.normalizedUnits_checkBox.toggled.connect(self.NormalizedUnitsCheckBox_StatusChanged)
         self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
@@ -137,21 +138,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         n_p = float(self.plasmaDensity_lineEdit.text())
         self.unitConverter.SetNormalizationFactor(n_p)
     
-    #def NormalizedUnitsCheckBox_StatusChanged(self):
-    #    if self.normalizedUnits_checkBox.checkState():
-    #        self.plasmaDensity_lineEdit.setEnabled(True)
-    #        self.setNormalization_Button.setEnabled(True)
-    #        self.unitConverter.allowNormUnits(True)
-    #    else:
-    #        self.plasmaDensity_lineEdit.setEnabled(False)
-    #        self.setNormalization_Button.setEnabled(False)
-    #        self.unitConverter.allowNormUnits(False)
-    
     def LoadDataButton_Cicked(self):
         self.ClearData()
         self.dataContainer.ClearData()
         self.LoadFolderData()
         self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
+        self.AdaptUIToSpecificSimulationCode()
+
+    def AdaptUIToSpecificSimulationCode(self):
+        simulationCode = self.dataContainer.GetSimulationCodeName()
+        codesWithNormalizedUnits = ["Osiris", "HiPACE"]
+        if simulationCode not in codesWithNormalizedUnits:
+            self.removedNormalizationTab = self.tabWidget_2.widget(2)
+            self.tabWidget_2.removeTab(2)
+        elif self.removedNormalizationTab != None:
+            self.tabWidget_2.addTab(self.removedNormalizationTab, "Normalization")
+            self.removedNormalizationTab = None
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
