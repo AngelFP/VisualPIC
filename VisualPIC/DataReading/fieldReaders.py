@@ -95,12 +95,12 @@ class OsirisFieldReader(FieldReaderBase):
         file_content = self.OpenFile(self.currentTimeStep)
         self.data = np.array(file_content.get(self.internalName))
         matrixSize = self.data.shape()
-        elementsX1 = len(matrixSize[-1]) # number of elements in the longitudinal direction
-        elementsX2 = len(matrixSize[-2]) # number of elements in the transverse direction
+        elementsX1 = len(matrixSize[-1]) # number of elements in the longitudinal z direction
+        elementsX2 = len(matrixSize[-2]) # number of elements in the transverse y direction
         self.axisData["x"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsX)
         self.axisData["y"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsY)
         if self.fieldDimension == "3D":
-            elementsX3 = len(matrixSize[-3]) # number of elements in the transverse direction
+            elementsX3 = len(matrixSize[-3]) # number of elements in the transverse x direction
             self.axisData["z"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsZ)
         file_content.close()
 
