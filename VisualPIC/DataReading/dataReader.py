@@ -28,7 +28,9 @@ class DataReader(object):
         self.speciesName = speciesName
         self.dataName = dataName
         self.internalName = internalName
-        self.currentTimeStep = None
+        self.currentTimeStep = None # time step number
+        self.currentTime = None # simulation time in the current time step
+        self.timeUnits = ""
         self.dataUnits = ""
         self.data = None
 

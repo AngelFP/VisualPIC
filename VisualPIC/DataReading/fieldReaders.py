@@ -43,6 +43,17 @@ class FieldReaderBase(DataReader):
             self.OpenFileAndReadData()
         return self.data
 
+    def GetTime(self, timeStep):
+        if timeStep != self.currentTimeStep:
+            self.currentTimeStep = timeStep
+            self.OpenFileAndReadData()
+        return self.currentTime
+
+    def GetTimeUnits(self):
+        if self.timeUnits == "":
+            self.OpenFileAndReadUnits()
+        return self.timeUnits
+
     def GetDataUnits(self):
         if self.dataUnits == "":
             self.OpenFileAndReadUnits()
@@ -94,6 +105,7 @@ class OsirisFieldReader(FieldReaderBase):
     def OpenFileAndReadData(self):
         file_content = self.OpenFile(self.currentTimeStep)
         self.data = np.array(file_content.get(self.internalName))
+        self.currentTime = file_content.attrs["TIME"][0]
         matrixSize = self.data.shape
         elementsX = matrixSize[-1] # number of elements in the longitudinal z direction
         elementsY = matrixSize[-2] # number of elements in the transverse y direction
@@ -110,10 +122,12 @@ class OsirisFieldReader(FieldReaderBase):
             self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
             self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
+            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])
         else:
             self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
             self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
             self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
     def OpenFile(self, timeStep):

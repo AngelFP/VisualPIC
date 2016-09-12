@@ -61,6 +61,22 @@ class GeneralUnitConverter:
         else:
             return list()
 
+    def GetPossibleTimeUnits(self, dataElement):
+        dataISUnits = "s"
+        originalUnits = list()
+        allOtherUnits = list()
+        if self.hasNonISUnits:
+            originalUnits.append(dataElement.GetTimeUnits())
+            if self.normalizationFactorIsSet:
+                allOtherUnits = self._GetAllOtherTimeUnitsOptions()
+        else:
+            allOtherUnits = self._GetAllOtherTimeUnitsOptions()
+        allUnits = originalUnits + allOtherUnits
+        return allUnits
+
+    def _GetAllOtherTimeUnitsOptions(self):
+        return ["s", "fs"]
+
     def GetPossibleAxisUnits(self, dataElement):
         originalUnits = list()
         allOtherUnits = list()
@@ -94,6 +110,17 @@ class GeneralUnitConverter:
                 if units == "V/m":
                     return dataInISUnits * self.c
 
+    def GetTimeInUnits(self, dataElement, units, timeStep):
+        if self.hasNonISUnits:
+            if units == dataElement.GetTimeUnits():
+                return self._GetTimeInOriginalUnits(dataElement, timeStep)
+        if units == "s":
+            return self.GetTimeInISUnits(dataElement, timeStep)
+        else:
+            timeInISUnits = self.GetTimeInISUnits(dataElement, timeStep)
+            if units == "fs":
+                return timeInISUnits * 1e15
+
     def GetAxisInUnits(self, axis, dataElement, units, timeStep):
         if self.hasNonISUnits:
             if units == dataElement.GetAxisUnits()[axis]:
@@ -124,6 +151,12 @@ class GeneralUnitConverter:
         raise NotImplementedError
 
     def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
+        raise NotImplementedError
+
+    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+        raise NotImplementedError
+
+    def GetTimeInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
 
 class OsirisUnitConverter(GeneralUnitConverter):
@@ -176,8 +209,15 @@ class OsirisUnitConverter(GeneralUnitConverter):
         elif "q" == dataElementName:
             return data*self.e # C
 
+    def GetTimeInISUnits(self, dataElement, timeStep):
+        time = dataElement.GetTime(timeStep)
+        return time * self.w_p
+
     def _GetDataInOriginalUnits(self, dataElement, timeStep):
         return dataElement.GetData(timeStep)
+
+    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+        return dataElement.GetTime(timeStep)
 
     def GetAxisInSIUnits(self, axis, dataElement, timeStep):
         axisData = self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)

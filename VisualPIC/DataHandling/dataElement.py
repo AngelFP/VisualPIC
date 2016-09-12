@@ -43,3 +43,9 @@ class DataElement(object):
     def GetDataUnits(self):
         return self.dataReader.GetDataUnits()
 
+    def GetTime(self, timeStep):
+        return self.dataReader.GetTime(timeStep)
+        
+    def GetTimeUnits(self):
+        return self.dataReader.GetTimeUnits()
+

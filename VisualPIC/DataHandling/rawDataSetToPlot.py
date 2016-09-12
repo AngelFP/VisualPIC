@@ -26,11 +26,19 @@ class RawDataSetToPlot:
             "speciesName":dataSet.GetSpeciesName(), 
             "totalTimeSteps":dataSet.GetTotalTimeSteps(),
             "dataSetUnits":dataSet.GetDataUnits(), 
-            "possibleDataSetUnits":self._GetPossibleDataSetUnits()
+            "timeUnits":dataSet.GetTimeUnits(),
+            "possibleDataSetUnits":self._GetPossibleDataSetUnits(),
+            "possibleTimeUnits":self._GetPossibleTimeUnits()
         }
             
     def _GetPossibleDataSetUnits(self):
         return self._unitConverter.GetPossibleDataUnits(self._dataSet)
+
+    def _GetPossibleTimeUnits(self):
+        return self._unitConverter.GetPossibleTimeUnits(self._dataSet)
+
+    def GetTime(self, timeStep):
+        return self._unitConverter.GetTimeInUnits(self._dataSet, self._dataProperties["timeUnits"], timeStep)
         
     def GetDataSetPlotData(self, timeStep):
         return self._unitConverter.GetDataInUnits(self._dataSet, self._dataProperties["dataSetUnits"], timeStep)
