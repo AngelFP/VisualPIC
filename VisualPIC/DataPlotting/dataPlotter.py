@@ -248,7 +248,7 @@ class DataPlotter:
         xValues = plotData["x"]
         yValues = plotData["y"]
         ax.plot(xValues, yValues, plotStyle)
-        ax.set_xlim([min(xValues), max(xValues)])
+        #ax.set_xlim([min(xValues), max(xValues)]) #if active, it might cause the bounds to be too small when "ax.hold" is true because the bound will be set as the maximum and minimum of the last data set.
 
     def Make3DLinePlot_E(self, ax, plotData, plotStyle = "b-"):
         raise NotImplementedError
