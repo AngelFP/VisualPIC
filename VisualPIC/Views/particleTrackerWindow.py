@@ -123,9 +123,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.x_comboBox.clear()
         self.y_comboBox.clear()
         self.z_comboBox.clear()
-        self.x_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
-        self.y_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
-        self.z_comboBox.addItems(self.particleTracker.GetAvailableQuantitiesInParticles())
+        self.x_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
+        self.y_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
+        self.z_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
         self.trackedParticles_Label.setText("Tracking " + str(self.particleTracker.GetTotalNumberOfTrackedParticles())+ " particle(s)")
 
     """
@@ -224,7 +224,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def CreateParticleTable(self):
         n = len(self.particleList)
-        variableNames = self.particleList[0].GetNamesOfAvailableQuantities()
+        variableNames = self.particleList[0].GetNamesOfTimeStepQuantities()
         allParticlesData = list()
         tableData = {}
         for particle in self.particleList:
