@@ -109,6 +109,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
         self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
+        self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
+        self.exportData_pushButton.clicked.connect(self.ExportDataButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -127,6 +129,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.y_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
         self.z_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
         self.trackedParticles_Label.setText("Tracking " + str(self.particleTracker.GetTotalNumberOfTrackedParticles())+ " particle(s)")
+
+    def FillExportDataUI(self):
+        self.CreateTrackedParticlesTable()
+        self.exportPath_lineEdit.setText(self.particleTracker.GetDataLocation())
 
     """
     UI Events
@@ -161,6 +167,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
         self.particleTracker.FillEvolutionOfAllDataSetsInParticles()
         self.FillPlotUI()
+        self.FillExportDataUI()
 
     def PlotTypeRadioButton_Toggled(self):
         self.z_comboBox.setEnabled(self.plotType_radioButton_2.isChecked())
@@ -194,6 +201,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
                 item = self.particleList_tableWidget.item(row, 0)
                 item.setCheckState(QtCore.Qt.Unchecked)
 
+    def BrowseExportPathButton_Clicked(self):
+        self.OpenFolderDialog()
+
+    def ExportDataButton_Clicked(self):
+        particleIndices = self.GetIndicesOfParticlesToExport()
+        self.particleTracker.ExportParticleData(particleIndices, str(self.exportPath_lineEdit.text()))
+
     """
     Rectangle Selector
     """
@@ -218,6 +232,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     """
     Other functions
     """
+
+    def OpenFolderDialog(self):
+        folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
+        if folderPath != "":
+            self.self.exportPath_lineEdit.setText(folderPath)
+
     def FindParticles(self, timeStep, speciesName, filter):
         self.particleList = self.particleTracker.FindParticles(timeStep, speciesName, filter)
         self.CreateParticleTable()
@@ -256,6 +276,42 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             if item.checkState():
                 selectedParticles.append(self.particleList[row])
         return selectedParticles
+
+    def CreateTrackedParticlesTable(self):
+        trackedParticles = self.particleTracker.GetTrackedParticles()
+        n = len(trackedParticles)
+        variableNames = self.trackedParticles[0].GetNamesOfTimeStepQuantities()
+        allParticlesData = list()
+        tableData = {}
+        for particle in trackedParticles:
+            allParticlesData.append(particle.GetCurrentTimeStepQuantities())
+        for variableName in variableNames:
+            varValues = np.zeros(n)
+            for i in np.arange(0,n):
+                varValues[i] = allParticlesData[i][variableName]
+            tableData[variableName] = varValues
+        self.trackedParticlesList_tableWidget.setColumnCount(len(variableNames)+1)
+        self.trackedParticlesList_tableWidget.setRowCount(n)
+        tableHeaders = variableNames
+        tableHeaders.insert(0," ")
+        for i in np.arange(0,n):
+            newItem = QTableWidgetItem()
+            newItem.setCheckState(QtCore.Qt.Unchecked)
+            self.trackedParticlesList_tableWidget.setItem(i, 0, newItem)
+        for n, key in enumerate(tableHeaders[1:]):
+            for m, item in enumerate(tableData[key]):
+                newItem = QTableWidgetItem(str(item))
+                self.trackedParticlesList_tableWidget.setItem(m, n+1, newItem)
+        self.trackedParticlesList_tableWidget.resizeColumnsToContents()
+        self.trackedParticlesList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
+
+    def GetIndicesOfParticlesToExport(self):
+        selectedParticlesIndices = list()
+        for row in np.arange(0, self.particleList_tableWidget.rowCount()):
+            item = self.particleList_tableWidget.item(row, 0)
+            if item.checkState():
+                selectedParticlesIndices.append(row)
+        return selectedParticlesIndices
 
     def MakeSelectorPlot(self):
         if self.speciesSelector_comboBox.currentText() not in ["Select Species", "No species available"]:

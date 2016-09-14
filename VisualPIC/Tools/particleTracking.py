@@ -74,7 +74,7 @@ class Particle():
         return self._particleIndices[timeStep]
 
     def WriteDataToFile(self, location, fileName):
-        h5file = h5py.File(location + fileName + ".h5", "w")
+        h5file = h5py.File(location + "/" + fileName + ".h5", "w")
         for key in self._wholeSimulationQuantities:
             dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key]["values"])
             dataSet.attrs["Units"] = self._wholeSimulationQuantities[key]["units"]
@@ -99,6 +99,9 @@ class ParticleTracker():
         quantity. In order not to repeat this for every quantity, the boolean variable 
         self.indexInfoAdded is introduced.
         """
+
+    def GetDataLocation(self):
+        return self._dataContainer.GetFolderPath()
 
     def GetSpeciesNames(self):
         names = list()
@@ -259,5 +262,5 @@ class ParticleTracker():
 
     def ExportParticleData(self, particleIndices, location):
         for index in particleIndices:
-            fileName = "particle" + str(index).zfill(3)
+            fileName = "particle" + str(index+1).zfill(3)
             self._particleList[index].WriteDataToFile(location, fileName)
