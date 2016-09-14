@@ -76,7 +76,8 @@ class Particle():
     def WriteDataToFile(self, location, fileName):
         h5file = h5py.File(location + fileName + ".h5", "w")
         for key in self._wholeSimulationQuantities:
-            h5f.create_dataset(key, data = self._wholeSimulationQuantities[key])
+            dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key]["values"])
+            dataSet.attrs["Units"] = self._wholeSimulationQuantities[key]["units"]
         h5file.close()
 
 class ParticleTracker():
