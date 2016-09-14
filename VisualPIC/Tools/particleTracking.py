@@ -20,6 +20,7 @@
 import sys
 import numpy as np
 import math
+import h5py
 
 from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.rawDataSet import RawDataSet
@@ -71,6 +72,12 @@ class Particle():
 
     def GetIndex(self, timeStep):
         return self._particleIndices[timeStep]
+
+    def WriteDataToFile(self, location, fileName):
+        h5file = h5py.File(location + fileName + ".h5", "w")
+        for key in self._wholeSimulationQuantities:
+            h5f.create_dataset(key, data = self._wholeSimulationQuantities[key])
+        h5file.close()
 
 class ParticleTracker():
     def __init__(self, dataContainer, unitConverter):
@@ -248,3 +255,8 @@ class ParticleTracker():
 
     def GetTrackedSpeciesName(self):
         return self._speciesToAnalyze.GetName()
+
+    def ExportParticleData(self, particleIndices, location):
+        for index in particleIndices:
+            fileName = "particle" + str(index).zfill(3)
+            self._particleList[index].WriteDataToFile(location, fileName)
