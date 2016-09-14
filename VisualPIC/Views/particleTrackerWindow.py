@@ -110,6 +110,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
         self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
         self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
+        self.selectAllExport_checkBox.toggled.connect(self.SelectAllExportCheckBox_StatusChanged)
         self.exportData_pushButton.clicked.connect(self.ExportDataButton_Clicked)
 
     def FillInitialUI(self):
@@ -201,6 +202,16 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
                 item = self.particleList_tableWidget.item(row, 0)
                 item.setCheckState(QtCore.Qt.Unchecked)
 
+    def SelectAllExportCheckBox_StatusChanged(self):
+        if self.selectAllExport_checkBox.checkState():
+            for row in np.arange(0, self.trackedParticlesList_tableWidget.rowCount()):
+                item = self.trackedParticlesList_tableWidget.item(row, 0)
+                item.setCheckState(QtCore.Qt.Checked)
+        else:
+            for row in np.arange(0, self.trackedParticlesList_tableWidget.rowCount()):
+                item = self.trackedParticlesList_tableWidget.item(row, 0)
+                item.setCheckState(QtCore.Qt.Unchecked)
+
     def BrowseExportPathButton_Clicked(self):
         self.OpenFolderDialog()
 
@@ -236,7 +247,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def OpenFolderDialog(self):
         folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
         if folderPath != "":
-            self.self.exportPath_lineEdit.setText(folderPath)
+            self.exportPath_lineEdit.setText(folderPath)
 
     def FindParticles(self, timeStep, speciesName, filter):
         self.particleList = self.particleTracker.FindParticles(timeStep, speciesName, filter)
@@ -280,7 +291,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def CreateTrackedParticlesTable(self):
         trackedParticles = self.particleTracker.GetTrackedParticles()
         n = len(trackedParticles)
-        variableNames = self.trackedParticles[0].GetNamesOfTimeStepQuantities()
+        variableNames = trackedParticles[0].GetNamesOfTimeStepQuantities()
         allParticlesData = list()
         tableData = {}
         for particle in trackedParticles:
@@ -307,8 +318,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def GetIndicesOfParticlesToExport(self):
         selectedParticlesIndices = list()
-        for row in np.arange(0, self.particleList_tableWidget.rowCount()):
-            item = self.particleList_tableWidget.item(row, 0)
+        for row in np.arange(0, self.trackedParticlesList_tableWidget.rowCount()):
+            item = self.trackedParticlesList_tableWidget.item(row, 0)
             if item.checkState():
                 selectedParticlesIndices.append(row)
         return selectedParticlesIndices
