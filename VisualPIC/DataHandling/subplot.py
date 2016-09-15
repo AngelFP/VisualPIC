@@ -38,7 +38,6 @@ class Subplot(object):
         self._SetPlottedSpeciesName()
         self._LoadPossiblePlotTypes()
         self._SetDefaultValues()
-        self._SetTimeSteps()
     
 # Initialization    
     def _SetSubplotName(self):
@@ -170,6 +169,7 @@ class FieldSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
         super(FieldSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "Field"
+        self._SetTimeSteps()
 
     # Initialization    
     def _SetSubplotName(self):
@@ -248,6 +248,7 @@ class RawDataSubplot(Subplot):
         self.plotProps = {}
         super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "Raw"
+        self._SetTimeSteps()
 
     # Initialization    
     def _SetSubplotName(self):

@@ -64,9 +64,6 @@ class Particle():
             timeStepQuantities[key] = self._wholeSimulationQuantities[key][timeStep]
         return timeStepQuantities
 
-    def GetTotalTimeSteps(self):
-        return len(timeStepQuantities[timeStepQuantities.keys()[0]])
-
     def SetIndices(self, indices):
         self._particleIndices = indices
 
@@ -108,9 +105,6 @@ class ParticleTracker():
         for species in self._speciesList:
             names.append(species.GetName())
         return names
-
-    def GetTotalTimeSteps(self):
-        return self._speciesList[0].GetAllRawDataSets()[0].GetTotalTimeSteps()
 
     def GetSpeciesDataSet(self, speciesName, dataSetName):
         return self._dataContainer.GetSpeciesRawDataSet(speciesName, dataSetName)
@@ -167,7 +161,8 @@ class ParticleTracker():
         return particlesList
 
     def _FillEvolutionOfDataSetInParticles(self, dataSet):
-        totalTimeSteps = dataSet.GetTotalTimeSteps()
+        timeSteps = dataSet.GetTimeSteps()
+        totalTimeSteps = len(timeSteps)
         numberOfParticles = len(self._particleList)
         quantityValues = np.zeros([numberOfParticles, totalTimeSteps])
         if not self.indexInfoAdded:
@@ -176,9 +171,9 @@ class ParticleTracker():
             timeValues = np.zeros(totalTimeSteps)
         particleExitedDomain = False
         dataHasBeenWritten = False
-        lastTimeStep = totalTimeSteps
-        firstTimeStep = 0
-        for timeStep in np.arange(0,totalTimeSteps):
+        lastTimeStepIndex = totalTimeSteps
+        firstTimeStepIndex = 0
+        for timeStep in timeSteps:
             print(timeStep)
             particleTags = self._speciesToAnalyze.GetRawDataTags(timeStep)
             if particleTags.size>1:
@@ -197,16 +192,16 @@ class ParticleTracker():
                         except:
                             print(particleIndex)
                         if not dataHasBeenWritten:
-                            firstTimeStep = timeStep
+                            firstTimeStepIndex = np.where(timeSteps == timeStep)[0][0]
                             dataHasBeenWritten = True
                     elif dataHasBeenWritten:
                         particleExitedDomain = True
-                        lastTimeStep = timeStep
+                        lastTimeStepIndex = np.where(timeSteps == timeStep)[0][0]
                 if particleExitedDomain:
                     break
-        quantityValues = quantityValues[:,firstTimeStep:lastTimeStep] # remove the colums in which the particle is not in the domain
+        quantityValues = quantityValues[:,firstTimeStepIndex:lastTimeStepIndex] # remove the colums in which the particle is not in the domain
         if not self.timeInfoAdded:
-            timeValues = timeValues[firstTimeStep:lastTimeStep]
+            timeValues = timeValues[firstTimeStepIndex:lastTimeStepIndex]
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
             if not self.timeInfoAdded:

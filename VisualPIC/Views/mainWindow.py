@@ -137,6 +137,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.timeStep_Slider.setValue(closestHigher)
             else:
                 self.timeStep_Slider.setValue(closestLower)
+            self.MakePlots()
 
     def RowsSpinBox_ValueChanged(self):
         self.SetListOfPlotPositions()
@@ -413,7 +414,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for subplot in self.subplotList:
             if subplot.GetPosition() > index+1:
                 subplot.SetPosition(subplot.GetPosition()-1)
-        
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
         if len(self.subplotList) > 0:
@@ -437,9 +437,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             i+=1
         minTime = min(self.timeSteps)
         maxTime = max(self.timeSteps)
-        if len(self.timeSteps) > 1:
-            stepSize = self.timeSteps[1] - self.timeSteps[0]
-        else:
-            stepSize = 1 # could be any number
         self.timeStep_Slider.setMinimum(minTime)
         self.timeStep_Slider.setMaximum(maxTime)

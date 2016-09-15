@@ -68,9 +68,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.increaseRowsColumnsCounter = 0
         self.CreateCanvasAndFigures()
         self.FillInitialUI();
-        #self.CreateSelectorSubplotObject()
         self.RegisterUIEvents();
-        #self.MakeSelectorPlot()
 
     def CreateCanvasAndFigures(self):
         self.mainFigure = Figure()
@@ -117,7 +115,6 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
         if len(comboBoxItems) > 0:
             comboBoxItems.insert(0, "Select Species")
-            self.selectorTimeStep_Slider.setMaximum(self.particleTracker.GetTotalTimeSteps()-1)
         else:
             comboBoxItems.insert(0, "No species available")
         self.speciesSelector_comboBox.addItems(comboBoxItems)
@@ -142,6 +139,16 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_lineEdit.setText(str(self.selectorTimeStep_Slider.value()))
 
     def SelectorTimeStepSlider_Released(self):
+        if self.selectorTimeStep_Slider.value() in self.timeSteps:
+            self.MakeSelectorPlot()
+        else:
+            val = self.selectorTimeStep_Slider.value()
+            closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
+            closestLower = self.timeSteps[np.where(self.timeSteps < val)[0][-1]]
+            if abs(val-closestHigher) < abs(val-closestLower):
+                self.selectorTimeStep_Slider.setValue(closestHigher)
+            else:
+                self.selectorTimeStep_Slider.setValue(closestLower)
         self.MakeSelectorPlot()
 
     def SpeciesSelectorComboBox_IndexChanged(self):
@@ -332,6 +339,14 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             self.dataPlotter.MakePlot(self.selectorFigure, sbpList, 1, 1, self.selectorTimeStep_Slider.value())
             self.selectorFigure.tight_layout()
             self.selectorCanvas.draw()
+            self.SetTimeSteps()
+
+    def SetTimeSteps(self):
+        self.timeSteps = self.selectorSubplot.GetTimeSteps()
+        minTime = min(self.timeSteps)
+        maxTime = max(self.timeSteps)
+        self.selectorTimeStep_Slider.setMinimum(minTime)
+        self.selectorTimeStep_Slider.setMaximum(maxTime)
 
     def SetAutoColumnsAndRows(self):
         if self.subplotRows*self.subplotColumns < len(self.subplotList):

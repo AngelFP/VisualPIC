@@ -162,7 +162,7 @@ class FolderDataReader:
             timeStep = int(file[-9:-3])
             timeSteps[i] = timeStep
             i+=1
-        return timeSteps
+        return timeSteps.astype(np.int64)
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
