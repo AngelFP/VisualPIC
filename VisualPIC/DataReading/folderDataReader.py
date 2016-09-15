@@ -139,7 +139,7 @@ class FolderDataReader:
                     if os.path.isdir(os.path.join(subDir, species)):
                         self.AddSpecies(Species(species))
                         dataSetLocation = subDir + "/" + species
-                        timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
+                        timeSteps = self.GetTimeStepsInOsirisLocation(dataSetLocation)
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):

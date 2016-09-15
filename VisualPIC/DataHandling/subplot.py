@@ -51,12 +51,7 @@ class Subplot(object):
         raise NotImplementedError
 
     def _SetTimeSteps(self):
-        i = 0
-        for dataElementToPlot in self.dataToPlot:
-            if i == 0:
-                self.timeSteps = dataElementToPlot.GetTimeSteps()
-            else :
-                self.timeSteps = np.intersect1d(self.timeSteps, dataElementToPlot.GetTimeSteps())
+        raise NotImplementedError
             
     def _SetDefaultValues(self):
         self.LoadDefaultAxesValues()
@@ -104,6 +99,9 @@ class Subplot(object):
         self.SetTitleProperty("AutoText", self.GetTitleProperty("DefaultAutoText"))
         
 # Interface methods
+    def GetTimeSteps(self):
+        return self._timeSteps
+    
     def GetAxesUnitsOptions(self):
         raise NotImplementedError
             
@@ -205,6 +203,14 @@ class FieldSubplot(Subplot):
         #self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
         self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
         self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+
+    def _SetTimeSteps(self):
+        i = 0
+        for dataElementToPlot in self.dataToPlot:
+            if i == 0:
+                self._timeSteps = dataElementToPlot.GetProperty("timeSteps")
+            else :
+                self._timeSteps = np.intersect1d(self._timeSteps, dataElementToPlot.GetProperty("timeSteps"))
 
     # Interface methods
     def AddFieldToPlot(self, fieldToPlot):
@@ -309,6 +315,9 @@ class RawDataSubplot(Subplot):
             self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
         self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
         self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
+
+    def _SetTimeSteps(self):
+        self._timeSteps = self.dataToPlot["x"].GetProperty("timeSteps")
         
 # Interface methods
     def AddDataToPlot(self, data, axis):
