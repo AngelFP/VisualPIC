@@ -19,6 +19,7 @@
 
 import os
 import h5py
+import numpy as np
 
 from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.rawDataSet import RawDataSet
@@ -109,16 +110,16 @@ class FolderDataReader:
                             if os.path.isdir(os.path.join(subDir + "/" + species, field)):
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
-                                totalTimeSteps = len(os.listdir(fieldLocation))
-                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, fieldLocation, totalTimeSteps, species))
+                                timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
+                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, fieldLocation, timeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
                     if os.path.isdir(os.path.join(subDir, field)):
                         fieldLocation = subDir + "/" + field
                         fieldName = field
-                        totalTimeSteps = len(os.listdir(fieldLocation))
-                        self.AddDomainField(Field(self._simulationCode, fieldName, fieldLocation, totalTimeSteps))
+                        timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
+                        self.AddDomainField(Field(self._simulationCode, fieldName, fieldLocation, timeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -138,15 +139,30 @@ class FolderDataReader:
                     if os.path.isdir(os.path.join(subDir, species)):
                         self.AddSpecies(Species(species))
                         dataSetLocation = subDir + "/" + species
-                        totalTimeSteps = len(os.listdir(dataSetLocation))
+                        timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
                             if dataSetName == "tag":
-                                self.AddRawDataTagsToSpecies(species, RawDataTags(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                                self.AddRawDataTagsToSpecies(species, RawDataTags(self._simulationCode, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
                             else:
-                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, totalTimeSteps, species, dataSetName))
+                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
                         file_content.close()
+
+    def GetTimeStepsInOsirisLocation(self, location):
+        fileNamesList = os.listdir(location)
+        # filter only .h5 files
+        h5Files = list()
+        for file in fileNamesList:
+            if file.endswith(".h5"):
+                h5Files.append(file)
+        timeSteps = np.zeros(len(h5Files))
+        i = 0
+        for file in h5Files:
+            timeStep = int(file[-9:-3])
+            timeSteps[i] = timeStep
+            i+=1
+        return timeSteps
 
     def LoadHiPaceData(self):
         """HiPACE loader"""
