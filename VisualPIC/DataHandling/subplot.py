@@ -18,6 +18,7 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+import numpy as np
 
 class Subplot(object):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
@@ -37,6 +38,7 @@ class Subplot(object):
         self._SetPlottedSpeciesName()
         self._LoadPossiblePlotTypes()
         self._SetDefaultValues()
+        self._SetTimeSteps()
     
 # Initialization    
     def _SetSubplotName(self):
@@ -47,6 +49,14 @@ class Subplot(object):
                         
     def _LoadPossiblePlotTypes(self):
         raise NotImplementedError
+
+    def _SetTimeSteps(self):
+        i = 0
+        for dataElementToPlot in self.dataToPlot:
+            if i == 0:
+                self.timeSteps = dataElementToPlot.GetTimeSteps()
+            else :
+                self.timeSteps = np.intersect1d(self.timeSteps, dataElementToPlot.GetTimeSteps())
             
     def _SetDefaultValues(self):
         self.LoadDefaultAxesValues()
@@ -201,6 +211,7 @@ class FieldSubplot(Subplot):
         self.dataToPlot.append(fieldToPlot)
         self._SetSubplotName()
         self._SetPlottedSpeciesName()
+        self._SetTimeSteps()
     
     def GetAxesUnitsOptions(self):
         unitsOptions = {}
@@ -305,6 +316,7 @@ class RawDataSubplot(Subplot):
         self.dataToPlot[axis] = data
         self._SetSubplotName()
         self._SetPlottedSpeciesName()
+        self._SetTimeSteps()
 
     def GetAxisColorMapOptions(self, plotType):
         if plotType == "Histogram":
