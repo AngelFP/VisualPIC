@@ -21,15 +21,15 @@ from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 class RawDataTags(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, simulationCode, name, location, totalTimeSteps, speciesName = "", internalName = ""):
+    def __init__(self, simulationCode, name, location, timeSteps, speciesName = "", internalName = ""):
         self.dataName = name
         self.dataLocation = location
         self.speciesName = speciesName
-        self.totalTimeSteps = totalTimeSteps
+        self.timeSteps = timeSteps
         self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
 
-    def GetTotalTimeSteps(self):
-        return self.totalTimeSteps
+    def GetTimeSteps(self):
+        return self.timeSteps
 
     def GetTags(self, timeStep):
         return self.dataReader.GetData(timeStep)

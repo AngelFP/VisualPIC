@@ -30,7 +30,7 @@ class FieldToPlot:
         self.__fieldProperties = {
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(),
-            "totalTimeSteps":field.GetTotalTimeSteps(), 
+            "timeSteps":field.GetTimeSteps(), 
             "fieldUnits":copy.copy(field.GetDataUnits()), 
             "originalFieldUnits":field.GetDataUnits(), 
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),

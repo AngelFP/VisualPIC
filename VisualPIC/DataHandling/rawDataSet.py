@@ -24,7 +24,7 @@ from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 
 class RawDataSet(DataElement):
-    def __init__(self, simulationCode, name, location, totalTimeSteps, speciesName, internalName):
-        DataElement.__init__(self, simulationCode, name, location, totalTimeSteps, speciesName, internalName)
+    def __init__(self, simulationCode, name, location, timeSteps, speciesName, internalName):
+        DataElement.__init__(self, simulationCode, name, location, timeSteps, speciesName, internalName)
         self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
         
