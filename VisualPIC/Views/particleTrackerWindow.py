@@ -88,8 +88,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
             speciesName = str(self.speciesSelector_comboBox.currentText())
             dataSets = {}
-            dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "x1"), self.unitConverter)
-            dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "x2"), self.unitConverter)
+            dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "z"), self.unitConverter)
+            dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "y"), self.unitConverter)
             self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
             self.selectorSubplot.SetPlotType("Scatter")
             self.selectorSubplot.SetAxisProperty("x", "LabelFontSize", 10)
@@ -220,8 +220,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
         filter = {}
-        filter["x1"] = (min(x1,x2), max(x1,x2))
-        filter["x2"] = (min(y1,y2), max(y1,y2))
+        filter["z"] = (min(x1,x2), max(x1,x2))
+        filter["y"] = (min(y1,y2), max(y1,y2))
         self.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
 
     """

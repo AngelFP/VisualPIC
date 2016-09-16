@@ -111,7 +111,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, fieldLocation, timeSteps, species))
+                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -119,7 +119,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                        self.AddDomainField(Field(self._simulationCode, fieldName, fieldLocation, timeSteps))
+                        self.AddDomainField(Field(self._simulationCode, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -146,7 +146,7 @@ class FolderDataReader:
                             if dataSetName == "tag":
                                 self.AddRawDataTagsToSpecies(species, RawDataTags(self._simulationCode, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
                             else:
-                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
+                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
                         file_content.close()
 
     def GetTimeStepsInOsirisLocation(self, location):
@@ -165,6 +165,40 @@ class FolderDataReader:
         timeSteps = timeSteps.astype(np.int64)
         timeSteps.sort()
         return timeSteps
+
+    def GiveStandardNameForOsirisQuantity(self, osirisName):
+        if "e1" in osirisName:
+            return "Ez"
+        elif "e2" in osirisName:
+            return "Ey"
+        elif "e3" in osirisName:
+            return "Ex"
+        elif "b1" in osirisName:
+            return "Bz"
+        elif "b2" in osirisName:
+            return "By"
+        elif "b3" in osirisName:
+            return "Bx"
+        elif "charge" in osirisName:
+            return "Charge density"
+        elif osirisName == "x1":
+            return "z"
+        elif osirisName == "x2":
+            return "y"
+        elif osirisName == "x3":
+            return "x"
+        elif osirisName == "p1":
+            return "Pz"
+        elif osirisName == "p2":
+            return "Py"
+        elif osirisName == "p3":
+            return "Px"
+        elif osirisName == "q":
+            return "Charge"
+        elif osirisName == "ene":
+            return "Energy"
+        else:
+            return osirisName
 
     def LoadHiPaceData(self):
         """HiPACE loader"""

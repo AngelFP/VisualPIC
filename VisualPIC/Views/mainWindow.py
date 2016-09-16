@@ -236,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                if self.rawPlotType_radioButton_2.isChecked():
                    zDataSet = species.GetRawDataSet(zDataSetName) 
                    dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
-               weightingDataSet = species.GetRawDataSet("q")
+               weightingDataSet = species.GetRawDataSet("Charge")
                dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.unitConverter)
                self.AddRawDataSubplot(dataSets)
 

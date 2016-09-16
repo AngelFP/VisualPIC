@@ -175,7 +175,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def GetDataISUnits(self, dataElement):
         """ Returns the IS units of the data (only the units, not the data!).
             The purpose of this is to identify"""
-        dataElementName = dataElement.GetName()
+        dataElementName = dataElement.GetNameInCode()
         if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
             return "V/m"
         elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:

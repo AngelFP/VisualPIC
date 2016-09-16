@@ -21,15 +21,19 @@ from VisualPIC.DataReading.dataReader import DataReader
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, simulationCode, name, location, timeSteps, speciesName = "", internalName = ""):
-        self.dataName = name
+    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName = "", internalName = ""):
+        self.dataNameInCode = nameInCode # name of the variable in the simulation code (e.g. "e1-savg" for the averaged longitudinal E field in Osiris)
+        self.dataStandardName = standardName
         self.dataLocation = location
         self.speciesName = speciesName
         self.timeSteps = timeSteps # array of integers
         self.dataReader = None # Each subclass will load its own
         
     def GetName(self):
-        return self.dataName 
+        return self.dataStandardName
+
+    def GetNameInCode(self):
+        return self.dataNameInCode
 
     def GetSpeciesName(self):
         return self.speciesName
