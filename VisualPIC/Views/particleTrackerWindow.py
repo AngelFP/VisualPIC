@@ -155,21 +155,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.MakeSelectorPlot()
 
     def RectangleSelectionButton_Clicked(self):
-        ax = self.selectorFigure.axes[0]
-        if sys.version_info[0] < 3:
-            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                           drawtype='box', useblit=True,
-                                           button=[1, 3],  # don't use middle button
-                                           minspanx=5, minspany=5,
-                                           spancoords='pixels')
-        else:
-            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                           drawtype='box', useblit=True,
-                                           button=[1, 3],  # don't use middle button
-                                           minspanx=5, minspany=5,
-                                           spancoords='pixels',
-                                           interactive = True)
-        ax.callbacks.connect('key_press_event', self.toggle_selector_event)
+        self.toggle_selector.set_active(True)
 
     def TrackParticlesButton_Clicked(self):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
@@ -237,15 +223,6 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         filter["x1"] = (min(x1,x2), max(x1,x2))
         filter["x2"] = (min(y1,y2), max(y1,y2))
         self.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
-
-    def toggle_selector_event(self, event):
-        print(' Key pressed.')
-        if event.key in ['Q', 'q'] and self.toggle_selector.active:
-            print(' RectangleSelector deactivated.')
-            self.toggle_selector.set_active(False)
-        if event.key in ['A', 'a'] and not self.toggle_selector.active:
-            print(' RectangleSelector activated.')
-            self.toggle_selector.set_active(True)
 
     """
     Other functions
@@ -337,6 +314,21 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             sbpList = list()
             sbpList.append(self.selectorSubplot) # we need to create a list of only one subplot because the DataPlotter only accepts lists.
             self.dataPlotter.MakePlot(self.selectorFigure, sbpList, 1, 1, self.selectorTimeStep_Slider.value())
+            ax = self.selectorFigure.axes[0]
+            if sys.version_info[0] < 3:
+                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                               drawtype='box', useblit=True,
+                                               button=[1, 3],  # don't use middle button
+                                               minspanx=5, minspany=5,
+                                               spancoords='pixels')
+            else:
+                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                               drawtype='box', useblit=True,
+                                               button=[1, 3],  # don't use middle button
+                                               minspanx=5, minspany=5,
+                                               spancoords='pixels',
+                                               interactive = True)
+            self.toggle_selector.set_active(False)
             self.selectorFigure.tight_layout()
             self.selectorCanvas.draw()
             self.SetTimeSteps()
