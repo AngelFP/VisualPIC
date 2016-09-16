@@ -23,7 +23,7 @@ import codecs
 import numpy as np
 
 
-class GeneralUnitConverter:
+class GeneralUnitConverter(object):
     def __init__(self):
         self.c = 299792458 #m/s
         self.e = 1.60217733 * 10**(-19) #C
