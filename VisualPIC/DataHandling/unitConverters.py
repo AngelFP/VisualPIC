@@ -192,7 +192,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
             return "C"
                 
     def GetDataInISUnits(self, dataElement, timeStep):
-        dataElementName = dataElement.GetName()
+        dataElementName = dataElement.GetNameInCode()
         data = self._GetDataInOriginalUnits(dataElement, timeStep)
         if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
             return data*self.E0 # V/m
