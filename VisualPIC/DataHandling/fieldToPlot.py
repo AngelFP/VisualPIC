@@ -122,7 +122,7 @@ class FieldToPlot:
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
         fieldData = self.__GetAllData(timeStep)
-        matrixSize = self.fieldData.shape
+        matrixSize = fieldData.shape
         elementsX1 = matrixSize[-1] # number of elements in the longitudinal direction
         elementsX2 = matrixSize[-2] # number of elements in the transverse direction
         elementsX3 = matrixSize[-3] # number of elements in the transverse direction
