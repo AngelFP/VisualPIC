@@ -743,8 +743,9 @@ class EditPlotWindow(QtGui.QDialog):
         self.updatingUiData = False
 
     def Fill1DSlicesData(self):
-        self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableSpeciesNames())
-        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+        if self.mainWindow.dataContainer.GetAvailableSpeciesNames() != []:
+            self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableSpeciesNames())
+            self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
         self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableDomainFieldsNames())
 
     """
