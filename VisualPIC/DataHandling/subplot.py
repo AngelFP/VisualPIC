@@ -277,7 +277,7 @@ class RawDataSubplot(Subplot):
         if "z" in self.dataToPlot:
             self.possiblePlotTypes = ["Scatter3D"]
         else:
-            self.possiblePlotTypes = ["Histogram", "Scatter"]
+            self.possiblePlotTypes = ["Histogram", "Scatter", "Arrows"]
     
     def _SetDefaultValues(self):
         super(RawDataSubplot, self)._SetDefaultValues()
@@ -329,7 +329,7 @@ class RawDataSubplot(Subplot):
         self._SetTimeSteps()
 
     def GetAxisColorMapOptions(self, plotType):
-        if plotType == "Histogram":
+        if plotType == "Histogram" or plotType == "Arrows":
             return self.colorMapsCollection.GetAllColorMapNames()
         elif plotType == "Scatter" or plotType == "Scatter3D":
             return self.colorMapsCollection.GetAllColorMapNamesWithTransparency()
@@ -339,6 +339,8 @@ class RawDataSubplot(Subplot):
             return "BlueT"
         elif plotType == "Scatter":
             return "Uniform Blue Transparent"
+        elif plotType == "Arrows":
+            return "jet"
     
     def GetAxesUnitsOptions(self):
         unitsOptions = {}
@@ -349,7 +351,10 @@ class RawDataSubplot(Subplot):
         return unitsOptions
         
     def GetWeightingUnitsOptions(self):
-        return self.dataToPlot["weight"].GetProperty("possibleDataSetUnits")
+        if "weight" in self.dataToPlot:
+            return self.dataToPlot["weight"].GetProperty("possibleDataSetUnits")
+        else:
+            return list()
 
     def GetAxesDimension(self):
         ThreeDplotTypes = ["Surface", "Scatter3D"]

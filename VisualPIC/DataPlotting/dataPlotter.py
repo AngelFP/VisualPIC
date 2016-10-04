@@ -48,7 +48,8 @@ class DataPlotter:
         axisTypes = {
             "Scatter":self.MakeScatterPlot,
             "Scatter3D":self.Make3DScatterPlot,
-            "Histogram":self.MakeHistogramPlot
+            "Histogram":self.MakeHistogramPlot,
+            "Arrows":self.MakeArrowPlot
             }
         evolutionTypes = {
             "2D":self.MakeLinePlot_E,
@@ -136,6 +137,8 @@ class DataPlotter:
         plotData = {}
         plotData["x"] = axisData["x"].GetDataSetPlotData(timeStep)
         plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
+        plotData["Px"] = axisData["Px"].GetDataSetPlotData(timeStep)
+        plotData["Py"] = axisData["Py"].GetDataSetPlotData(timeStep)
         if "z" in axisData:
             plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
         if "weight" in axisData:
@@ -149,15 +152,17 @@ class DataPlotter:
         ax.set_position(pos2)
         ax.hold(True)
         # colorBar
-        if "weight" in axisData:
-            cbWidth = 0.015
-            cbHeight = pos2[3]
-            cbX = pos2[0] + pos2[2] + 0.02
-            cbY = pos2[1]
-            cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
-            cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
-            cbar.solids.set_edgecolor("face")
+        cbWidth = 0.015
+        cbHeight = pos2[3]
+        cbX = pos2[0] + pos2[2] + 0.02
+        cbY = pos2[1]
+        cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
+        cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
+        cbar.solids.set_edgecolor("face")
+        if subplot.GetPlotProperty("PlotType") == "Histogram" or subplot.GetPlotProperty("PlotType") == "Scatter":
             cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+        elif subplot.GetPlotProperty("PlotType") == "Arrows":
+            cbar.set_label(label="$"+axisData["Px"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
@@ -213,7 +218,34 @@ class DataPlotter:
         
     """
     Raw (non-evolving) data plot types
-    """    
+    """  
+    def MakeArrowPlot(self, ax, plotData, cMap):
+        xValues = plotData["x"]
+        yValues = plotData["y"]
+        pxValues = plotData["Px"]
+        pyValues = plotData["Py"]
+        H, xedges, yedges = np.histogram2d(xValues, yValues, bins = 100) # H contains the number of macroparticles in each histogram cell
+        Hpx, xedges, yedges = np.histogram2d(xValues, yValues, bins = 100, weights = pxValues) # Hpx contains the total x component of the momentum in each histogram cell
+        Hpy, xedges, yedges = np.histogram2d(xValues, yValues, bins = 100, weights = pyValues) # Hpy contains the total y component of the momentum in each histogram cell
+        px = self.div0(Hpx,H) # average value of Px in each cell
+        py = self.div0(Hpy,H) # average value of Py in each cell
+
+        xLeft = xedges[:-1] + np.abs((xedges[1]-xedges[0]))/2
+        yLeft = yedges[:-1] + np.abs((yedges[1]-yedges[0]))/2
+        X, Y = np.meshgrid(xLeft, yLeft)
+        modP = np.hypot(px,py) # modulus of the average P in each cell (used for normalization)
+        pxN = self.div0(px,np.max(modP))
+        pyN = self.div0(py,np.max(modP))
+        
+        #extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
+        #return ax.imshow(py.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
+        ax.set_xlim([min(xedges), max(xedges)])
+        ax.set_ylim([min(yedges), max(yedges)])
+        return ax.quiver(X, Y, pxN.transpose(), pyN.transpose(), modP.transpose(),
+            scale=100,
+            pivot='mid',                                           
+            cmap=cMap)
+
     def MakeHistogramPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
@@ -252,3 +284,13 @@ class DataPlotter:
 
     def Make3DLinePlot_E(self, ax, plotData, plotStyle = "b-"):
         raise NotImplementedError
+
+    """
+    Helpers
+    """
+    def div0(self, a, b ):
+        """ Return 0 whrn dividing by 0. Ignore / 0, div0( [-1, 0, 1], 0 ) -> [0, 0, 0] """
+        with np.errstate(divide='ignore', invalid='ignore'):
+            c = np.true_divide( a, b )
+            c[ ~ np.isfinite( c )] = 0  # -inf inf NaN
+        return c
