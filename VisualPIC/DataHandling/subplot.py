@@ -245,7 +245,8 @@ class FieldSubplot(Subplot):
 
 class RawDataSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
-        self.plotProps = {}
+        self.plotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
+        self.defaultPlotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
         super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "Raw"
         self._SetTimeSteps()
@@ -298,24 +299,34 @@ class RawDataSubplot(Subplot):
             self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
         
     def LoadDefaultPlotProperties(self):
-        self.plotProps["DefaultPlotType"] = self.possiblePlotTypes[0]
-        self.plotProps["DefaultXBins"] = 100
-        self.plotProps["DefaultYBins"] = 100
-        self.plotProps["DefaultUseChargeWeighting"] = True
+        # General
+        self.defaultPlotProps["General"]["DefaultPlotType"] = self.possiblePlotTypes[0]
+        self.defaultPlotProps["General"]["PlotLimits"] = {"XMin":0, "XMax":1, "YMin":0, "YMax":1}
+        self.defaultPlotProps["General"]["UseLimits"] = False
+        self.defaultPlotProps["General"]["DisplayColorbar"] = True
+        # Histogram
+        self.defaultPlotProps["Histogram"]["Bins"] = {"XBins":100, "YBins":100}
+        self.defaultPlotProps["Histogram"]["UseChargeWeighting"] = True
         if "weight" in self.dataToPlot:
-            self.plotProps["DefaultChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
-        self.plotProps["DefaultCMap"] = self.GetAxisDefaultColorMap(self.plotProps["DefaultPlotType"])
-        self.plotProps["DefaultDisplayColorbar"] = True
+            self.defaultPlotProps["Histogram"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        self.defaultPlotProps["Histogram"]["CMap"] = self.GetAxisDefaultColorMap("Histogram")
+        # Scatter
+        self.defaultPlotProps["Scatter"]["UseChargeWeighting"] = True
+        if "weight" in self.dataToPlot:
+            self.defaultPlotProps["Scatter"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        self.defaultPlotProps["Scatter"]["CMap"] = self.GetAxisDefaultColorMap("Scatter")
+        # Arrows
+        self.defaultPlotProps["Arrows"]["MakeGrid"] = True
+        self.defaultPlotProps["Arrows"]["Bins"] = {"XBins":100, "YBins":100}
+        self.defaultPlotProps["Arrows"]["UseChargeWeighting"] = True
+        if "Px" in self.dataToPlot:
+            self.defaultPlotProps["Arrows"]["MomentumUnits"] = self.dataToPlot["Px"].GetProperty("dataSetUnits")
+        self.defaultPlotProps["Arrows"]["NormalizationMode"] = "ToMaximum" # Options: "ToMaximum", "AllSameSize"
+        self.defaultPlotProps["Arrows"]["ColorMode"] = "Momentum" # Options: "Momentum", "Uniform"
+        self.defaultPlotProps["Arrows"]["CMap"] = self.GetAxisDefaultColorMap("Arrows")
             
     def SetPlotPropertiesToDefault(self):
-        self.plotProps["PlotType"] = self.plotProps["DefaultPlotType"]
-        self.plotProps["XBins"] = self.plotProps["DefaultXBins"]
-        self.plotProps["YBins"] = self.plotProps["DefaultYBins"]
-        self.plotProps["UseChargeWeighting"] = self.plotProps["DefaultUseChargeWeighting"]
-        if "weight" in self.dataToPlot:
-            self.plotProps["ChargeUnits"] = self.plotProps["DefaultChargeUnits"]
-        self.plotProps["CMap"] = self.plotProps["DefaultCMap"]
-        self.plotProps["DisplayColorbar"] = self.plotProps["DefaultDisplayColorbar"]
+        self.plotProps = copy.copy(self.defaultPlotProps)
 
     def _SetTimeSteps(self):
         self._timeSteps = self.dataToPlot["x"].GetProperty("timeSteps")
@@ -358,15 +369,15 @@ class RawDataSubplot(Subplot):
 
     def GetAxesDimension(self):
         ThreeDplotTypes = ["Surface", "Scatter3D"]
-        if self.plotProps["PlotType"] in ThreeDplotTypes:
+        if self.plotProps["General"]["PlotType"] in ThreeDplotTypes:
                 return "3D"
         return "2D"
         
     def GetPlotType(self):
-        return self.plotProps["PlotType"]
+        return self.plotProps["General"]["PlotType"]
 
     def SetPlotType(self, plotType):
-        self.plotProps["PlotType"] = plotType
+        self.plotProps["General"]["PlotType"] = plotType
 
     def GetCopyAllPlotProperties(self):
         return copy.copy(self.plotProps)
@@ -374,8 +385,11 @@ class RawDataSubplot(Subplot):
     def SetAllPlotProperties(self, properties):
         self.plotProps = properties
         
-    def GetPlotProperty(self, targetProperty):
-        return self.plotProps[targetProperty]
+    def GetPlotProperty(self, propertzType, targetProperty):
+        return self.plotProps[propertzType][targetProperty]
+
+    def SetPlotProperty(self, propertzType, targetProperty, value):
+        self.plotProps[propertzType][targetProperty] = value
 
 
 class RawDataEvolutionSubplot(Subplot):
