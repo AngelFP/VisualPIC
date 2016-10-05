@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>615</height>
+    <height>721</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -393,16 +393,7 @@
        <item>
         <widget class="QWidget" name="histogramSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_20">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
@@ -540,16 +531,7 @@
        <item>
         <widget class="QWidget" name="scatterSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_21">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
@@ -608,38 +590,38 @@
        <item>
         <widget class="QWidget" name="arrowsSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_24">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_48">
-            <item>
-             <widget class="QRadioButton" name="arrowPlotAll_radioButton">
-              <property name="text">
-               <string>Plot all particles</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="arrowMakeGrid_radioButton">
-              <property name="text">
-               <string>Make grid</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_29">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_48">
+               <item>
+                <widget class="QRadioButton" name="arrowPlotAll_radioButton">
+                 <property name="text">
+                  <string>Plot all particles</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="arrowMakeGrid_radioButton">
+                 <property name="text">
+                  <string>Make grid</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_37">
@@ -746,68 +728,84 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_17">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_38">
-              <item>
-               <widget class="QLabel" name="label_55">
-                <property name="text">
-                 <string>Arrow size:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="arrowSize_radioButton_1">
-                <property name="text">
-                 <string>Normalize to maximum</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="arrowSize_radioButton_2">
-                <property name="text">
-                 <string>All same size</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
+           <layout class="QVBoxLayout" name="verticalLayout_17"/>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_26">
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_47">
-              <item>
-               <widget class="QLabel" name="label_48">
-                <property name="text">
-                 <string>Color:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="arrowColor_radioButton_1">
-                <property name="text">
-                 <string>According to total momentum</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="arrowColor_radioButton_2">
-                <property name="text">
-                 <string>Uniform color</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
+           <widget class="QWidget" name="widget_2" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_28">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_38">
+               <item>
+                <widget class="QLabel" name="label_55">
+                 <property name="text">
+                  <string>Arrow size:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="arrowSize_radioButton_1">
+                 <property name="text">
+                  <string>Normalize to maximum</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="arrowSize_radioButton_2">
+                 <property name="text">
+                  <string>All same size</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_47">
+               <item>
+                <widget class="QLabel" name="label_48">
+                 <property name="text">
+                  <string>Color:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="arrowColor_radioButton_1">
+                 <property name="text">
+                  <string>According to total momentum</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="arrowColor_radioButton_2">
+                 <property name="text">
+                  <string>Uniform color</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_26"/>
           </item>
          </layout>
         </widget>
