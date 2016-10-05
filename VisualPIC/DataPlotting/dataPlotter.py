@@ -219,6 +219,7 @@ class DataPlotter:
     """
     Raw (non-evolving) data plot types
     """  
+    #todo: change cMap argument for a plotSettings argument.
     def MakeArrowPlot(self, ax, plotData, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]

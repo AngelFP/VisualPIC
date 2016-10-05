@@ -67,8 +67,8 @@ class PlotFieldItem(QtGui.QWidget):
         self.deleteButton.clicked.connect(self.deleteButton_Clicked)
         
     def editButton_Clicked(self):
-        EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.mainWindow)
-        EditWindow.exec_()
+        self.EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.mainWindow)
+        self.EditWindow.show()
         
     def deleteButton_Clicked(self):
         self.mainWindow.RemoveSubplot(self)
