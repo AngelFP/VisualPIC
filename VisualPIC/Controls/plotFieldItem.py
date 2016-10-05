@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\ferran\Desktop\PlotFieldItem.ui'
+#Copyright 2016 Ángel Ferran Pousa
 #
-# Created by: PyQt4 UI code generator 4.11.4
+#This file is part of VisualPIC.
 #
-# WARNING! All changes made in this file will be lost!
+#VisualPIC is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+#
+#VisualPIC is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt4 import QtCore, QtGui
 from VisualPIC.Views.editPlotFieldWindow import EditPlotWindowSelector
