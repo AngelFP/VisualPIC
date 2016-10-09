@@ -300,7 +300,7 @@ class RawDataSubplot(Subplot):
         
     def LoadDefaultPlotProperties(self):
         # General
-        self.defaultPlotProps["General"]["DefaultPlotType"] = self.possiblePlotTypes[0]
+        self.defaultPlotProps["General"]["PlotType"] = self.possiblePlotTypes[0]
         self.defaultPlotProps["General"]["PlotLimits"] = {"XMin":0, "XMax":1, "YMin":0, "YMax":1}
         self.defaultPlotProps["General"]["UseLimits"] = False
         self.defaultPlotProps["General"]["DisplayColorbar"] = True
@@ -364,6 +364,12 @@ class RawDataSubplot(Subplot):
     def GetWeightingUnitsOptions(self):
         if "weight" in self.dataToPlot:
             return self.dataToPlot["weight"].GetProperty("possibleDataSetUnits")
+        else:
+            return list()
+
+    def GetMomentumUnitsOptions(self):
+        if "Px" in self.dataToPlot:
+            return self.dataToPlot["Px"].GetProperty("possibleDataSetUnits")
         else:
             return list()
 

@@ -413,7 +413,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="xBins_spinBox">
+             <widget class="QSpinBox" name="histogramXBins_spinBox">
               <property name="minimumSize">
                <size>
                 <width>60</width>
@@ -445,7 +445,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="yBins_spinBox">
+             <widget class="QSpinBox" name="histogramYBins_spinBox">
               <property name="minimumSize">
                <size>
                 <width>60</width>
@@ -487,7 +487,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_24">
               <item>
-               <widget class="QCheckBox" name="chargeWeight_checkBox">
+               <widget class="QCheckBox" name="histogramChargeWeight_checkBox">
                 <property name="text">
                  <string>Use macroparticle charge as weighting parameter (recommended)</string>
                 </property>
@@ -508,7 +508,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="chargeUnits_comboBox"/>
+               <widget class="QComboBox" name="histogramChargeUnits_comboBox"/>
               </item>
              </layout>
             </item>
@@ -522,6 +522,20 @@
                <string>Color:</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_23">
+              <item>
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Colormap:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="histogramColorMap_comboBox"/>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -546,7 +560,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_33">
               <item>
-               <widget class="QCheckBox" name="chargeWeight_checkBox_2">
+               <widget class="QCheckBox" name="scatterChargeWeight_checkBox">
                 <property name="text">
                  <string>Use macroparticle charge as weighting parameter (recommended)</string>
                 </property>
@@ -567,7 +581,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="chargeUnits_comboBox_2"/>
+               <widget class="QComboBox" name="scatterChargeUnits_comboBox"/>
               </item>
              </layout>
             </item>
@@ -581,6 +595,20 @@
                <string>Color:</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_26">
+              <item>
+               <widget class="QLabel" name="label_36">
+                <property name="text">
+                 <string>Colormap</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="scatterColorMap_comboBox"/>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -728,9 +756,6 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_17"/>
-          </item>
-          <item>
            <widget class="QWidget" name="widget_2" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_28">
              <property name="margin">
@@ -768,61 +793,58 @@
            </widget>
           </item>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_47">
+            <item>
+             <widget class="QLabel" name="label_48">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="arrowColor_radioButton_1">
+              <property name="text">
+               <string>According to total momentum</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="arrowColor_radioButton_2">
+              <property name="text">
+               <string>Uniform color</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_40">
+            <item>
+             <widget class="QLabel" name="label_49">
+              <property name="text">
+               <string>Colormap:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="arrowColorMap_comboBox"/>
+            </item>
+           </layout>
+          </item>
+          <item>
            <widget class="QWidget" name="widget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_19">
              <property name="margin">
               <number>0</number>
              </property>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_47">
-               <item>
-                <widget class="QLabel" name="label_48">
-                 <property name="text">
-                  <string>Color:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="arrowColor_radioButton_1">
-                 <property name="text">
-                  <string>According to total momentum</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="arrowColor_radioButton_2">
-                 <property name="text">
-                  <string>Uniform color</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
             </layout>
            </widget>
           </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_26"/>
-          </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_40">
-         <item>
-          <widget class="QLabel" name="label_49">
-           <property name="text">
-            <string>Colormap:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="axisColorMap_comboBox"/>
-         </item>
-        </layout>
        </item>
        <item>
         <widget class="QCheckBox" name="displayColorbar_checkBox">

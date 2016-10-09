@@ -72,11 +72,34 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.plotType_comboBox.currentIndexChanged.connect(self.PlotTypeComboBox_IndexChanged)
         self.removeField_button.clicked.connect(self.RemoveFieldButton_Clicked)
         # Plot settings tab
+        ## General
+        self.regionToPlot_radioButton_1.toggled.connect(self.RegionToPlotRadioButton_Toggled)
+        self.regionToPlot_radioButton_2.toggled.connect(self.RegionToPlotRadioButton_Toggled)
+        self.xMinPlot_spinbox.valueChanged(self.XMinPlotSpinbox_ValueChanged)
+        self.yMinPlot_spinbox.valueChanged(self.YMinPlotSpinbox_ValueChanged)
+        self.xMaxPlot_spinbox.valueChanged(self.XMaxPlotSpinbox_ValueChanged)
+        self.yMaxPlot_spinbox.valueChanged(self.YMaxPlotSpinbox_ValueChanged)
         self.axisPlotType_comboBox.currentIndexChanged.connect(self.AxisPlotTypeComboBox_IndexChanged)
-        self.chargeUnits_comboBox.currentIndexChanged.connect(self.ChargeUnitsComboBox_IndexChanged)
-        self.axisColorMap_comboBox.currentIndexChanged.connect(self.AxisColorMapComboBox_IndexChanged)
-        self.chargeWeight_checkBox.toggled.connect(self.ChargeWeightCheckBox_StatusChanged)
         self.displayColorbar_checkBox.toggled.connect(self.DisplayColorbarCheckBox_StatusChanged)
+        ## Histogram
+        self.histogramXBins_spinBox.valueChanged(self.HistogramXBinsSpinbox_ValueChanged)
+        self.histogramYBins_spinBox.valueChanged(self.HistogramYBinsSpinbox_ValueChanged)
+        self.histogramChargeWeight_checkBox.toggled.connect(self.HistogramChargeWeightCheckBox_StatusChanged)
+        self.histogramChargeUnits_comboBox.currentIndexChanged.connect(self.HistogramChargeUnitsComboBox_IndexChanged)
+        self.histogramColorMap_comboBox.currentIndexChanged.connect(self.HistogramColorMapComboBox_IndexChanged)
+        ## Scatter
+        self.scatterChargeWeight_checkBox.toggled.connect(self.ScatterChargeWeightCheckBox_StatusChanged)
+        self.scatterChargeUnits_comboBox.currentIndexChanged.connect(self.ScatterChargeUnitsComboBox_IndexChanged)
+        self.scatterColorMap_comboBox.currentIndexChanged.connect(self.ScatterColorMapComboBox_IndexChanged)
+        ## Arrows
+        self.arrowXBins_spinBox.valueChanged(self.ArrowXBinsSpinbox_ValueChanged)
+        self.arrowYBins_spinBox.valueChanged(self.ArrowYBinsSpinbox_ValueChanged)
+        self.arrowMomentumUnits_comboBox.currentIndexChanged.connect(self.ArrowMomentumUnitsComboBox_IndexChanged)
+        self.arrowSize_radioButton_1.toggled.connect(self.ArrowSizeRadioButton_Toggled)
+        self.arrowSize_radioButton_2.toggled.connect(self.ArrowSizeRadioButton_Toggled)
+        self.arrowColor_radioButton_1.toggled.connect(self.ArrowColorRadioButton_Toggled)
+        self.arrowColor_radioButton_2.toggled.connect(self.ArrowColorRadioButton_Toggled)
+        self.arrowsColorMap_comboBox.currentIndexChanged.connect(self.ArrowsColorMapComboBox_IndexChanged)
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
         self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
@@ -145,27 +168,6 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
            self.plotType_comboBox.setCurrentIndex(index)
         self.updatingUiData = False
 
-    def FillPlotSettingsData(self):
-        self.updatingUiData = True
-        self.axisPlotType_comboBox.clear()
-        self.axisPlotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
-        index = self.axisPlotType_comboBox.findText(self.plotProperties["PlotType"]);
-        if index != -1:
-            self.axisPlotType_comboBox.setCurrentIndex(index)
-        self.chargeWeight_checkBox.setChecked(self.plotProperties["UseChargeWeighting"])
-        self.chargeUnits_comboBox.clear()
-        self.chargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
-        index = self.chargeUnits_comboBox.findText(self.plotProperties["ChargeUnits"]);
-        if index != -1:
-            self.chargeUnits_comboBox.setCurrentIndex(index)
-        self.axisColorMap_comboBox.clear()
-        self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(self.plotProperties["PlotType"]))
-        index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
-        if index != -1:
-            self.axisColorMap_comboBox.setCurrentIndex(index)
-        self.displayColorbar_checkBox.setChecked(self.plotProperties["DisplayColorbar"])
-        self.updatingUiData = False
-
     def FillAxesData(self):
         self.updatingUiData = True
         unitOptions = self.subplot.GetAxesUnitsOptions()
@@ -206,9 +208,28 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
         self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableDomainFieldsNames())
 
+    def SaveChanges(self):
+        self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
+        self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
+        self.subplot.SetAllColorbarProperties(self.cbProperties)
+        self.subplot.SetAllTitleProperties(self.titleProperties)
+
     """
     UI event handlers
     """
+    # Window
+    def ApplyButton_Clicked(self):
+        self.SaveChanges()
+        self.mainWindow.MakePlots()
+
+    def AcceptButton_Clicked(self):
+        self.SaveChanges()
+        self.close() 
+
+    def CancelButton_Clicked(self):
+        self.close()     
+
+    # Field tab
     def FieldListView_Clicked(self,index):
         self.selectedFieldIndex = index.row()
         self.FillFieldData(self.selectedFieldIndex)
@@ -239,6 +260,20 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         #cmap = self.colorMapsCollection.GetColorMap(name)
         #self.fieldToPlot.SetColorMap(cmap)
 
+    def SetFieldUnits(self):
+        if not self.updatingUiData:
+            units = str(self.fieldUnits_comboBox.currentText())
+            self.selectedFieldProperties["fieldUnits"] = units
+
+    def PlotTypeComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            plotType = str(self.plotType_comboBox.currentText())
+            self.selectedFieldProperties["plotType"] = plotType
+
+    def RemoveFieldButton_Clicked(self):
+        raise NotImplementedError
+
+    # Axes Tab
     def SetXAxisUnits(self):
         if not self.updatingUiData:
             if sys.version_info[0] < 3:
@@ -258,36 +293,6 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.axisProperties["y"]["Units"] = units
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["y"] = units
-
-    def SetFieldUnits(self):
-        if not self.updatingUiData:
-            units = str(self.fieldUnits_comboBox.currentText())
-            self.selectedFieldProperties["fieldUnits"] = units
-
-    def PlotTypeComboBox_IndexChanged(self):
-        if not self.updatingUiData:
-            plotType = str(self.plotType_comboBox.currentText())
-            self.selectedFieldProperties["plotType"] = plotType
-
-    def RemoveFieldButton_Clicked(self):
-        raise NotImplementedError
-
-    def ApplyButton_Clicked(self):
-        self.SaveChanges()
-        self.mainWindow.MakePlots()
-
-    def AcceptButton_Clicked(self):
-        self.SaveChanges()
-        self.close() 
-
-    def CancelButton_Clicked(self):
-        self.close()     
-
-    def SaveChanges(self):
-        self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
-        self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
-        self.subplot.SetAllColorbarProperties(self.cbProperties)
-        self.subplot.SetAllTitleProperties(self.titleProperties)
 
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
@@ -342,6 +347,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.titleProperties["Text"] = text
 
     # Plot settings tab
+    ## General
     def AxisPlotTypeComboBox_IndexChanged(self):
         plotType = str(self.axisPlotType_comboBox.currentText())
         # set visible options
@@ -366,25 +372,83 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
             if index != -1:
                 self.axisColorMap_comboBox.setCurrentIndex(index)
-
-    def ChargeUnitsComboBox_IndexChanged(self):
-        if not self.updatingUiData:
-            units = str(self.chargeUnits_comboBox.currentText())
-            self.plotProperties["ChargeUnits"] = units
-
-    def AxisColorMapComboBox_IndexChanged(self):
-        if not self.updatingUiData:
-            cMap = str(self.axisColorMap_comboBox.currentText())
-            self.plotProperties["CMap"] = cMap
-
-    def ChargeWeightCheckBox_StatusChanged(self):
-        state = self.chargeWeight_checkBox.checkState()
-        self.chargeUnits_comboBox.setEnabled(state)
-        self.plotProperties["UseChargeWeighting"] = state
-
+                
     def DisplayColorbarCheckBox_StatusChanged(self):
         self.plotProperties["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
 
+    ## Histogram
+    def HistogramXBinsSpinbox_ValueChanged(self, value):
+        self.plotProperties["Histogram"]["Bins"]["XBins"] = value
+
+    def HistogramYBinsSpinbox_ValueChanged(self, value):
+        self.plotProperties["Histogram"]["Bins"]["YBins"] = value
+
+    def HistogramChargeWeightCheckBox_StatusChanged(self):
+        state = self.histogramChargeWeight_checkBox.checkState()
+        self.histogramChargeUnits_comboBox.setEnabled(state)
+        self.plotProperties["Histogram"]["UseChargeWeighting"] = state
+
+    def HistogramChargeUnitsComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            units = str(self.histogramChargeUnits_comboBox.currentText())
+            self.plotProperties["Histogram"]["ChargeUnits"] = units
+
+    def HistogramColorMapComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            cMap = str(self.histogramColorMap_comboBox.currentText())
+            self.plotProperties["Histogram"]["CMap"] = cMap
+
+    ## Scatter
+    def ScatterChargeWeightCheckBox_StatusChanged(self):
+        state = self.scatterChargeWeight_checkBox.checkState()
+        self.scatterChargeUnits_comboBox.setEnabled(state)
+        self.plotProperties["Scatter"]["UseChargeWeighting"] = state
+
+    def ScatterChargeUnitsComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            units = str(self.scatterChargeUnits_comboBox.currentText())
+            self.plotProperties["Scatter"]["ChargeUnits"] = units
+
+    def ScatterColorMapComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            cMap = str(self.scatterColorMap_comboBox.currentText())
+            self.plotProperties["Scatter"]["CMap"] = cMap
+
+    ## Arrows
+    self.arrowXBins_spinBox.valueChanged(self.ArrowXBinsSpinbox_ValueChanged)
+    self.arrowYBins_spinBox.valueChanged(self.ArrowYBinsSpinbox_ValueChanged)
+    self.arrowMomentumUnits_comboBox.currentIndexChanged.connect(self.ArrowMomentumUnitsComboBox_IndexChanged)
+    self.arrowSize_radioButton_1.toggled.connect(self.ArrowSizeRadioButton_Toggled)
+    self.arrowSize_radioButton_2.toggled.connect(self.ArrowSizeRadioButton_Toggled)
+    self.arrowColor_radioButton_1.toggled.connect(self.ArrowColorRadioButton_Toggled)
+    self.arrowColor_radioButton_2.toggled.connect(self.ArrowColorRadioButton_Toggled)
+    self.arrowsColorMap_comboBox.currentIndexChanged.connect(self.ArrowsColorMapComboBox_IndexChanged)
+
+    def ArrowsXBinsSpinbox_ValueChanged(self, value):
+        self.plotProperties["Arrows"]["Bins"]["XBins"] = value
+
+    def ArrowsYBinsSpinbox_ValueChanged(self, value):
+        self.plotProperties["Arrows"]["Bins"]["YBins"] = value
+
+    def ArrowMomentumUnitsComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            units = str(self.arrowMomentumUnits_comboBox.currentText())
+            self.plotProperties["Arrows"]["MomentumUnits"] = units
+    
+    def ArrowSizeRadioButton_Toggled(self):
+        if self.arrowSize_radioButton_1.isChecked():
+            self.plotProperties["Arrows"]["NormalizationMode"] = "ToMaximum"
+        pass
+
+    def ArrowColorRadioButton_Toggled(self):
+        pass
+
+    def ArrowsColorMapComboBox_IndexChanged(self):
+        if not self.updatingUiData:
+            cMap = str(self.arrowColorMap_comboBox.currentText())
+            self.plotProperties["Arrows"]["CMap"] = cMap
+
+    # Slices tab
     def FieldSliceTypeRadioButton_Toggled(self):
         self.speciesSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
         self.speciesFieldSelectorSlice_comboBox.setEnabled(self.speciesFieldsSlice_radioButton.isChecked())
@@ -475,6 +539,69 @@ class EditRawPlotWindow(EditPlotWindow):
         self.FillColorbarData()
         self.FillTitleData()
         self.Fill1DSlicesData()
+
+    def FillPlotSettingsData(self):
+        self.updatingUiData = True
+        # General
+        if self.plotProperties["General"]["UseLimits"] == False:
+            self.regionToPlot_radioButton_1.setChecked(True)
+        else:
+            self.regionToPlot_radioButton_2.setChecked(True)
+        self.axisPlotType_comboBox.clear()
+        self.axisPlotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
+        index = self.axisPlotType_comboBox.findText(self.plotProperties["General"]["PlotType"]);
+        if index != -1:
+            self.axisPlotType_comboBox.setCurrentIndex(index)
+        self.displayColorbar_checkBox.setChecked(self.plotProperties["General"]["DisplayColorbar"])
+        # Histogram
+        self.histogramChargeWeight_checkBox.setChecked(self.plotProperties["Histogram"]["UseChargeWeighting"])
+        self.histogramChargeUnits_comboBox.clear()
+        self.histogramChargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
+        index = self.histogramChargeUnits_comboBox.findText(self.plotProperties["Histogram"]["ChargeUnits"]);
+        if index != -1:
+            self.histogramChargeUnits_comboBox.setCurrentIndex(index)
+        self.histogramColorMap_comboBox.clear()
+        self.histogramColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Histogram"))
+        index = self.histogramColorMap_comboBox.findText(self.plotProperties["Histogram"]["CMap"]);
+        if index != -1:
+            self.histogramColorMap_comboBox.setCurrentIndex(index)
+        # Scatter
+        self.scatterChargeWeight_checkBox.setChecked(self.plotProperties["Scatter"]["UseChargeWeighting"])
+        self.scatterChargeUnits_comboBox.clear()
+        self.scatterChargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
+        index = self.scatterChargeUnits_comboBox.findText(self.plotProperties["Scatter"]["ChargeUnits"]);
+        if index != -1:
+            self.scatterChargeUnits_comboBox.setCurrentIndex(index)
+        self.scatterColorMap_comboBox.clear()
+        self.scatterColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Scatter"))
+        index = self.scatterColorMap_comboBox.findText(self.plotProperties["Scatter"]["CMap"]);
+        if index != -1:
+            self.scatterColorMap_comboBox.setCurrentIndex(index)
+        # Arrows
+        if self.plotProperties["Arrows"]["MakeGrid"] == True:
+            self.arrowMakeGrid_radioButton.setChecked(True)
+        else:
+            self.arrowPlotAll_radioButton.setChecked(True)
+        self.arrowMomentumUnits_comboBox.clear()
+        self.arrowMomentumUnits_comboBox.addItems(self.subplot.GetMomentumUnitsOptions())
+        index = self.arrowMomentumUnits_comboBox.findText(self.plotProperties["Arrows"]["MomentumUnits"]);
+        if index != -1:
+            self.arrowMomentumUnits_comboBox.setCurrentIndex(index)
+        if self.plotProperties["Arrows"]["NormalizationMode"] == "ToMaximum":
+            self.arrowSize_radioButton_1.setChecked(True)
+        else:
+            self.arrowSize_radioButton_2.setChecked(True)
+        if self.plotProperties["Arrows"]["ColorMode"] == "Momentum":
+            self.arrowColor_radioButton_1.setChecked(True)
+        else:
+            self.arrowColor_radioButton_2.setChecked(True)
+        self.arrowColorMap_comboBox.clear()
+        self.arrowColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Arrows"))
+        index = self.arrowColorMap_comboBox.findText(self.plotProperties["Arrows"]["CMap"]);
+        if index != -1:
+            self.arrowColorMap_comboBox.setCurrentIndex(index)
+
+        self.updatingUiData = False
 
     def SaveChanges(self):
         super(EditRawPlotWindow, self).SaveChanges()
