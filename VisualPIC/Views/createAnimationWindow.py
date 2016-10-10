@@ -110,8 +110,8 @@ class CreateAnimationWindow(QtGui.QDialog):
         self.label.setText("First time step:")
         self.label_2.setText("Last time step:")
         self.label_3.setText("Frequency:")
-        self.firstStep_lineEdit.setText("0")
-        self.lastStep_lineEdit.setText(str(self.mainWindow.dataContainer.GetNumberOfTimeSteps()-1))
+        self.firstStep_lineEdit.setText(str(self.mainWindow.timeSteps[0]))
+        self.lastStep_lineEdit.setText(str(self.mainWindow.timeSteps[-1]))
         self.frequency_lineEdit.setText("1")
         self.onlySnaps_checkBox.setText("Create only snapshots")
         self.label_5.setText("Gif properties:")
@@ -139,28 +139,26 @@ class CreateAnimationWindow(QtGui.QDialog):
             self.gifTime_lineEdit.setEnabled(True)
     
     def createAnimation(self):
-        totalSimulationTimeSteps = self.mainWindow.dataContainer.GetNumberOfTimeSteps()
+        simulationTimeSteps = self.mainWindow.timeSteps
         firstTimeStep = int(self.firstStep_lineEdit.text())
+        firstIndex = np.where(simulationTimeSteps == firstTimeStep)[0][0]
         lastTimeStep = int(self.lastStep_lineEdit.text())
+        lastIndex = np.where(simulationTimeSteps == lastTimeStep)[0][0]
         freq = int(self.frequency_lineEdit.text())
         animDir = str(self.mainWindow.folderLocation_lineEdit.text()) + "/Animation"
-        charLen = len(str(totalSimulationTimeSteps))
+        charLen = len(str(simulationTimeSteps[-1]))
         file_paths = list()
         if not os.path.exists(animDir):
             os.makedirs(animDir)
-        for i in np.arange(firstTimeStep,lastTimeStep + 1,freq):
+        for i in simulationTimeSteps[firstIndex:lastIndex:freq]:
             self.mainWindow.timeStep_Slider.setValue(i)
             self.mainWindow.MakePlots()
             fileName = animDir + "/frame" + str(i).zfill(charLen)
             self.mainWindow.figure.savefig(fileName)
             file_paths.append(fileName + ".png")
-        
-        
         if not self.onlySnaps_checkBox.checkState():
-                
             images = [Image.open(fn) for fn in file_paths]
             filename = animDir + "/animation.GIF"
-            
             if self.frameTime_radioButton.isChecked():
                 time = float(self.gifTime_lineEdit.text())
             else:
