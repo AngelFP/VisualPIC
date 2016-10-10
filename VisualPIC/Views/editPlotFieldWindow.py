@@ -75,15 +75,15 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         ## General
         self.regionToPlot_radioButton_1.toggled.connect(self.RegionToPlotRadioButton_Toggled)
         self.regionToPlot_radioButton_2.toggled.connect(self.RegionToPlotRadioButton_Toggled)
-        self.xMinPlot_spinbox.valueChanged(self.XMinPlotSpinbox_ValueChanged)
-        self.yMinPlot_spinbox.valueChanged(self.YMinPlotSpinbox_ValueChanged)
-        self.xMaxPlot_spinbox.valueChanged(self.XMaxPlotSpinbox_ValueChanged)
-        self.yMaxPlot_spinbox.valueChanged(self.YMaxPlotSpinbox_ValueChanged)
         self.axisPlotType_comboBox.currentIndexChanged.connect(self.AxisPlotTypeComboBox_IndexChanged)
+        self.xMinPlot_spinbox.valueChanged.connect(self.XMinPlotSpinbox_ValueChanged)
+        self.yMinPlot_spinbox.valueChanged.connect(self.YMinPlotSpinbox_ValueChanged)
+        self.xMaxPlot_spinbox.valueChanged.connect(self.XMaxPlotSpinbox_ValueChanged)
+        self.yMaxPlot_spinbox.valueChanged.connect(self.YMaxPlotSpinbox_ValueChanged)
         self.displayColorbar_checkBox.toggled.connect(self.DisplayColorbarCheckBox_StatusChanged)
         ## Histogram
-        self.histogramXBins_spinBox.valueChanged(self.HistogramXBinsSpinbox_ValueChanged)
-        self.histogramYBins_spinBox.valueChanged(self.HistogramYBinsSpinbox_ValueChanged)
+        self.histogramXBins_spinBox.valueChanged.connect(self.HistogramXBinsSpinbox_ValueChanged)
+        self.histogramYBins_spinBox.valueChanged.connect(self.HistogramYBinsSpinbox_ValueChanged)
         self.histogramChargeWeight_checkBox.toggled.connect(self.HistogramChargeWeightCheckBox_StatusChanged)
         self.histogramChargeUnits_comboBox.currentIndexChanged.connect(self.HistogramChargeUnitsComboBox_IndexChanged)
         self.histogramColorMap_comboBox.currentIndexChanged.connect(self.HistogramColorMapComboBox_IndexChanged)
@@ -92,14 +92,16 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.scatterChargeUnits_comboBox.currentIndexChanged.connect(self.ScatterChargeUnitsComboBox_IndexChanged)
         self.scatterColorMap_comboBox.currentIndexChanged.connect(self.ScatterColorMapComboBox_IndexChanged)
         ## Arrows
-        self.arrowXBins_spinBox.valueChanged(self.ArrowXBinsSpinbox_ValueChanged)
-        self.arrowYBins_spinBox.valueChanged(self.ArrowYBinsSpinbox_ValueChanged)
+        self.arrowPlotAll_radioButton.toggled.connect(self.ArrowPlotModeRadioButton_Toggled)
+        self.arrowMakeGrid_radioButton.toggled.connect(self.ArrowPlotModeRadioButton_Toggled)
+        self.arrowXBins_spinBox.valueChanged.connect(self.ArrowXBinsSpinbox_ValueChanged)
+        self.arrowYBins_spinBox.valueChanged.connect(self.ArrowYBinsSpinbox_ValueChanged)
         self.arrowMomentumUnits_comboBox.currentIndexChanged.connect(self.ArrowMomentumUnitsComboBox_IndexChanged)
         self.arrowSize_radioButton_1.toggled.connect(self.ArrowSizeRadioButton_Toggled)
         self.arrowSize_radioButton_2.toggled.connect(self.ArrowSizeRadioButton_Toggled)
         self.arrowColor_radioButton_1.toggled.connect(self.ArrowColorRadioButton_Toggled)
         self.arrowColor_radioButton_2.toggled.connect(self.ArrowColorRadioButton_Toggled)
-        self.arrowsColorMap_comboBox.currentIndexChanged.connect(self.ArrowsColorMapComboBox_IndexChanged)
+        self.arrowColorMap_comboBox.currentIndexChanged.connect(self.ArrowColorMapComboBox_IndexChanged)
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
         self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
@@ -348,6 +350,20 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     # Plot settings tab
     ## General
+    def RegionToPlotRadioButton_Toggled(self):
+        self.plotProperties["General"]["UseLimits"] = self.regionToPlot_radioButton_2.isChecked()
+    
+    def XMinPlotSpinbox_ValueChanged(self, value):
+        self.plotProperties["General"]["PlotLimits"]["XMin"] = value
+    
+    def YMinPlotSpinbox_ValueChanged(self, value):
+        self.plotProperties["General"]["PlotLimits"]["YMin"] = value
+    def XMaxPlotSpinbox_ValueChanged(self, value):
+        self.plotProperties["General"]["PlotLimits"]["XMax"] = value
+    
+    def YMaxPlotSpinbox_ValueChanged(self, value):
+        self.plotProperties["General"]["PlotLimits"]["YMax"] = value
+    
     def AxisPlotTypeComboBox_IndexChanged(self):
         plotType = str(self.axisPlotType_comboBox.currentText())
         # set visible options
@@ -366,15 +382,9 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         if not self.updatingUiData:
             # general changes
             self.plotProperties["PlotType"] = plotType
-            self.axisColorMap_comboBox.clear()
-            self.axisColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions(plotType))
-            self.plotProperties["CMap"] = self.subplot.GetAxisDefaultColorMap(plotType)
-            index = self.axisColorMap_comboBox.findText(self.plotProperties["CMap"]);
-            if index != -1:
-                self.axisColorMap_comboBox.setCurrentIndex(index)
-                
+                        
     def DisplayColorbarCheckBox_StatusChanged(self):
-        self.plotProperties["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
+        self.plotProperties["General"]["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
 
     ## Histogram
     def HistogramXBinsSpinbox_ValueChanged(self, value):
@@ -415,19 +425,16 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.plotProperties["Scatter"]["CMap"] = cMap
 
     ## Arrows
-    self.arrowXBins_spinBox.valueChanged(self.ArrowXBinsSpinbox_ValueChanged)
-    self.arrowYBins_spinBox.valueChanged(self.ArrowYBinsSpinbox_ValueChanged)
-    self.arrowMomentumUnits_comboBox.currentIndexChanged.connect(self.ArrowMomentumUnitsComboBox_IndexChanged)
-    self.arrowSize_radioButton_1.toggled.connect(self.ArrowSizeRadioButton_Toggled)
-    self.arrowSize_radioButton_2.toggled.connect(self.ArrowSizeRadioButton_Toggled)
-    self.arrowColor_radioButton_1.toggled.connect(self.ArrowColorRadioButton_Toggled)
-    self.arrowColor_radioButton_2.toggled.connect(self.ArrowColorRadioButton_Toggled)
-    self.arrowsColorMap_comboBox.currentIndexChanged.connect(self.ArrowsColorMapComboBox_IndexChanged)
+    def ArrowPlotModeRadioButton_Toggled(self):
+        if self.arrowPlotAll_radioButton.isChecked():
+            self.plotProperties["Arrows"]["MakeGrid"] = False
+        elif self.arrowMakeGrid_radioButton.isChecked():
+            self.plotProperties["Arrows"]["MakeGrid"] = True
 
-    def ArrowsXBinsSpinbox_ValueChanged(self, value):
+    def ArrowXBinsSpinbox_ValueChanged(self, value):
         self.plotProperties["Arrows"]["Bins"]["XBins"] = value
 
-    def ArrowsYBinsSpinbox_ValueChanged(self, value):
+    def ArrowYBinsSpinbox_ValueChanged(self, value):
         self.plotProperties["Arrows"]["Bins"]["YBins"] = value
 
     def ArrowMomentumUnitsComboBox_IndexChanged(self):
@@ -438,12 +445,16 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def ArrowSizeRadioButton_Toggled(self):
         if self.arrowSize_radioButton_1.isChecked():
             self.plotProperties["Arrows"]["NormalizationMode"] = "ToMaximum"
-        pass
+        elif  self.arrowSize_radioButton_2.isChecked():
+            self.plotProperties["Arrows"]["NormalizationMode"] = "AllSameSize"
 
     def ArrowColorRadioButton_Toggled(self):
-        pass
+        if self.arrowColor_radioButton_1.isChecked():
+            self.plotProperties["Arrows"]["ColorMode"] = "Momentum"
+        elif  self.arrowColor_radioButton_2.isChecked():
+            self.plotProperties["Arrows"]["ColorMode"] = "Uniform"
 
-    def ArrowsColorMapComboBox_IndexChanged(self):
+    def ArrowColorMapComboBox_IndexChanged(self):
         if not self.updatingUiData:
             cMap = str(self.arrowColorMap_comboBox.currentText())
             self.plotProperties["Arrows"]["CMap"] = cMap
