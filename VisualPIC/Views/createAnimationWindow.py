@@ -99,9 +99,12 @@ class CreateAnimationWindow(QtGui.QDialog):
         self.create_Button = QtGui.QPushButton(self)
         self.create_Button.setObjectName("create_Button")
         self.verticalLayout.addWidget(self.create_Button)
+        
+        self._inputFilter = InputFilter(parent)
 
         self.retranslateUi()
         self.registerUiEvents()
+
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
@@ -122,9 +125,21 @@ class CreateAnimationWindow(QtGui.QDialog):
         self.create_Button.setText("Create")
         
     def registerUiEvents(self):
+        self.firstStep_lineEdit.installEventFilter(self._inputFilter)
         self.create_Button.clicked.connect(self.createButton_clicked)
         self.onlySnaps_checkBox.toggled.connect(self.onlySnapsCheckBox_StatusChanged)
     
+    def firsStepLineEdit_TextChanged(self, text):
+        step = int(text)
+        timeSteps = self.mainWindow.timeSteps
+        if step not in timeSteps:
+            closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
+            closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
+            if abs(step-closestHigher) < abs(step-closestLower):
+                self.firstStep_lineEdit.setText(str(closestHigher))
+            else:
+                self.firstStep_lineEdit.setText(str(closestLower))
+
     def createButton_clicked(self):
         self.createAnimation()
     
@@ -166,3 +181,29 @@ class CreateAnimationWindow(QtGui.QDialog):
                 time = float(self.gifTime_lineEdit.text()) / numberOfSteps
             images2gif.writeGif(filename, images, duration=time)
 
+
+class InputFilter(QtCore.QObject):
+
+    def __init__(self, mainWindow):
+        super(InputFilter,self).__init__()
+        self.mainWindow = mainWindow
+
+    def eventFilter(self, widget, event):
+        # FocusOut event
+        if event.type() == QtCore.QEvent.FocusOut:
+            # do custom stuff
+            step = int(widget.text)
+            timeSteps = self.mainWindow.timeSteps
+            if step not in timeSteps:
+                closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
+                closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
+                if abs(step-closestHigher) < abs(step-closestLower):
+                    widget.setText(str(closestHigher))
+                else:
+                    widget.setText(str(closestLower))
+            # return False so that the widget will also handle the event
+            # otherwise it won't focus out
+            return False
+        else:
+            # we don't care about other events
+            return False
