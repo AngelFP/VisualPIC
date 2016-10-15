@@ -26,7 +26,6 @@ import numpy as np
 
 class CreateAnimationWindow(QtGui.QDialog):
     def __init__(self,parent=None):
-        
         super(CreateAnimationWindow, self).__init__(parent)
         
         self.mainWindow = parent
@@ -108,11 +107,11 @@ class CreateAnimationWindow(QtGui.QDialog):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle("Create Animation")
+        self.setWindowTitle("Create Snapshots and Animation")
         self.label_4.setText("Snapshots:")
         self.label.setText("First time step:")
         self.label_2.setText("Last time step:")
-        self.label_3.setText("Frequency:")
+        self.label_3.setText("Step size:")
         self.firstStep_lineEdit.setText(str(self.mainWindow.timeSteps[0]))
         self.lastStep_lineEdit.setText(str(self.mainWindow.timeSteps[-1]))
         self.frequency_lineEdit.setText("1")
@@ -126,19 +125,9 @@ class CreateAnimationWindow(QtGui.QDialog):
         
     def registerUiEvents(self):
         self.firstStep_lineEdit.installEventFilter(self._inputFilter)
+        self.lastStep_lineEdit.installEventFilter(self._inputFilter)
         self.create_Button.clicked.connect(self.createButton_clicked)
         self.onlySnaps_checkBox.toggled.connect(self.onlySnapsCheckBox_StatusChanged)
-    
-    def firsStepLineEdit_TextChanged(self, text):
-        step = int(text)
-        timeSteps = self.mainWindow.timeSteps
-        if step not in timeSteps:
-            closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
-            closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
-            if abs(step-closestHigher) < abs(step-closestLower):
-                self.firstStep_lineEdit.setText(str(closestHigher))
-            else:
-                self.firstStep_lineEdit.setText(str(closestLower))
 
     def createButton_clicked(self):
         self.createAnimation()
@@ -192,18 +181,23 @@ class InputFilter(QtCore.QObject):
         # FocusOut event
         if event.type() == QtCore.QEvent.FocusOut:
             # do custom stuff
-            step = int(widget.text)
+            step = int(widget.text())
             timeSteps = self.mainWindow.timeSteps
             if step not in timeSteps:
-                closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
-                closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
+                higherTimeSteps = np.where(timeSteps > step)[0]
+                if len(higherTimeSteps) == 0:
+                    closestHigher = timeSteps[0]
+                else:
+                    closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
+                lowerTimeSteps = np.where(timeSteps < step)[0]
+                if len(lowerTimeSteps) == 0:
+                    closestLower = timeSteps[-1]
+                else:
+                    closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
                 if abs(step-closestHigher) < abs(step-closestLower):
                     widget.setText(str(closestHigher))
                 else:
                     widget.setText(str(closestLower))
-            # return False so that the widget will also handle the event
-            # otherwise it won't focus out
-            return False
-        else:
-            # we don't care about other events
-            return False
+        # return False so that the widget will also handle the event
+        # otherwise it won't focus out
+        return False
