@@ -90,8 +90,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             dataSets = {}
             dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "z"), self.unitConverter)
             dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "y"), self.unitConverter)
+            dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"), self.unitConverter)
             self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
             self.selectorSubplot.SetPlotType("Scatter")
+            self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
             self.selectorSubplot.SetAxisProperty("x", "LabelFontSize", 10)
             self.selectorSubplot.SetAxisProperty("y", "LabelFontSize", 10)
             self.selectorSubplot.SetTitleProperty("FontSize", 0)

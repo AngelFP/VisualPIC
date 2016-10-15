@@ -16,7 +16,8 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
- 
+
+import sys 
 import matplotlib
 from matplotlib.ticker import LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
@@ -135,34 +136,34 @@ class DataPlotter:
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
         axisData = subplot.GetDataToPlot()
         plotData = {}
-        plotData["x"] = axisData["x"].GetDataSetPlotData(timeStep)
-        plotData["y"] = axisData["y"].GetDataSetPlotData(timeStep)
-        plotData["Px"] = axisData["Px"].GetDataSetPlotData(timeStep)
-        plotData["Py"] = axisData["Py"].GetDataSetPlotData(timeStep)
-        if "z" in axisData:
-            plotData["z"] = axisData["z"].GetDataSetPlotData(timeStep)
-        if "weight" in axisData:
-            plotData["weight"] = axisData["weight"].GetDataSetPlotData(timeStep)
-        cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty("CMap"))
+        # Load data
+        if sys.version_info[0] < 3:
+            for dataSetName, values in axisData.iteritems():
+                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
+        else:
+            for dataSetName, values in axisData.items():
+                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
+        cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
-        im = self.plotTypes["Raw"][subplot.GetPlotProperty("PlotType")](ax, plotData, cMap)
+        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, cMap)
         # change plot size to make room for the colorBar
         pos1 = ax.get_position()
         pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
         ax.set_position(pos2)
         ax.hold(True)
         # colorBar
-        cbWidth = 0.015
-        cbHeight = pos2[3]
-        cbX = pos2[0] + pos2[2] + 0.02
-        cbY = pos2[1]
-        cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
-        cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
-        cbar.solids.set_edgecolor("face")
-        if subplot.GetPlotProperty("PlotType") == "Histogram" or subplot.GetPlotProperty("PlotType") == "Scatter":
-            cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
-        elif subplot.GetPlotProperty("PlotType") == "Arrows":
-            cbar.set_label(label="$"+axisData["Px"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+        if subplot.GetPlotProperty("General", "DisplayColorbar") == True:
+            cbWidth = 0.015
+            cbHeight = pos2[3]
+            cbX = pos2[0] + pos2[2] + 0.02
+            cbY = pos2[1]
+            cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
+            cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
+            cbar.solids.set_edgecolor("face")
+            if subplot.GetPlotType() == "Histogram" or subplot.GetPlotType() == "Scatter":
+                cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+            elif subplot.GetPlotType() == "Arrows":
+                cbar.set_label(label="$"+axisData["Px"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
