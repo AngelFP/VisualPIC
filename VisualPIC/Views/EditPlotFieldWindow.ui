@@ -38,7 +38,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="documentMode">
       <bool>false</bool>
@@ -393,16 +393,7 @@
        <item>
         <widget class="QWidget" name="histogramSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_20">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
@@ -554,16 +545,7 @@
        <item>
         <widget class="QWidget" name="scatterSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_21">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
@@ -636,31 +618,13 @@
        <item>
         <widget class="QWidget" name="arrowsSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_24">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_3" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_29">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>0</number>
              </property>
              <item>
@@ -794,16 +758,7 @@
           <item>
            <widget class="QWidget" name="widget_2" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_28">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>0</number>
              </property>
              <item>
@@ -882,16 +837,7 @@
           <item>
            <widget class="QWidget" name="widget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_19">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>0</number>
              </property>
             </layout>
@@ -929,7 +875,7 @@
           <enum>QTabWidget::West</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_3">
           <attribute name="title">

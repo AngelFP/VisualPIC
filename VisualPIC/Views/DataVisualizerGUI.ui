@@ -113,16 +113,7 @@
            </size>
           </property>
           <layout class="QVBoxLayout" name="plotWidget_layout">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
+           <property name="margin">
             <number>0</number>
            </property>
           </layout>
@@ -137,16 +128,7 @@
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
+           <property name="margin">
             <number>0</number>
            </property>
            <item>
@@ -406,16 +388,7 @@
                   <item>
                    <widget class="QWidget" name="freeRaw_widget" native="true">
                     <layout class="QVBoxLayout" name="verticalLayout_13">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
+                     <property name="margin">
                       <number>0</number>
                      </property>
                      <item>
@@ -500,16 +473,7 @@
                      <bool>true</bool>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_14">
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
+                     <property name="margin">
                       <number>0</number>
                      </property>
                      <item>
@@ -804,7 +768,7 @@
   </action>
   <action name="actionMake_video">
    <property name="text">
-    <string>Make video</string>
+    <string>Create animation</string>
    </property>
   </action>
   <action name="actionAbout">
