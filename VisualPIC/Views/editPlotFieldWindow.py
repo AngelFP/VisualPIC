@@ -381,7 +381,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.arrowsSettings_widget.setVisible(True)
         if not self.updatingUiData:
             # general changes
-            self.plotProperties["PlotType"] = plotType
+            self.plotProperties["General"]["PlotType"] = plotType
                         
     def DisplayColorbarCheckBox_StatusChanged(self):
         self.plotProperties["General"]["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
