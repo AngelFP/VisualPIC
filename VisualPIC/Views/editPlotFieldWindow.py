@@ -283,8 +283,6 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             else:
                 units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
-            for fieldProperties in self.fieldPropertiesList:
-                fieldProperties["axesUnits"]["x"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
@@ -293,8 +291,6 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             else:
                 units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
-            for fieldProperties in self.fieldPropertiesList:
-                fieldProperties["axesUnits"]["y"] = units
 
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
@@ -523,6 +519,28 @@ class EditFieldPlotWindow(EditPlotWindow):
         self.FillListView()
         self.FillFieldData(0)
 
+            # Axes Tab
+
+    def SetXAxisUnits(self):
+        if not self.updatingUiData:
+            super(EditFieldPlotWindow, self).SetXAxisUnits()
+            if sys.version_info[0] < 3:
+                units = unicode(self.xUnits_comboBox.currentText())
+            else:
+                units = self.xUnits_comboBox.currentText()
+            for fieldProperties in self.fieldPropertiesList:
+                fieldProperties["axesUnits"]["x"] = units
+
+    def SetYAxisUnits(self):
+        if not self.updatingUiData:
+            super(EditFieldPlotWindow, self).SetYAxisUnits()
+            if sys.version_info[0] < 3:
+                units = unicode(self.yUnits_comboBox.currentText())
+            else:
+                units = self.xUnits_comboBox.currentText()
+            for fieldProperties in self.fieldPropertiesList:
+                fieldProperties["axesUnits"]["y"] = units
+
     def SaveChanges(self):
         i = 0
         for field in self.subplot.GetDataToPlot():
@@ -617,6 +635,11 @@ class EditRawPlotWindow(EditPlotWindow):
     def SaveChanges(self):
         super(EditRawPlotWindow, self).SaveChanges()
         self.subplot.SetAllPlotProperties(self.plotProperties)
+        dataToPlot = self.subplot.GetDataToPlot()
+        dataToPlot["x"].SetProperty("dataSetUnits", self.axisProperties["x"]["Units"])
+        dataToPlot["y"].SetProperty("dataSetUnits", self.axisProperties["y"]["Units"])
+        if "z" in dataToPlot:
+            dataToPlot["z"].SetProperty("dataSetUnits", self.axisProperties["z"]["Units"])
 
 
 class EditPlotWindowSelector:

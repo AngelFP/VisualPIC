@@ -58,6 +58,12 @@ class GeneralUnitConverter(object):
             return ["T", "V/m"]
         elif dataISUnits == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
+        elif dataISUnits == "m":
+            return ["m", self.um]
+        elif dataISUnits == "kg*m/s":
+            return ["kg*m/s", "MeV/c"]
+        elif dataISUnits == "J":
+            return ["J", "MeV"]
         else:
             return list()
 
@@ -109,6 +115,16 @@ class GeneralUnitConverter(object):
             elif dataISUnits == "T":
                 if units == "V/m":
                     return dataInISUnits * self.c
+            elif dataISUnits == "m":
+                if units == self.um:
+                    return dataInISUnits * 1e6
+            elif dataISUnits == "kg*m/s":
+                if units == "MeV/c":
+                    return dataInISUnits / self.e * 1e-6
+            elif dataISUnits == "J":
+                if units == "MeV":
+                    return dataInISUnits / self.e * 1e-6
+                
 
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if self.hasNonISUnits:

@@ -46,6 +46,9 @@ class RawDataSetToPlot:
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]
 
+    def SetProperty(self, propertyName, value):
+        self._dataProperties[propertyName] = value
+
     def GetDataProperties(self):
         return self._dataProperties
         
