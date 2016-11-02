@@ -537,7 +537,7 @@ class EditFieldPlotWindow(EditPlotWindow):
             if sys.version_info[0] < 3:
                 units = unicode(self.yUnits_comboBox.currentText())
             else:
-                units = self.xUnits_comboBox.currentText()
+                units = self.yUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["y"] = units
 
