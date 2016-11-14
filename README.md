@@ -97,9 +97,8 @@ Let's see what's the function of each of them (replace "MyCode" with the name of
 
 1. GiveStandardNameForMyCodeQuantity(self, osirisName).
   * Function: You give as input the name of the quantity (Field or RawData) in your code and get in return its standard VisualPIC name.
-  * Detailed explanation: Each code stores the data with different names. For example, in OSIRIS, the components of the electric field are called "e1", "e2" and "e3", the energy 
-is called "ene", and so on. Therefore, in order to make VisualPIC code-independent, common names for each quantity have been defined (e.g. "Ex", "Ey", "Ez" for the electric field components).
-This method was created in order to translate from the code-specific data name into the common names defined in VisualPIC.
+  * Detailed explanation: Each code stores the data with different names. For example, in OSIRIS, the components of the electric field are called "e1", "e2" and "e3", the energy is called "ene", and so on. Therefore, in order to make VisualPIC code-independent, common names for each quantity have been defined (e.g. "Ex", "Ey", "Ez" for the electric field components).
+  This method was created in order to translate from the code-specific data name into the common names defined in VisualPIC.
   * Example: GiveStandardNameForOsirisQuantity("e1") returns "Ez".
 
 2. GetTimeStepsInMyCodeLocation(self, location): 
@@ -122,7 +121,7 @@ This method was created in order to translate from the code-specific data name i
   self.AddRawDataToSpecies(..)
   self.AddRawDataTagsToSpecies(..)
         ```
-in order to add all the data into the DataContainer.
+  in order to add all the data into the DataContainer.
 
   * Example: The implementation of this method might be very different from code to code, but to get a general idea one can look at how "LoadOsirisData" is implemented in VisualPIC.
 
@@ -158,23 +157,23 @@ Let's take a look at how to implement them:
 Location: VisualPIC/DataReading/fieldReaders.py
 
 1. Create a new field reader for your code (in the same fieldReaders.py file), inheriting from FieldReaderBase:
-        ```python
-class MyCodeFieldReader(FieldReaderBase):
+  ```python
+  class MyCodeFieldReader(FieldReaderBase):
     def __init__(self, location, speciesName, dataName, firstTimeStep):
-        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
-        
+	FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
+
     def ReadInternalName(self, file_content):
-        raise NotImplementedError
+	raise NotImplementedError
 
     def DetermineFieldDimension(self, file_content):
-        raise NotImplementedError
+	raise NotImplementedError
 
     def OpenFileAndReadData(self):
-        raise NotImplementedError
+	raise NotImplementedError
 
     def OpenFileAndReadUnits(self):
-        raise NotImplementedError
-        ```
+	raise NotImplementedError
+  ```
 2. Implement each of the methods:
   1. ReadInternalName(self, file_content).
     * Function: determines and stores in `self.fieldDimension` the dimmension of the field (`"2D"` or `"3D"`).
