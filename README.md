@@ -115,18 +115,26 @@ This method was created in order to translate from the code-specific data name i
 3. LoadMyCodeData(self):
   * Function: Scans the simulation folder and creates all the necessary Species, Fields, RawDataSet and RawDataTags objects.
   * Detailed explanation: This is the real core of the FolderDataReader class. It should scan the whole folder tree in the location of the simulation data, using the already built-in methods
-```python
-self.AddSpecies(..)
-self.AddFieldToSpecies(..)
-self.AddDomainField(..)
-self.AddRawDataToSpecies(..)
-self.AddRawDataTagsToSpecies(..)
-```
+        ```python
+  self.AddSpecies(..)
+  self.AddFieldToSpecies(..)
+  self.AddDomainField(..)
+  self.AddRawDataToSpecies(..)
+  self.AddRawDataTagsToSpecies(..)
+        ```
 in order to add all the data into the DataContainer.
 
   * Example: The implementation of this method might be very different from code to code, but to get a general idea one can look at how "LoadOsirisData" is implemented in VisualPIC.
 
-#### 2. FieldReader
+#### 2. DataReaders
+
+The FieldReader and RawDataReader are very similar classes. In fact, as seen in the picture below, both of them inherit from the more general, parent class, DataReader.
+
+![VisualPIC Screnshot](Class Diagram/DataReadersStructure.png)
+
+Location: VisualPIC/DataReading/fieldReaders.py
+
+
 
 #### 3. RawDataReader
 
