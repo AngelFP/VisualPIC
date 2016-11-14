@@ -1,8 +1,8 @@
 # VisualPIC
 Data visualizer for PIC codes.
 
-![VisualPIC logo](Logo/logo.png)
-![VisualPIC Screnshot](Logo/VisualPIC.PNG)
+[![VisualPIC logo](Logo/logo.png)]
+[![VisualPIC Screnshot](Logo/VisualPIC.PNG)]
 
 ## Support for multiple PIC codes
 
@@ -29,8 +29,8 @@ Before explaining the inner structure of each of these classes, let's explain in
 
 One of the first things that has to be noticed is that there are 3 types of data (Fields, RawDataSets and RawDataTags). Let's explain each of them:
 
-- Fields: By definition, a physical quantity that has a value for each point in space and time. This includes the components (x, y or z) of the electric and magnetic fields, the currents and, in some codes like OSIRIS, the charge density of a certain species.
-- RawDataSets: We call Raw data to the macroparticle data. That is, data sets which contain the information of each macroparticle (position, momentum, charge, energy) so that a scatter or histogram plot can be made. It should be noted that one RawDataSet is created for each macroparticle variable (one for the x coordinate, another for the y coordinate, and so on), so usually we have around 7 or 8 data sets.
-- RawDataTags: In some simulation codes, in order to allow particle tracking, it is possible to add a tag or label to each macroparticle. Since this information is not a physical quantity or anything that we want to plot, it is stored separately in the RawDataTags class.
+- **Fields**: By definition, a physical quantity that has a value for each point in space and time. This includes the components (x, y or z) of the electric and magnetic fields, the currents and, in some codes like OSIRIS, the charge density of a certain species.
+- **RawDataSets**: We call Raw data to the macroparticle data. That is, data sets which contain the information of each macroparticle (position, momentum, charge, energy) so that a scatter or histogram plot can be made. It should be noted that one RawDataSet is created for each macroparticle variable (one for the x coordinate, another for the y coordinate, and so on), so usually we have around 7 or 8 data sets.
+- **RawDataTags**: In some simulation codes, in order to allow particle tracking, it is possible to add a tag or label to each macroparticle. Since this information is not a physical quantity or anything that we want to plot, it is stored separately in the RawDataTags class.
 
 
