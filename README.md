@@ -52,7 +52,7 @@ Location: VisualPIC/DataReading/folderDataReader.py
 
 ##### 1.1. Detecting the simulation code and calling the right method.
 
-In VisualPIC, the user has to indicate the location of the data folder (e.g. MS folder in the case of OSIRIS). Then when he clicks on "Load Data", VisualPIC detects which simulation code is the data from and calls the corresponding method to effectively load the data. At the moment, this is done based on the name of the simulation data folder because at least for Osiris and PIConGPU this is always called "MS" or "simOutput" respectively.
+In VisualPIC, the user has to indicate the location of the data folder (e.g. MS folder in the case of OSIRIS). Then, when he clicks on "Load Data", VisualPIC detects which simulation code is the data from and calls the corresponding method to effectively load the data. At the moment, this is done based on the name of the simulation data folder because at least for Osiris and PIConGPU this is always called "MS" or "simOutput" respectively.
 
 This is done in the "CreateCodeDictionaries" method. You have to add an entry to the self._codeName dictionary in the following way: 
 
@@ -64,7 +64,7 @@ self._codeName = {"MS":"Osiris",
 
 Where "folderName" is the typical name of the simulation data folder created by your code, and "myCodeName" is the name of your simulation code.
 
-Then, since every simulation software stores the data in a different way, a specific method for scanning the folder and loadind the data has to be created for each case, and VisualPIC will know which method to call depending on the detected simulation code name. This is also done by using a dictionary:
+Then, since every simulation software stores the data in a different way, a specific method for scanning the folder and loading the data has to be created for each case, and VisualPIC will know which method to call depending on the detected simulation code name. This is also done by using a dictionary:
 
 ```python
 self._loadDataFrom = {"Osiris": self.LoadOsirisData,
@@ -74,7 +74,24 @@ self._loadDataFrom = {"Osiris": self.LoadOsirisData,
 
 ##### 1.2. Methods to create
 
+First of all, I have to say that the way in which data loading is implemented in this class might be a bit ugly, but it's the best I could do in the sort time I had until now to develop this tool.
 
+Under the section "Specific data loaders", we will have to create a subsection for the new code in whgich we wil create 3 method. As an example, this is what it looks like for Osiris:
+
+```python
+"""
+Specific data loaders
+"""
+# OSIRIS
+def LoadOsirisData(self): [...]
+
+def GetTimeStepsInOsirisLocation(self, location): [...]
+
+def GiveStandardNameForOsirisQuantity(self, osirisName): [...]
+
+# NameOfYourCode
+	# The 3 methods have to be implemented here.
+```
 
 #### 2. FieldReader
 
