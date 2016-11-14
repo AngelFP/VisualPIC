@@ -94,6 +94,7 @@ class FolderDataReader:
     """
     Specific data loaders
     """
+    # OSIRIS
     def LoadOsirisData(self):
         """Osiris Loader"""
         keyFolderNames = ["DENSITY", "FLD", "PHA", "RAW" ]
@@ -200,6 +201,7 @@ class FolderDataReader:
         else:
             return osirisName
 
+    # HiPACE
     def LoadHiPaceData(self):
         """HiPACE loader"""
         raise NotImplementedError
@@ -219,7 +221,7 @@ class FolderDataReader:
         self.AddRawDataTagsToSpecies(..)
         """
         
-
+    # PIConGPU
     def LoadPIConGPUData(self):
         """PIConGPU loader"""
         raise NotImplementedError

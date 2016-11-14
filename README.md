@@ -46,11 +46,11 @@ In order to create this data structure and read the data files there are three c
 
 Now that we have a general idea of how the data is structured and what each class is doing, we can explain what do we have to modify to add compatibility for another code. Let's go class by class.
 
-#### FolderDataReader
+#### 1. FolderDataReader
 
 Location: VisualPIC/DataReading/folderDataReader.py
 
-1. Detecting the simulation code and calling the right method.
+##### 1.1. Detecting the simulation code and calling the right method.
 
 In VisualPIC, the user has to indicate the location of the data folder (e.g. MS folder in the case of OSIRIS). Then when he clicks on "Load Data", VisualPIC detects which simulation code is the data from and calls the corresponding method to effectively load the data. At the moment, this is done based on the name of the simulation data folder because at least for Osiris and PIConGPU this is always called "MS" or "simOutput" respectively.
 
@@ -68,12 +68,16 @@ Then, since every simulation software stores the data in a different way, a spec
 
 ```python
 self._loadDataFrom = {"Osiris": self.LoadOsirisData,
-                        "PIConGPU":self.LoadPIConGPUData,
-						"myCodeName": self.LoadMyCodeData} # <-- Line to add (method will be created later)
+                      "PIConGPU":self.LoadPIConGPUData,
+					  "myCodeName": self.LoadMyCodeData} # <-- Line to add (method will be created later)
 ```
 
-#### FieldReader
+##### 1.2. Methods to create
 
-#### RawDataReader
 
-#### UnitConverter
+
+#### 2. FieldReader
+
+#### 3. RawDataReader
+
+#### 4. UnitConverter
