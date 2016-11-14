@@ -74,9 +74,9 @@ self._loadDataFrom = {"Osiris": self.LoadOsirisData,
 
 ##### 1.2. Methods to create
 
-First of all, I have to say that the way in which data loading is implemented in this class might be a bit ugly, but it's the best I could do in the sort time I had until now to develop this tool.
+First of all, I have to say that the way in which data loading is implemented in this class might be a bit ugly, but it's the best I could do in the short time I had until now to develop this tool.
 
-Under the section "Specific data loaders", we will have to create a subsection for the new code in whgich we wil create 3 method. As an example, this is what it looks like for Osiris:
+Under the section "Specific data loaders", we will have to create a subsection for the new code in which we wil create 3 methods. As an example, this is what it looks like for Osiris:
 
 ```python
 """
@@ -92,6 +92,39 @@ def GiveStandardNameForOsirisQuantity(self, osirisName): [...]
 # NameOfYourCode
 	# The 3 methods have to be implemented here.
 ```
+
+Let's see what's the function of each of them (replace "MyCode" with the name of your simulation code), from bottom to top:
+
+1. GiveStandardNameForMyCodeQuantity(self, osirisName).
+  * Function: You give as input the name of the quantity (Field or RawData) in your code and get in return its standard VisualPIC name.
+  * Detailed explanation: Each code stores the data with different names. For example, in OSIRIS, the components of the electric field are called "e1", "e2" and "e3", the energy 
+is called "ene", and so on. Therefore, in order to make VisualPIC code-independent, common names for each quantity have been defined (e.g. "Ex", "Ey", "Ez" for the electric field components).
+This method was created in order to translate from the code-specific data name into the common names defined in VisualPIC.
+  * Example: GiveStandardNameForOsirisQuantity("e1") returns "Ez".
+
+2. GetTimeStepsInMyCodeLocation(self, location): 
+  * Function: Returns a 1D numpy array containing all the time steps of a particular Field or RawDataSet stored in the simulation folder.
+  * Detailed explanation: Typically, one does not store all the simulation time steps, but only one every "n" steps. 
+  Furthermore, it is generally possible to change the frequency with which the time steps are saved for each physical 
+  quantity (maybe one wants to save more frequently the charge density than the electric field). Therefore, VisualPIC 
+  needs to know which time steps have been saved for each of the stored data sets, so that it knows which data files 
+  to read. That is why this method was included.
+  * Example: Let's say that after an OSIRIS simulation is finished we have 3 files in the "e1" folder named e1-000000.h5, 
+  e1-000050.h5 and e1-000100.h5. This means that only the time steps 0, 50 and 100 have been saved. Therefore, this method should retunr the array [0, 50, 100].
+
+3. LoadMyCodeData(self):
+  * Function: Scans the simulation folder and creates all the necessary Species, Fields, RawDataSet and RawDataTags objects.
+  * Detailed explanation: This is the real core of the FolderDataReader class. It should scan the whole folder tree in the location of the simulation data, using the already built-in methods
+```python
+self.AddSpecies(..)
+self.AddFieldToSpecies(..)
+self.AddDomainField(..)
+self.AddRawDataToSpecies(..)
+self.AddRawDataTagsToSpecies(..)
+```
+in order to add all the data into the DataContainer.
+
+  * Example: The implementation of this method might be very different from code to code, but to get a general idea one can look at how "LoadOsirisData" is implemented in VisualPIC.
 
 #### 2. FieldReader
 

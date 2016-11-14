@@ -212,7 +212,7 @@ class FolderDataReader:
         It will create a Species, Field, RawDataSet or RawDataTags object for each
         species, field, raw (particle) data set and particle tags found in the folder.
 
-        To add this data into the dataContainer the following functions have to be used:
+        To add these data into the dataContainer the following functions have to be used:
 
         self.AddSpecies(..)
         self.AddFieldToSpecies(..)
