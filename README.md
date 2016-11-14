@@ -1,8 +1,8 @@
 # VisualPIC
 Data visualizer for PIC codes.
 
-[![VisualPIC logo](Logo/logo.png)]
-[![VisualPIC Screnshot](Logo/VisualPIC.PNG)]
+![VisualPIC logo](Logo/logo.png =250x)
+![VisualPIC Screnshot](Logo/VisualPIC.PNG)
 
 ## Support for multiple PIC codes
 
