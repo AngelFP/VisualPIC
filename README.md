@@ -137,10 +137,60 @@ At the same time, FieldReader and RawDataReader include all the necessary method
 but not all of them are implemented. Instead, the strategy used here is that, as seen in the picture, 
 for each supported simulation code these methods will be implemented in a child class of FieldReader and RawDataReader.
 
+Methods to implement (apart from constructor):
+
+* FieldReader:
+  * ReadInternalName(self, file_content)
+  * DetermineFieldDimension(self, file_content)
+  * OpenFileAndReadData(self)
+  * OpenFileAndReadUnits(self)
+  * OpenFile(self, timeStep)
+
+* RawDataReader:
+  * OpenFileAndReadData(self)
+  * OpenFileAndReadUnits(self)
+  * OpenFile(self, timeStep)
+
+Let's take a look at how to implement them:
+
+##### 2.1 FieldReader
+
 Location: VisualPIC/DataReading/fieldReaders.py
 
+1. Create a new field reader for your code (in the same fieldReaders.py file), inheriting from FieldReaderBase:
+        ```python
+class MyCodeFieldReader(FieldReaderBase):
+    def __init__(self, location, speciesName, dataName, firstTimeStep):
+        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
+        
+    def ReadInternalName(self, file_content):
+        raise NotImplementedError
 
+    def DetermineFieldDimension(self, file_content):
+        raise NotImplementedError
 
-#### 3. RawDataReader
+    def OpenFileAndReadData(self):
+        raise NotImplementedError
+
+    def OpenFileAndReadUnits(self):
+        raise NotImplementedError
+        ```
+2. Implement each of the methods:
+  1. ReadInternalName(self, file_content).
+    * Function: determines and stores in `self.fieldDimension` the dimmension of the field (`"2D"` or `"3D"`).
+    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. Check for something in `file_content` in order to determine de dimmension of the field.
+    * Example: for OSIRIS, this method is simply 
+        ```python
+	self.internalName = "/" + list(file_content.keys())[1]
+        ```
+  2. DetermineFieldDimension(self, file_content).
+    * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
+    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. The name of the field will be one of the keys stored in it.
+    * Example: for OSIRIS, this is done by detecting whether the entry `'/AXIS/AXIS3'` is present in `file_content`
+        ```
+
+##### 2.2 RawDataReader
+
+Location: VisualPIC/DataReading/rawDataReaders.py
 
 #### 4. UnitConverter
