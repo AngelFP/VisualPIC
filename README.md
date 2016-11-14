@@ -179,9 +179,9 @@ Location: VisualPIC/DataReading/fieldReaders.py
     * Function: determines and stores in `self.fieldDimension` the dimmension of the field (`"2D"` or `"3D"`).
     * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. Check for something in `file_content` in order to determine de dimmension of the field.
     * Example: for OSIRIS, this method is simply 
-        ```python
-	self.internalName = "/" + list(file_content.keys())[1]
-        ```
+    ```python
+      self.internalName = "/" + list(file_content.keys())[1]
+    ```
   2. DetermineFieldDimension(self, file_content).
     * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
     * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. The name of the field will be one of the keys stored in it.
