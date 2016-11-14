@@ -36,5 +36,5 @@ class FieldReaderSelector:
                    "PIConGPU": PIConGPUFieldReader
                    }
     @classmethod
-    def GetReader(cls, simulationCode, location, speciesName, dataName):
-        return cls.dataReaders[simulationCode](location, speciesName, dataName)
+    def GetReader(cls, simulationCode, location, speciesName, dataName, firstTimeStep):
+        return cls.dataReaders[simulationCode](location, speciesName, dataName, firstTimeStep)

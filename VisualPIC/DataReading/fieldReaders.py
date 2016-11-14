@@ -29,10 +29,11 @@ from VisualPIC.DataReading.dataReader import DataReader
 class FieldReaderBase(DataReader):
     """Parent class for all FieldReaders"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName):
+    def __init__(self, location, speciesName, dataName, firstTimeStep):
         DataReader.__init__(self, location, speciesName, dataName)
         self.internalName = ""
         self.fieldDimension = ""
+        self.firstTimeStep = firstTimeStep
         self.axisUnits = {}
         self.axisData = {}
         self.ReadBasicData()
@@ -70,9 +71,11 @@ class FieldReaderBase(DataReader):
             self.OpenFileAndReadUnits()
         return self.axisUnits
 
-    @abc.abstractmethod
     def ReadBasicData(self):
-        raise NotImplementedError
+        file_content = self.OpenFile(self.firstTimeStep)
+        self.ReadInternalName(file_content)
+        self.DetermineFieldDimension(file_content)
+        file_content.close()
 
     @abc.abstractmethod
     def ReadInternalName(self):
@@ -84,14 +87,8 @@ class FieldReaderBase(DataReader):
 
 
 class OsirisFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName):
-        FieldReaderBase.__init__(self, location, speciesName, dataName)
-
-    def ReadBasicData(self):
-        file_content = self.OpenFile(0)
-        self.ReadInternalName(file_content)
-        self.DetermineFieldDimension(file_content)
-        file_content.close()
+    def __init__(self, location, speciesName, dataName, firstTimeStep):
+        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
         
     def ReadInternalName(self, file_content):
         self.internalName = "/" + list(file_content.keys())[1]
@@ -142,11 +139,8 @@ class OsirisFieldReader(FieldReaderBase):
 
 
 class HiPACEFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName):
-        FieldReaderBase.__init__(self, location, speciesName, dataName)
-
-    def ReadBasicData(self):
-        raise NotImplementedError
+    def __init__(self, location, speciesName, dataName, firstTimeStep):
+        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
         
     def ReadInternalName(self, file_content):
         raise NotImplementedError
@@ -162,11 +156,8 @@ class HiPACEFieldReader(FieldReaderBase):
 
 
 class PIConGPUFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName):
-        FieldReaderBase.__init__(self, location, speciesName, dataName)
-
-    def ReadBasicData(self):
-        raise NotImplementedError
+    def __init__(self, location, speciesName, dataName, firstTimeStep):
+        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
         
     def ReadInternalName(self, file_content):
         raise NotImplementedError

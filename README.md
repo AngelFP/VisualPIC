@@ -128,9 +128,14 @@ in order to add all the data into the DataContainer.
 
 #### 2. DataReaders
 
-The FieldReader and RawDataReader are very similar classes. In fact, as seen in the picture below, both of them inherit from the more general, parent class, DataReader.
+The FieldReader and RawDataReader classes are very similar, sharing most of their methods. In fact, 
+as seen in the picture below, both of them inherit from the more general parent class DataReader.
 
 ![VisualPIC Screnshot](Class Diagram/DataReadersStructure.png)
+
+At the same time, FieldReader and RawDataReader include all the necessary methods required by VisualPIC, 
+but not all of them are implemented. Instead, the strategy used here is that, as seen in the picture, 
+for each supported simulation code these methods will be implemented in a child class of FieldReader and RawDataReader.
 
 Location: VisualPIC/DataReading/fieldReaders.py
 

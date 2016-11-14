@@ -26,7 +26,7 @@ from VisualPIC.DataReading.dataReaderSelectors import FieldReaderSelector
 class Field(DataElement):
     def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName=""):
         DataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName)
-        self.dataReader = FieldReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode)
+        self.dataReader = FieldReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode, timeSteps[0])
           
     def GetFieldDimension(self):
         return self.dataReader.fieldDimension
