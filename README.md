@@ -56,21 +56,21 @@ In VisualPIC, the user has to indicate the location of the data folder (e.g. MS 
 
 This is done in the "CreateCodeDictionaries" method. You have to add an entry to the self._codeName dictionary in the following way: 
 
-´´´
+```python
 self._codeName = {"MS":"Osiris",
                   "simOutput":"PIConGPU",
 			      "folderName":"myCodeName"} # <-- Line to add
-´´´
+```
 
 Where "folderName" is the typical name of the simulation data folder created by your code, and "myCodeName" is the name of your simulation code.
 
 Then, since every simulation software stores the data in a different way, a specific method for scanning the folder and loadind the data has to be created for each case, and VisualPIC will know which method to call depending on the detected simulation code name. This is also done by using a dictionary:
 
-´´´
+```python
 self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                         "PIConGPU":self.LoadPIConGPUData,
 						"myCodeName": self.LoadMyCodeData} # <-- Line to add (method will be created later)
-´´´
+```
 
 #### FieldReader
 
