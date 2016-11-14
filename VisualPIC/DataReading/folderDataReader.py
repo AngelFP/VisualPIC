@@ -28,7 +28,7 @@ from VisualPIC.DataHandling.field import Field
 
 
 class FolderDataReader:
-    """Scans the simulation folder and creates all the necessary species, fields and rawDataSets objects"""
+    """Scans the simulation folder and creates all the necessary species, fields and rawDataSet objects"""
     def __init__(self, parentDataContainer):
         self._dataContainer = parentDataContainer
         self._dataLocation = ""
