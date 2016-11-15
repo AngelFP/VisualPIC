@@ -177,18 +177,26 @@ Location: VisualPIC/DataReading/fieldReaders.py
 	def OpenFile(self, timeStep):
         raise NotImplementedError
   ```
-2. Implement each of the methods:
-  1. ReadInternalName(self, file_content).
-    * Function: determines and stores in `self.fieldDimension` the dimmension of the field (`"2D"` or `"3D"`).
-    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. Check for something in `file_content` in order to determine de dimmension of the field.
-    * Example: for OSIRIS, this method is simply 
-    ```python
-      self.internalName = "/" + list(file_content.keys())[1]
-    ```
-  2. DetermineFieldDimension(self, file_content).
-    * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
-    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. The name of the field will be one of the keys stored in it.
-    * Example: for OSIRIS, this is done by detecting whether the entry `'/AXIS/AXIS3'` is present in `file_content`
+2. Implement each of the methods. From top to bottom:
+
+  1. OpenFile(self, timeStep).
+    * Function: returns a `h5py.File` object corresponding to the time step indicated in `timeStep` (an integer)
+    * Detailed explanation: You should create the file path by using the properties `self.location` (simulation folder path), `self.dataName`, `self.speciesName` and `timeStep`. You should assume that the `self.something` properties are already set up.
+    * Example: Look at OSIRIS implementation.
+
+  2. OpenFileAndReadUnits(self).
+    * Function: Opens the file using the `self.OpenFile(self.firstTimeStep)` method and reads and stores the data units in the `self.dataUnits`, `self.axisUnits` and `self.timeUnits` properties.
+    * Detailed explanation: This method is just used to get the units of the field, spatial axes and time. Therefore, it doesn't matter which time step do we open, so the self.firstTimeStep is used.
+	  The property `self.dataUnits` should be the field units as a string, and the same goes for `self.timeUnits`. For `self.axisUnits`, this is actually a dictionary containg the units of each axis.
+    * Example:
+	```python
+	def OpenFileAndReadUnits(self):
+        file_content = self.OpenFile(self.firstTimeStep)
+        self.axisUnits["x"] = yourXAxisUnits
+        self.axisUnits["y"] = yourYAxisUnits
+        self.dataUnits = yourFieldUnits
+        self.timeUnits = yourTimeUnits
+	```
 
   3. OpenFileAndReadData(self).
     * Function: Opens the file using the `self.OpenFile(self.currentTimeStep)` method and reads and stores the data in the `self.data`, `self.axisData` and `self.currentTime` properties.
@@ -205,27 +213,92 @@ Location: VisualPIC/DataReading/fieldReaders.py
             self.axisData["z"] = yourZAxisData (nummpy array)
         file_content.close()
 	```
-  4. OpenFileAndReadUnits(self).
-    * Function: Opens the file using the `self.OpenFile(self.firstTimeStep)` method and reads and stores the data units in the `self.dataUnits`, `self.axisUnits` and `self.timeUnits` properties.
-    * Detailed explanation: This method is just used to get the units of the field, spatial axes and time. Therefore, it doesn't matter which time step do we open, so the self.firstTimeStep is used.
-	  The property `self.dataUnits` should be the field units as a string, and the same goes for `self.timeUnits`. For `self.axisUnits`, this is actually a dictionary containg the units of each axis.
-    * Example:
-	```python
-	def OpenFileAndReadUnits(self):
-        file_content = self.OpenFile(self.firstTimeStep)
-        self.axisUnits["x"] = yourXAxisUnits
-        self.axisUnits["y"] = yourYAxisUnits
-        self.dataUnits = yourFieldUnits
-        self.timeUnits = yourTimeUnits
-	```
 
-  5. OpenFile(self, timeStep).
-    * Function: returns a `h5py.File` object corresponding to the time step indicated in `timeStep` (an integer)
-    * Detailed explanation: You should create the file path by using the properties `self.location` (simulation folder path), `self.dataName`, `self.speciesName` and `timeStep`. You should assume that the `self.something` properties are already set up.
-    * Example: Look at OSIRIS implementation.
+  4. DetermineFieldDimension(self, file_content).
+    * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
+    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. The name of the field will be one of the keys stored in it.
+    * Example: for OSIRIS, this is done by detecting whether the entry `'/AXIS/AXIS3'` is present in `file_content`
+
+  5. ReadInternalName(self, file_content).
+    * Function: determines and stores in `self.fieldDimension` the dimmension of the field (`"2D"` or `"3D"`).
+    * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. Check for something in `file_content` in order to determine de dimmension of the field.
+    * Example: for OSIRIS, this method is simply 
+    ```python
+    def ReadInternalName(self, file_content):
+		self.internalName = "/" + list(file_content.keys())[1]
+    ```
 
 ##### 2.2 RawDataReader
 
 Location: VisualPIC/DataReading/rawDataReaders.py
+
+1. Create a new field reader for your code (in the same fieldReaders.py file), inheriting from FieldReaderBase:
+  ```python
+  class MyCodeRawDataReader(FieldReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
+
+    def OpenFileAndReadData(self):
+	raise NotImplementedError
+
+    def OpenFileAndReadUnits(self):
+	raise NotImplementedError
+
+	def OpenFile(self, timeStep):
+        raise NotImplementedError
+  ```
+2. Implement each of the methods. From top to bottom:
+
+  1. OpenFile(self, timeStep).
+    * Function: returns a `h5py.File` object corresponding to the time step indicated in `timeStep` (an integer)
+    * Detailed explanation: The same as in the FieldReader. This method is also included here because the naming of the files storing the raw data might be different from the convention used for the fields.
+    * Example: Look at OSIRIS implementation.
+
+  2. OpenFileAndReadUnits(self).
+    * Function: Opens the file using the `self.OpenFile(self.firstTimeStep)` method and reads and stores the data units in the `self.dataUnits` and `self.timeUnits` properties.
+    * Detailed explanation: This method is just used to get the units of the raw data set and time. Therefore, it doesn't matter which time step do we open, so the self.firstTimeStep is used.
+	  The property `self.dataUnits` should contain the units of the physical quantity specified in `self.internalName`, and the same goes for `self.timeUnits`.
+    * Example:
+	```python
+	def OpenFileAndReadUnits(self):
+        file_content = self.OpenFile(self.firstTimeStep)
+        self.dataUnits = yourDataUnits
+        self.timeUnits = yourTimeUnits
+	```
+
+  3. OpenFileAndReadData(self).
+    * Function: Opens the file using the `self.OpenFile(self.currentTimeStep)` method and reads and stores the data in the `self.data` and `self.currentTime` properties.
+    * Detailed explanation: You should assume that `self.currentTimeStep` is already set. Then, `self.data` has to be a numpy array containing the data of the specified physical quantity (use `self.internalName`) and `self.currentTime` will be just a number corresponding to the time in current time step.
+    * Example:
+	```python
+	def OpenFileAndReadData(self):
+        file_content = self.OpenFile(self.currentTimeStep)
+        self.data = yourData (nummpy array)
+        self.currentTime = currentTime
+        file_content.close()
+	```
+##### 2.3 Adding the FieldReader and RawDataReader to the data reader selector
+
+As you can see, there will be many different data readers in VisualPIC, so the code has to know which one to use. This is done in the `FieldReaderSelector` and `RawDataReaderSelector` located in VisualPIC/DataReading/dataReaderSelectors.py.
+
+It is very simple to add your readers to the selector. To do so, just add a new entry do the `dataReaders` dictionary in both selectors:
+
+1. For the RawDataReaderSelector:
+  ```python
+	dataReaders = {"Osiris": OsirisRawDataReader,
+                   "HiPACE": HiPACERawDataReader,
+                   "PIConGPU": PIConGPURawDataReader,
+				   "NameOfMyCode": MyCodeRawDataReader # <-- Line to add
+                   }
+  ```
+
+2. For the FieldReaderSelector:
+  ```python
+    dataReaders = {"Osiris": OsirisFieldReader,
+                   "HiPACE": HiPACEFieldReader,
+                   "PIConGPU": PIConGPUFieldReader
+				   "NameOfMyCode": MyCodeFieldReader # <-- Line to add
+                   }
+  ```
 
 #### 4. UnitConverter
