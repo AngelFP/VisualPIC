@@ -114,7 +114,7 @@ class OsirisFieldReader(FieldReaderBase):
         file_content.close()
 
     def OpenFileAndReadUnits(self):
-        file_content = self.OpenFile(0)
+        file_content = self.OpenFile(self.firstTimeStep)
         if sys.version_info[0] < 3:
             self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
             self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])
@@ -154,6 +154,9 @@ class HiPACEFieldReader(FieldReaderBase):
     def OpenFileAndReadUnits(self):
         raise NotImplementedError
 
+    def OpenFile(self, timeStep):
+        raise NotImplementedError
+
 
 class PIConGPUFieldReader(FieldReaderBase):
     def __init__(self, location, speciesName, dataName, firstTimeStep):
@@ -169,4 +172,7 @@ class PIConGPUFieldReader(FieldReaderBase):
         raise NotImplementedError
 
     def OpenFileAndReadUnits(self):
+        raise NotImplementedError
+
+    def OpenFile(self, timeStep):
         raise NotImplementedError

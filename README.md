@@ -173,6 +173,9 @@ Location: VisualPIC/DataReading/fieldReaders.py
 
     def OpenFileAndReadUnits(self):
 	raise NotImplementedError
+
+	def OpenFile(self, timeStep):
+        raise NotImplementedError
   ```
 2. Implement each of the methods:
   1. ReadInternalName(self, file_content).
@@ -186,7 +189,40 @@ Location: VisualPIC/DataReading/fieldReaders.py
     * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
     * Detailed explanation: Assume `file_content` to be an `h5py.File` instance. The name of the field will be one of the keys stored in it.
     * Example: for OSIRIS, this is done by detecting whether the entry `'/AXIS/AXIS3'` is present in `file_content`
-        ```
+
+  3. OpenFileAndReadData(self).
+    * Function: Opens the file using the `self.OpenFile(self.currentTimeStep)` method and reads and stores the data in the `self.data`, `self.axisData` and `self.currentTime` properties.
+    * Detailed explanation: You should assume that `self.currentTimeStep` is already set. Then, `self.data` has to be a numpy array containing the field data, `self.currentTime` will be just a number corresponding to the time in current time step and `self.axisData` is again a dictionary containing a numpy array for each axis.
+    * Example:
+	```python
+	def OpenFileAndReadData(self):
+        file_content = self.OpenFile(self.currentTimeStep)
+        self.data = yourFieldData (nummpy array)
+        self.currentTime = currentTime
+        self.axisData["x"] = yourXAxisData (nummpy array)
+        self.axisData["y"] = yourYAxisData (nummpy array)
+        if self.fieldDimension == "3D":
+            self.axisData["z"] = yourZAxisData (nummpy array)
+        file_content.close()
+	```
+  4. OpenFileAndReadUnits(self).
+    * Function: Opens the file using the `self.OpenFile(self.firstTimeStep)` method and reads and stores the data units in the `self.dataUnits`, `self.axisUnits` and `self.timeUnits` properties.
+    * Detailed explanation: This method is just used to get the units of the field, spatial axes and time. Therefore, it doesn't matter which time step do we open, so the self.firstTimeStep is used.
+	  The property `self.dataUnits` should be the field units as a string, and the same goes for `self.timeUnits`. For `self.axisUnits`, this is actually a dictionary containg the units of each axis.
+    * Example:
+	```python
+	def OpenFileAndReadUnits(self):
+        file_content = self.OpenFile(self.firstTimeStep)
+        self.axisUnits["x"] = yourXAxisUnits
+        self.axisUnits["y"] = yourYAxisUnits
+        self.dataUnits = yourFieldUnits
+        self.timeUnits = yourTimeUnits
+	```
+
+  5. OpenFile(self, timeStep).
+    * Function: returns a `h5py.File` object corresponding to the time step indicated in `timeStep` (an integer)
+    * Detailed explanation: You should create the file path by using the properties `self.location` (simulation folder path), `self.dataName`, `self.speciesName` and `timeStep`. You should assume that the `self.something` properties are already set up.
+    * Example: Look at OSIRIS implementation.
 
 ##### 2.2 RawDataReader
 
