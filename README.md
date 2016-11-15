@@ -277,6 +277,7 @@ Location: VisualPIC/DataReading/rawDataReaders.py
         self.currentTime = currentTime
         file_content.close()
 	```
+
 ##### 2.3 Adding the FieldReader and RawDataReader to the data reader selector
 
 As you can see, there will be many different data readers in VisualPIC, so the code has to know which one to use. This is done in the `FieldReaderSelector` and `RawDataReaderSelector` located in VisualPIC/DataReading/dataReaderSelectors.py.
@@ -302,3 +303,51 @@ It is very simple to add your readers to the selector. To do so, just add a new 
   ```
 
 #### 4. UnitConverter
+
+Until now, all we have done is implement methods and create classes that read and detect all the data in the simulation folder, 
+and these data is read in the units in which it was stored. However, different simulation codes store data in different units: 
+some of them in IS units, others in normalized units, etc. Therefore, in order to make VisualPIC independent of this and be 
+able to operate with data from any code, a unit converter was created.
+
+The approach was similar as for the data readers: there is a main, general, unit converter, which defines but does not implement all the methods. Then, for each supported code, a child class of the unit converter is created, and in which all those methods will be implemented.
+
+The way in which VisualPIC works is that, when it wants to get the data from a certain Field object, it doesn't ask the Field directly. Instead, it goes to the `UnitConverter` and says "I want't the data from this field in these units". Therefore, the `UnitConverter` class has become quite an important piece, growing in complexity (and messiness) accordingly.
+
+Let's look at how to create a new unit converter:
+
+Location: VisualPIC/DataHandling/unitConverters.py
+
+1. Create a new class for your code:
+  ```python
+  class MyCodeUnitConverter(GeneralUnitConverter):
+    def __init__(self):
+        super(MyCodeUnitConverter, self).__init__()
+        self.hasNonISUnits = True # <-- Set to true if your code stores data in non-IS units.
+        
+    def SetNormalizationFactor(self, value):
+        raise NotImplementedError
+    
+    def GetDataISUnits(self, dataElement):
+        raise NotImplementedError
+                
+    def GetDataInISUnits(self, dataElement, timeStep):
+        raise NotImplementedError
+
+    def GetTimeInISUnits(self, dataElement, timeStep):
+        raise NotImplementedError
+
+    def _GetDataInOriginalUnits(self, dataElement, timeStep):
+        raise NotImplementedError
+
+    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+        raise NotImplementedError
+
+    def GetAxisInSIUnits(self, axis, dataElement, timeStep):
+        raise NotImplementedError
+
+    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
+        raise NotImplementedError
+  ```
+
+2. Implement each of the methods. From bottom to top:
+
