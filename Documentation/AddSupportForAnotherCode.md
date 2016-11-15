@@ -8,7 +8,7 @@ In the following simplified class diagram, these would be the dark gray classes 
 All of these classes read and process the data so that the rest of the VisualPIC code is independent of the
 inner format of the data files.
 
-![Class Diagram](Class Diagram/SimplifiedClassDiagram.png)
+![Class Diagram](../Class Diagram/SimplifiedClassDiagram.png)
 
 ## Structure of the data in VisualPIC
 
@@ -124,7 +124,7 @@ Let's see what's the function of each of them (replace "MyCode" with the name of
 The FieldReader and RawDataReader classes are very similar, sharing most of their methods. In fact, 
 as seen in the picture below, both of them inherit from the more general parent class DataReader.
 
-![VisualPIC Screnshot](Class Diagram/DataReadersStructure.png)
+![VisualPIC Screnshot](../Class Diagram/DataReadersStructure.png)
 
 At the same time, FieldReader and RawDataReader include all the necessary methods required by VisualPIC, 
 but not all of them are implemented. Instead, the strategy used here is that, as seen in the picture, 
@@ -343,34 +343,34 @@ Location: VisualPIC/DataHandling/unitConverters.py
 	  Typically, this will be the plasma density, which is specified by the user in units of 10<sup>18</sup> cm<sup>-3</sup>. After setting this factor, the values of the skin depth
 	  and cold non-relativistic wave-breaking field can be calculated and stored for later use when converting data to IS units. In this method, the property `self.normalizationFactorIsSet` has to be set to `True`.
     * Example:
-	  ```python
+    ```python
 	def SetNormalizationFactor(self, value):
         self.normalizationFactor = value * 1e24
         self.normalizationFactorIsSet = True
         self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         self.s_d = self.c / self.w_p  #skin depth (m)
         self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
-      ```
+    ```
 	* Note: The common constants c (speed of light), e (electron charge), m<sub>e</sub> (electron mass) and ?0 (vacuum permitivity) are already available in IS units in the `self.c`, `self.e`, `self.m_e` and `self.eps_0` properties.
 
   2. GetDataISUnits(self, dataElement):
     * Function: returns a string with the IS units of the `dataElement`, which can be a `Field` or `RawDatSet` object.
     * Detailed explanation: Use the `dataElement.GetNameInCode()` method to get the name of the data in your code, then return the corresponding units as a string.
     * Example:
-	  ```python
+    ```python
     def GetDataISUnits(self, dataElement):
         dataElementName = dataElement.GetNameInCode()
         if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
             return "V/m"
         elif
 			...
-      ```
+    ```
 
   3. GetDataInISUnits(self, dataElement, timeStep):
     * Function: returns a numpy array with the data from the `dataElement` (a `Field` or `RawDatSet` object) in the specified `timeStep` in IS units.
     * Detailed explanation: Use again the `dataElement.GetNameInCode()` method to get the name of the data in your code, then get the data by uding the `self._GetDataInOriginalUnits(dataElement, timeStep)` method and apply the corresponding operations on the data in order to convert it to SI units and return the numpy array.
-	* Example:
-	  ```python
+    * Example:
+    ```python
     def GetDataInISUnits(self, dataElement, timeStep):
         dataElementName = dataElement.GetNameInCode()
         data = self._GetDataInOriginalUnits(dataElement, timeStep)
@@ -378,27 +378,27 @@ Location: VisualPIC/DataHandling/unitConverters.py
             return data*self.E0 # <-- Conversion to V/m
         elif
 			...
-      ```
+    ```
 
   4. GetTimeInISUnits(self, dataElement, timeStep):
     * Function: returns in IS units the current time in the specified `timeStep`.
     * Detailed explanation: Get the time in the original units by using the `self._GetTimeInOriginalUnits(dataElement, timeStep)` method and return the value after applying the conversion.
-	* Example:
-	  ```python
+    * Example:
+    ```python
     def GetTimeInISUnits(self, dataElement, timeStep):
         time = self._GetTimeInOriginalUnits(dataElement, timeStep)
         return time * self.w_p
-      ```
+    ```
 
   5. GetAxisInISUnits(self, axis, dataElement, timeStep):
     * Function: for a `dataElement`of the type `Field`, it returns the data of the specified axis in IS units.
     * Detailed explanation: get the axis data in original units by using the `self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)` method, apply the conversion and return the result.
-	* Example:
-	  ```python
+    * Example:
+    ```python
     def GetAxisInISUnits(self, axis, dataElement, timeStep):
         axisData = self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
         return axisData* self.c / self.w_p
-      ```
+    ```
 3. Add your unit converter to the `UnitConverterSelector`
   
   The selection of the corresponding unit converter is done in the same way as the field and raw data readers. The `UnitConverterSelector` is located at the end of the file where the unit converters are defined and the only change needed is to add a new entry to the `unitConverters` dictionary:
