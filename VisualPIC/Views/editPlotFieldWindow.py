@@ -380,7 +380,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.plotProperties["General"]["PlotType"] = plotType
                         
     def DisplayColorbarCheckBox_StatusChanged(self):
-        self.plotProperties["General"]["DisplayColorbar"] = self.displayColorbar_checkBox.checkState()
+        self.plotProperties["General"]["DisplayColorbar"] = self.displayColorbar_checkBox.isChecked()
 
     ## Histogram
     def HistogramXBinsSpinbox_ValueChanged(self, value):
@@ -390,7 +390,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.plotProperties["Histogram"]["Bins"]["YBins"] = value
 
     def HistogramChargeWeightCheckBox_StatusChanged(self):
-        state = self.histogramChargeWeight_checkBox.checkState()
+        state = self.histogramChargeWeight_checkBox.isChecked()
         self.histogramChargeUnits_comboBox.setEnabled(state)
         self.plotProperties["Histogram"]["UseChargeWeighting"] = state
 
@@ -406,9 +406,11 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     ## Scatter
     def ScatterChargeWeightCheckBox_StatusChanged(self):
-        state = self.scatterChargeWeight_checkBox.checkState()
-        self.scatterChargeUnits_comboBox.setEnabled(state)
-        self.plotProperties["Scatter"]["UseChargeWeighting"] = state
+        isChecked = self.scatterChargeWeight_checkBox.isChecked()
+        self.scatterChargeUnits_comboBox.setEnabled(isChecked)
+        self.plotProperties["Scatter"]["UseChargeWeighting"] = isChecked
+        if not isChecked:
+            self.displayColorbar_checkBox.setChecked(False)
 
     def ScatterChargeUnitsComboBox_IndexChanged(self):
         if not self.updatingUiData:

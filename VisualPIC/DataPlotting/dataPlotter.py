@@ -135,6 +135,7 @@ class DataPlotter:
         
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
         axisData = subplot.GetDataToPlot()
+        plotProperties = subplot.GetCopyAllPlotProperties()
         plotData = {}
         # Load data
         if sys.version_info[0] < 3:
@@ -145,14 +146,14 @@ class DataPlotter:
                 plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
-        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, cMap)
-        # change plot size to make room for the colorBar
-        pos1 = ax.get_position()
-        pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
-        ax.set_position(pos2)
-        ax.hold(True)
+        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, cMap)
         # colorBar
         if subplot.GetPlotProperty("General", "DisplayColorbar") == True:
+            # change plot size to make room for the colorBar
+            pos1 = ax.get_position()
+            pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
+            ax.set_position(pos2)
+            # ax.hold(True)
             cbWidth = 0.015
             cbHeight = pos2[3]
             cbX = pos2[0] + pos2[2] + 0.02
@@ -221,7 +222,7 @@ class DataPlotter:
     Raw (non-evolving) data plot types
     """  
     #todo: change cMap argument for a plotSettings argument.
-    def MakeArrowPlot(self, ax, plotData, cMap):
+    def MakeArrowPlot(self, ax, plotData, plotProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         pxValues = plotData["Px"]
@@ -248,24 +249,30 @@ class DataPlotter:
             pivot='mid',                                           
             cmap=cMap)
 
-    def MakeHistogramPlot(self, ax, plotData, cMap):
+    def MakeHistogramPlot(self, ax, plotData, plotProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         weightValues = plotData["weight"]
-        H, xedges, yedges = np.histogram2d(xValues, yValues, bins = 80, weights = weightValues)
+        histogramProperties = plotProperties["Histogram"]
+        histBins = [histogramProperties["Bins"]["XBins"], histogramProperties["Bins"]["YBins"]]
+        if histogramProperties["UseChargeWeighting"]:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues)
+        else:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins)
         extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
         return ax.imshow(H.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
         
-    def MakeScatterPlot(self, ax, plotData, cMap):
+    def MakeScatterPlot(self, ax, plotData, plotProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
-        if "weight" in plotData:
+        scatterProperties = plotProperties["Scatter"]
+        if scatterProperties["UseChargeWeighting"]:
             weightValues = plotData["weight"]
             return ax.scatter(xValues, yValues, c=weightValues, cmap=cMap, linewidths=0)
         else:
             return ax.scatter(xValues, yValues, cmap=cMap, linewidths=0)
         
-    def Make3DScatterPlot(self, ax, plotData, cMap):
+    def Make3DScatterPlot(self, ax, plotData, plotProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         zValues = plotData["z"]
