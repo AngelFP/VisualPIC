@@ -213,6 +213,7 @@ Location: VisualPIC/DataReading/fieldReaders.py
             self.axisData["z"] = yourZAxisData (nummpy array)
         file_content.close()
 	```
+	* Note: The data for each axis has to be an array with n elements, where n is the size of the field matrix in that direction.
 
   4. DetermineFieldDimension(self, file_content).
     * Function: reads and stores in `self.internalName` the name under which the field is saved in the hdf5 file.
@@ -336,18 +337,84 @@ Location: VisualPIC/DataHandling/unitConverters.py
     def GetTimeInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
 
-    def _GetDataInOriginalUnits(self, dataElement, timeStep):
-        raise NotImplementedError
-
-    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
-        raise NotImplementedError
-
-    def GetAxisInSIUnits(self, axis, dataElement, timeStep):
-        raise NotImplementedError
-
-    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
+    def GetAxisInISUnits(self, axis, dataElement, timeStep):
         raise NotImplementedError
   ```
 
-2. Implement each of the methods. From bottom to top:
+2. Implement each of the methods:
 
+  1. SetNormalizationFactor(self, value):
+    * Function: Sets the normalization factor used to convert data from normalized to IS units. It is only used for codes that store data in normalized units.
+    * Detailed explanation: When the data is stored in normalized units, it is necessary to specify the normalization factor in order to convert the data into IS units. 
+	  Typically, this will be the plasma density, which is specified by the user in units of 10<sup>18</sup> cm<sup>-3</sup>. After setting this factor, the values of the skin depth
+	  and cold non-relativistic wave-breaking field can be calculated and stored for later use when converting data to IS units. In this method, the property `self.normalizationFactorIsSet` has to be set to `True`.
+    * Example:
+	  ```python
+	def SetNormalizationFactor(self, value):
+        self.normalizationFactor = value * 1e24
+        self.normalizationFactorIsSet = True
+        self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
+        self.s_d = self.c / self.w_p  #skin depth (m)
+        self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
+      ```
+	* Note: The common constants c (speed of light), e (electron charge), m<sub>e</sub> (electron mass) and ?0 (vacuum permitivity) are already available in IS units in the `self.c`, `self.e`, `self.m_e` and `self.eps_0` properties.
+
+  2. GetDataISUnits(self, dataElement):
+    * Function: returns a string with the IS units of the `dataElement`, which can be a `Field` or `RawDatSet` object.
+    * Detailed explanation: Use the `dataElement.GetNameInCode()` method to get the name of the data in your code, then return the corresponding units as a string.
+    * Example:
+	  ```python
+    def GetDataISUnits(self, dataElement):
+        dataElementName = dataElement.GetNameInCode()
+        if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
+            return "V/m"
+        elif
+			...
+      ```
+
+  3. GetDataInISUnits(self, dataElement, timeStep):
+    * Function: returns a numpy array with the data from the `dataElement` (a `Field` or `RawDatSet` object) in the specified `timeStep` in IS units.
+    * Detailed explanation: Use again the `dataElement.GetNameInCode()` method to get the name of the data in your code, then get the data by uding the `self._GetDataInOriginalUnits(dataElement, timeStep)` method and apply the corresponding operations on the data in order to convert it to SI units and return the numpy array.
+	* Example:
+	  ```python
+    def GetDataInISUnits(self, dataElement, timeStep):
+        dataElementName = dataElement.GetNameInCode()
+        data = self._GetDataInOriginalUnits(dataElement, timeStep)
+        if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
+            return data*self.E0 # <-- Conversion to V/m
+        elif
+			...
+      ```
+
+  4. GetTimeInISUnits(self, dataElement, timeStep):
+    * Function: returns in IS units the current time in the specified `timeStep`.
+    * Detailed explanation: Get the time in the original units by using the `self._GetTimeInOriginalUnits(dataElement, timeStep)` method and return the value after applying the conversion.
+	* Example:
+	  ```python
+    def GetTimeInISUnits(self, dataElement, timeStep):
+        time = self._GetTimeInOriginalUnits(dataElement, timeStep)
+        return time * self.w_p
+      ```
+
+  5. GetAxisInISUnits(self, axis, dataElement, timeStep):
+    * Function: for a `dataElement`of the type `Field`, it returns the data of the specified axis in IS units.
+    * Detailed explanation: get the axis data in original units by using the `self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)` method, apply the conversion and return the result.
+	* Example:
+	  ```python
+    def GetAxisInISUnits(self, axis, dataElement, timeStep):
+        axisData = self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
+        return axisData* self.c / self.w_p
+      ```
+3. Add your unit converter to the `UnitConverterSelector`
+  
+  The selection of the corresponding unit converter is done in the same way as the field and raw data readers. The `UnitConverterSelector` is located at the end of the file where the unit converters are defined and the only change needed is to add a new entry to the `unitConverters` dictionary:
+  ```python
+    unitConverters = {
+        "Osiris": OsirisUnitConverter,
+        "HiPACE": HiPACEUnitConverter,
+        "PIConGPU":PIConGPUUnitConverter,
+		"MyCodeName":MyCodeUnitConverter	# <-- line to add
+        }
+  ```
+
+If you have managed to successfully complete all the steps above, VisualPIC should now be able to read data from your simulation code.

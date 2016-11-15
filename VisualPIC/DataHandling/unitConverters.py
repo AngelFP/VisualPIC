@@ -142,9 +142,9 @@ class GeneralUnitConverter(object):
             if units == dataElement.GetAxisUnits()[axis]:
                 return self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
         if units == "m":
-            return self.GetAxisInSIUnits(axis, dataElement, timeStep)
+            return self.GetAxisInISUnits(axis, dataElement, timeStep)
         else:
-            axisDataInISUnits = self.GetAxisInSIUnits(axis, dataElement, timeStep)
+            axisDataInISUnits = self.GetAxisInISUnits(axis, dataElement, timeStep)
             if units == self.um:
                 return axisDataInISUnits * 1e6
 
@@ -160,20 +160,20 @@ class GeneralUnitConverter(object):
     def GetDataInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
 
-    def _GetDataInOriginalUnits(self, dataElement, timeStep):
-        raise NotImplementedError
-
-    def GetAxisInSIUnits(self, axis, dataElement, timeStep):
-        raise NotImplementedError
-
-    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
-        raise NotImplementedError
-
-    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+    def GetAxisInISUnits(self, axis, dataElement, timeStep):
         raise NotImplementedError
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
+
+    def _GetDataInOriginalUnits(self, dataElement, timeStep):
+        return dataElement.GetData(timeStep)
+
+    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+        return dataElement.GetTime(timeStep)
+
+    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
+        return dataElement.GetAxisData(timeStep)[axis]
 
 class OsirisUnitConverter(GeneralUnitConverter):
     def __init__(self):
@@ -226,21 +226,14 @@ class OsirisUnitConverter(GeneralUnitConverter):
             return data*self.e # C
 
     def GetTimeInISUnits(self, dataElement, timeStep):
-        time = dataElement.GetTime(timeStep)
+        time = self._GetTimeInOriginalUnits(dataElement, timeStep)
         return time * self.w_p
-
-    def _GetDataInOriginalUnits(self, dataElement, timeStep):
-        return dataElement.GetData(timeStep)
-
-    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
-        return dataElement.GetTime(timeStep)
-
-    def GetAxisInSIUnits(self, axis, dataElement, timeStep):
+    
+    def GetAxisInISUnits(self, axis, dataElement, timeStep):
         axisData = self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
         return axisData* self.c / self.w_p
 
-    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
-        return dataElement.GetAxisData(timeStep)[axis]
+
 
 class HiPACEUnitConverter(GeneralUnitConverter):
     def __init__(self):
@@ -255,10 +248,11 @@ class PIConGPUUnitConverter(GeneralUnitConverter):
         
 
 class UnitConverterSelector:
-    unitConverters = {"Osiris": OsirisUnitConverter,
-                   "HiPACE": HiPACEUnitConverter,
-                   "PIConGPU":PIConGPUUnitConverter
-                   }
+    unitConverters = {
+        "Osiris": OsirisUnitConverter,
+        "HiPACE": HiPACEUnitConverter,
+        "PIConGPU":PIConGPUUnitConverter
+        }
     @classmethod
     def GetUnitConverter(cls, simulationCode):
         return cls.unitConverters[simulationCode]()
