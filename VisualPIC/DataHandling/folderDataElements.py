@@ -21,6 +21,7 @@ from VisualPIC.DataReading.dataReader import DataReader
 from VisualPIC.DataHandling.dataElement import DataElement
 from VisualPIC.DataReading.dataReaderSelectors import *
 
+
 class FolderDataElement(DataElement):
     """Base class for all data elements (fields and rawDataSets)"""
     def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName = "", internalName = ""):
@@ -44,6 +45,7 @@ class FolderDataElement(DataElement):
     def GetTimeUnits(self):
         return self.dataReader.GetTimeUnits()
 
+
 class FolderField(FolderDataElement):
     def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName=""):
         FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName)
@@ -57,6 +59,7 @@ class FolderField(FolderDataElement):
         
     def GetAxisUnits(self):
         return self.dataReader.GetAxisUnits()
+
 
 class FolderRawDataSet(FolderDataElement):
     def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName):

@@ -22,8 +22,6 @@ import numpy as np
 import math
 import h5py
 
-from VisualPIC.DataHandling.species import Species
-from VisualPIC.DataHandling.rawDataSet import RawDataSet
 from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 
 
