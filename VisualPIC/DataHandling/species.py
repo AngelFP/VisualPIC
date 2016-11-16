@@ -18,7 +18,6 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 class Species:
-    
     def __init__(self, name):
         self.name = name
         self.availableFields = list()

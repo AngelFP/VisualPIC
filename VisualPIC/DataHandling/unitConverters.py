@@ -234,7 +234,6 @@ class OsirisUnitConverter(GeneralUnitConverter):
         return axisData* self.c / self.w_p
 
 
-
 class HiPACEUnitConverter(GeneralUnitConverter):
     def __init__(self):
         super(HiPACEUnitConverter, self).__init__()
