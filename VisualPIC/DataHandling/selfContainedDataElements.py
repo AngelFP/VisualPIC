@@ -23,21 +23,27 @@ from VisualPIC.DataHandling.dataElement import DataElement
 
 
 class SelfContainedDataElement(DataElement):
-    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+    def __init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
         """Constructor.
 
         Keyword arguments:
-        dataValues -- a matrix containing all the data, where the columns are the particles and the rows are time steps.
+        nameInCode -- original name of the data in the simulation code.
+        standardName -- standard VisualPIC name of the data.
+        dataValues -- a matrix containing all the data, where the columns are the particles and the rows are time steps. Data should be in the original units from the data file.
         dataUnits  -- string containing the data units.
-        timeValues -- a 1D array containing the time values on each time step. Same number of elements as rows in dataValues.
+        timeValues -- a 1D array containing the time values on each time step. Same number of elements as rows in dataValues. Data should be in the original units from the data file.
         timeUnits  -- string containing the time units.
         timeSteps  -- a 1D array containing the number of each time step saved to disk during the simulation.
         """
         SelfContainedDataElement.__init__(self, standardName, timeSteps, speciesName)
+        self.dataNameInCode = nameInCode
         self.dataValues = dataValues
         self.dataUnits = dataUnits
         self.timeValues = timeValues
         self.timeUnits = timeUnits
+
+    def GetNameInCode(self):
+        return self.dataNameInCode
 
     def GetData(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]

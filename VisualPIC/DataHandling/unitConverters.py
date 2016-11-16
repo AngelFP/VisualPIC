@@ -125,7 +125,6 @@ class GeneralUnitConverter(object):
                 if units == "MeV":
                     return dataInISUnits / self.e * 1e-6
                 
-
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if self.hasNonISUnits:
             if units == dataElement.GetTimeUnits():
@@ -148,6 +147,14 @@ class GeneralUnitConverter(object):
             if units == self.um:
                 return axisDataInISUnits * 1e6
 
+    def _GetDataInOriginalUnits(self, dataElement, timeStep):
+        return dataElement.GetData(timeStep)
+
+    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
+        return dataElement.GetTime(timeStep)
+
+    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
+        return dataElement.GetAxisData(timeStep)[axis]
     """
     To implement by children classes
     """
@@ -165,15 +172,6 @@ class GeneralUnitConverter(object):
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
-
-    def _GetDataInOriginalUnits(self, dataElement, timeStep):
-        return dataElement.GetData(timeStep)
-
-    def _GetTimeInOriginalUnits(self, dataElement, timeStep):
-        return dataElement.GetTime(timeStep)
-
-    def _GetAxisDataInOriginalUnits(self, axis, dataElement, timeStep):
-        return dataElement.GetAxisData(timeStep)[axis]
 
 class OsirisUnitConverter(GeneralUnitConverter):
     def __init__(self):
