@@ -116,6 +116,11 @@ class ParticleTracker():
     def GetSpeciesDataSet(self, speciesName, dataSetName):
         return self._dataContainer.GetSpeciesRawDataSet(speciesName, dataSetName)
 
+    def GetSpeciesRawDataSetNames(self, speciesName):
+        for species in self._speciesList:
+            if species.GetName() == speciesName:
+                return species.GetRawDataSetsNamesList()
+
     def FindParticles(self, timeStep, speciesName, filters):
         """filters is a dictionary where the keys are the names of the variables 
         to filter (eg /q, /x1, etc.) and the values are a tuple with two numbers

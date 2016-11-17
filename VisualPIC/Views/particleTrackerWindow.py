@@ -85,23 +85,27 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorCanvas.draw()
 
     def CreateSelectorSubplotObject(self):
-        if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
-            speciesName = str(self.speciesSelector_comboBox.currentText())
-            dataSets = {}
-            dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "z"), self.unitConverter)
-            dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "y"), self.unitConverter)
-            dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"), self.unitConverter)
-            self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
-            self.selectorSubplot.SetPlotType("Scatter")
-            self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
-            self.selectorSubplot.SetAxisProperty("x", "LabelFontSize", 10)
-            self.selectorSubplot.SetAxisProperty("y", "LabelFontSize", 10)
-            self.selectorSubplot.SetTitleProperty("FontSize", 0)
+        #if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
+        speciesName = str(self.speciesSelector_comboBox.currentText())
+        dataSets = {}
+        xAxis = str(self.xAxis_comboBox.currentText())
+        yAxis = str(self.yAxis_comboBox.currentText())
+        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis), self.unitConverter)
+        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis), self.unitConverter)
+        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"), self.unitConverter)
+        self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
+        self.selectorSubplot.SetPlotType("Scatter")
+        self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
+        self.selectorSubplot.SetAxisProperty("x", "LabelFontSize", 10)
+        self.selectorSubplot.SetAxisProperty("y", "LabelFontSize", 10)
+        self.selectorSubplot.SetTitleProperty("FontSize", 0)
 
     def RegisterUIEvents(self):
         self.selectorTimeStep_Slider.valueChanged.connect(self.SelectorTimeStepSlider_ValueChanged)
         self.selectorTimeStep_Slider.sliderReleased.connect(self.SelectorTimeStepSlider_Released)
         self.speciesSelector_comboBox.currentIndexChanged.connect(self.SpeciesSelectorComboBox_IndexChanged)
+        self.xAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
+        self.yAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
         self.rectangleSelection_Button.clicked.connect(self.RectangleSelectionButton_Clicked)
         self.trackParticles_Button.clicked.connect(self.TrackParticlesButton_Clicked)
         self.plotType_radioButton_1.toggled.connect(self.PlotTypeRadioButton_Toggled)
@@ -154,7 +158,26 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.MakeSelectorPlot()
 
     def SpeciesSelectorComboBox_IndexChanged(self):
+        self._SetGraphicSelectorComboBoxes()
         self.MakeSelectorPlot()
+
+    def _SetGraphicSelectorComboBoxes(self):
+        self._updatingUI = True
+        speciesName = str(self.speciesSelector_comboBox.currentText())
+        axisList = self.particleTracker.GetSpeciesRawDataSetNames(speciesName)
+        self.xAxis_comboBox.clear()
+        self.yAxis_comboBox.clear()
+        self.xAxis_comboBox.addItems(axisList)
+        self.yAxis_comboBox.addItems(axisList)
+        if "z" in axisList:
+            self.xAxis_comboBox.setCurrentIndex(axisList.index("z"))
+        if "y" in axisList:
+            self.yAxis_comboBox.setCurrentIndex(axisList.index("y"))
+        self._updatingUI = False
+
+    def AxisComboBox_IndexChanged(self):
+        if not self._updatingUI:
+            self.MakeSelectorPlot()
 
     def RectangleSelectionButton_Clicked(self):
         self.toggle_selector.set_active(True)
@@ -223,8 +246,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
         filter = {}
-        filter["z"] = (min(x1,x2), max(x1,x2))
-        filter["y"] = (min(y1,y2), max(y1,y2))
+        xAxisVariable = str(self.xAxis_comboBox.currentText())
+        yAxisVariable = str(self.yAxis_comboBox.currentText())
+        filter[xAxisVariable] = (min(x1,x2), max(x1,x2))
+        filter[yAxisVariable] = (min(y1,y2), max(y1,y2))
         self.FindParticles(self.selectorTimeStep_Slider.value(),str(self.speciesSelector_comboBox.currentText()),filter)
 
     """
