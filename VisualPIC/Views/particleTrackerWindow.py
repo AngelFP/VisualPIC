@@ -107,6 +107,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.xAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
         self.yAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
         self.rectangleSelection_Button.clicked.connect(self.RectangleSelectionButton_Clicked)
+        self.findParticles_button.clicked.connect(self.FindParticlesButton_Clicked)
         self.trackParticles_Button.clicked.connect(self.TrackParticlesButton_Clicked)
         self.plotType_radioButton_1.toggled.connect(self.PlotTypeRadioButton_Toggled)
         self.plotType_radioButton_2.toggled.connect(self.PlotTypeRadioButton_Toggled)
@@ -181,6 +182,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def RectangleSelectionButton_Clicked(self):
         self.toggle_selector.set_active(True)
+
+    def FindParticlesButton_Clicked(self):
+        speciesName = str(self.speciesSelector_comboBox.currentText())
+        timeStep = self.selectorTimeStep_Slider.value()
+        filters = self.GetSelectedFilters()
+        self.FindParticles(timeStep, speciesName, filters)
 
     def TrackParticlesButton_Clicked(self):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
@@ -299,6 +306,17 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             if item.checkState():
                 selectedParticles.append(self.particleList[row])
         return selectedParticles
+
+    def GetSelectedFilters(self):
+        filters = {}
+        for row in np.arange(0, self.advancedSelector_tableWidget.rowCount()):
+            item = self.advancedSelector_tableWidget.item(row, 0)
+            if item.checkState():
+                name = self.advancedSelector_tableWidget.item(row, 1).text()
+                minVal = float(self.advancedSelector_tableWidget.item(row, 2).text())
+                maxVal = float(self.advancedSelector_tableWidget.item(row, 3).text())
+                filters[name] = (minVal, maxVal)
+        return filters
 
     def CreateTrackedParticlesTable(self):
         trackedParticles = self.particleTracker.GetTrackedParticles()

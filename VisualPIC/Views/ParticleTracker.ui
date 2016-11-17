@@ -49,11 +49,7 @@
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item>
-               <widget class="QComboBox" name="speciesSelector_comboBox"/>
-              </item>
-             </layout>
+             <widget class="QComboBox" name="speciesSelector_comboBox"/>
             </item>
             <item>
              <widget class="QLabel" name="label_10">
@@ -73,7 +69,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="findParticles_button">
               <property name="text">
                <string>Find particles</string>
               </property>
