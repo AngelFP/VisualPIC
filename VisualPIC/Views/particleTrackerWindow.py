@@ -145,9 +145,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_lineEdit.setText(str(self.selectorTimeStep_Slider.value()))
 
     def SelectorTimeStepSlider_Released(self):
-        if self.selectorTimeStep_Slider.value() in self.timeSteps:
-            self.MakeSelectorPlot()
-        else:
+        if self.selectorTimeStep_Slider.value() not in self.timeSteps:
             val = self.selectorTimeStep_Slider.value()
             closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
             closestLower = self.timeSteps[np.where(self.timeSteps < val)[0][-1]]
@@ -156,10 +154,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             else:
                 self.selectorTimeStep_Slider.setValue(closestLower)
         self.MakeSelectorPlot()
+        self._CreateFineSelectionTable()
 
     def SpeciesSelectorComboBox_IndexChanged(self):
         self._SetGraphicSelectorComboBoxes()
         self.MakeSelectorPlot()
+        self._CreateFineSelectionTable()
 
     def _SetGraphicSelectorComboBoxes(self):
         self._updatingUI = True
@@ -325,8 +325,40 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             for m, item in enumerate(tableData[key]):
                 newItem = QTableWidgetItem(str(item))
                 self.trackedParticlesList_tableWidget.setItem(m, n+1, newItem)
-        self.trackedParticlesList_tableWidget.resizeColumnsToContents()
         self.trackedParticlesList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
+        self.trackedParticlesList_tableWidget.resizeColumnsToContents()
+
+    def _CreateFineSelectionTable(self):
+        tableData = self._GetMaximumsAndMinimumsOfQuantities()
+        tableHeaders = ["Use", "Quantity", "Minimum", "Maximum"]
+        n = len(tableData)
+        m = len(tableHeaders)
+        self.advancedSelector_tableWidget.setRowCount(n)
+        self.advancedSelector_tableWidget.setColumnCount(m)
+        for i in np.arange(0,n):
+            newItem = QTableWidgetItem()
+            newItem.setCheckState(QtCore.Qt.Unchecked)
+            self.advancedSelector_tableWidget.setItem(i, 0, newItem)
+        for i in np.arange(n):
+            for j in np.arange(m-1):
+                newItem = QTableWidgetItem(str(tableData[i][j]))
+                self.advancedSelector_tableWidget.setItem(i, j+1, newItem)
+        self.advancedSelector_tableWidget.setHorizontalHeaderLabels(tableHeaders)
+        self.advancedSelector_tableWidget.resizeColumnsToContents()
+
+    def _GetMaximumsAndMinimumsOfQuantities(self):
+        speciesName = str(self.speciesSelector_comboBox.currentText())
+        timeStep = self.selectorTimeStep_Slider.value()
+        quantityNamesList = self.particleTracker.GetSpeciesRawDataSetNames(speciesName)
+        maxMinList = []
+        for quantity in quantityNamesList:
+            dataSet = self.particleTracker.GetSpeciesDataSet(speciesName, quantity)
+            data = dataSet.GetData(timeStep)
+            dataMin = min(data)
+            dataMax = max(data)
+            maxMinList.append([quantity, dataMin, dataMax])
+        return maxMinList
+            
 
     def GetIndicesOfParticlesToExport(self):
         selectedParticlesIndices = list()
