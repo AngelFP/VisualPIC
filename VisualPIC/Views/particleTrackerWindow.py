@@ -162,6 +162,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def TrackParticlesButton_Clicked(self):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
         self.particleTracker.FillEvolutionOfAllDataSetsInParticles()
+        self.particleTracker.MakeInstantaneousRawDataSets()
         self.FillPlotUI()
         self.FillExportDataUI()
 

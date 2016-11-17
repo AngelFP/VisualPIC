@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 ?ngel Ferran Pousa
+#Copyright 2016 Angel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -23,6 +23,7 @@ import math
 import h5py
 
 from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
+from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet
 
 
 class Particle():
@@ -31,12 +32,13 @@ class Particle():
         self._timeStepQuantities = {}
         self._wholeSimulationQuantities = {}
         self._particleIndices = None
+        self._trackedTimeSteps = []
 
     def AddTimeStepQuantity(self, quantityName, quantityValue):
         self._timeStepQuantities[quantityName] = quantityValue
 
-    def AddWholeSimulationQuantity(self, quantityName, quantityValues, quantityUnits):
-        self._wholeSimulationQuantities[quantityName] = {"values":quantityValues, "units":quantityUnits}
+    def AddWholeSimulationQuantity(self, quantityName, quantityCodeName, quantityValues, quantityUnits):
+        self._wholeSimulationQuantities[quantityName] = {"codeName":quantityCodeName, "values":quantityValues, "units":quantityUnits}
 
     def GetNamesOfWholeSimulationQuantities(self):
         quantitiesList = list()
@@ -62,6 +64,12 @@ class Particle():
             timeStepQuantities[key] = self._wholeSimulationQuantities[key][timeStep]
         return timeStepQuantities
 
+    def SetTrackedTimeSteps(self, timeSteps):
+        self._trackedTimeSteps = timeSteps
+
+    def GetTrackedTimeSteps(self):
+        return self._trackedTimeSteps
+
     def SetIndices(self, indices):
         self._particleIndices = indices
 
@@ -82,6 +90,7 @@ class ParticleTracker():
         self._speciesList = self._dataContainer.GetSpeciesWithTrackingData()
         self._speciesToAnalyze = None
         self._particleList = list()
+        self._instantRawDataSetsList = list()
         self.timeInfoAdded = False
         self.indexInfoAdded = False
         """
@@ -158,6 +167,16 @@ class ParticleTracker():
             particlesList.append(particle)
         return particlesList
 
+    def SetParticlesToTrack(self, particleList):
+        self._particleList = particleList
+
+    def FillEvolutionOfAllDataSetsInParticles(self):
+        self.indexInfoAdded = False
+        self.timeInfoAdded = False
+        rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
+        for dataSet in rawDataSets:
+            self._FillEvolutionOfDataSetInParticles(dataSet)
+            
     def _FillEvolutionOfDataSetInParticles(self, dataSet):
         timeSteps = dataSet.GetTimeSteps()
         totalTimeSteps = len(timeSteps)
@@ -180,7 +199,7 @@ class ParticleTracker():
                     timeValues[timeStep] = dataSet.GetTime(timeStep)
                 for particle in self._particleList:
                     if not self.indexInfoAdded:
-                        particleIndex = self.GetParticleIndexFromTag(particle.tag, particleTags)
+                        particleIndex = self._GetParticleIndexFromTag(particle.tag, particleTags)
                         indices[self._particleList.index(particle), timeStep] = particleIndex # if particleIndex is None, it will set a NaN value in the numpy array.
                     else:
                         particleIndex = particle.GetIndex(timeStep)
@@ -198,32 +217,45 @@ class ParticleTracker():
                 if particleExitedDomain:
                     break
         quantityValues = quantityValues[:,firstTimeStepIndex:lastTimeStepIndex] # remove the colums in which the particle is not in the domain
+        trackedTimeSteps = timeSteps[firstTimeStepIndex:lastTimeStepIndex]
         if not self.timeInfoAdded:
             timeValues = timeValues[firstTimeStepIndex:lastTimeStepIndex]
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
+            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", timeValues, dataSet.GetTimeUnits())
+                particle.AddWholeSimulationQuantity("Time", "", timeValues, dataSet.GetTimeUnits())
+                particle.SetTrackedTimeSteps(trackedTimeSteps)
             if not self.indexInfoAdded:
                 particle.SetIndices(indices[self._particleList.index(particle)])
         self.indexInfoAdded = True
         self.timeInfoAdded = True
 
-    def GetParticleIndexFromTag(self, particleTag, allTags):
+    def _GetParticleIndexFromTag(self, particleTag, allTags):
         n = len(allTags)
         for i in np.arange(0,n):
             if (allTags[i] == particleTag).all():
                 return i
 
-    def FillEvolutionOfAllDataSetsInParticles(self):
-        self.indexInfoAdded = False
-        self.timeInfoAdded = False
-        rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
-        for dataSet in rawDataSets:
-            self._FillEvolutionOfDataSetInParticles(dataSet)
+    def MakeInstantaneousRawDataSets(self):
+        trackedQuantities = self._particleList[0].GetNamesOfWholeSimulationQuantities()
+        timeSteps = self._particleList[0].GetTrackedTimeSteps()
+        i = len(self._particleList) # number of particles
+        j = len(timeSteps)
+        for quantity in trackedQuantities:
+            if quantity != "Time":
+                data = np.zeros([i,j])
+                n = 0
+                for particle in self._particleList:
+                    quantityData = particle.GetWholeSimulationQuantity(quantity)
+                    data[n] = quantityData["values"]
+                    dataUnits = quantityData["units"]
+                    dataCodeName = quantityData["codeName"]
+                    timeData = particle.GetWholeSimulationQuantity("Time")
+                    timeValues = timeData["values"]
+                    timeUnits = timeData["units"]
+                    n += 1 
+                self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeSteps, self._speciesToAnalyze.GetName()))
 
-    def SetParticlesToTrack(self, particleList):
-        self._particleList = particleList
 
     def GetTrackedParticles(self):
         return self._particleList

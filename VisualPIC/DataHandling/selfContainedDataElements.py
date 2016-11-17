@@ -35,7 +35,7 @@ class SelfContainedDataElement(DataElement):
         timeUnits  -- string containing the time units.
         timeSteps  -- a 1D array containing the number of each time step saved to disk during the simulation.
         """
-        SelfContainedDataElement.__init__(self, standardName, timeSteps, speciesName)
+        DataElement.__init__(self, standardName, timeSteps, speciesName)
         self.dataNameInCode = nameInCode
         self.dataValues = dataValues
         self.dataUnits = dataUnits
@@ -61,5 +61,5 @@ class SelfContainedDataElement(DataElement):
 
 
 class SelfContainedRawDataSet(SelfContainedDataElement):
-    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
-        SelfContainedRawDataSet.__init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+    def __init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+        SelfContainedDataElement.__init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
