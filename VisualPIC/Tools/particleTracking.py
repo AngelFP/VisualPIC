@@ -255,15 +255,15 @@ class ParticleTracker():
     def MakeInstantaneousRawDataSets(self):
         trackedQuantities = self._particleList[0].GetNamesOfWholeSimulationQuantities()
         timeSteps = self._particleList[0].GetTrackedTimeSteps()
-        i = len(self._particleList) # number of particles
-        j = len(timeSteps)
+        j = len(self._particleList) # number of particles
+        i = len(timeSteps)
         for quantity in trackedQuantities:
             if quantity != "Time":
                 data = np.zeros([i,j])
                 n = 0
                 for particle in self._particleList:
                     quantityData = particle.GetWholeSimulationQuantity(quantity)
-                    data[n] = quantityData["values"]
+                    data[:,n] = quantityData["values"]
                     dataUnits = quantityData["units"]
                     dataCodeName = quantityData["codeName"]
                     timeData = particle.GetWholeSimulationQuantity("Time")

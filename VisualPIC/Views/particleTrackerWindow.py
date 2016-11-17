@@ -64,9 +64,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorSubplot = None
         self.evolSubplotList = list()
         self.instantSubplotList = list()
-        self.subplotRows = 1
-        self.subplotColumns = 1
-        self.increaseRowsColumnsCounter = 0
+        self.evolSubplotRows = 1
+        self.evolSubplotColumns = 1
+        self.instantSubplotRows = 1
+        self.instantSubplotColumns = 1
+        self.increaseEvolRowsColumnsCounter = 0
+        self.increaseInstantRowsColumnsCounter = 0
+        self.instantTimeSteps = np.zeros(1)
         self.CreateCanvasAndFigures()
         self.FillInitialUI();
         self.RegisterUIEvents();
@@ -127,6 +131,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
         self.addToInstantPlot_Button.clicked.connect(self.AddToInstantPlotButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
+        self.plotInstant_pushButton.clicked.connect(self.PlotInstantPushButton_Clicked)
         self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
         self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
         self.selectAllExport_checkBox.toggled.connect(self.SelectAllExportCheckBox_StatusChanged)
@@ -235,7 +240,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         plotPosition = len(self.evolSubplotList)+1
         subplot = RawDataEvolutionSubplot(plotPosition, self.colormapsCollection, self.particleTracker.GetTrackedParticlesDataToPlot(xDataSetName, yDataSetName, zDataSetName), self.particleTracker.GetTrackedSpeciesName())
         self.evolSubplotList.append(subplot)
-        self.SetAutoColumnsAndRows()
+        self.SetAutoEvolColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
@@ -266,14 +271,19 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         dataSets["weight"] = RawDataSetToPlot(weightDataSet, self.unitConverter)
         subplot = RawDataSubplot(plotPosition, self.colormapsCollection, dataSets)
         self.instantSubplotList.append(subplot)
+        self.SetAutoInstantColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.instantSubplots_listWidget.addItem(wid2)
         self.instantSubplots_listWidget.setItemWidget(wid2, wid)
+        self.SetInstantTimeSteps()
 
     def PlotPushButton_Clicked(self):
-        self.MakePlots()
+        self.MakeEvolPlots()
+
+    def PlotInstantPushButton_Clicked(self):
+        self.MakeInstantPlots()
 
     def SelectAllCheckBox_StatusChanged(self):
         if self.selectAll_checkBox.checkState():
@@ -474,13 +484,21 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_Slider.setMinimum(minTime)
         self.selectorTimeStep_Slider.setMaximum(maxTime)
 
-    def SetAutoColumnsAndRows(self):
-        if self.subplotRows*self.subplotColumns < len(self.evolSubplotList):
-            if self.increaseRowsColumnsCounter % 2 == 0:
-                self.subplotRows += 1
+    def SetAutoEvolColumnsAndRows(self):
+        if self.evolSubplotRows*self.evolSubplotColumns < len(self.evolSubplotList):
+            if self.increaseEvolRowsColumnsCounter % 2 == 0:
+                self.evolSubplotRows += 1
             else:
-                self.subplotColumns += 1
-            self.increaseRowsColumnsCounter += 1
+                self.evolSubplotColumns += 1
+            self.increaseEvolRowsColumnsCounter += 1
+
+    def SetAutoInstantColumnsAndRows(self):
+        if self.instantSubplotRows*self.instantSubplotColumns < len(self.instantSubplotList):
+            if self.increaseInstantRowsColumnsCounter % 2 == 0:
+                self.instantSubplotRows += 1
+            else:
+                self.instantSubplotColumns += 1
+            self.increaseInstantRowsColumnsCounter += 1
 
     def RemoveSubplot(self, item):
         index = self.evolSubplotList.index(item.subplot)
@@ -490,16 +508,34 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             if subplot.GetPosition() > index+1:
                 subplot.SetPosition(subplot.GetPosition()-1)
         if len(self.evolSubplotList) > 0:
-            if self.increaseRowsColumnsCounter % 2 == 0:
-                if len(self.evolSubplotList) <= self.subplotRows*(self.subplotColumns-1):
-                    self.subplotColumns -= 1
-                    self.increaseRowsColumnsCounter -= 1
+            if self.increaseEvolRowsColumnsCounter % 2 == 0:
+                if len(self.evolSubplotList) <= self.evolSubplotRows*(self.evolSubplotColumns-1):
+                    self.evolSubplotColumns -= 1
+                    self.increaseEvolRowsColumnsCounter -= 1
             else:
-                if len(self.evolSubplotList) <= (self.subplotRows-1)*self.subplotColumns:
-                    self.subplotRows -= 1
-                    self.increaseRowsColumnsCounter -= 1
+                if len(self.evolSubplotList) <= (self.evolSubplotRows-1)*self.evolSubplotColumns:
+                    self.evolSubplotRows -= 1
+                    self.increaseEvolRowsColumnsCounter -= 1
 
-    def MakePlots(self):
-        self.dataPlotter.MakePlot(self.mainFigure, self.evolSubplotList, self.subplotRows, self.subplotColumns)
+    def MakeEvolPlots(self):
+        self.dataPlotter.MakePlot(self.mainFigure, self.evolSubplotList, self.evolSubplotRows, self.evolSubplotColumns)
         self.mainCanvas.draw()
+
+    def MakeInstantPlots(self):
+        timeStep = self.instantTimeStep_Slider.value()
+        self.dataPlotter.MakePlot(self.instantPlotsFigure, self.instantSubplotList, self.instantSubplotRows, self.instantSubplotColumns, timeStep)
+        self.instantPlotsCanvas.draw()
+
+    def SetInstantTimeSteps(self):
+        i = 0
+        for subplot in self.instantSubplotList:
+            if i == 0:
+                self.instantTimeSteps = subplot.GetTimeSteps()
+            else :
+                self.instantTimeSteps = np.intersect1d(self.instantTimeSteps, subplot.GetTimeSteps())
+            i+=1
+        minTime = min(self.instantTimeSteps)
+        maxTime = max(self.instantTimeSteps)
+        self.instantTimeStep_Slider.setMinimum(minTime)
+        self.instantTimeStep_Slider.setMaximum(maxTime)
         
