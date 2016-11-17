@@ -62,7 +62,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
         self.selectorSubplot = None
-        self.subplotList = list()
+        self.evolSubplotList = list()
+        self.instantSubplotList = list()
         self.subplotRows = 1
         self.subplotColumns = 1
         self.increaseRowsColumnsCounter = 0
@@ -71,6 +72,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.RegisterUIEvents();
 
     def CreateCanvasAndFigures(self):
+        # Graphic selector
+        self.selectorFigure = Figure()
+        self.selectorFigure.patch.set_facecolor("white")
+        self.selectorCanvas = FigureCanvas(self.selectorFigure)
+        self.selectorPlot_layout.addWidget(self.selectorCanvas)
+        self.selectorCanvas.draw()
+        # Evolution plots
         self.mainFigure = Figure()
         self.mainFigure.patch.set_facecolor("white")
         self.mainCanvas = FigureCanvas(self.mainFigure)
@@ -78,11 +86,14 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.mainCanvas.draw()
         self.toolbar = NavigationToolbar(self.mainCanvas, self.mainPlot_widget, coordinates=True)
         self.mainPlot_layout.addWidget(self.toolbar)
-        self.selectorFigure = Figure()
-        self.selectorFigure.patch.set_facecolor("white")
-        self.selectorCanvas = FigureCanvas(self.selectorFigure)
-        self.selectorPlot_layout.addWidget(self.selectorCanvas)
-        self.selectorCanvas.draw()
+        # Instant plots
+        self.instantPlotsFigure = Figure()
+        self.instantPlotsFigure.patch.set_facecolor("white")
+        self.instantPlotsCanvas = FigureCanvas(self.instantPlotsFigure)
+        self.instantPlots_layout.addWidget(self.instantPlotsCanvas)
+        self.instantPlotsCanvas.draw()
+        self.instantPlotsToolbar = NavigationToolbar(self.instantPlotsCanvas, self.instantPlots_widget, coordinates=True)
+        self.instantPlots_layout.addWidget(self.instantPlotsToolbar)
 
     def CreateSelectorSubplotObject(self):
         #if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
@@ -111,7 +122,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.trackParticles_Button.clicked.connect(self.TrackParticlesButton_Clicked)
         self.plotType_radioButton_1.toggled.connect(self.PlotTypeRadioButton_Toggled)
         self.plotType_radioButton_2.toggled.connect(self.PlotTypeRadioButton_Toggled)
+        self.instPlotType_radioButton.toggled.connect(self.InstantPlotTypeRadioButton_Toggled)
+        self.instPlotType_radioButton_2.toggled.connect(self.InstantPlotTypeRadioButton_Toggled)
         self.addToPlot_Button.clicked.connect(self.AddToPlotButton_Clicked)
+        self.addToInstantPlot_Button.clicked.connect(self.AddToInstantPlotButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
         self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
         self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
@@ -126,7 +140,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             comboBoxItems.insert(0, "No species available")
         self.speciesSelector_comboBox.addItems(comboBoxItems)
 
-    def FillPlotUI(self):
+    def FillEvolutionPlotsUI(self):
         self.x_comboBox.clear()
         self.y_comboBox.clear()
         self.z_comboBox.clear()
@@ -134,6 +148,15 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.y_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
         self.z_comboBox.addItems(self.particleTracker.GetAvailableWholeSimulationQuantitiesInParticles())
         self.trackedParticles_Label.setText("Tracking " + str(self.particleTracker.GetTotalNumberOfTrackedParticles())+ " particle(s)")
+
+    def FillInstantPlotsUI(self):
+        self.instX_comboBox.clear()
+        self.instY_comboBox.clear()
+        self.instZ_comboBox.clear()
+        self.instX_comboBox.addItems(self.particleTracker.GetNamesOfInstantRawDataSets())
+        self.instY_comboBox.addItems(self.particleTracker.GetNamesOfInstantRawDataSets())
+        self.instZ_comboBox.addItems(self.particleTracker.GetNamesOfInstantRawDataSets())
+        self.trackedParticles_Label_3.setText("Tracking " + str(self.particleTracker.GetTotalNumberOfTrackedParticles())+ " particle(s)")
 
     def FillExportDataUI(self):
         self.CreateTrackedParticlesTable()
@@ -193,11 +216,15 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
         self.particleTracker.FillEvolutionOfAllDataSetsInParticles()
         self.particleTracker.MakeInstantaneousRawDataSets()
-        self.FillPlotUI()
+        self.FillEvolutionPlotsUI()
+        self.FillInstantPlotsUI()
         self.FillExportDataUI()
 
     def PlotTypeRadioButton_Toggled(self):
         self.z_comboBox.setEnabled(self.plotType_radioButton_2.isChecked())
+
+    def InstantPlotTypeRadioButton_Toggled(self):
+        self.instZ_comboBox.setEnabled(self.instPlotType_radioButton_2.isChecked())
 
     def AddToPlotButton_Clicked(self):
         xDataSetName = str(self.x_comboBox.currentText())
@@ -205,15 +232,45 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         zDataSetName = None
         if self.plotType_radioButton_2.isChecked():
             zDataSetName = str(self.z_comboBox.currentText())
-        plotPosition = len(self.subplotList)+1
+        plotPosition = len(self.evolSubplotList)+1
         subplot = RawDataEvolutionSubplot(plotPosition, self.colormapsCollection, self.particleTracker.GetTrackedParticlesDataToPlot(xDataSetName, yDataSetName, zDataSetName), self.particleTracker.GetTrackedSpeciesName())
-        self.subplotList.append(subplot)
+        self.evolSubplotList.append(subplot)
         self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
         wid2 = QtGui.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.subplots_listWidget.addItem(wid2)
         self.subplots_listWidget.setItemWidget(wid2, wid)
+
+    def AddToInstantPlotButton_Clicked(self):
+        xDataSetName = str(self.instX_comboBox.currentText())
+        yDataSetName = str(self.instY_comboBox.currentText())
+        if self.instPlotType_radioButton_2.isChecked():
+            zDataSetName = str(self.instZ_comboBox.currentText())
+        plotPosition = len(self.instantSubplotList)+1
+        dataSets = {}
+        xDataSet = self.particleTracker.GetInstantRawDataSet(xDataSetName)
+        dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
+        yDataSet = self.particleTracker.GetInstantRawDataSet(yDataSetName)
+        dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+        pxDataSet = self.particleTracker.GetInstantRawDataSet("Px")
+        dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.unitConverter)
+        pyDataSet = self.particleTracker.GetInstantRawDataSet("Py")
+        dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.unitConverter)
+        if self.instPlotType_radioButton_2.isChecked():
+            zDataSet = self.particleTracker.GetInstantRawDataSet(zDataSetName)
+            dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
+            pzDataSet = self.particleTracker.GetInstantRawDataSet("Pz")
+            dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.unitConverter)
+        weightDataSet = self.particleTracker.GetInstantRawDataSet("Charge")
+        dataSets["weight"] = RawDataSetToPlot(weightDataSet, self.unitConverter)
+        subplot = RawDataSubplot(plotPosition, self.colormapsCollection, dataSets)
+        self.instantSubplotList.append(subplot)
+        wid = PlotFieldItem(subplot, self)
+        wid2 = QtGui.QListWidgetItem()
+        wid2.setSizeHint(QtCore.QSize(100, 40))
+        self.instantSubplots_listWidget.addItem(wid2)
+        self.instantSubplots_listWidget.setItemWidget(wid2, wid)
 
     def PlotPushButton_Clicked(self):
         self.MakePlots()
@@ -262,7 +319,6 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     """
     Other functions
     """
-
     def OpenFolderDialog(self):
         folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
         if folderPath != "":
@@ -419,7 +475,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_Slider.setMaximum(maxTime)
 
     def SetAutoColumnsAndRows(self):
-        if self.subplotRows*self.subplotColumns < len(self.subplotList):
+        if self.subplotRows*self.subplotColumns < len(self.evolSubplotList):
             if self.increaseRowsColumnsCounter % 2 == 0:
                 self.subplotRows += 1
             else:
@@ -427,23 +483,23 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             self.increaseRowsColumnsCounter += 1
 
     def RemoveSubplot(self, item):
-        index = self.subplotList.index(item.subplot)
-        self.subplotList.remove(item.subplot)
+        index = self.evolSubplotList.index(item.subplot)
+        self.evolSubplotList.remove(item.subplot)
         self.subplots_listWidget.takeItem(index)
-        for subplot in self.subplotList:
+        for subplot in self.evolSubplotList:
             if subplot.GetPosition() > index+1:
                 subplot.SetPosition(subplot.GetPosition()-1)
-        if len(self.subplotList) > 0:
+        if len(self.evolSubplotList) > 0:
             if self.increaseRowsColumnsCounter % 2 == 0:
-                if len(self.subplotList) <= self.subplotRows*(self.subplotColumns-1):
+                if len(self.evolSubplotList) <= self.subplotRows*(self.subplotColumns-1):
                     self.subplotColumns -= 1
                     self.increaseRowsColumnsCounter -= 1
             else:
-                if len(self.subplotList) <= (self.subplotRows-1)*self.subplotColumns:
+                if len(self.evolSubplotList) <= (self.subplotRows-1)*self.subplotColumns:
                     self.subplotRows -= 1
                     self.increaseRowsColumnsCounter -= 1
 
     def MakePlots(self):
-        self.dataPlotter.MakePlot(self.mainFigure, self.subplotList, self.subplotRows, self.subplotColumns)
+        self.dataPlotter.MakePlot(self.mainFigure, self.evolSubplotList, self.subplotRows, self.subplotColumns)
         self.mainCanvas.draw()
         

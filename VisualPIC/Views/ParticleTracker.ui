@@ -23,7 +23,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -541,7 +541,7 @@ Particles</string>
          </item>
          <item>
           <widget class="QWidget" name="instantPlots_widget" native="true">
-           <layout class="QVBoxLayout" name="mainPlot_layout_2"/>
+           <layout class="QVBoxLayout" name="instantPlots_layout"/>
           </widget>
          </item>
         </layout>

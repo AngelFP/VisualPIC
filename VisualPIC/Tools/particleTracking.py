@@ -121,6 +121,17 @@ class ParticleTracker():
             if species.GetName() == speciesName:
                 return species.GetRawDataSetsNamesList()
 
+    def GetNamesOfInstantRawDataSets(self):
+        names = list()
+        for dataSet in self._instantRawDataSetsList:
+            names.append(dataSet.GetName())
+        return names
+
+    def GetInstantRawDataSet(self, dataSetName):
+        for dataSet in self._instantRawDataSetsList:
+            if dataSet.GetName() == dataSetName:
+                return dataSet
+
     def FindParticles(self, timeStep, speciesName, filters):
         """filters is a dictionary where the keys are the names of the variables 
         to filter (eg /q, /x1, etc.) and the values are a tuple with two numbers
@@ -260,7 +271,6 @@ class ParticleTracker():
                     timeUnits = timeData["units"]
                     n += 1 
                 self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeSteps, self._speciesToAnalyze.GetName()))
-
 
     def GetTrackedParticles(self):
         return self._particleList
