@@ -23,7 +23,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -412,137 +412,187 @@ Particles</string>
       <attribute name="title">
        <string>Instant Plots</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
-        <widget class="QWidget" name="widget_3" native="true">
-         <property name="maximumSize">
-          <size>
-           <width>360</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_10">
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QWidget" name="widget_3" native="true">
+           <property name="maximumSize">
+            <size>
+             <width>360</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
-             <widget class="QLabel" name="label_20">
-              <property name="text">
-               <string>Plot type:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_17">
+             <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <widget class="QRadioButton" name="instPlotType_radioButton">
+               <widget class="QLabel" name="label_20">
                 <property name="text">
-                 <string>2D</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
+                 <string>Plot type:</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="instPlotType_radioButton_2">
+               <layout class="QHBoxLayout" name="horizontalLayout_17">
+                <item>
+                 <widget class="QRadioButton" name="instPlotType_radioButton">
+                  <property name="text">
+                   <string>2D</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="instPlotType_radioButton_2">
+                  <property name="text">
+                   <string>3D</string>
+                  </property>
+                  <property name="checked">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <item>
+                 <widget class="QLabel" name="label_21">
+                  <property name="text">
+                   <string>X axis:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="instX_comboBox"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_19">
+                <item>
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string>Y axis:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="instY_comboBox"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_20">
+                <item>
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Z axis:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="instZ_comboBox">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="addToInstantPlot_Button">
                 <property name="text">
-                 <string>3D</string>
+                 <string>Add To Plot</string>
                 </property>
-                <property name="checked">
-                 <bool>false</bool>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Subplot list:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QListWidget" name="instantSubplots_listWidget"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="plotInstant_pushButton">
+                <property name="text">
+                 <string>Plot</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="trackedParticles_Label_3">
+                <property name="text">
+                 <string>Tracking 0 particle(s)</string>
                 </property>
                </widget>
               </item>
              </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_18">
-              <item>
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>X axis:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="instX_comboBox"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_19">
-              <item>
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Y axis:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="instY_comboBox"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_20">
-              <item>
-               <widget class="QLabel" name="label_23">
-                <property name="text">
-                 <string>Z axis:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="instZ_comboBox">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QPushButton" name="addToInstantPlot_Button">
-              <property name="text">
-               <string>Add To Plot</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_24">
-              <property name="text">
-               <string>Subplot list:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QListWidget" name="instantSubplots_listWidget"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="plotInstant_pushButton">
-              <property name="text">
-               <string>Plot</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="trackedParticles_Label_3">
-              <property name="text">
-               <string>Tracking 0 particle(s)</string>
-              </property>
-             </widget>
             </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="instantPlots_widget" native="true">
+           <layout class="QVBoxLayout" name="mainPlot_layout_2"/>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QWidget" name="instantPlots_widget" native="true">
-         <layout class="QVBoxLayout" name="mainPlot_layout_2"/>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QSlider" name="instantTimeStep_Slider">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="prevStep_Button">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/icon-ios7-arrow-left-128.png</normaloff>Icons/icon-ios7-arrow-left-128.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="nextStep_Button">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/icon-ios7-arrow-right-128.png</normaloff>Icons/icon-ios7-arrow-right-128.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="instantTimeStep_LineEdit">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
+      <zorder>layoutWidget</zorder>
+      <zorder>horizontalLayoutWidget</zorder>
+      <zorder>widget_3</zorder>
      </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
