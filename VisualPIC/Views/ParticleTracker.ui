@@ -578,7 +578,7 @@ Particles</string>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="instantTimeStep_LineEdit">
+          <widget class="QLineEdit" name="instantTimeStep_lineEdit">
            <property name="maximumSize">
             <size>
              <width>100</width>
@@ -590,9 +590,6 @@ Particles</string>
         </layout>
        </item>
       </layout>
-      <zorder>layoutWidget</zorder>
-      <zorder>horizontalLayoutWidget</zorder>
-      <zorder>widget_3</zorder>
      </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">

@@ -199,7 +199,7 @@ class DataPlotter:
         yAxisData = plotData[-2]
         xAxisData = plotData[-3]
         axesLimits =[min(xAxisData), max(xAxisData), min(yAxisData), max(yAxisData)]
-        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
+        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower", interpolation='none')
         
     def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:

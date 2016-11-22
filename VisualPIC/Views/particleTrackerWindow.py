@@ -118,6 +118,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def RegisterUIEvents(self):
         self.selectorTimeStep_Slider.valueChanged.connect(self.SelectorTimeStepSlider_ValueChanged)
         self.selectorTimeStep_Slider.sliderReleased.connect(self.SelectorTimeStepSlider_Released)
+        self.instantTimeStep_Slider.valueChanged.connect(self.InstantTimeStepSlider_ValueChanged)
+        self.instantTimeStep_Slider.sliderReleased.connect(self.InstantTimeStepSlider_Released)
         self.speciesSelector_comboBox.currentIndexChanged.connect(self.SpeciesSelectorComboBox_IndexChanged)
         self.xAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
         self.yAxis_comboBox.currentIndexChanged.connect(self.AxisComboBox_IndexChanged)
@@ -136,6 +138,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
         self.selectAllExport_checkBox.toggled.connect(self.SelectAllExportCheckBox_StatusChanged)
         self.exportData_pushButton.clicked.connect(self.ExportDataButton_Clicked)
+        self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
+        self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
 
     def FillInitialUI(self):
         comboBoxItems = self.particleTracker.GetSpeciesNames()
@@ -184,6 +188,34 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
                 self.selectorTimeStep_Slider.setValue(closestLower)
         self.MakeSelectorPlot()
         self._CreateFineSelectionTable()
+
+    def InstantTimeStepSlider_ValueChanged(self):
+        self.instantTimeStep_lineEdit.setText(str(self.instantTimeStep_Slider.value()))
+
+    def InstantTimeStepSlider_Released(self):
+        if self.instantTimeStep_Slider.value() not in self.instantTimeSteps:
+            val = self.instantTimeStep_Slider.value()
+            closestHigher = self.timeSteps[np.where(self.instantTimeSteps > val)[0][0]]
+            closestLower = self.timeSteps[np.where(self.instantTimeSteps < val)[0][-1]]
+            if abs(val-closestHigher) < abs(val-closestLower):
+                self.instantTimeStep_Slider.setValue(closestHigher)
+            else:
+                self.instantTimeStep_Slider.setValue(closestLower)
+        self.MakeInstantPlots()
+
+    def NextButton_Clicked(self):
+        currentTimeStep = self.instantTimeStep_Slider.value()
+        currentIndex = np.where(self.instantTimeSteps == currentTimeStep)[0][0]
+        if currentIndex < len(self.instantTimeSteps)-1:
+            self.instantTimeStep_Slider.setValue(self.instantTimeSteps[currentIndex + 1])
+        self.MakeInstantPlots()
+        
+    def PrevButton_Clicked(self):
+        currentTimeStep = self.instantTimeStep_Slider.value()
+        currentIndex = np.where(self.instantTimeSteps == currentTimeStep)[0][0]
+        if currentIndex > 0:
+            self.instantTimeStep_Slider.setValue(self.instantTimeSteps[currentIndex - 1])
+        self.MakeInstantPlots()
 
     def SpeciesSelectorComboBox_IndexChanged(self):
         self._SetGraphicSelectorComboBoxes()
