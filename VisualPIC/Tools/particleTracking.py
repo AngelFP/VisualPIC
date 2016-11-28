@@ -74,7 +74,7 @@ class Particle():
         self._particleIndices = indices
 
     def GetIndex(self, timeStep):
-        return self._particleIndices[timeStep]
+        return self._particleIndices[np.where(self._trackedTimeSteps == timeStep)[0][0]]
 
     def WriteDataToFile(self, location, fileName):
         h5file = h5py.File(location + "/" + fileName + ".h5", "w")
@@ -187,12 +187,51 @@ class ParticleTracker():
         self._particleList = particleList
 
     def FillEvolutionOfAllDataSetsInParticles(self):
-        self.indexInfoAdded = False
-        self.timeInfoAdded = False
         rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
+        self._FindIndicesOfParticles()
         for dataSet in rawDataSets:
             self._FillEvolutionOfDataSetInParticles(dataSet)
-            
+
+    def _FindIndicesOfParticles(self):
+        timeSteps = self._speciesToAnalyze.GetRawDataTimeSteps()
+        trackedParticleTags = self._GetTrackedParticleTags()
+        totalTimeSteps = len(timeSteps)
+        numberOfParticles = len(self._particleList)
+        trackedTimeSteps = -np.ones([numberOfParticles, totalTimeSteps], dtype=int)
+        particleIndices = -np.ones([numberOfParticles, totalTimeSteps], dtype=int)
+        i = 0
+        for timeStep in timeSteps:
+            try:
+                allParticleTagsInFile = self._speciesToAnalyze.GetRawDataTags(timeStep)
+                j = 0
+                for tag in allParticleTagsInFile:
+                    if tag in trackedParticleTags:
+                        pIndex = np.where(trackedParticleTags == tag)[0][0]
+                        particleIndices[pIndex, i] = j
+                        trackedTimeSteps[pIndex, i] = timeStep
+                    j += 1
+
+            except:
+                pass
+            finally:
+                i+=1
+        k = 0
+
+        for particle in self._particleList:
+            unfilteredIndices = particleIndices[k]
+            filteredIndices = np.delete(unfilteredIndices, np.where(unfilteredIndices == -1))
+            unfilteredTimeSteps = trackedTimeSteps[k]
+            filteredTimeSteps = np.delete(trackedTimeSteps, np.where(trackedTimeSteps == -1))
+            particle.SetIndices(filteredIndices)
+            particle.SetTrackedTimeSteps(filteredTimeSteps)
+            k += 1
+        
+    def _GetTrackedParticleTags(self):
+        tags = list()
+        for particle in self._particleList:
+            tags.append(particle.tag)
+        return tags
+                
     def _FillEvolutionOfDataSetInParticles(self, dataSet):
         timeSteps = dataSet.GetTimeSteps()
         totalTimeSteps = len(timeSteps)

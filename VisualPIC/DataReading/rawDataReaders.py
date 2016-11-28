@@ -61,7 +61,11 @@ class OsirisRawDataReader(RawDataReaderBase):
 
     def OpenFileAndReadData(self):
         file_content = self.OpenFile(self.currentTimeStep)
-        self.data = np.array(file_content.get(self.internalName))
+        if self.internalName == "tag":
+            tags = np.array(file_content.get(self.internalName))
+            self.data = (tags[:,0]-tags[:,1])*tags[:,0]
+        else:
+            self.data = np.array(file_content.get(self.internalName))
         self.currentTime = file_content.attrs["TIME"][0]
         file_content.close()
 

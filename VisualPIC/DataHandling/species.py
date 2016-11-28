@@ -69,6 +69,10 @@ class Species:
 
     def GetRawDataTags(self, timeStep):
         return self.rawDataTags.GetTags(timeStep)
+
+    def GetRawDataTimeSteps(self):
+        """ Assumes all RawDataSets have the same number of time steps)"""
+        return self.rawDataSets[0].GetTimeSteps()
             
     def GetAvailableFieldNamesList(self):
         fieldNames = list()
