@@ -47,7 +47,9 @@ class SelfContainedDataElement(DataElement):
 
     def GetData(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
-        return self.dataValues[index]
+        rawValues = self.dataValues[index] # migth contain NaN values
+        dataMask = np.isfinite(rawValues)
+        return rawValues[dataMask] # return the data without the NaN values
         
     def GetDataUnits(self):
         return self.dataUnits
