@@ -253,8 +253,8 @@ class ParticleTracker():
             counter.append(0)
         allSimulatedTimeSteps = dataSet.GetTimeSteps()
         for timeStep in allSimulatedTimeSteps:
-            print(timeStep)
             if timeStep <= max(timeStepsWithParticleData) and (timeStep in timeStepsWithParticleData):
+                print(timeStep)
                 data = dataSet.GetData(timeStep)
                 p = 0
                 for particle in self._particleList:
