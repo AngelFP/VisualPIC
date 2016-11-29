@@ -294,27 +294,8 @@ class ParticleTracker():
                     dataCodeName = quantityData["codeName"]
                     timeUnits = timeData["units"]
                     n += 1 
+                self._instantRawDataSetsList.clear()
                 self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
-
-    def MakeInstantaneousRawDataSets_old(self):
-        trackedQuantities = self._particleList[0].GetNamesOfWholeSimulationQuantities()
-        timeSteps = self._particleList[0].GetTrackedTimeSteps()
-        j = len(self._particleList) # number of particles
-        i = len(timeSteps)
-        for quantity in trackedQuantities:
-            if quantity != "Time":
-                data = np.zeros([i,j])
-                n = 0
-                for particle in self._particleList:
-                    quantityData = particle.GetWholeSimulationQuantity(quantity)
-                    data[:,n] = quantityData["values"]
-                    dataUnits = quantityData["units"]
-                    dataCodeName = quantityData["codeName"]
-                    timeData = particle.GetWholeSimulationQuantity("Time")
-                    timeValues = timeData["values"]
-                    timeUnits = timeData["units"]
-                    n += 1 
-                self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeSteps, self._speciesToAnalyze.GetName()))
 
     def GetTrackedParticles(self):
         return self._particleList
