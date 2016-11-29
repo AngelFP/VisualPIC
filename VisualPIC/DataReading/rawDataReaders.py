@@ -63,7 +63,9 @@ class OsirisRawDataReader(RawDataReaderBase):
         file_content = self.OpenFile(self.currentTimeStep)
         if self.internalName == "tag":
             tags = np.array(file_content.get(self.internalName))
-            self.data = (tags[:,0]-tags[:,1])*tags[:,0]
+            a = tags[:,0]
+            b = tags[:,1]
+            self.data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
         else:
             self.data = np.array(file_content.get(self.internalName))
         self.currentTime = file_content.attrs["TIME"][0]

@@ -187,6 +187,7 @@ class ParticleTracker():
         self._particleList = particleList
 
     def FillEvolutionOfAllDataSetsInParticles(self):
+        self.timeInfoAdded = False
         rawDataSets = self._speciesToAnalyze.GetAllRawDataSets()
         self._FindIndicesOfParticles()
         for dataSet in rawDataSets:
@@ -199,29 +200,36 @@ class ParticleTracker():
         numberOfParticles = len(self._particleList)
         trackedTimeSteps = -np.ones([numberOfParticles, totalTimeSteps], dtype=int)
         particleIndices = -np.ones([numberOfParticles, totalTimeSteps], dtype=int)
+        particlesFound = False
         i = 0
         for timeStep in timeSteps:
+            print(timeStep)
             try:
                 allParticleTagsInFile = self._speciesToAnalyze.GetRawDataTags(timeStep)
                 j = 0
+                count = 0
                 for tag in allParticleTagsInFile:
                     if tag in trackedParticleTags:
+                        particlesFound = True
                         pIndex = np.where(trackedParticleTags == tag)[0][0]
                         particleIndices[pIndex, i] = j
                         trackedTimeSteps[pIndex, i] = timeStep
+                        count += 1
+                        if count == numberOfParticles:
+                            break
                     j += 1
-
             except:
                 pass
             finally:
+                if particlesFound and count == 0:
+                    break # break loop if all the particles have already dissapeared from the files (simulation domain)
                 i+=1
         k = 0
-
         for particle in self._particleList:
             unfilteredIndices = particleIndices[k]
             filteredIndices = np.delete(unfilteredIndices, np.where(unfilteredIndices == -1))
             unfilteredTimeSteps = trackedTimeSteps[k]
-            filteredTimeSteps = np.delete(trackedTimeSteps, np.where(trackedTimeSteps == -1))
+            filteredTimeSteps = np.delete(unfilteredTimeSteps, np.where(unfilteredTimeSteps == -1))
             particle.SetIndices(filteredIndices)
             particle.SetTrackedTimeSteps(filteredTimeSteps)
             k += 1
@@ -233,65 +241,62 @@ class ParticleTracker():
         return tags
                 
     def _FillEvolutionOfDataSetInParticles(self, dataSet):
-        timeSteps = dataSet.GetTimeSteps()
-        totalTimeSteps = len(timeSteps)
-        numberOfParticles = len(self._particleList)
-        quantityValues = np.zeros([numberOfParticles, totalTimeSteps])
-        if not self.indexInfoAdded:
-            indices = np.zeros([numberOfParticles, totalTimeSteps])
-        if not self.timeInfoAdded:
-            timeValues = np.zeros(totalTimeSteps)
-        particleExitedDomain = False
-        dataHasBeenWritten = False
-        lastTimeStepIndex = totalTimeSteps
-        firstTimeStepIndex = 0
-        for timeStep in timeSteps:
+        timeStepsWithParticleData = np.array([])
+        quantityValues = list() # one 1D array for each particle
+        timeValues = list()
+        counter = list()
+        for particle in self._particleList:
+            timeStepsWithParticleData = np.unique(np.concatenate((timeStepsWithParticleData,particle.GetTrackedTimeSteps()),0))
+            quantityValues.append(np.zeros(len(particle.GetTrackedTimeSteps())))
+            if not self.timeInfoAdded:
+                timeValues.append(np.zeros(len(particle.GetTrackedTimeSteps())))
+            counter.append(0)
+        allSimulatedTimeSteps = dataSet.GetTimeSteps()
+        for timeStep in allSimulatedTimeSteps:
             print(timeStep)
-            particleTags = self._speciesToAnalyze.GetRawDataTags(timeStep)
-            if particleTags.size>1:
+            if timeStep <= max(timeStepsWithParticleData) and (timeStep in timeStepsWithParticleData):
                 data = dataSet.GetData(timeStep)
-                if not self.timeInfoAdded:
-                    timeValues[timeStep] = dataSet.GetTime(timeStep)
+                p = 0
                 for particle in self._particleList:
-                    if not self.indexInfoAdded:
-                        particleIndex = self._GetParticleIndexFromTag(particle.tag, particleTags)
-                        indices[self._particleList.index(particle), timeStep] = particleIndex # if particleIndex is None, it will set a NaN value in the numpy array.
-                    else:
-                        particleIndex = particle.GetIndex(timeStep)
-                    if particleIndex != None and not math.isnan(particleIndex):
-                        try:
-                            quantityValues[self._particleList.index(particle), timeStep] = data[particleIndex]
-                        except:
-                            print(particleIndex)
-                        if not dataHasBeenWritten:
-                            firstTimeStepIndex = np.where(timeSteps == timeStep)[0][0]
-                            dataHasBeenWritten = True
-                    elif dataHasBeenWritten:
-                        particleExitedDomain = True
-                        lastTimeStepIndex = np.where(timeSteps == timeStep)[0][0]
-                if particleExitedDomain:
-                    break
-        quantityValues = quantityValues[:,firstTimeStepIndex:lastTimeStepIndex] # remove the colums in which the particle is not in the domain
-        trackedTimeSteps = timeSteps[firstTimeStepIndex:lastTimeStepIndex]
-        if not self.timeInfoAdded:
-            timeValues = timeValues[firstTimeStepIndex:lastTimeStepIndex]
+                    if timeStep in particle.GetTrackedTimeSteps():
+                        step = counter[p]
+                        quantityValues[p][step] = data[particle.GetIndex(timeStep)]
+                        if not self.timeInfoAdded:
+                            timeValues[p][step] = dataSet.GetTime(timeStep)
+                        counter[p] += 1
+                    p += 1
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", "", timeValues, dataSet.GetTimeUnits())
-                particle.SetTrackedTimeSteps(trackedTimeSteps)
-            if not self.indexInfoAdded:
-                particle.SetIndices(indices[self._particleList.index(particle)])
-        self.indexInfoAdded = True
+                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeUnits())
         self.timeInfoAdded = True
 
-    def _GetParticleIndexFromTag(self, particleTag, allTags):
-        n = len(allTags)
-        for i in np.arange(0,n):
-            if (allTags[i] == particleTag).all():
-                return i
-
     def MakeInstantaneousRawDataSets(self):
+        trackedQuantities = self._particleList[0].GetNamesOfWholeSimulationQuantities()
+        timeStepsWithParticleData = np.array([])
+        for particle in self._particleList:
+            timeStepsWithParticleData = np.unique(np.concatenate((timeStepsWithParticleData,particle.GetTrackedTimeSteps()),0))
+        for quantity in trackedQuantities:
+            if quantity != "Time":
+                data = np.zeros([len(timeStepsWithParticleData),len(self._particleList)])
+                data.fill(np.nan)
+                timeValues = np.array([])
+                n = 0
+                for particle in self._particleList:
+                    quantityData = particle.GetWholeSimulationQuantity(quantity)
+                    particleTimeSteps = particle.GetTrackedTimeSteps()
+                    first = np.where(timeStepsWithParticleData == particleTimeSteps.min())[0][0]
+                    last = np.where(timeStepsWithParticleData == particleTimeSteps.max())[0][0]
+                    data[first:last+1,n] = quantityData["values"]
+                    timeData = particle.GetWholeSimulationQuantity("Time")
+                    timeValues = np.unique(np.concatenate((timeValues,timeData["values"]),0))
+                    dataUnits = quantityData["units"]
+                    dataCodeName = quantityData["codeName"]
+                    timeUnits = timeData["units"]
+                    n += 1 
+                self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
+
+    def MakeInstantaneousRawDataSets_old(self):
         trackedQuantities = self._particleList[0].GetNamesOfWholeSimulationQuantities()
         timeSteps = self._particleList[0].GetTrackedTimeSteps()
         j = len(self._particleList) # number of particles
