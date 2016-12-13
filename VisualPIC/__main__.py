@@ -21,9 +21,17 @@
 # Add VisualPIC folder to python path, so that folders can be called as modules
 import os
 import inspect
+import ctypes
+import platform
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 os.sys.path.insert(0,parentdir) 
+
+# Needed to change taskbar icon
+if platform.system() == 'Windows':
+    myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
  
 if __name__ == '__main__':
