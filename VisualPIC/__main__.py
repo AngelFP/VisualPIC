@@ -38,7 +38,11 @@ if __name__ == '__main__':
     from VisualPIC.Views.mainWindow import MainWindow
     import sys
     from PyQt5 import QtWidgets
- 
+    from PyQt5.Qt import Qt
+
+    # Enable scaling for high DPI displays
+    QtWidgets.QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
