@@ -21,9 +21,9 @@ import gc
 import os
 import sys
 
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import *
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
@@ -274,7 +274,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.evolSubplotList.append(subplot)
         self.SetAutoEvolColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.subplots_listWidget.addItem(wid2)
         self.subplots_listWidget.setItemWidget(wid2, wid)
@@ -305,7 +305,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.instantSubplotList.append(subplot)
         self.SetAutoInstantColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.instantSubplots_listWidget.addItem(wid2)
         self.instantSubplots_listWidget.setItemWidget(wid2, wid)
@@ -362,7 +362,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     Other functions
     """
     def OpenFolderDialog(self):
-        folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
         if folderPath != "":
             self.exportPath_lineEdit.setText(folderPath)
 

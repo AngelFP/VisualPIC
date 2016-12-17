@@ -20,9 +20,9 @@
 import sys
 import os
 
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import *
 
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.subplot import *

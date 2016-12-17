@@ -21,11 +21,11 @@ import gc
 import os
 import sys
 
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
@@ -261,7 +261,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     """
 
     def OpenFolderDialog(self):
-        folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.dataContainer.GetFolderPath()))
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.dataContainer.GetFolderPath()))
         if folderPath != "":
             self.SetFolderPath(folderPath)
         
@@ -286,7 +286,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
@@ -359,7 +359,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)

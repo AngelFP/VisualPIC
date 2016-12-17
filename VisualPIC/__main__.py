@@ -37,9 +37,9 @@ if platform.system() == 'Windows':
 if __name__ == '__main__':
     from VisualPIC.Views.mainWindow import MainWindow
     import sys
-    from PyQt4 import QtGui
+    from PyQt5 import QtWidgets
  
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
     sys.exit(app.exec_())
