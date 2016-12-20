@@ -27,7 +27,7 @@ from PyQt5.QtGui import *
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
@@ -387,12 +387,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         tableHeaders = variableNames
         tableHeaders.insert(0," ")
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.particleList_tableWidget.setItem(i, 0, newItem)
         for n, key in enumerate(tableHeaders[1:]):
             for m, item in enumerate(tableData[key]):
-                newItem = QTableWidgetItem(str(item))
+                newItem = QtWidgets.QTableWidgetItem(str(item))
                 self.particleList_tableWidget.setItem(m, n+1, newItem)
         self.particleList_tableWidget.resizeColumnsToContents()
         self.particleList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
@@ -434,12 +434,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         tableHeaders = variableNames
         tableHeaders.insert(0," ")
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.trackedParticlesList_tableWidget.setItem(i, 0, newItem)
         for n, key in enumerate(tableHeaders[1:]):
             for m, item in enumerate(tableData[key]):
-                newItem = QTableWidgetItem(str(item))
+                newItem = QtWidgets.QTableWidgetItem(str(item))
                 self.trackedParticlesList_tableWidget.setItem(m, n+1, newItem)
         self.trackedParticlesList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
         self.trackedParticlesList_tableWidget.resizeColumnsToContents()
@@ -452,12 +452,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.advancedSelector_tableWidget.setRowCount(n)
         self.advancedSelector_tableWidget.setColumnCount(m)
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.advancedSelector_tableWidget.setItem(i, 0, newItem)
         for i in np.arange(n):
             for j in np.arange(m-1):
-                newItem = QTableWidgetItem(str(tableData[i][j]))
+                newItem = QtWidgets.QTableWidgetItem(str(tableData[i][j]))
                 self.advancedSelector_tableWidget.setItem(i, j+1, newItem)
         self.advancedSelector_tableWidget.setHorizontalHeaderLabels(tableHeaders)
         self.advancedSelector_tableWidget.resizeColumnsToContents()
