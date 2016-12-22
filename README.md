@@ -26,6 +26,34 @@ The code is currently still in its early stages and it only supports OSIRIS data
 
 ![VisualPIC Screnshot](Logo/VisualPIC.PNG)
 
+## Installation
+At this moment, the current version has only been tested on a Windows machine. Therefore, the installation instructions only apply tho this case, but the list of dependencies is the same for all OSs.
+
+Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0) versions. However, in order to add support for modern High DPI displays it was required to jump to Python 3.5 and Qt 5.7, together with the release candidate of Matplotlib 2.0.
+
+### Required software
+* Python 3.5.2 (other verions might also work).
+* Qt 5.7 (will be installed with PyQt5).
+* FFmpeg.
+
+### Required Python packages
+* Numpy.
+* Matplotlib 2.0.0 RC 2 + custom backends.
+* PyQt5.
+* H5Py.
+* Pillow.
+
+### Windows Installation
+* Install Python 3.5.2. Dowload [here](https://www.python.org/downloads/release/python-352/).
+* Install PyQt5: `pip3 install pyqt5`.
+* Install Pillow: `pip install pillow`.
+* Install H5Py: `pip install h5py`.
+* Download the Matplotlib 2.0.0 rc2 wheels for your Python version from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib)
+* Once Matplotlib is installed, copy the custom backends found in the folder `VisualPIC/Custom Matplotlib Backends` into `[Your Python Path]\Lib\site-packages\matplotlib\backends`.
+* Download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
+* After this, you should be able to run VisualPIC just by running the `__main__.py` file in the VisualPIC folder.
+
+
 ## Collaborating
 
 ### Adding support for more PIC codes

@@ -23,7 +23,10 @@ import os
 import inspect
 import ctypes
 import platform
-
+import matplotlib
+matplotlib.use('Qt5agg')
+from matplotlib import rcParams
+rcParams['figure.dpi'] = 80
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 os.sys.path.insert(0,parentdir) 
@@ -36,10 +39,19 @@ if platform.system() == 'Windows':
  
 if __name__ == '__main__':
     from VisualPIC.Views.mainWindow import MainWindow
+    #from VisualPIC.Views.testWindow import TestWindow
     import sys
-    from PyQt4 import QtGui
- 
-    app = QtGui.QApplication(sys.argv)
+    from PyQt5 import QtWidgets
+    from PyQt5.Qt import Qt, QStyleFactory, QFont
+    import os
+
+    # Enable scaling for high DPI displays
+    #os.putenv("QT_AUTO_SCREEN_SCALE_FACTOR","1");
+    QtWidgets.QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    QtWidgets.QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    QtWidgets.QApplication.setStyle(QStyleFactory.create('Fusion'))
+    
+    app = QtWidgets.QApplication(sys.argv)
     mainWindow = MainWindow()
     mainWindow.show()
     sys.exit(app.exec_())

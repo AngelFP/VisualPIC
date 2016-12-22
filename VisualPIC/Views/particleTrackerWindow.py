@@ -21,13 +21,13 @@ import gc
 import os
 import sys
 
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import *
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
@@ -274,7 +274,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.evolSubplotList.append(subplot)
         self.SetAutoEvolColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.subplots_listWidget.addItem(wid2)
         self.subplots_listWidget.setItemWidget(wid2, wid)
@@ -305,7 +305,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.instantSubplotList.append(subplot)
         self.SetAutoInstantColumnsAndRows()
         wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.instantSubplots_listWidget.addItem(wid2)
         self.instantSubplots_listWidget.setItemWidget(wid2, wid)
@@ -362,7 +362,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     Other functions
     """
     def OpenFolderDialog(self):
-        folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Export data to:", str(self.exportPath_lineEdit.text())))
         if folderPath != "":
             self.exportPath_lineEdit.setText(folderPath)
 
@@ -387,12 +387,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         tableHeaders = variableNames
         tableHeaders.insert(0," ")
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.particleList_tableWidget.setItem(i, 0, newItem)
         for n, key in enumerate(tableHeaders[1:]):
             for m, item in enumerate(tableData[key]):
-                newItem = QTableWidgetItem(str(item))
+                newItem = QtWidgets.QTableWidgetItem(str(item))
                 self.particleList_tableWidget.setItem(m, n+1, newItem)
         self.particleList_tableWidget.resizeColumnsToContents()
         self.particleList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
@@ -434,12 +434,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         tableHeaders = variableNames
         tableHeaders.insert(0," ")
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.trackedParticlesList_tableWidget.setItem(i, 0, newItem)
         for n, key in enumerate(tableHeaders[1:]):
             for m, item in enumerate(tableData[key]):
-                newItem = QTableWidgetItem(str(item))
+                newItem = QtWidgets.QTableWidgetItem(str(item))
                 self.trackedParticlesList_tableWidget.setItem(m, n+1, newItem)
         self.trackedParticlesList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
         self.trackedParticlesList_tableWidget.resizeColumnsToContents()
@@ -452,12 +452,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.advancedSelector_tableWidget.setRowCount(n)
         self.advancedSelector_tableWidget.setColumnCount(m)
         for i in np.arange(0,n):
-            newItem = QTableWidgetItem()
+            newItem = QtWidgets.QTableWidgetItem()
             newItem.setCheckState(QtCore.Qt.Unchecked)
             self.advancedSelector_tableWidget.setItem(i, 0, newItem)
         for i in np.arange(n):
             for j in np.arange(m-1):
-                newItem = QTableWidgetItem(str(tableData[i][j]))
+                newItem = QtWidgets.QTableWidgetItem(str(tableData[i][j]))
                 self.advancedSelector_tableWidget.setItem(i, j+1, newItem)
         self.advancedSelector_tableWidget.setHorizontalHeaderLabels(tableHeaders)
         self.advancedSelector_tableWidget.resizeColumnsToContents()
