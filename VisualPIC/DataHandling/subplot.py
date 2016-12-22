@@ -80,7 +80,7 @@ class Subplot(object):
             self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
             
     def LoadDefaultColorBarValues(self):
-        self.colorbarProps["DefaultFontSize"] = 20
+        self.colorbarProps["DefaultFontSize"] = 10
         self.colorbarProps["DefaultAutoTickLabelSpacing"] = True
         
     def SetColorbarToDefaultValues(self):
@@ -88,7 +88,7 @@ class Subplot(object):
         self.colorbarProps["AutoTickLabelSpacing"] = self.colorbarProps["DefaultAutoTickLabelSpacing"]
         
     def LoadDefaultTitleValues(self):
-        self.SetTitleProperty("DefaultFontSize", 20)
+        self.SetTitleProperty("DefaultFontSize", 10)
         self.SetTitleProperty("DefaultText", self.subplotName)
         self.SetTitleProperty("DefaultAutoText", True)
         
@@ -194,7 +194,7 @@ class FieldSubplot(Subplot):
             self.possiblePlotTypes = ["Image", "Surface"]
         
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
+        defaultFontSize = 10  
         self.SetAxisProperty("x", "DefaultLabelText", "z")
         self.SetAxisProperty("y", "DefaultLabelText", "y")
         #self.SetAxisProperty("z", "DefaultLabelText", "x")
@@ -286,7 +286,7 @@ class RawDataSubplot(Subplot):
         self.SetPlotPropertiesToDefault()
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
+        defaultFontSize = 10  
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot["x"].GetProperty("dataSetUnits"))
@@ -420,7 +420,7 @@ class RawDataEvolutionSubplot(Subplot):
         pass
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20
+        defaultFontSize = 10
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
