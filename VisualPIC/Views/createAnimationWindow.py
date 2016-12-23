@@ -22,6 +22,7 @@ import os
 from VisualPIC.Tools import images2gif
 from PIL import Image
 import numpy as np
+from matplotlib.animation import FuncAnimation
 
 
 class CreateAnimationWindow(QtWidgets.QDialog):
@@ -69,6 +70,9 @@ class CreateAnimationWindow(QtWidgets.QDialog):
         self.onlySnaps_checkBox = QtWidgets.QCheckBox(self)
         self.onlySnaps_checkBox.setObjectName("onlySnaps_checkBox")
         self.horizontalLayout_4.addWidget(self.onlySnaps_checkBox)
+        self.makeVideo_checkBox = QtWidgets.QCheckBox(self)
+        self.makeVideo_checkBox.setObjectName("makeVideo_checkBox")
+        self.horizontalLayout_4.addWidget(self.makeVideo_checkBox)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
         self.line = QtWidgets.QFrame(self)
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
@@ -95,18 +99,46 @@ class CreateAnimationWindow(QtWidgets.QDialog):
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_5.addWidget(self.label_6)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
+        self.line2 = QtWidgets.QFrame(self)
+        self.line2.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line2.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line2.setObjectName("line2")
+        self.verticalLayout.addWidget(self.line2)
+        self.label_7 = QtWidgets.QLabel(self)
+        self.label_7.setObjectName("label_7")
+        self.verticalLayout.addWidget(self.label_7)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.saveTo_lineEdit = QtWidgets.QLineEdit(self)
+        self.saveTo_lineEdit.setObjectName("saveTo_lineEdit")
+        self.horizontalLayout_3.addWidget(self.saveTo_lineEdit)
+        self.browse_Button = QtWidgets.QPushButton(self)
+        self.browse_Button.setObjectName("browse_Button")
+        self.horizontalLayout_3.addWidget(self.browse_Button)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.label_8 = QtWidgets.QLabel(self)
+        self.label_8.setObjectName("label_8")
+        self.horizontalLayout_4.addWidget(self.label_8)
+        self.fileName_lineEdit = QtWidgets.QLineEdit(self)
+        self.fileName_lineEdit.setObjectName("fileName_lineEdit")
+        self.horizontalLayout_4.addWidget(self.fileName_lineEdit)
         self.create_Button = QtWidgets.QPushButton(self)
         self.create_Button.setObjectName("create_Button")
         self.verticalLayout.addWidget(self.create_Button)
         
         self._inputFilter = InputFilter(parent)
+        self.isFirstRun = True
+        self.hasAlreadyRun = False
 
-        self.retranslateUi()
+        self.SetUpUI()
         self.registerUiEvents()
 
         QtCore.QMetaObject.connectSlotsByName(self)
 
-    def retranslateUi(self):
+    def SetUpUI(self):
         self.setWindowTitle("Create Snapshots and Animation")
         self.label_4.setText("Snapshots:")
         self.label.setText("First time step:")
@@ -115,60 +147,102 @@ class CreateAnimationWindow(QtWidgets.QDialog):
         self.firstStep_lineEdit.setText(str(self.mainWindow.timeSteps[0]))
         self.lastStep_lineEdit.setText(str(self.mainWindow.timeSteps[-1]))
         self.frequency_lineEdit.setText("1")
-        self.onlySnaps_checkBox.setText("Create only snapshots")
-        self.label_5.setText("Gif properties:")
+        self.onlySnaps_checkBox.setText("Create snapshots.")
+        self.makeVideo_checkBox.setText("Create video.")
+        self.label_5.setText("Framerate:")
         self.frameTime_radioButton.setText("Time between frames")
         self.totalTime_radioButton.setText("Total time")
         self.gifTime_lineEdit.setText("0.1")
         self.label_6.setText("[s]")
+        self.label_7.setText("Save to:")
+        self.label_8.setText("File name:")
         self.create_Button.setText("Create")
+        self.browse_Button.setText("Browse")
+        self.saveTo_lineEdit.setText(str(self.mainWindow.folderLocation_lineEdit.text()) + "/Animation")
+        self.fileName_lineEdit.setText("movie")
+        self.onlySnaps_checkBox.setChecked(True)
+        self.makeVideo_checkBox.setChecked(True)
         
     def registerUiEvents(self):
         self.firstStep_lineEdit.installEventFilter(self._inputFilter)
         self.lastStep_lineEdit.installEventFilter(self._inputFilter)
         self.create_Button.clicked.connect(self.createButton_clicked)
-        self.onlySnaps_checkBox.toggled.connect(self.onlySnapsCheckBox_StatusChanged)
+        self.browse_Button.clicked.connect(self.OpenFolderDialog)
+        #self.onlySnaps_checkBox.toggled.connect(self.onlySnapsCheckBox_StatusChanged)
+        self.makeVideo_checkBox.toggled.connect(self.makeVideoCheckBox_StatusChanged)
+
+    def OpenFolderDialog(self):
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Save animation to:", self.saveTo_lineEdit.text()))
+        if folderPath != "":
+            self.saveTo_lineEdit.setText(folderPath)
 
     def createButton_clicked(self):
         self.createAnimation()
     
-    def onlySnapsCheckBox_StatusChanged(self):
-        if self.onlySnaps_checkBox.checkState():
-            self.frameTime_radioButton.setEnabled(False)
-            self.totalTime_radioButton.setEnabled(False)
-            self.gifTime_lineEdit.setEnabled(False)
-        else:
+    def makeVideoCheckBox_StatusChanged(self):
+        if self.makeVideo_checkBox.checkState():
             self.frameTime_radioButton.setEnabled(True)
             self.totalTime_radioButton.setEnabled(True)
             self.gifTime_lineEdit.setEnabled(True)
-    
+        else:
+            self.frameTime_radioButton.setEnabled(False)
+            self.totalTime_radioButton.setEnabled(False)
+            self.gifTime_lineEdit.setEnabled(False)
+
+    # The animation function seems to be called twice sometimes for some reason, but the video is only created on the first run.
+    def init(self):
+        if not self.hasAlreadyRun:
+            self.isFirstRun = True
+            self.hasAlreadyRun = True
+            print("Creating animation...")
+        else:
+            print("Animation completed.")
+            self.isFirstRun = False
+
+    def animation_function(self, step):
+        if self.isFirstRun:
+            self.mainWindow.timeStep_Slider.setValue(step)
+            self.mainWindow.MakePlots()
+            if self.onlySnaps_checkBox.isChecked():
+                movieName = self.fileName_lineEdit.text()
+                framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
+                frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(step).zfill(6)
+                if not os.path.exists(framesDir):
+                    os.makedirs(framesDir)
+                self.mainWindow.figure.savefig(frameNameAndPath)
+            print(step)
+
     def createAnimation(self):
+        self.hasAlreadyRun = False
         simulationTimeSteps = self.mainWindow.timeSteps
         firstTimeStep = int(self.firstStep_lineEdit.text())
         firstIndex = np.where(simulationTimeSteps == firstTimeStep)[0][0]
         lastTimeStep = int(self.lastStep_lineEdit.text())
         lastIndex = np.where(simulationTimeSteps == lastTimeStep)[0][0]
         freq = int(self.frequency_lineEdit.text())
-        animDir = str(self.mainWindow.folderLocation_lineEdit.text()) + "/Animation"
-        charLen = len(str(simulationTimeSteps[-1]))
-        file_paths = list()
-        if not os.path.exists(animDir):
-            os.makedirs(animDir)
-        for i in simulationTimeSteps[firstIndex:lastIndex:freq]:
-            self.mainWindow.timeStep_Slider.setValue(i)
-            self.mainWindow.MakePlots()
-            fileName = animDir + "/frame" + str(i).zfill(charLen)
-            self.mainWindow.figure.savefig(fileName)
-            file_paths.append(fileName + ".png")
-        if not self.onlySnaps_checkBox.checkState():
-            images = [Image.open(fn) for fn in file_paths]
-            filename = animDir + "/animation.GIF"
+        animDir = self.saveTo_lineEdit.text()
+        fileName = self.fileName_lineEdit.text() + ".mp4"
+        nameAndPath = animDir + "/" + fileName
+        if self.makeVideo_checkBox.isChecked():
+            # Calculate time between frames
             if self.frameTime_radioButton.isChecked():
-                time = float(self.gifTime_lineEdit.text())
+                time = float(self.gifTime_lineEdit.text()) * 1000
             else:
-                numberOfSteps = lastTimeStep - firstTimeStep
-                time = float(self.gifTime_lineEdit.text()) / numberOfSteps
-            images2gif.writeGif(filename, images, duration=time)
+                numberOfSteps = len(simulationTimeSteps[firstIndex:lastIndex+1:freq])
+                time = float(self.gifTime_lineEdit.text()) / numberOfSteps * 1000
+            # Make animation
+            ani = FuncAnimation(self.mainWindow.figure, self.animation_function, frames=simulationTimeSteps[firstIndex:lastIndex+1:freq], init_func=self.init, interval = time, repeat=False)
+            ani.save(nameAndPath)
+        else:
+            for i in simulationTimeSteps[firstIndex:lastIndex+1:freq]:
+                self.mainWindow.timeStep_Slider.setValue(i)
+                self.mainWindow.MakePlots()
+                movieName = self.fileName_lineEdit.text()
+                framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
+                frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(i).zfill(6)
+                if not os.path.exists(framesDir):
+                    os.makedirs(framesDir)
+                self.mainWindow.figure.savefig(frameNameAndPath)
 
 
 class InputFilter(QtCore.QObject):
@@ -179,25 +253,28 @@ class InputFilter(QtCore.QObject):
 
     def eventFilter(self, widget, event):
         # FocusOut event
-        if event.type() == QtCore.QEvent.FocusOut:
-            # do custom stuff
-            step = int(widget.text())
-            timeSteps = self.mainWindow.timeSteps
-            if step not in timeSteps:
-                higherTimeSteps = np.where(timeSteps > step)[0]
-                if len(higherTimeSteps) == 0:
-                    closestHigher = timeSteps[0]
-                else:
-                    closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
-                lowerTimeSteps = np.where(timeSteps < step)[0]
-                if len(lowerTimeSteps) == 0:
-                    closestLower = timeSteps[-1]
-                else:
-                    closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
-                if abs(step-closestHigher) < abs(step-closestLower):
-                    widget.setText(str(closestHigher))
-                else:
-                    widget.setText(str(closestLower))
+        try:
+            if event.type() == QtCore.QEvent.FocusOut:
+                # do custom stuff
+                step = int(widget.text())
+                timeSteps = self.mainWindow.timeSteps
+                if step not in timeSteps:
+                    higherTimeSteps = np.where(timeSteps > step)[0]
+                    if len(higherTimeSteps) == 0:
+                        closestHigher = timeSteps[0]
+                    else:
+                        closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
+                    lowerTimeSteps = np.where(timeSteps < step)[0]
+                    if len(lowerTimeSteps) == 0:
+                        closestLower = timeSteps[-1]
+                    else:
+                        closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
+                    if abs(step-closestHigher) < abs(step-closestLower):
+                        widget.setText(str(closestHigher))
+                    else:
+                        widget.setText(str(closestLower))
+        except:
+            pass
         # return False so that the widget will also handle the event
         # otherwise it won't focus out
         return False

@@ -234,7 +234,8 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def SaveChanges(self):
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
-        self.subplot.SetAllAxisProperties("z", self.axisProperties["z"])
+        if "z" in self.axisProperties:
+            self.subplot.SetAllAxisProperties("z", self.axisProperties["z"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
         self.subplot.SetAllTitleProperties(self.titleProperties)
 
