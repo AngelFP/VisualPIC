@@ -127,10 +127,17 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         raise NotImplementedError
 
     def GetAxisProperties(self):
-        self.axisProperties = {
-            "x":self.subplot.GetCopyAllAxisProperties("x"),
-            "y":self.subplot.GetCopyAllAxisProperties("y")
-            }
+        if self.subplot.GetAxesDimension() == "3D":
+            self.axisProperties = {
+                "x":self.subplot.GetCopyAllAxisProperties("x"),
+                "y":self.subplot.GetCopyAllAxisProperties("y"),
+                "z":self.subplot.GetCopyAllAxisProperties("y")
+                }
+        else:
+            self.axisProperties = {
+                "x":self.subplot.GetCopyAllAxisProperties("x"),
+                "y":self.subplot.GetCopyAllAxisProperties("y")
+                }
 
     def GetColorbarProperties(self):
         self.cbProperties = self.subplot.GetCopyAllColorbarProperties()
