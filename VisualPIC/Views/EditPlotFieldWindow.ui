@@ -1370,6 +1370,18 @@
            <string>Z axis</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_17">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_65">
              <property name="text">

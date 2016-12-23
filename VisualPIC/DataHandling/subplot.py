@@ -76,6 +76,7 @@ class Subplot(object):
         self.SetAxisProperty("y", "LabelFontSize", self.GetAxisProperty("y", "DefaultLabelFontSize"))
         if len(self.axisProps["z"])>0:
             self.SetAxisProperty("z", "LabelText", self.GetAxisProperty("z", "DefaultLabelText"))
+            self.SetAxisProperty("z", "AutoLabel", True)
             self.SetAxisProperty("z", "Units", self.GetAxisProperty("z", "DefaultUnits"))
             self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
             

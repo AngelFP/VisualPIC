@@ -105,12 +105,16 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
         self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
+        self.zUnits_comboBox.currentIndexChanged.connect(self.SetZAxisUnits)
         self.xAutoLabel_checkBox.toggled.connect(self.XAutoLabelCheckBox_statusChanged)
         self.yAutoLabel_checkBox.toggled.connect(self.YAutoLabelCheckBox_statusChanged)
+        self.zAutoLabel_checkBox.toggled.connect(self.ZAutoLabelCheckBox_statusChanged)
         self.xAutoLabel_lineEdit.textChanged.connect(self.XAutoLabelLineEdit_textChanged)
         self.yAutoLabel_lineEdit.textChanged.connect(self.YAutoLabelLineEdit_textChanged)
+        self.zAutoLabel_lineEdit.textChanged.connect(self.ZAutoLabelLineEdit_textChanged)
         self.xFontSize_spinBox.valueChanged.connect(self.XFontSizeSpinBox_valueChanged)
         self.yFontSize_spinBox.valueChanged.connect(self.YFontSizeSpinBox_valueChanged)
+        self.zFontSize_spinBox.valueChanged.connect(self.ZFontSizeSpinBox_valueChanged)
         self.autoTitle_checkBox.toggled.connect(self.AutoTitleCheckBox_statusChanged)
         self.titleFontSize_spinBox.valueChanged.connect(self.TitleFontSizeSpinBox_valueChanged)
         self.autoTitle_lineEdit.textChanged.connect(self.AutoTitleLineEdit_textChanged)
@@ -132,7 +136,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.axisProperties = {
                 "x":self.subplot.GetCopyAllAxisProperties("x"),
                 "y":self.subplot.GetCopyAllAxisProperties("y"),
-                "z":self.subplot.GetCopyAllAxisProperties("y")
+                "z":self.subplot.GetCopyAllAxisProperties("z")
                 }
         else:
             self.axisProperties = {
@@ -197,6 +201,15 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["LabelText"])
         self.xFontSize_spinBox.setValue(self.axisProperties["x"]["LabelFontSize"])
         self.yFontSize_spinBox.setValue(self.axisProperties["y"]["LabelFontSize"])
+        if self.subplot.GetAxesDimension() == "3D":
+            self.zUnits_comboBox.clear()
+            self.zUnits_comboBox.addItems(unitOptions["z"])
+            index = self.zUnits_comboBox.findText(self.axisProperties["z"]["Units"])
+            if index != -1:
+                self.zUnits_comboBox.setCurrentIndex(index)
+            self.zAutoLabel_checkBox.setChecked(self.axisProperties["z"]["AutoLabel"])
+            self.zAutoLabel_lineEdit.setText(self.axisProperties["z"]["LabelText"])
+            self.zFontSize_spinBox.setValue(self.axisProperties["z"]["LabelFontSize"])
         self.updatingUiData = False
 
     def FillColorbarData(self):
@@ -221,6 +234,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def SaveChanges(self):
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
+        self.subplot.SetAllAxisProperties("z", self.axisProperties["z"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
         self.subplot.SetAllTitleProperties(self.titleProperties)
 
@@ -303,6 +317,14 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
                 units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
 
+    def SetZAxisUnits(self):
+        if not self.updatingUiData:
+            if sys.version_info[0] < 3:
+                units = unicode(self.zUnits_comboBox.currentText())
+            else:
+                units = self.yUnits_comboBox.currentText()
+            self.axisProperties["z"]["Units"] = units
+
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
             self.xAutoLabel_lineEdit.setEnabled(False)
@@ -318,6 +340,14 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         else:
             self.yAutoLabel_lineEdit.setEnabled(True)
         self.axisProperties["y"]["AutoLabel"] = self.yAutoLabel_checkBox.checkState()
+
+    def ZAutoLabelCheckBox_statusChanged(self):
+        if self.zAutoLabel_checkBox.checkState():
+            self.zAutoLabel_lineEdit.setEnabled(False)
+            self.zAutoLabel_lineEdit.setText(self.axisProperties["z"]["DefaultLabelText"] )
+        else:
+            self.zAutoLabel_lineEdit.setEnabled(True)
+        self.axisProperties["z"]["AutoLabel"] = self.zAutoLabel_checkBox.checkState()
 
     def CbAutoLabelCheckBox_statusChanged(self):
         if self.cbAutoLabel_checkBox.checkState():
@@ -340,11 +370,17 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def YAutoLabelLineEdit_textChanged(self, text):
         self.axisProperties["y"]["LabelText"] = text
 
+    def ZAutoLabelLineEdit_textChanged(self, text):
+        self.axisProperties["z"]["LabelText"] = text
+
     def XFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["x"]["LabelFontSize"] = value
 
     def YFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["y"]["LabelFontSize"] = value
+
+    def ZFontSizeSpinBox_valueChanged(self, value):
+        self.axisProperties["z"]["LabelFontSize"] = value
 
     def CbFontSizeSpinBox_valueChanged(self, value):
         self.cbProperties["FontSize"] = value
@@ -365,6 +401,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     
     def YMinPlotSpinbox_ValueChanged(self, value):
         self.plotProperties["General"]["PlotLimits"]["YMin"] = value
+
     def XMaxPlotSpinbox_ValueChanged(self, value):
         self.plotProperties["General"]["PlotLimits"]["XMax"] = value
     

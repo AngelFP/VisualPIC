@@ -169,6 +169,8 @@ class DataPlotter:
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
         ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
+        if subplot.GetAxesDimension() == "3D":
+            ax.set_zlabel(subplot.GetAxisProperty("z", "LabelText") + " $["+subplot.GetAxisProperty("z", "Units")+"]$", fontsize=subplot.GetAxisProperty("z", "LabelFontSize"))
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
 
     def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
