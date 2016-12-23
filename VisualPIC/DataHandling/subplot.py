@@ -246,7 +246,7 @@ class FieldSubplot(Subplot):
 class RawDataSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
         self.plotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
-        self.defaultPlotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
+        self.defaultPlotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Scatter3D":{}, "Arrows":{}}
         super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "Raw"
         self._SetTimeSteps()
@@ -315,6 +315,11 @@ class RawDataSubplot(Subplot):
         if "weight" in self.dataToPlot:
             self.defaultPlotProps["Scatter"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
         self.defaultPlotProps["Scatter"]["CMap"] = self.GetAxisDefaultColorMap("Scatter")
+        # Scatter3D
+        self.defaultPlotProps["Scatter3D"]["UseChargeWeighting"] = True
+        if "weight" in self.dataToPlot:
+            self.defaultPlotProps["Scatter3D"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        self.defaultPlotProps["Scatter3D"]["CMap"] = self.GetAxisDefaultColorMap("Scatter3D")
         # Arrows
         self.defaultPlotProps["Arrows"]["MakeGrid"] = True
         self.defaultPlotProps["Arrows"]["Bins"] = {"XBins":100, "YBins":100}
@@ -349,6 +354,8 @@ class RawDataSubplot(Subplot):
         if plotType == "Histogram":
             return "BlueT"
         elif plotType == "Scatter":
+            return "Uniform Blue Transparent"
+        elif plotType == "Scatter3D":
             return "Uniform Blue Transparent"
         elif plotType == "Arrows":
             return "jet"
@@ -391,8 +398,8 @@ class RawDataSubplot(Subplot):
     def SetAllPlotProperties(self, properties):
         self.plotProps = properties
         
-    def GetPlotProperty(self, propertzType, targetProperty):
-        return self.plotProps[propertzType][targetProperty]
+    def GetPlotProperty(self, propertyType, targetProperty):
+        return self.plotProps[propertyType][targetProperty]
 
     def SetPlotProperty(self, propertzType, targetProperty, value):
         self.plotProps[propertzType][targetProperty] = value

@@ -371,6 +371,10 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.histogramSettings_widget.setVisible(False)
             self.scatterSettings_widget.setVisible(True)
             self.arrowsSettings_widget.setVisible(False)
+        elif plotType == "Scatter3D":
+            self.histogramSettings_widget.setVisible(False)
+            self.scatterSettings_widget.setVisible(True)
+            self.arrowsSettings_widget.setVisible(False)
         elif plotType == "Arrows":
             self.histogramSettings_widget.setVisible(False)
             self.scatterSettings_widget.setVisible(False)
