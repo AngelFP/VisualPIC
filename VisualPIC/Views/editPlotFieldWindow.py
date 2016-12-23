@@ -124,7 +124,8 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
 
     def SetVisibleTabs(self):
-        raise NotImplementedError
+        if self.subplot.GetAxesDimension() == "2D":
+            self.tabWidget_2.removeTab(2)
 
     def GetAxisProperties(self):
         if self.subplot.GetAxesDimension() == "3D":
@@ -501,6 +502,7 @@ class EditFieldPlotWindow(EditPlotWindow):
         self.FillInitialUI()
 
     def SetVisibleTabs(self):
+        super(EditFieldPlotWindow, self).SetVisibleTabs()
         self.tabWidget.removeTab(1)
 
     def GetFieldsInfo(self):
@@ -572,6 +574,7 @@ class EditRawPlotWindow(EditPlotWindow):
         self.plotProperties = self.subplot.GetCopyAllPlotProperties()
 
     def SetVisibleTabs(self):
+        super(EditRawPlotWindow, self).SetVisibleTabs()
         self.tabWidget.removeTab(5)
         self.tabWidget.removeTab(0)
 
