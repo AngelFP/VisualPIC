@@ -258,10 +258,13 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def MinMaxLineEdit_textChanged(self):
         if not self.updatingUiData:
-            vMin = float(self.min_lineEdit.text())
-            vMax = float(self.max_lineEdit.text())
-            self.selectedFieldProperties["minVal"] = vMin
-            self.selectedFieldProperties["maxVal"] = vMax
+            try:
+                vMin = float(self.min_lineEdit.text())
+                vMax = float(self.max_lineEdit.text())
+                self.selectedFieldProperties["minVal"] = vMin
+                self.selectedFieldProperties["maxVal"] = vMax
+            except:
+                pass
 
     def SetColorMap(self):
         if not self.updatingUiData:
