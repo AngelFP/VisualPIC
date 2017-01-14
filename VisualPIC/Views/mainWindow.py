@@ -153,7 +153,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ClearData()
         self.dataContainer.ClearData()
         self.LoadFolderData()
-        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
         self.AdaptUIToSpecificSimulationCode()
 
     def AdaptUIToSpecificSimulationCode(self):
@@ -321,6 +320,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def LoadFolderData(self):
         self.dataContainer.LoadData()
+        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
+        self.dataContainer.LoadCustomFields(self.unitConverter)
         self.av2DDomainFields_comboBox.clear()
         self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
         self.FillAvailableSpeciesList()

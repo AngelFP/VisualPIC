@@ -32,7 +32,7 @@ class FieldToPlot:
             "speciesName":field.GetSpeciesName(),
             "timeSteps":field.GetTimeSteps(), 
             "fieldUnits":copy.copy(field.GetDataUnits()), 
-            "originalFieldUnits":field.GetDataUnits(), 
+            "originalFieldUnits":field.GetDataUnits(),
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
             "axesUnits":copy.copy(field.GetAxisUnits()), #dictionary
             "originalAxesUnits":field.GetAxisUnits(), 

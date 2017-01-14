@@ -18,7 +18,7 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
-
+from VisualPIC.DataHandling.customDataElements import CustomFieldCreator
 
 class DataContainer:
     """Contains all the fields and rawDataSets available on the simulation folder"""
@@ -36,6 +36,9 @@ class DataContainer:
     
     def LoadData(self):
         self._folderDataReader.LoadData()
+    
+    def LoadCustomFields(self, unitConverter):
+        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self, unitConverter)
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))

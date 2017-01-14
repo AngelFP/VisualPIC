@@ -189,39 +189,47 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def GetDataISUnits(self, dataElement):
         """ Returns the IS units of the data (only the units, not the data!).
             The purpose of this is to identify"""
-        dataElementName = dataElement.GetNameInCode()
-        if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
-            return "V/m"
-        elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
-            return "T"
-        elif "charge" in dataElementName:
-            return "C/m^2"
-        elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
-            return "m"
-        elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
-            return "kg*m/s"
-        elif "ene" == dataElementName:
-            return "J"
-        elif "q" == dataElementName:
-            return "C"
+        from VisualPIC.DataHandling.customDataElements import CustomDataElement
+        if isinstance(dataElement, CustomDataElement):
+            return dataElement.GetDataUnits()    
+        else:
+            dataElementName = dataElement.GetNameInCode()
+            if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
+                return "V/m"
+            elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
+                return "T"
+            elif "charge" in dataElementName:
+                return "C/m^2"
+            elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
+                return "m"
+            elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
+                return "kg*m/s"
+            elif "ene" == dataElementName:
+                return "J"
+            elif "q" == dataElementName:
+                return "C"
                 
     def GetDataInISUnits(self, dataElement, timeStep):
-        dataElementName = dataElement.GetNameInCode()
-        data = self._GetDataInOriginalUnits(dataElement, timeStep)
-        if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
-            return data*self.E0 # V/m
-        elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
-            return data*self.E0/self.c # T
-        elif "charge" in dataElementName:
-            return data * self.e * (self.w_p / self.c)**2 # C/m^2
-        elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
-            return data*self.s_d # m
-        elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
-            return data*self.m_e*self.c # kg*m/s
-        elif "ene" == dataElementName:
-            return data*self.m_e*self.c**2 # J
-        elif "q" == dataElementName:
-            return data*self.e # C
+        from VisualPIC.DataHandling.customDataElements import CustomDataElement
+        if isinstance(dataElement, CustomDataElement):
+            return self._GetDataInOriginalUnits(dataElement, timeStep)
+        else:
+            dataElementName = dataElement.GetNameInCode()
+            data = self._GetDataInOriginalUnits(dataElement, timeStep)
+            if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
+                return data*self.E0 # V/m
+            elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
+                return data*self.E0/self.c # T
+            elif "charge" in dataElementName:
+                return data * self.e * (self.w_p / self.c)**2 # C/m^2
+            elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
+                return data*self.s_d # m
+            elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
+                return data*self.m_e*self.c # kg*m/s
+            elif "ene" == dataElementName:
+                return data*self.m_e*self.c**2 # J
+            elif "q" == dataElementName:
+                return data*self.e # C
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         time = self._GetTimeInOriginalUnits(dataElement, timeStep)
