@@ -31,7 +31,7 @@ class CustomDataElement(DataElement):
         self.dataContainer = dataContainer
         self.unitConverter = unitConverter
         timeSteps = self._SetTimeSteps()
-        return super().__init__(standardName, timeSteps, speciesName)
+        return super().__init__(standardName, timeSteps, speciesName, False)
 
     def _SetTimeSteps(self, dataContainer):
         raise NotImplementedError

@@ -21,10 +21,11 @@ from VisualPIC.DataReading.dataReader import DataReader
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, standardName, timeSteps, speciesName = ""):
+    def __init__(self, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
         self.dataStandardName = standardName
         self.speciesName = speciesName
         self.timeSteps = timeSteps # array of integers
+        self.hasNonISUnits = hasNonISUnits
         
     def GetName(self):
         return self.dataStandardName

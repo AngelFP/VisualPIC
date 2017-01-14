@@ -24,8 +24,8 @@ from VisualPIC.DataReading.dataReaderSelectors import *
 
 class FolderDataElement(DataElement):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName = "", internalName = ""):
-        DataElement.__init__(self, standardName, timeSteps, speciesName)
+    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName = "", internalName = "", hasNonISUnits = True):
+        DataElement.__init__(self, standardName, timeSteps, speciesName, hasNonISUnits)
         self.dataNameInCode = nameInCode # name of the variable in the simulation code (e.g. "e1-savg" for the averaged longitudinal E field in Osiris)
         self.dataLocation = location
         self.dataReader = None # Each subclass will load its own
@@ -47,8 +47,8 @@ class FolderDataElement(DataElement):
 
 
 class FolderField(FolderDataElement):
-    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName=""):
-        FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName)
+    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName="", hasNonISUnits = True):
+        FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, hasNonISUnits = hasNonISUnits)
         self.dataReader = FieldReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode, timeSteps[0])
           
     def GetFieldDimension(self):
@@ -62,6 +62,6 @@ class FolderField(FolderDataElement):
 
 
 class FolderRawDataSet(FolderDataElement):
-    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName):
-        FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName)
+    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName, hasNonISUnits = True):
+        FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName, hasNonISUnits)
         self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode, internalName)
