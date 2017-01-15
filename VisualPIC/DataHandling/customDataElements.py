@@ -169,7 +169,7 @@ class NormalizedVectorPotential(CustomField):
         n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
         E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
         Intensity = self.c*self.eps_0*n/2*E2
-        a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity)
+        a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
 
     def GetDataUnits(self):
@@ -202,3 +202,5 @@ class CustomFieldCreator:
         for FieldKey in cls.customFields:
             fieldList.append(cls.customFields[FieldKey](dataContainer))
         return fieldList
+
+# TODO: Add custom field filters, so that only the custom fields for which there exists the necessary data are loaded.
