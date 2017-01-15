@@ -47,11 +47,13 @@ class DataContainer:
         return self._simulationParams["SimulationCode"]
 
     def SetSimulationParameters(self, parameters):
+        # If there is no unitConverter or the simulation code has changed, create a new unitConverter.
         if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
-            self._simulationParams = parameters
-            self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self._simulationParams)
+            self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(parameters)
+        # otherwise, update the current one.
         else:
             self.unitConverter.SetSimulationParameters(parameters)
+        self._simulationParams = parameters
 
     def GetSimulationParameters(self):
         return self._simulationParams

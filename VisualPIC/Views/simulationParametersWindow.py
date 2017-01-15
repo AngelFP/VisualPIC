@@ -100,6 +100,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def SetUpUI(self):
+        simParams = self.mainWindow.dataContainer.GetSimulationParameters()
         # General
         self.setWindowTitle("Simulation Parameters")
         self.label.setText("Simulation code:")
@@ -108,10 +109,15 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         # Osiris
         self.osirisLabel.setText("Plasma density (10<sup>18</sup> cm<sup>-3</sup>):")
         self.osirisLabel_2.setText("Laser wavelength (nm):")
-        self.osirisPlasmaDensity_lineEdit.setText("0.1")
-        self.osirisLaserWavelength_lineEdit.setText("800")
         self.osirisLaserInSimulation_checkBox.setText("Laser in simulation.")
-        self.osirisLaserInSimulation_checkBox.setChecked(True)
+        if (len(simParams) == 0) or (simParams["SimulationCode"] != "Osiris"):
+            self.osirisPlasmaDensity_lineEdit.setText("0.1")
+            self.osirisLaserWavelength_lineEdit.setText("800")
+            self.osirisLaserInSimulation_checkBox.setChecked(True)
+        elif simParams["SimulationCode"] == "Osiris":
+            self.osirisPlasmaDensity_lineEdit.setText(str(simParams["n_p"]))
+            self.osirisLaserWavelength_lineEdit.setText(str(simParams["lambda_l"]))
+            self.osirisLaserInSimulation_checkBox.setChecked(simParams["isLaser"])
         
     def registerUiEvents(self):
         # General
@@ -142,7 +148,8 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         simParams["SimulationCode"] = simulationCode
         if simulationCode == "Osiris":
             simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
-            if self.osirisLaserInSimulation_checkBox.isChecked():
+            simParams["isLaser"] = self.osirisLaserInSimulation_checkBox.isChecked()
+            if simParams["isLaser"]:
                 simParams["lambda_l"] = float(self.osirisLaserWavelength_lineEdit.text())
         self.mainWindow.dataContainer.SetSimulationParameters(simParams)
         self.close()
