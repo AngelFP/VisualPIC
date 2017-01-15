@@ -38,7 +38,7 @@ class DataContainer:
     
     def LoadData(self):
         self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
-        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self, self.unitConverter)
+        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
