@@ -86,11 +86,12 @@ class GeneralUnitConverter(object):
         originalUnits = list()
         allOtherUnits = list()
         if dataElement.hasNonISUnits:
-            originalUnits.append(dataElement.GetAxisUnits()["x"])
             if self.normalizationFactorIsSet:
                 allOtherUnits = self._GetAllOtherAxisUnitsOptions()
         else:
             allOtherUnits = self._GetAllOtherAxisUnitsOptions()
+        if dataElement.GetAxisUnits()["x"] not in allOtherUnits:
+            originalUnits.append(dataElement.GetAxisUnits()["x"])
         allUnits = originalUnits + allOtherUnits
         return allUnits
 
@@ -136,8 +137,7 @@ class GeneralUnitConverter(object):
                 return timeInISUnits * 1e15
 
     def GetAxisInUnits(self, axis, dataElement, units, timeStep):
-        if dataElement.hasNonISUnits:
-            if units == dataElement.GetAxisUnits()[axis]:
+        if units == dataElement.GetAxisUnits()[axis]:
                 return self._GetAxisDataInOriginalUnits(axis, dataElement, timeStep)
         if units == "m":
             return self.GetAxisInISUnits(axis, dataElement, timeStep)
@@ -187,8 +187,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def GetDataISUnits(self, dataElement):
         """ Returns the IS units of the data (only the units, not the data!).
             The purpose of this is to identify"""
-        from VisualPIC.DataHandling.customDataElements import CustomDataElement
-        if isinstance(dataElement, CustomDataElement):
+        if not dataElement.hasNonISUnits:
             return dataElement.GetDataUnits()    
         else:
             dataElementName = dataElement.GetNameInCode()
@@ -208,8 +207,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
                 return "C"
                 
     def GetDataInISUnits(self, dataElement, timeStep):
-        from VisualPIC.DataHandling.customDataElements import CustomDataElement
-        if isinstance(dataElement, CustomDataElement):
+        if not dataElement.hasNonISUnits:
             return self._GetDataInOriginalUnits(dataElement, timeStep)
         else:
             dataElementName = dataElement.GetNameInCode()

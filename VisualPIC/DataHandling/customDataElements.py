@@ -68,7 +68,7 @@ class TransverseWakefield(CustomField):
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
         Bx = self.unitConverter.GetDataInISUnits( self.fields["Bx"], timeStep)
-        TranvsWF = Ey + self.c*Bx
+        TranvsWF = Ey - self.c*Bx
         return TranvsWF
 
     def GetDataUnits(self):
