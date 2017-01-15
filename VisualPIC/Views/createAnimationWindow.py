@@ -19,7 +19,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 import os
-from VisualPIC.Tools import images2gif
 from PIL import Image
 import numpy as np
 from matplotlib.animation import FuncAnimation
