@@ -21,6 +21,9 @@ $RECYCLE.BIN/
 *.suo
 *.pyproj
 
+# UI autosave files
+*.autosave
+
 # Windows shortcuts
 *.lnk
 

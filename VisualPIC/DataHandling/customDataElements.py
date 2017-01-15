@@ -89,6 +89,50 @@ class TransverseWakefield(CustomField):
     def GetAxisUnits(self):
         return self.fields["Ey"].GetAxisUnits()
 
+class LaserIntensityField(CustomField):
+    def __init__(self, dataContainer, unitConverter, speciesName = ''):
+        standardName = "Laser Intensity"
+        super().__init__(standardName, dataContainer, unitConverter, speciesName)
+
+    def _SetBaseFields(self, dataContainer):
+        self.fields = {
+            "Ey": dataContainer.GetDomainField("Ey"),
+            "Ex": dataContainer.GetDomainField("Ex")}
+
+    def _SetTimeSteps(self):
+        i = 0
+        for FieldName, Field in self.fields.items():
+            if i == 0:
+                timeSteps = Field.GetTimeSteps()
+            else:
+                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
+        return timeSteps
+
+    def GetData(self, timeStep):
+        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
+        Ex = self.unitConverter.GetDataInISUnits( self.fields["Ex"], timeStep)
+        w_p = self.unitConverter.w_p
+        Intensity = Ey - self.c*Bx
+        return Intensity
+
+    def GetDataUnits(self):
+        return "V/m"
+
+    def GetTime(self, timeStep):
+        return self.fields["Ey"].GetTime(timeStep)
+
+    def GetTimeUnits(self):
+        return self.fields["Ey"].GetTimeUnits()
+
+    def GetFieldDimension(self):
+        return self.fields["Ey"].GetFieldDimension()
+
+    def GetAxisData(self, timeStep):
+        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
+        
+    def GetAxisUnits(self):
+        return self.fields["Ey"].GetAxisUnits()
+
 class CustomFieldCreator:
     customFields = {
         "TransverseWakefield": TransverseWakefield

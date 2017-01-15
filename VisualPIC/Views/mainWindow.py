@@ -30,6 +30,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
+from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindow
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
@@ -111,6 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
         self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
+        self.actionSimulation_parameters.triggered.connect(self.ActionSimulationParameters_Toggled)
         self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
@@ -176,6 +178,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def ActionMakeVideo_Toggled(self):
         AnimationWindow = CreateAnimationWindow(self)
         AnimationWindow.exec_()
+
+    def ActionSimulationParameters_Toggled(self):
+        ParametersWindow = SimulationParametersWindow(self)
+        ParametersWindow.exec_()
         
     def SpeciesFieldsRadioButton_Toggled(self):
         if self.oneDimSpeciesField_radioButton.isChecked():
