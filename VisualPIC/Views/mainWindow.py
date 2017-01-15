@@ -114,6 +114,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
         self.actionSimulation_parameters.triggered.connect(self.ActionSimulationParameters_Toggled)
         self.actionAbout.triggered.connect(self.ActionAbout_Toggled)
+        self.actionOpen_Folder.triggered.connect(self.BrowseButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
     """
@@ -166,7 +167,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
         self.dataContainer.SetDataFolderLocation(folderPath)
-    
+
     def ActionParticleTracker_Toggled(self):
         self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.dataContainer.unitConverter, self.colorMapsCollection, self.dataPlotter)
         self.particleTracker.show()
