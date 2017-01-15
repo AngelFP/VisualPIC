@@ -112,7 +112,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
         self.actionSimulation_parameters.triggered.connect(self.ActionSimulationParameters_Toggled)
-        self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
     """
@@ -145,10 +144,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def ColumnsSpinBox_ValueChanged(self):
         self.SetListOfPlotPositions()
-
-    def SetNormalizationButton_Clicked(self):
-        n_p = float(self.plasmaDensity_lineEdit.text())
-        self.dataContainer.unitConverter.SetNormalizationFactor(n_p)
     
     def LoadDataButton_Cicked(self):
         self.ClearData()

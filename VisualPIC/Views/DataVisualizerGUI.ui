@@ -734,66 +734,6 @@
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="tab_5">
-                 <attribute name="title">
-                  <string>Normalization</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout">
-                  <property name="leftMargin">
-                   <number>7</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>7</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>7</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>7</number>
-                  </property>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_6">
-                    <item>
-                     <widget class="QLabel" name="label_9">
-                      <property name="text">
-                       <string>Plasma density (10&lt;sup&gt;18&lt;/sup&gt; cm&lt;sup&gt;-3&lt;/sup&gt;)</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="plasmaDensity_lineEdit">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="setNormalization_Button">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="text">
-                     <string>Set</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </widget>
                </widget>
               </item>
              </layout>
