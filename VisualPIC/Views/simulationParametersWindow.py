@@ -25,7 +25,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         super(SimulationParametersWindow, self).__init__(parent)
         
         self.mainWindow = parent
-        self.supportedSimulationCodes = ["OSIRIS", "HiPACE"]
+        self.supportedSimulationCodes = ["Osiris", "HiPACE"]
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -43,7 +43,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.line.setObjectName("line")
         self.verticalLayout.addWidget(self.line)
 
-        # OSIRIS layout
+        # Osiris layout
         self.osirisWidget = QtWidgets.QWidget(self)
         self.osirisVerticalLayout = QtWidgets.QVBoxLayout(self.osirisWidget)
         self.osirisVerticalLayout.setObjectName("osirisVerticalLayout")
@@ -121,7 +121,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.osirisLaserInSimulation_checkBox.toggled.connect(self.osirisLaserInSimulationCheckBox_StatusChanged)
 
     def simulationCodeComboBox_IndexChanged(self):
-        if self.simulationCode_comboBox.currentText() == "OSIRIS":
+        if self.simulationCode_comboBox.currentText() == "Osiris":
             self.osirisWidget.setVisible(True)
             self.hiPACEWidget.setVisible(False)
         elif self.simulationCode_comboBox.currentText() == "HiPACE":
@@ -140,8 +140,9 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         simulationCode = self.simulationCode_comboBox.currentText()
         simParams = dict()
         simParams["SimulationCode"] = simulationCode
-        if simulationCode == "OSIRIS":
+        if simulationCode == "Osiris":
             simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
             if self.osirisLaserInSimulation_checkBox.isChecked():
                 simParams["lambda_l"] = float(self.osirisLaserWavelength_lineEdit.text())
+        self.mainWindow.dataContainer.SetSimulationParameters(simParams)
         self.close()

@@ -19,12 +19,14 @@
 
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
 from VisualPIC.DataHandling.customDataElements import CustomFieldCreator
+import VisualPIC.DataHandling.unitConverters as unitConverters
 
 class DataContainer:
     """Contains all the fields and rawDataSets available on the simulation folder"""
     def __init__(self):
         self._folderDataReader = FolderDataReader(self)
-        self._simulationCode = ""
+        self._simulationParams = dict()
+        self.unitConverter = None
         # species (may contain fields and raw data)
         self._availableSpecies = list()
         self._selectedSpecies = list()
@@ -35,16 +37,27 @@ class DataContainer:
         self._selectedDomainField = None
     
     def LoadData(self):
-        self._folderDataReader.LoadData()
-    
-    def LoadCustomFields(self, unitConverter):
-        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self, unitConverter)
+        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
+        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self, self.unitConverter)
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
 
     def GetSimulationCodeName(self):
-        return self._simulationCode
+        return self._simulationParams["SimulationCode"]
+
+    def SetSimulationParameters(self, parameters):
+        if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
+            self._simulationParams = parameters
+            self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self._simulationParams)
+        else:
+            self.unitConverter.SetSimulationParameters(parameters)
+
+    def GetSimulationParameters(self):
+        return self._simulationParams
+
+    def GetSimulationParameter(self, paramName):
+        return self._simulationParams[paramName]
                 
     def AddSelectedSpecies(self, speciesName):
         for species in self._availableSpecies:

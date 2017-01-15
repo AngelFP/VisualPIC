@@ -39,7 +39,6 @@ from VisualPIC.DataHandling.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.plotFieldItem import PlotFieldItem
-import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
 if getattr(sys, 'frozen', False):
@@ -149,7 +148,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def SetNormalizationButton_Clicked(self):
         n_p = float(self.plasmaDensity_lineEdit.text())
-        self.unitConverter.SetNormalizationFactor(n_p)
+        self.dataContainer.unitConverter.SetNormalizationFactor(n_p)
     
     def LoadDataButton_Cicked(self):
         self.ClearData()
@@ -172,7 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataContainer.SetDataFolderLocation(folderPath)
     
     def ActionParticleTracker_Toggled(self):
-        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.unitConverter, self.colorMapsCollection, self.dataPlotter)
+        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.dataContainer.unitConverter, self.colorMapsCollection, self.dataPlotter)
         self.particleTracker.show()
 
     def ActionMakeVideo_Toggled(self):
@@ -235,20 +234,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for species in self.dataContainer.GetAvailableSpecies():
             if species.GetName() == speciesName:
                xDataSet = species.GetRawDataSet(xDataSetName) 
-               dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
+               dataSets["x"] = RawDataSetToPlot(xDataSet, self.dataContainer.unitConverter)
                yDataSet = species.GetRawDataSet(yDataSetName) 
-               dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+               dataSets["y"] = RawDataSetToPlot(yDataSet, self.dataContainer.unitConverter)
                pxDataSet = species.GetRawDataSet("Pz") 
-               dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.unitConverter)
+               dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.dataContainer.unitConverter)
                pyDataSet = species.GetRawDataSet("Py") 
-               dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.unitConverter)
+               dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.dataContainer.unitConverter)
                if self.rawPlotType_radioButton_2.isChecked():
                    zDataSet = species.GetRawDataSet(zDataSetName) 
-                   dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
+                   dataSets["z"] = RawDataSetToPlot(zDataSet, self.dataContainer.unitConverter)
                    pzDataSet = species.GetRawDataSet("Pz") 
-                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.unitConverter)
+                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.dataContainer.unitConverter)
                weightingDataSet = species.GetRawDataSet("Charge")
-               dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.unitConverter)
+               dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.dataContainer.unitConverter)
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
@@ -325,9 +324,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList[:] = []
         
     def LoadFolderData(self):
+        ParametersWindow = SimulationParametersWindow(self)
+        ParametersWindow.exec_()
         self.dataContainer.LoadData()
-        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
-        self.dataContainer.LoadCustomFields(self.unitConverter)
         self.av2DDomainFields_comboBox.clear()
         self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
         self.FillAvailableSpeciesList()
@@ -359,7 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
         for fld in fields:
-            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
+            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.dataContainer.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
         plotPosition = len(self.subplotList)+1
         subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)

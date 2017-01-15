@@ -24,18 +24,22 @@ import numpy as np
 
 
 class GeneralUnitConverter(object):
-    def __init__(self):
+    def __init__(self, simulationParams):
         self.c = 299792458 #m/s
         self.e = 1.60217733 * 10**(-19) #C
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.normalizationFactorIsSet = False
         self.normalizationFactor = None
+        self.SetSimulationParameters(simulationParams)
         #special units (with non ascii characters)
         if sys.version_info[0] < 3:
             self.um = u"μm"
         else:
             self.um = "μm"
+    
+    def SetSimulationParameters(self, params):
+        self._simulationParameters = params
 
     def GetPossibleDataUnits(self, dataElement):
         dataISUnits = self.GetDataISUnits(dataElement)
@@ -173,16 +177,20 @@ class GeneralUnitConverter(object):
         raise NotImplementedError
 
 class OsirisUnitConverter(GeneralUnitConverter):
-    def __init__(self):
-        super(OsirisUnitConverter, self).__init__()
+    def __init__(self, simulationParams):
+        super(OsirisUnitConverter, self).__init__(simulationParams)
         
-    def SetNormalizationFactor(self, value):
+    def _SetNormalizationFactor(self, value):
         """ In OSIRIS the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
         self.normalizationFactor = value * 1e24
         self.normalizationFactorIsSet = True
         self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         self.s_d = self.c / self.w_p  #skin depth (m)
         self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
+
+    def SetSimulationParameters(self, params):
+        super().SetSimulationParameters(params)
+        self._SetNormalizationFactor(params["n_p"])
     
     def GetDataISUnits(self, dataElement):
         """ Returns the IS units of the data (only the units, not the data!).
@@ -237,13 +245,13 @@ class OsirisUnitConverter(GeneralUnitConverter):
 
 
 class HiPACEUnitConverter(GeneralUnitConverter):
-    def __init__(self):
-        super(HiPACEUnitConverter, self).__init__()
+    def __init__(self, simulationParams):
+        super(HiPACEUnitConverter, self).__init__(simulationParams)
 
 
 class PIConGPUUnitConverter(GeneralUnitConverter):
-    def __init__(self):
-        super(HiPACEUnitConverter, self).__init__()
+    def __init__(self, simulationParams):
+        super(HiPACEUnitConverter, self).__init__(simulationParams)
         
 
 class UnitConverterSelector:
@@ -253,8 +261,8 @@ class UnitConverterSelector:
         "PIConGPU":PIConGPUUnitConverter
         }
     @classmethod
-    def GetUnitConverter(cls, simulationCode):
-        return cls.unitConverters[simulationCode]()
+    def GetUnitConverter(cls, simulationParams):
+        return cls.unitConverters[simulationParams["SimulationCode"]](simulationParams)
 
         
         
