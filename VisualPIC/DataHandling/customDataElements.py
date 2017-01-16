@@ -46,10 +46,7 @@ class CustomField(CustomDataElement):
 
     @classmethod
     def meetsRequirements(cls, dataContainer):
-        if (set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryFields[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)):
-            return True
-        else:
-            return False
+        return ((set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryFields[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
 
     def __init__(self, standardName, dataContainer, speciesName = ''):
         self._SetBaseFields(dataContainer)
