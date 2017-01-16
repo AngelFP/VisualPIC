@@ -210,9 +210,9 @@ class DataPlotter:
         y = plotData[-2]
         X, Y = np.meshgrid(x,y)
         Z = plotData[-1]
-        cStride = 100
-        rStride = 100
-        return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
+        cStride = 10
+        rStride = 10
+        return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=True, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
     def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
         xValues = plotData[-2]
