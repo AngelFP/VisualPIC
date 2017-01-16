@@ -78,8 +78,10 @@ class Species:
         fieldNames = list()
         for field in self.availableFields:
             fieldNames.append(field.GetName())
-        
         return fieldNames
+
+    def GetAvailableFields(self):
+        return self.availableFields
         
     def GetCustomFieldNamesList(self):
         fieldNames = list()

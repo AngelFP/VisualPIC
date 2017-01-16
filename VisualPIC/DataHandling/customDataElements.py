@@ -39,6 +39,18 @@ class CustomDataElement(DataElement):
 
 
 class CustomField(CustomDataElement):
+    # List of necessary fields and simulation parameters.
+    necessaryFields = {"2D":[],
+                       "3D":[]}
+    necessaryParameters = []
+
+    @classmethod
+    def meetsRequirements(cls, dataContainer):
+        if (set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryFields[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)):
+            return True
+        else:
+            return False
+
     def __init__(self, standardName, dataContainer, speciesName = ''):
         self._SetBaseFields(dataContainer)
         return super().__init__(standardName, dataContainer, speciesName)
@@ -48,6 +60,11 @@ class CustomField(CustomDataElement):
 
 
 class TransverseWakefield(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryFields = {"2D":["Ey", "Bx"],
+                       "3D":["Ey", "Bx"]}
+    necessaryParameters = []
+
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield"
         super().__init__(standardName, dataContainer, speciesName)
@@ -91,6 +108,11 @@ class TransverseWakefield(CustomField):
         return self.fields["Ey"].GetAxisUnits()
 
 class LaserIntensityField(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryFields = {"2D":["Ey", "Ez"],
+                       "3D":["Ex", "Ey", "Ez"]}
+    necessaryParameters = ["n_p", "lambda_l"]
+
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Laser Intensity"
         super().__init__(standardName, dataContainer, speciesName)
@@ -141,6 +163,11 @@ class LaserIntensityField(CustomField):
 
 
 class NormalizedVectorPotential(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryFields = {"2D":["Ey", "Ez"],
+                       "3D":["Ex", "Ey", "Ez"]}
+    necessaryParameters = ["n_p", "lambda_l"]
+
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Normalized Vector Potential"
         super().__init__(standardName, dataContainer, speciesName)
@@ -191,16 +218,17 @@ class NormalizedVectorPotential(CustomField):
         return self.fields["Ey"].GetAxisUnits()
 
 class CustomFieldCreator:
-    customFields = {
-        "TransverseWakefield": TransverseWakefield,
-        "LaserIntensityField": LaserIntensityField,
-        "NormalizedVectorPotential": NormalizedVectorPotential
-        }
+    customFields = [
+        TransverseWakefield,
+        LaserIntensityField,
+        NormalizedVectorPotential
+        ]
     @classmethod
     def GetCustomFields(cls, dataContainer):
         fieldList = list()
-        for FieldKey in cls.customFields:
-            fieldList.append(cls.customFields[FieldKey](dataContainer))
+        for Field in cls.customFields:
+            if Field.meetsRequirements(dataContainer):
+                fieldList.append(Field(dataContainer))
         return fieldList
 
 # TODO: Add custom field filters, so that only the custom fields for which there exists the necessary data are loaded.

@@ -58,6 +58,12 @@ class DataContainer:
     def GetSimulationParameters(self):
         return self._simulationParams
 
+    def GetNamesOfAvailableParameters(self):
+        paramNames = list()
+        for paramName in self._simulationParams:
+            paramNames.append(paramName)
+        return paramNames
+
     def GetSimulationParameter(self, paramName):
         return self._simulationParams[paramName]
                 
@@ -65,6 +71,17 @@ class DataContainer:
         for species in self._availableSpecies:
             if species.GetName() == speciesName:
                 self._selectedSpecies.append(species)
+
+    def GetSimulationDimension(self):
+        # If any field is in 3D, it will return 3D. 2D otherwise.
+        for field in self._availableDomainFields:
+            if field.GetFieldDimension() == "3D":
+                return "3D"
+        for species in self._availableSpecies:
+            for field in species.GetAvailableFields():
+                if field.GetFieldDimension() == "3D":
+                    return "3D"
+        return "2D"
          
     def RemoveSelectedSpecies(self, speciesName):
         for species in self._selectedSpecies:
