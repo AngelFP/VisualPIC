@@ -45,7 +45,7 @@ Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0
 
 ### Windows Installation
 * Install Python 3.5.2. Dowload [here](https://www.python.org/downloads/release/python-352/).
-* Install PyQt5: `pip3 install pyqt5`.
+* Install PyQt5: `pip install pyqt5`.
 * Install Pillow: `pip install pillow`.
 * Install H5Py: `pip install h5py`.
 * Download the Matplotlib 2.0.0 rc2 wheels for your Python version from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib)
