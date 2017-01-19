@@ -18,7 +18,7 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
-from VisualPIC.DataHandling.customDataElements import CustomFieldCreator
+from VisualPIC.DataHandling.customDataElements import CustomFieldCreator, CustomRawDataSetCreator
 import VisualPIC.DataHandling.unitConverters as unitConverters
 
 class DataContainer:
@@ -39,6 +39,11 @@ class DataContainer:
     def LoadData(self):
         self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
         self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
+        for species in self._availableSpecies:
+            speciesName = species.GetName()
+            speciesCustomFields = CustomRawDataSetCreator.GetCustomDataSets(self, speciesName)
+            for dataSet in speciesCustomFields:
+                species.AddRawDataSet(dataSet)
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
@@ -102,6 +107,11 @@ class DataContainer:
     
     def GetAvailableSpecies(self):
         return self._availableSpecies
+
+    def GetSpecies(self, speciesName):
+        for species in self._availableSpecies:
+            if species.GetName() == speciesName:
+                return species
         
     def GetSpeciesWithRawData(self):
         speciesList = list()

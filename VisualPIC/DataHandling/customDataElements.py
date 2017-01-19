@@ -204,20 +204,20 @@ class CustomRawDataSet(CustomDataElement):
         return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryDataSets[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
 
     def __init__(self, standardName, dataContainer, speciesName):
-        self._SetBaseDataSets(dataContainer)
+        self._SetBaseDataSets(dataContainer, speciesName)
         return super().__init__(standardName, dataContainer, speciesName)
 
-    def _SetBaseDataSets(self, dataContainer):
+    def _SetBaseDataSets(self, dataContainer, speciesName):
         dimension = dataContainer.GetSimulationDimension()
         self.dataSets = {}
         for DataSetName in self.necessaryDataSets[dimension]:
-            self.dataSets[DataSetName] = dataContainer.GetSpecies(self.speciesName).GetRawDataSet(DataSetName)
+            self.dataSets[DataSetName] = dataContainer.GetSpecies(speciesName).GetRawDataSet(DataSetName)
 
     def _SetTimeSteps(self):
         i = 0
         for DataSetName, DataSet in self.dataSets.items():
             if i == 0:
-                timeSteps = DataSetGetTimeSteps()
+                timeSteps = DataSet.GetTimeSteps()
             else:
                 timeSteps = np.intersect1d(timeSteps, DataSet.GetTimeSteps())
         return timeSteps
@@ -230,3 +230,49 @@ class CustomRawDataSet(CustomDataElement):
 
     def GetTimeUnits(self):
         return list(self.dataSets.items())[0][1].GetTimeUnits()
+
+class xPrimeDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryDataSets = {"2D":["Px", "Pz"],
+                       "3D":[]}
+    necessaryParameters = []
+    units = "rad"
+    def __init__(self, dataContainer, speciesName):
+        standardName = "xP"
+        return super().__init__(standardName, dataContainer, speciesName)
+
+    def GetData(self, timeStep):
+        Px = self.unitConverter.GetDataInISUnits( self.dataSets["Px"], timeStep)
+        Pz = self.unitConverter.GetDataInISUnits( self.dataSets["Pz"], timeStep)
+        xP = np.divide(Px, Pz)
+        return xP
+
+class yPrimeDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryDataSets = {"2D":["Py", "Pz"],
+                       "3D":[]}
+    necessaryParameters = []
+    units = "rad"
+    def __init__(self, dataContainer, speciesName):
+        standardName = "yP"
+        return super().__init__(standardName, dataContainer, speciesName)
+
+    def GetData(self, timeStep):
+        Py = self.unitConverter.GetDataInISUnits( self.dataSets["Py"], timeStep)
+        Pz = self.unitConverter.GetDataInISUnits( self.dataSets["Pz"], timeStep)
+        yP = np.divide(Py, Pz)
+        return yP
+
+    
+class CustomRawDataSetCreator:
+    customDataSets = [
+        xPrimeDataSet,
+        yPrimeDataSet
+        ]
+    @classmethod
+    def GetCustomDataSets(cls, dataContainer, speciesName):
+        dataSetList = list()
+        for dataSet in cls.customDataSets:
+            if dataSet.meetsRequirements(dataContainer, speciesName):
+                dataSetList.append(dataSet(dataContainer, speciesName))
+        return dataSetList
