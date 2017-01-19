@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Angel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -22,7 +22,9 @@ import math
 from VisualPIC.DataHandling.dataElement import DataElement
 from VisualPIC.DataHandling.unitConverters import UnitConverterSelector
 
-
+"""
+Base Class for Custom Fields and Raw Data Sets
+"""
 class CustomDataElement(DataElement):
     def __init__(self, standardName, dataContainer, speciesName = ''):
         self.c = 299792458 #m/s
