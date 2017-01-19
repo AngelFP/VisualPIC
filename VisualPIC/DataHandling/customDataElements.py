@@ -53,7 +53,10 @@ class CustomField(CustomDataElement):
         return super().__init__(standardName, dataContainer, speciesName)
 
     def _SetBaseFields(self, dataContainer):
-        raise NotImplementedError
+        dimension = dataContainer.GetSimulationDimension()
+        self.fields = {}
+        for FieldName in self.necessaryFields[dimension]:
+            self.fields[FieldName] = dataContainer.GetDomainField(FieldName)
 
     def _SetTimeSteps(self):
         i = 0
@@ -74,11 +77,6 @@ class TransverseWakefield(CustomField):
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield"
         super().__init__(standardName, dataContainer, speciesName)
-
-    def _SetBaseFields(self, dataContainer):
-        self.fields = {
-            "Ey": dataContainer.GetDomainField("Ey"),
-            "Bx": dataContainer.GetDomainField("Bx")}
 
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
@@ -113,11 +111,6 @@ class LaserIntensityField(CustomField):
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Laser Intensity"
         super().__init__(standardName, dataContainer, speciesName)
-
-    def _SetBaseFields(self, dataContainer):
-        self.fields = {
-            "Ey": dataContainer.GetDomainField("Ey"),
-            "Ez": dataContainer.GetDomainField("Ez")}
 
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
@@ -160,11 +153,6 @@ class NormalizedVectorPotential(CustomField):
         standardName = "Normalized Vector Potential"
         super().__init__(standardName, dataContainer, speciesName)
 
-    def _SetBaseFields(self, dataContainer):
-        self.fields = {
-            "Ey": dataContainer.GetDomainField("Ey"),
-            "Ez": dataContainer.GetDomainField("Ez")}
-
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
         Ez = self.unitConverter.GetDataInISUnits( self.fields["Ez"], timeStep)
@@ -205,11 +193,6 @@ class TransverseWakefieldSlope(CustomField):
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield Slope"
         super().__init__(standardName, dataContainer, speciesName)
-
-    def _SetBaseFields(self, dataContainer):
-        self.fields = {
-            "Ey": dataContainer.GetDomainField("Ey"),
-            "Bx": dataContainer.GetDomainField("Bx")}
 
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
