@@ -55,6 +55,15 @@ class CustomField(CustomDataElement):
     def _SetBaseFields(self, dataContainer):
         raise NotImplementedError
 
+    def _SetTimeSteps(self):
+        i = 0
+        for FieldName, Field in self.fields.items():
+            if i == 0:
+                timeSteps = Field.GetTimeSteps()
+            else:
+                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
+        return timeSteps
+
 
 class TransverseWakefield(CustomField):
     # List of necessary fields and simulation parameters.
@@ -70,15 +79,6 @@ class TransverseWakefield(CustomField):
         self.fields = {
             "Ey": dataContainer.GetDomainField("Ey"),
             "Bx": dataContainer.GetDomainField("Bx")}
-
-    def _SetTimeSteps(self):
-        i = 0
-        for FieldName, Field in self.fields.items():
-            if i == 0:
-                timeSteps = Field.GetTimeSteps()
-            else:
-                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
-        return timeSteps
 
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
@@ -118,15 +118,6 @@ class LaserIntensityField(CustomField):
         self.fields = {
             "Ey": dataContainer.GetDomainField("Ey"),
             "Ez": dataContainer.GetDomainField("Ez")}
-
-    def _SetTimeSteps(self):
-        i = 0
-        for FieldName, Field in self.fields.items():
-            if i == 0:
-                timeSteps = Field.GetTimeSteps()
-            else:
-                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
-        return timeSteps
 
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
@@ -174,15 +165,6 @@ class NormalizedVectorPotential(CustomField):
             "Ey": dataContainer.GetDomainField("Ey"),
             "Ez": dataContainer.GetDomainField("Ez")}
 
-    def _SetTimeSteps(self):
-        i = 0
-        for FieldName, Field in self.fields.items():
-            if i == 0:
-                timeSteps = Field.GetTimeSteps()
-            else:
-                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
-        return timeSteps
-
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
         Ez = self.unitConverter.GetDataInISUnits( self.fields["Ez"], timeStep)
@@ -229,21 +211,12 @@ class TransverseWakefieldSlope(CustomField):
             "Ey": dataContainer.GetDomainField("Ey"),
             "Bx": dataContainer.GetDomainField("Bx")}
 
-    def _SetTimeSteps(self):
-        i = 0
-        for FieldName, Field in self.fields.items():
-            if i == 0:
-                timeSteps = Field.GetTimeSteps()
-            else:
-                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
-        return timeSteps
-
     def GetData(self, timeStep):
         Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
         Bx = self.unitConverter.GetDataInISUnits( self.fields["Bx"], timeStep)
         TranvsWF = Ey - self.c*Bx
         y = self.unitConverter.GetAxisInISUnits("y", self.fields["Ey"], timeStep)
-        dy = abs(y[1]-y[0])
+        dy = abs(y[1]-y[0]) # distance between data points in y direction
         slope = np.gradient(TranvsWF, dy, axis=0)
         return slope
 
