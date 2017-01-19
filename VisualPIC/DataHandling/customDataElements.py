@@ -214,9 +214,61 @@ class NormalizedVectorPotential(CustomField):
     def GetAxisUnits(self):
         return self.fields["Ey"].GetAxisUnits()
 
+class TransverseWakefieldSlope(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryFields = {"2D":["Ey", "Bx"],
+                       "3D":["Ey", "Bx"]}
+    necessaryParameters = []
+
+    def __init__(self, dataContainer, speciesName = ''):
+        standardName = "Transverse Wakefield Slope"
+        super().__init__(standardName, dataContainer, speciesName)
+
+    def _SetBaseFields(self, dataContainer):
+        self.fields = {
+            "Ey": dataContainer.GetDomainField("Ey"),
+            "Bx": dataContainer.GetDomainField("Bx")}
+
+    def _SetTimeSteps(self):
+        i = 0
+        for FieldName, Field in self.fields.items():
+            if i == 0:
+                timeSteps = Field.GetTimeSteps()
+            else:
+                timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
+        return timeSteps
+
+    def GetData(self, timeStep):
+        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
+        Bx = self.unitConverter.GetDataInISUnits( self.fields["Bx"], timeStep)
+        TranvsWF = Ey - self.c*Bx
+        y = self.unitConverter.GetAxisInISUnits("y", self.fields["Ey"], timeStep)
+        dy = abs(y[1]-y[0])
+        slope = np.gradient(TranvsWF, dy, axis=0)
+        return slope
+
+    def GetDataUnits(self):
+        return "V/m^2"
+
+    def GetTime(self, timeStep):
+        return self.fields["Ey"].GetTime(timeStep)
+
+    def GetTimeUnits(self):
+        return self.fields["Ey"].GetTimeUnits()
+
+    def GetFieldDimension(self):
+        return self.fields["Ey"].GetFieldDimension()
+
+    def GetAxisData(self, timeStep):
+        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
+        
+    def GetAxisUnits(self):
+        return self.fields["Ey"].GetAxisUnits()
+
 class CustomFieldCreator:
     customFields = [
         TransverseWakefield,
+        TransverseWakefieldSlope,
         LaserIntensityField,
         NormalizedVectorPotential
         ]
