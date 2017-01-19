@@ -43,6 +43,7 @@ class CustomField(CustomDataElement):
     necessaryFields = {"2D":[],
                        "3D":[]}
     necessaryParameters = []
+    fieldUnits = ""
 
     @classmethod
     def meetsRequirements(cls, dataContainer):
@@ -67,12 +68,31 @@ class CustomField(CustomDataElement):
                 timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
         return timeSteps
 
+    def GetDataUnits(self):
+        return self.fieldUnits
+
+    def GetTime(self, timeStep):
+        return list(self.fields.items())[0][1].GetTime(timeStep)
+
+    def GetTimeUnits(self):
+        return list(self.fields.items())[0][1].GetTimeUnits()
+
+    def GetFieldDimension(self):
+        return list(self.fields.items())[0][1].GetFieldDimension()
+
+    def GetAxisData(self, timeStep):
+        return list(self.fields.items())[0][1].GetAxisData(timeStep) #dictionary
+        
+    def GetAxisUnits(self):
+        return list(self.fields.items())[0][1].GetAxisUnits()
+
 
 class TransverseWakefield(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryFields = {"2D":["Ey", "Bx"],
                        "3D":["Ey", "Bx"]}
     necessaryParameters = []
+    fieldUnits = "V/m"
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield"
@@ -84,29 +104,12 @@ class TransverseWakefield(CustomField):
         TranvsWF = Ey - self.c*Bx
         return TranvsWF
 
-    def GetDataUnits(self):
-        return "V/m"
-
-    def GetTime(self, timeStep):
-        return self.fields["Ey"].GetTime(timeStep)
-
-    def GetTimeUnits(self):
-        return self.fields["Ey"].GetTimeUnits()
-
-    def GetFieldDimension(self):
-        return self.fields["Ey"].GetFieldDimension()
-
-    def GetAxisData(self, timeStep):
-        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
-        
-    def GetAxisUnits(self):
-        return self.fields["Ey"].GetAxisUnits()
-
 class LaserIntensityField(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryFields = {"2D":["Ey", "Ez"],
                        "3D":["Ex", "Ey", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
+    fieldUnits = "W/m^2"
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Laser Intensity"
@@ -124,30 +127,13 @@ class LaserIntensityField(CustomField):
         Intensity = self.c*self.eps_0*n/2*E2
         return Intensity
 
-    def GetDataUnits(self):
-        return "W/m^2"
-
-    def GetTime(self, timeStep):
-        return self.fields["Ey"].GetTime(timeStep)
-
-    def GetTimeUnits(self):
-        return self.fields["Ey"].GetTimeUnits()
-
-    def GetFieldDimension(self):
-        return self.fields["Ey"].GetFieldDimension()
-
-    def GetAxisData(self, timeStep):
-        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
-        
-    def GetAxisUnits(self):
-        return self.fields["Ey"].GetAxisUnits()
-
 
 class NormalizedVectorPotential(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryFields = {"2D":["Ey", "Ez"],
                        "3D":["Ex", "Ey", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
+    fieldUnits = "m_e*c^2/e"
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Normalized Vector Potential"
@@ -166,29 +152,12 @@ class NormalizedVectorPotential(CustomField):
         a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
 
-    def GetDataUnits(self):
-        return "m_e*c^2/e"
-
-    def GetTime(self, timeStep):
-        return self.fields["Ey"].GetTime(timeStep)
-
-    def GetTimeUnits(self):
-        return self.fields["Ey"].GetTimeUnits()
-
-    def GetFieldDimension(self):
-        return self.fields["Ey"].GetFieldDimension()
-
-    def GetAxisData(self, timeStep):
-        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
-        
-    def GetAxisUnits(self):
-        return self.fields["Ey"].GetAxisUnits()
-
 class TransverseWakefieldSlope(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryFields = {"2D":["Ey", "Bx"],
                        "3D":["Ey", "Bx"]}
     necessaryParameters = []
+    fieldUnits = "V/m^2"
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield Slope"
@@ -202,24 +171,6 @@ class TransverseWakefieldSlope(CustomField):
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         slope = np.gradient(TranvsWF, dy, axis=0)
         return slope
-
-    def GetDataUnits(self):
-        return "V/m^2"
-
-    def GetTime(self, timeStep):
-        return self.fields["Ey"].GetTime(timeStep)
-
-    def GetTimeUnits(self):
-        return self.fields["Ey"].GetTimeUnits()
-
-    def GetFieldDimension(self):
-        return self.fields["Ey"].GetFieldDimension()
-
-    def GetAxisData(self, timeStep):
-        return self.fields["Ey"].GetAxisData(timeStep) #dictionary
-        
-    def GetAxisUnits(self):
-        return self.fields["Ey"].GetAxisUnits()
 
 class CustomFieldCreator:
     customFields = [
