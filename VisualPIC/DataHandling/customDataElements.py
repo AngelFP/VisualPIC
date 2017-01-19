@@ -37,7 +37,9 @@ class CustomDataElement(DataElement):
     def _SetTimeSteps(self, dataContainer):
         raise NotImplementedError
 
-
+"""
+Custom Fields
+"""
 class CustomField(CustomDataElement):
     # List of necessary fields and simulation parameters.
     necessaryFields = {"2D":[],
@@ -187,4 +189,44 @@ class CustomFieldCreator:
                 fieldList.append(Field(dataContainer))
         return fieldList
 
-# TODO: Add custom field filters, so that only the custom fields for which there exists the necessary data are loaded.
+"""
+Custom Raw Data Sets
+"""
+class CustomRawDataSet(CustomDataElement):
+    # List of necessary data sets and simulation parameters.
+    necessaryDataSets = {"2D":[],
+                       "3D":[]}
+    necessaryParameters = []
+    units = ""
+
+    @classmethod
+    def meetsRequirements(cls, dataContainer, speciesName):
+        return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryDataSets[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+
+    def __init__(self, standardName, dataContainer, speciesName):
+        self._SetBaseDataSets(dataContainer)
+        return super().__init__(standardName, dataContainer, speciesName)
+
+    def _SetBaseDataSets(self, dataContainer):
+        dimension = dataContainer.GetSimulationDimension()
+        self.dataSets = {}
+        for DataSetName in self.necessaryDataSets[dimension]:
+            self.dataSets[DataSetName] = dataContainer.GetSpecies(self.speciesName).GetRawDataSet(DataSetName)
+
+    def _SetTimeSteps(self):
+        i = 0
+        for DataSetName, DataSet in self.dataSets.items():
+            if i == 0:
+                timeSteps = DataSetGetTimeSteps()
+            else:
+                timeSteps = np.intersect1d(timeSteps, DataSet.GetTimeSteps())
+        return timeSteps
+
+    def GetDataUnits(self):
+        return self.units
+
+    def GetTime(self, timeStep):
+        return list(self.dataSets.items())[0][1].GetTime(timeStep)
+
+    def GetTimeUnits(self):
+        return list(self.dataSets.items())[0][1].GetTimeUnits()
