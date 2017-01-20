@@ -530,7 +530,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
             field = self.mainWindow.dataContainer.GetDomainField(fieldName)
             
-        fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
+        fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
         self.subplot.AddFieldToPlot(fieldToPlot)
         self.fieldPropertiesList.append(fieldToPlot.GetFieldProperties())
         self.FillListView()

@@ -84,9 +84,8 @@ class Particle():
         h5file.close()
 
 class ParticleTracker():
-    def __init__(self, dataContainer, unitConverter):
+    def __init__(self, dataContainer):
         self._dataContainer = dataContainer
-        self.unitConverter = unitConverter
         self._speciesList = self._dataContainer.GetSpeciesWithTrackingData()
         self._speciesToAnalyze = None
         self._particleList = list()
@@ -315,10 +314,10 @@ class ParticleTracker():
             singleParticleData = {}
             singleParticleData["plotStyle"] = "b-" # todo: find a better place for storing the plotStyles in all dataTypes (Field, Raw and RawEvolution)
             singleParticleData["particle"] = particle
-            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)#, self.unitConverter)
-            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)#, self.unitConverter)
+            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)
+            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)
             if zDataName != None:
-                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)#, self.unitConverter)
+                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)
             allParticlesData.append(singleParticleData)
         return allParticlesData
 

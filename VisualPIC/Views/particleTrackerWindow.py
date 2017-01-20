@@ -39,7 +39,6 @@ from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.plotFieldItem import PlotFieldItem
 from VisualPIC.Tools.particleTracking import ParticleTracker
-import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
 if getattr(sys, 'frozen', False):
@@ -54,11 +53,10 @@ Ui_ParticleTrackerWindow, QParticleTrackerWindow = loadUiType(guipath)
 
 	
 class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
-    def __init__(self, dataContainer, unitConverter, colormapsCollection, dataPlotter):
+    def __init__(self, dataContainer, colormapsCollection, dataPlotter):
         super(ParticleTrackerWindow, self).__init__()
         self.setupUi(self)
-        self.unitConverter = unitConverter
-        self.particleTracker = ParticleTracker(dataContainer, unitConverter)
+        self.particleTracker = ParticleTracker(dataContainer)
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
         self.selectorSubplot = None
@@ -105,9 +103,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         dataSets = {}
         xAxis = str(self.xAxis_comboBox.currentText())
         yAxis = str(self.yAxis_comboBox.currentText())
-        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis), self.unitConverter)
-        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis), self.unitConverter)
-        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"), self.unitConverter)
+        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis))
+        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis))
+        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"))
         self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
         self.selectorSubplot.SetPlotType("Scatter")
         self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
@@ -287,20 +285,20 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         plotPosition = len(self.instantSubplotList)+1
         dataSets = {}
         xDataSet = self.particleTracker.GetInstantRawDataSet(xDataSetName)
-        dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
+        dataSets["x"] = RawDataSetToPlot(xDataSet)
         yDataSet = self.particleTracker.GetInstantRawDataSet(yDataSetName)
-        dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+        dataSets["y"] = RawDataSetToPlot(yDataSet)
         pxDataSet = self.particleTracker.GetInstantRawDataSet("Px")
-        dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.unitConverter)
+        dataSets["Px"] = RawDataSetToPlot(pxDataSet)
         pyDataSet = self.particleTracker.GetInstantRawDataSet("Py")
-        dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.unitConverter)
+        dataSets["Py"] = RawDataSetToPlot(pyDataSet)
         if self.instPlotType_radioButton_2.isChecked():
             zDataSet = self.particleTracker.GetInstantRawDataSet(zDataSetName)
-            dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
+            dataSets["z"] = RawDataSetToPlot(zDataSet)
             pzDataSet = self.particleTracker.GetInstantRawDataSet("Pz")
-            dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.unitConverter)
+            dataSets["Pz"] = RawDataSetToPlot(pzDataSet)
         weightDataSet = self.particleTracker.GetInstantRawDataSet("Charge")
-        dataSets["weight"] = RawDataSetToPlot(weightDataSet, self.unitConverter)
+        dataSets["weight"] = RawDataSetToPlot(weightDataSet)
         subplot = RawDataSubplot(plotPosition, self.colormapsCollection, dataSets)
         self.instantSubplotList.append(subplot)
         self.SetAutoInstantColumnsAndRows()

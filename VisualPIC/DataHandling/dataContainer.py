@@ -37,7 +37,7 @@ class DataContainer:
         self._selectedDomainField = None
     
     def LoadData(self):
-        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
+        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"], self.unitConverter)
         self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
         for species in self._availableSpecies:
             speciesName = species.GetName()

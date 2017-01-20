@@ -18,10 +18,9 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 class RawDataEvolutionToPlot:
-    # todo: implement unitConverter
-    def __init__(self, dataSetName, particle): #, unitConverter):
+    # todo: implement unit conversion
+    def __init__(self, dataSetName, particle):
         self._dataSet = particle.GetWholeSimulationQuantity(dataSetName)
-        #self._unitConverter = unitConverter
         self._dataProperties = {
             "name":dataSetName,
             "dataSetUnits":self._dataSet["units"], 

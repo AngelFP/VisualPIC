@@ -169,7 +169,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataContainer.SetDataFolderLocation(folderPath)
 
     def ActionParticleTracker_Toggled(self):
-        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.dataContainer.unitConverter, self.colorMapsCollection, self.dataPlotter)
+        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.colorMapsCollection, self.dataPlotter)
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.particleTracker.width()) / 2;
         y = (screenGeometry.height()-self.particleTracker.height()) / 2 -20;
@@ -240,20 +240,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for species in self.dataContainer.GetAvailableSpecies():
             if species.GetName() == speciesName:
                xDataSet = species.GetRawDataSet(xDataSetName) 
-               dataSets["x"] = RawDataSetToPlot(xDataSet, self.dataContainer.unitConverter)
+               dataSets["x"] = RawDataSetToPlot(xDataSet)
                yDataSet = species.GetRawDataSet(yDataSetName) 
-               dataSets["y"] = RawDataSetToPlot(yDataSet, self.dataContainer.unitConverter)
+               dataSets["y"] = RawDataSetToPlot(yDataSet)
                pxDataSet = species.GetRawDataSet("Pz") 
-               dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.dataContainer.unitConverter)
+               dataSets["Px"] = RawDataSetToPlot(pxDataSet)
                pyDataSet = species.GetRawDataSet("Py") 
-               dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.dataContainer.unitConverter)
+               dataSets["Py"] = RawDataSetToPlot(pyDataSet)
                if self.rawPlotType_radioButton_2.isChecked():
                    zDataSet = species.GetRawDataSet(zDataSetName) 
-                   dataSets["z"] = RawDataSetToPlot(zDataSet, self.dataContainer.unitConverter)
+                   dataSets["z"] = RawDataSetToPlot(zDataSet)
                    pzDataSet = species.GetRawDataSet("Pz") 
-                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.dataContainer.unitConverter)
+                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet)
                weightingDataSet = species.GetRawDataSet("Charge")
-               dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.dataContainer.unitConverter)
+               dataSets["weight"] = RawDataSetToPlot(weightingDataSet)
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
@@ -364,7 +364,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
         for fld in fields:
-            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.dataContainer.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
+            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
         plotPosition = len(self.subplotList)+1
         subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)

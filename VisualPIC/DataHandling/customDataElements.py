@@ -20,7 +20,6 @@
 import numpy as np
 import math
 from VisualPIC.DataHandling.dataElement import DataElement
-from VisualPIC.DataHandling.unitConverters import UnitConverterSelector
 
 """
 Base Class for Custom Fields and Raw Data Sets
@@ -32,9 +31,8 @@ class CustomDataElement(DataElement):
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.dataContainer = dataContainer
-        self.unitConverter = dataContainer.unitConverter
         timeSteps = self._SetTimeSteps()
-        return super().__init__(standardName, timeSteps, speciesName, False)
+        return super().__init__(dataContainer.unitConverter, standardName, timeSteps, speciesName, False)
 
     def _SetTimeSteps(self, dataContainer):
         raise NotImplementedError
@@ -72,6 +70,9 @@ class CustomField(CustomDataElement):
                 timeSteps = np.intersect1d(timeSteps, Field.GetTimeSteps())
         return timeSteps
 
+    def GetPossibleAxisUnits(self):
+        return self._unitConverter.GetPossibleAxisUnits(self)
+
     def GetDataUnits(self):
         return self.fieldUnits
 
@@ -103,8 +104,8 @@ class TransverseWakefield(CustomField):
         super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
-        Bx = self.unitConverter.GetDataInISUnits( self.fields["Bx"], timeStep)
+        Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
+        Bx = self.fields["Bx"].GetDataInISUnits(timeStep)
         TranvsWF = Ey - self.c*Bx
         return TranvsWF
 
@@ -120,8 +121,8 @@ class LaserIntensityField(CustomField):
         super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
-        Ez = self.unitConverter.GetDataInISUnits( self.fields["Ez"], timeStep)
+        Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
+        Ez = self.fields["Ez"].GetDataInISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
@@ -144,8 +145,8 @@ class NormalizedVectorPotential(CustomField):
         super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
-        Ez = self.unitConverter.GetDataInISUnits( self.fields["Ez"], timeStep)
+        Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
+        Ez = self.fields["Ez"].GetDataInISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
@@ -168,10 +169,10 @@ class TransverseWakefieldSlope(CustomField):
         super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Ey = self.unitConverter.GetDataInISUnits( self.fields["Ey"], timeStep)
-        Bx = self.unitConverter.GetDataInISUnits( self.fields["Bx"], timeStep)
+        Ey = self.fields["Ey"].GetDataInISUnits( timeStep)
+        Bx = self.fields["Bx"].GetDataInISUnits( timeStep)
         TranvsWF = Ey - self.c*Bx
-        y = self.unitConverter.GetAxisInISUnits("y", self.fields["Ey"], timeStep)
+        y = self.fields["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         slope = np.gradient(TranvsWF, dy, axis=0)
         return slope
@@ -244,8 +245,8 @@ class xPrimeDataSet(CustomRawDataSet):
         return super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Px = self.unitConverter.GetDataInISUnits( self.dataSets["Px"], timeStep)
-        Pz = self.unitConverter.GetDataInISUnits( self.dataSets["Pz"], timeStep)
+        Px = self.dataSets["Px"].GetDataInISUnits( timeStep)
+        Pz = self.dataSets["Pz"].GetDataInISUnits( timeStep)
         xP = np.divide(Px, Pz)
         return xP
 
@@ -260,8 +261,8 @@ class yPrimeDataSet(CustomRawDataSet):
         return super().__init__(standardName, dataContainer, speciesName)
 
     def GetData(self, timeStep):
-        Py = self.unitConverter.GetDataInISUnits( self.dataSets["Py"], timeStep)
-        Pz = self.unitConverter.GetDataInISUnits( self.dataSets["Pz"], timeStep)
+        Py = self.dataSets["Py"].GetDataInISUnits( timeStep)
+        Pz = self.dataSets["Pz"].GetDataInISUnits( timeStep)
         yP = np.divide(Py, Pz)
         return yP
 

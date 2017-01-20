@@ -18,9 +18,8 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 class RawDataSetToPlot:
-    def __init__(self, dataSet, unitConverter):
+    def __init__(self, dataSet):
         self._dataSet = dataSet
-        self._unitConverter = unitConverter
         self._dataProperties = {
             "name":dataSet.GetName(), 
             "speciesName":dataSet.GetSpeciesName(), 
@@ -32,16 +31,16 @@ class RawDataSetToPlot:
         }
             
     def _GetPossibleDataSetUnits(self):
-        return self._unitConverter.GetPossibleDataUnits(self._dataSet)
+        return self._dataSet.GetPossibleDataUnits()
 
     def _GetPossibleTimeUnits(self):
-        return self._unitConverter.GetPossibleTimeUnits(self._dataSet)
+        return self._dataSet.GetPossibleTimeUnits()
 
     def GetTime(self, timeStep):
-        return self._unitConverter.GetTimeInUnits(self._dataSet, self._dataProperties["timeUnits"], timeStep)
+        return self._dataSet.GetTimeInUnits(self._dataProperties["timeUnits"], timeStep)
         
     def GetDataSetPlotData(self, timeStep):
-        return self._unitConverter.GetDataInUnits(self._dataSet, self._dataProperties["dataSetUnits"], timeStep)
+        return self._dataSet.GetDataInUnits(self._dataProperties["dataSetUnits"], timeStep)
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]
