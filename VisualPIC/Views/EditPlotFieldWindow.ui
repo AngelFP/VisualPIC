@@ -19,6 +19,11 @@
   <property name="windowTitle">
    <string>Edit plot</string>
   </property>
+  <property name="windowIcon">
+    <iconset>
+      <normaloff>Icons/logo.png</normaloff>Icons/logo.png
+    </iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <property name="sizeConstraint">
     <enum>QLayout::SetFixedSize</enum>

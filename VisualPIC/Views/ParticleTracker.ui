@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>Particle Tracker</string>
   </property>
+  <property name="windowIcon">
+    <iconset>
+      <normaloff>Icons/logo.png</normaloff>Icons/logo.png
+    </iconset>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QTabWidget" name="mainTabWidget">
