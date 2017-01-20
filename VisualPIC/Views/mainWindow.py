@@ -170,6 +170,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def ActionParticleTracker_Toggled(self):
         self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.dataContainer.unitConverter, self.colorMapsCollection, self.dataPlotter)
+        screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
+        x = (screenGeometry.width()-self.particleTracker.width()) / 2;
+        y = (screenGeometry.height()-self.particleTracker.height()) / 2 -20;
+        self.particleTracker.move(x, y);
         self.particleTracker.show()
 
     def ActionMakeVideo_Toggled(self):

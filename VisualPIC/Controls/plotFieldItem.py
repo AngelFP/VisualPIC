@@ -80,6 +80,10 @@ class PlotFieldItem(QtWidgets.QWidget):
     def editButton_Clicked(self):
         self.EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.mainWindow)
         self.EditWindow.show()
+        screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
+        x = (screenGeometry.width()-self.EditWindow.width()) / 2;
+        y = (screenGeometry.height()-self.EditWindow.height()) / 2;
+        self.EditWindow.move(x, y);
         
     def deleteButton_Clicked(self):
         self.mainWindow.RemoveSubplot(self)

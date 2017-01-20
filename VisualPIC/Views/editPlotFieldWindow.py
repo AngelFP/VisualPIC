@@ -23,6 +23,7 @@ import os
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QApplication
 
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.subplot import *
