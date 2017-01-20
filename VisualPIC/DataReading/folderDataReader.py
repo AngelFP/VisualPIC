@@ -137,9 +137,9 @@ class FolderDataReader:
                         file_content = h5py.File(file_path, 'r')
                         for dataSetName in list(file_content):
                             if dataSetName == "tag":
-                                self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", unitConverter, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
+                                self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))
                             else:
-                                self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
+                                self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", unitConverter, dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
                         file_content.close()
 
     def GetTimeStepsInOsirisLocation(self, location):

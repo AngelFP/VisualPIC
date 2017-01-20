@@ -50,10 +50,10 @@ class DataElement(object):
         return self._unitConverter.GetDataInUnits(self, units, timeStep)
 
     def GetAxisInUnits(self, axis, units, timeStep):
-        return self._unitConverter.GetAxisInUnits( axis, self, units, timeStep)
+        return self._unitConverter.GetAxisInUnits(axis, self, units, timeStep)
 
     def GetAxisInISUnits(self, axis, timeStep):
-        return self._unitConverter.GetAxisInISUnits( axis, self, timeStep)
+        return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
 
     def GetData(self, timeStep):
         raise NotImplementedError
@@ -66,7 +66,10 @@ class DataElement(object):
 
     def GetTime(self, timeStep):
         raise NotImplementedError
-        
+    
+    def GetPossibleTimeUnits(self):
+        return self._unitConverter.GetPossibleTimeUnits(self)
+
     def GetTimeUnits(self):
         raise NotImplementedError
 
