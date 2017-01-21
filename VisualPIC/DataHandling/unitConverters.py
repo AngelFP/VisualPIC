@@ -29,14 +29,8 @@ class GeneralUnitConverter(object):
         self.e = 1.60217733 * 10**(-19) #C
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
-        self.normalizationFactorIsSet = False
         self.normalizationFactor = None
         self.SetSimulationParameters(simulationParams)
-        #special units (with non ascii characters)
-        if sys.version_info[0] < 3:
-            self.um = u"μm"
-        else:
-            self.um = "μm"
     
     def SetSimulationParameters(self, params):
         self._simulationParameters = params
@@ -45,13 +39,9 @@ class GeneralUnitConverter(object):
         dataISUnits = self.GetDataISUnits(dataElement)
         originalUnits = list()
         allOtherUnits = list()
-        if dataElement.hasNonISUnits:
-            originalUnits.append(dataElement.GetDataOriginalUnits())
-            if self.normalizationFactorIsSet:
-                allOtherUnits = self._GetAllOtherDataUnitsOptions(dataISUnits)
-        else:
-            allOtherUnits = self._GetAllOtherDataUnitsOptions(dataISUnits)
-        allUnits = originalUnits + allOtherUnits
+        originalUnits.append(dataElement.GetDataOriginalUnits())
+        allOtherUnits = self._GetAllOtherDataUnitsOptions(dataISUnits)
+        allUnits = list(set(list(set(originalUnits).union([dataISUnits]))).union(allOtherUnits))
         return allUnits
 
     def _GetAllOtherDataUnitsOptions(self, dataISUnits):
@@ -62,7 +52,7 @@ class GeneralUnitConverter(object):
         elif dataISUnits == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
         elif dataISUnits == "m":
-            return ["m", self.um]
+            return ["m", "μm"]
         elif dataISUnits == "kg*m/s":
             return ["kg*m/s", "MeV/c"]
         elif dataISUnits == "J":
@@ -74,13 +64,9 @@ class GeneralUnitConverter(object):
         dataISUnits = "s"
         originalUnits = list()
         allOtherUnits = list()
-        if dataElement.hasNonISUnits:
-            originalUnits.append(dataElement.GetTimeUnits())
-            if self.normalizationFactorIsSet:
-                allOtherUnits = self._GetAllOtherTimeUnitsOptions()
-        else:
-            allOtherUnits = self._GetAllOtherTimeUnitsOptions()
-        allUnits = originalUnits + allOtherUnits
+        originalUnits.append(dataElement.GetTimeOriginalUnits())
+        allOtherUnits = self._GetAllOtherTimeUnitsOptions()
+        allUnits = list(set(originalUnits).union(allOtherUnits))
         return allUnits
 
     def _GetAllOtherTimeUnitsOptions(self):
@@ -89,18 +75,13 @@ class GeneralUnitConverter(object):
     def GetPossibleAxisUnits(self, dataElement):
         originalUnits = list()
         allOtherUnits = list()
-        if dataElement.hasNonISUnits:
-            if self.normalizationFactorIsSet:
-                allOtherUnits = self._GetAllOtherAxisUnitsOptions()
-        else:
-            allOtherUnits = self._GetAllOtherAxisUnitsOptions()
-        if dataElement.GetAxisOriginalUnits()["x"] not in allOtherUnits:
-            originalUnits.append(dataElement.GetAxisOriginalUnits()["x"])
-        allUnits = originalUnits + allOtherUnits
+        allOtherUnits = self._GetAllOtherAxisUnitsOptions()
+        originalUnits.append(dataElement.GetAxisOriginalUnits()["x"])
+        allUnits = list(set(originalUnits).union(allOtherUnits))
         return allUnits
 
     def _GetAllOtherAxisUnitsOptions(self):
-        return ["m", self.um]
+        return ["m", "μm"]
 
     def GetDataInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
@@ -120,7 +101,7 @@ class GeneralUnitConverter(object):
                 if units == "V/m":
                     return dataInISUnits * self.c
             elif dataISUnits == "m":
-                if units == self.um:
+                if units == "μm":
                     return dataInISUnits * 1e6
             elif dataISUnits == "kg*m/s":
                 if units == "MeV/c":
@@ -131,7 +112,7 @@ class GeneralUnitConverter(object):
                 
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
-            if units == dataElement.GetTimeUnits():
+            if units == dataElement.GetTimeOriginalUnits():
                 return dataElement.GetTimeInOriginalUnits(timeStep)
         if units == "s":
             return self.GetTimeInISUnits(dataElement, timeStep)
@@ -147,7 +128,7 @@ class GeneralUnitConverter(object):
             return self.GetAxisInISUnits(axis, dataElement, timeStep)
         else:
             axisDataInISUnits = self.GetAxisInISUnits(axis, dataElement, timeStep)
-            if units == self.um:
+            if units == "μm":
                 return axisDataInISUnits * 1e6
     """
     To implement by children classes
@@ -174,7 +155,6 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def _SetNormalizationFactor(self, value):
         """ In OSIRIS the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
         self.normalizationFactor = value * 1e24
-        self.normalizationFactorIsSet = True
         self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         self.s_d = self.c / self.w_p  #skin depth (m)
         self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m

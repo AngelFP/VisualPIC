@@ -25,14 +25,14 @@ from VisualPIC.DataHandling.dataElement import DataElement
 Base Class for Custom Fields and Raw Data Sets
 """
 class CustomDataElement(DataElement):
-    def __init__(self, standardName, dataContainer, speciesName = ''):
+    def __init__(self, standardName, dataContainer, hasNonISUnits = False, speciesName = ''):
         self.c = 299792458 #m/s
         self.e = 1.60217733 * 10**(-19) #C
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.dataContainer = dataContainer
         timeSteps = self._SetTimeSteps()
-        return super().__init__(dataContainer.unitConverter, standardName, timeSteps, speciesName, False)
+        return super().__init__(dataContainer.unitConverter, standardName, timeSteps, speciesName, hasNonISUnits)
 
     def _SetTimeSteps(self, dataContainer):
         raise NotImplementedError
@@ -51,9 +51,9 @@ class CustomField(CustomDataElement):
     def meetsRequirements(cls, dataContainer):
         return ((set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryFields[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
 
-    def __init__(self, standardName, dataContainer, speciesName = ''):
+    def __init__(self, standardName, dataContainer, hasNonISUnits,  speciesName = ''):
         self._SetBaseFields(dataContainer)
-        return super().__init__(standardName, dataContainer, speciesName)
+        return super().__init__(standardName, dataContainer, hasNonISUnits, speciesName)
 
     def _SetBaseFields(self, dataContainer):
         dimension = dataContainer.GetSimulationDimension()
@@ -98,10 +98,11 @@ class TransverseWakefield(CustomField):
                        "3D":["Ey", "Bx"]}
     necessaryParameters = []
     fieldUnits = "V/m"
+    ISUnits = True
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield"
-        super().__init__(standardName, dataContainer, speciesName)
+        super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
@@ -115,10 +116,11 @@ class LaserIntensityField(CustomField):
                        "3D":["Ex", "Ey", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
     fieldUnits = "W/m^2"
+    ISUnits = True
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Laser Intensity"
-        super().__init__(standardName, dataContainer, speciesName)
+        super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
@@ -139,10 +141,11 @@ class NormalizedVectorPotential(CustomField):
                        "3D":["Ex", "Ey", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
     fieldUnits = "m_e*c^2/e"
+    ISUnits = True
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Normalized Vector Potential"
-        super().__init__(standardName, dataContainer, speciesName)
+        super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Ey = self.fields["Ey"].GetDataInISUnits(timeStep)
@@ -163,10 +166,11 @@ class TransverseWakefieldSlope(CustomField):
                        "3D":["Ey", "Bx"]}
     necessaryParameters = []
     fieldUnits = "V/m^2"
+    ISUnits = True
 
     def __init__(self, dataContainer, speciesName = ''):
         standardName = "Transverse Wakefield Slope"
-        super().__init__(standardName, dataContainer, speciesName)
+        super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Ey = self.fields["Ey"].GetDataInISUnits( timeStep)
@@ -206,9 +210,9 @@ class CustomRawDataSet(CustomDataElement):
     def meetsRequirements(cls, dataContainer, speciesName):
         return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryDataSets[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
 
-    def __init__(self, standardName, dataContainer, speciesName):
+    def __init__(self, standardName, dataContainer, hasNonISUnits, speciesName):
         self._SetBaseDataSets(dataContainer, speciesName)
-        return super().__init__(standardName, dataContainer, speciesName)
+        return super().__init__(standardName, dataContainer, hasNonISUnits, speciesName)
 
     def _SetBaseDataSets(self, dataContainer, speciesName):
         dimension = dataContainer.GetSimulationDimension()
@@ -240,9 +244,11 @@ class xPrimeDataSet(CustomRawDataSet):
                        "3D":[]}
     necessaryParameters = []
     units = "rad"
+    ISUnits = True
+
     def __init__(self, dataContainer, speciesName):
         standardName = "xP"
-        return super().__init__(standardName, dataContainer, speciesName)
+        return super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Px = self.dataSets["Px"].GetDataInISUnits( timeStep)
@@ -256,9 +262,11 @@ class yPrimeDataSet(CustomRawDataSet):
                        "3D":[]}
     necessaryParameters = []
     units = "rad"
+    ISUnits = True
+
     def __init__(self, dataContainer, speciesName):
         standardName = "yP"
-        return super().__init__(standardName, dataContainer, speciesName)
+        return super().__init__(standardName, dataContainer, not self.ISUnits, speciesName)
 
     def GetDataInOriginalUnits(self, timeStep):
         Py = self.dataSets["Py"].GetDataInISUnits( timeStep)

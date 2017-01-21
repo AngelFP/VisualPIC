@@ -267,7 +267,7 @@ class ParticleTracker():
         for particle in self._particleList:
             particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeUnits())
+                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits())
         self.timeInfoAdded = True
 
     def MakeInstantaneousRawDataSets(self):
