@@ -45,20 +45,20 @@ class SelfContainedDataElement(DataElement):
     def GetNameInCode(self):
         return self.dataNameInCode
 
-    def GetData(self, timeStep):
+    def GetDataInOriginalUnits(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
         rawValues = self.dataValues[index] # migth contain NaN values
         dataMask = np.isfinite(rawValues)
         return rawValues[dataMask] # return the data without the NaN values
         
-    def GetDataUnits(self):
+    def GetDataOriginalUnits(self):
         return self.dataUnits
 
-    def GetTime(self, timeStep):
+    def GetTimeInOriginal(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
         return self.timeValues[index]
         
-    def GetTimeUnits(self):
+    def GetTimeOriginalUnits(self):
         return self.timeUnits
 
 

@@ -467,7 +467,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         maxMinList = []
         for quantity in quantityNamesList:
             dataSet = self.particleTracker.GetSpeciesDataSet(speciesName, quantity)
-            data = dataSet.GetData(timeStep)
+            data = dataSet.GetDataInOriginalUnits(timeStep)
             dataMin = min(data)
             dataMax = max(data)
             maxMinList.append([quantity, dataMin, dataMax])

@@ -30,11 +30,11 @@ class FieldToPlot:
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(),
             "timeSteps":field.GetTimeSteps(), 
-            "fieldUnits":copy.copy(field.GetDataUnits()), 
-            "originalFieldUnits":field.GetDataUnits(),
+            "fieldUnits":copy.copy(field.GetDataOriginalUnits()), 
+            "originalFieldUnits":field.GetDataOriginalUnits(),
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
-            "axesUnits":copy.copy(field.GetAxisUnits()), #dictionary
-            "originalAxesUnits":field.GetAxisUnits(), 
+            "axesUnits":copy.copy(field.GetAxisOriginalUnits()), #dictionary
+            "originalAxesUnits":field.GetAxisOriginalUnits(), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,

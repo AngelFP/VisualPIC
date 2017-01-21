@@ -55,21 +55,21 @@ class DataElement(object):
     def GetAxisInISUnits(self, axis, timeStep):
         return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
 
-    def GetData(self, timeStep):
+    def GetDataInOriginalUnits(self, timeStep):
         raise NotImplementedError
         
-    def GetDataUnits(self):
+    def GetDataOriginalUnits(self):
         raise NotImplementedError
 
     def GetTimeInUnits(self, units, timeStep):
         return self._unitConverter.GetTimeInUnits(self, units, timeStep)
 
-    def GetTime(self, timeStep):
+    def GetTimeInOriginalUnits(self, timeStep):
         raise NotImplementedError
     
     def GetPossibleTimeUnits(self):
         return self._unitConverter.GetPossibleTimeUnits(self)
 
-    def GetTimeUnits(self):
+    def GetTimeOriginalUnits(self):
         raise NotImplementedError
 

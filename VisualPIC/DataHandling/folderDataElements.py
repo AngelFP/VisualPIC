@@ -33,16 +33,16 @@ class FolderDataElement(DataElement):
     def GetNameInCode(self):
         return self.dataNameInCode
 
-    def GetData(self, timeStep):
+    def GetDataInOriginalUnits(self, timeStep):
         return self.dataReader.GetData(timeStep)
         
-    def GetDataUnits(self):
+    def GetDataOriginalUnits(self):
         return self.dataReader.GetDataUnits()
 
-    def GetTime(self, timeStep):
+    def GetTimeInOriginalUnits(self, timeStep):
         return self.dataReader.GetTime(timeStep)
         
-    def GetTimeUnits(self):
+    def GetTimeOriginalUnits(self):
         return self.dataReader.GetTimeUnits()
 
 
@@ -57,10 +57,10 @@ class FolderField(FolderDataElement):
     def GetPossibleAxisUnits(self):
         return self._unitConverter.GetPossibleAxisUnits(self)
 
-    def GetAxisData(self, timeStep):
-        return self.dataReader.GetAxisData(timeStep) #dictionary
+    def GetAxisDataInOriginalUnits(self, axis, timeStep):
+        return self.dataReader.GetAxisData(timeStep)[axis] #dictionary
         
-    def GetAxisUnits(self):
+    def GetAxisOriginalUnits(self):
         return self.dataReader.GetAxisUnits()
 
 

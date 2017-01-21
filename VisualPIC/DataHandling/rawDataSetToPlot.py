@@ -24,7 +24,7 @@ class RawDataSetToPlot:
             "name":dataSet.GetName(), 
             "speciesName":dataSet.GetSpeciesName(), 
             "timeSteps":dataSet.GetTimeSteps(),
-            "dataSetUnits":dataSet.GetDataUnits(), 
+            "dataSetUnits":dataSet.GetDataOriginalUnits(), 
             "timeUnits":dataSet.GetTimeUnits(),
             "possibleDataSetUnits":self._GetPossibleDataSetUnits(),
             "possibleTimeUnits":self._GetPossibleTimeUnits()

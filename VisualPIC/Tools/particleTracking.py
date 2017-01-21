@@ -151,7 +151,7 @@ class ParticleTracker():
     
     def _GetIndicesOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
         dataSet = species.GetRawDataSet(rawDataSetName)
-        data = dataSet.GetData(timeStep)
+        data = dataSet.GetDataInOriginalUnits(timeStep)
         iLowRange = np.where(data > range[0])
         iHighRange = np.where(data < range[1])
         iRange = np.intersect1d(iLowRange, iHighRange)
@@ -169,7 +169,7 @@ class ParticleTracker():
         particleTags = species.GetRawDataTags(timeStep)
         dataSetValues = {}
         for dataSet in rawDataSets:
-            dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep) # particle data in selected time step
+            dataSetValues[dataSet.GetName()] = dataSet.GetDataInOriginalUnits(timeStep) # particle data in selected time step
         particlesList = list()
         for index in indices:
             particle = Particle(particleTags[index]) # create particle instance with corresponding tag
@@ -254,18 +254,18 @@ class ParticleTracker():
         for timeStep in allSimulatedTimeSteps:
             if timeStep <= max(timeStepsWithParticleData) and (timeStep in timeStepsWithParticleData):
                 print(timeStep)
-                data = dataSet.GetData(timeStep)
+                data = dataSet.GetDataInOriginalUnits(timeStep)
                 p = 0
                 for particle in self._particleList:
                     if timeStep in particle.GetTrackedTimeSteps():
                         step = counter[p]
                         quantityValues[p][step] = data[particle.GetIndex(timeStep)]
                         if not self.timeInfoAdded:
-                            timeValues[p][step] = dataSet.GetTime(timeStep)
+                            timeValues[p][step] = dataSet.GetTimeInOriginalUnits(timeStep)
                         counter[p] += 1
                     p += 1
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
+            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
             if not self.timeInfoAdded:
                 particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeUnits())
         self.timeInfoAdded = True
@@ -294,6 +294,7 @@ class ParticleTracker():
                     dataCodeName = quantityData["codeName"]
                     timeUnits = timeData["units"]
                     n += 1 
+                # TODO: bug here with custom raw data because they dont have a codeName. Is it really necessary this parameter?
                 self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
 
     def GetTrackedParticles(self):
