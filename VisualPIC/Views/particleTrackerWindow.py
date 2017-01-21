@@ -35,7 +35,7 @@ from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
 from VisualPIC.DataHandling.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
-from VisualPIC.Controls.plotFieldItem import PlotFieldItem
+from VisualPIC.Controls.subplotItem import SubplotItem
 from VisualPIC.Tools.particleTracking import ParticleTracker
 
 
@@ -268,7 +268,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         subplot = RawDataEvolutionSubplot(plotPosition, self.colormapsCollection, self.particleTracker.GetTrackedParticlesDataToPlot(xDataSetName, yDataSetName, zDataSetName), self.particleTracker.GetTrackedSpeciesName())
         self.evolSubplotList.append(subplot)
         self.SetAutoEvolColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.subplots_listWidget.addItem(wid2)
@@ -299,7 +299,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         subplot = RawDataSubplot(plotPosition, self.colormapsCollection, dataSets)
         self.instantSubplotList.append(subplot)
         self.SetAutoInstantColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.instantSubplots_listWidget.addItem(wid2)

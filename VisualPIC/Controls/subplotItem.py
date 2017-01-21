@@ -27,9 +27,9 @@ except AttributeError:
         return s
 
 
-class PlotFieldItem(QtWidgets.QWidget):
+class SubplotItem(QtWidgets.QWidget):
     def __init__(self, subplot, parent=None):
-        super(PlotFieldItem, self).__init__(parent)
+        super(SubplotItem, self).__init__(parent)
         self.subplot = subplot
         
         self.mainWindow = parent

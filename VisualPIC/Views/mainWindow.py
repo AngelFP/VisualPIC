@@ -38,7 +38,7 @@ from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
 from VisualPIC.DataHandling.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
-from VisualPIC.Controls.plotFieldItem import PlotFieldItem
+from VisualPIC.Controls.subplotItem import SubplotItem
 
 
 if getattr(sys, 'frozen', False):
@@ -294,7 +294,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         subplot = RawDataSubplot(plotPosition, self.colorMapsCollection, dataSets)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
@@ -369,7 +369,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
