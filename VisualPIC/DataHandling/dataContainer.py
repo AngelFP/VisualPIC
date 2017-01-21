@@ -24,11 +24,11 @@ import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
 class DataContainer:
-    """Contains all the fields and rawDataSets available on the simulation folder"""
+    """Contains all the fields and rawDataSets available on the simulation folder, as well as the custom ones"""
     def __init__(self):
         self._folderDataReader = FolderDataReader(self)
         self._simulationParams = dict()
-        self.unitConverter = None
+        self.unitConverter = None # Will be set in "SetSimulationParameters" where the user manually selects the code
         # species (may contain fields and raw data)
         self._availableSpecies = list()
         self._selectedSpecies = list()
