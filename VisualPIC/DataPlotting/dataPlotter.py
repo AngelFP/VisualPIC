@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys 
+
 import matplotlib
 from matplotlib.ticker import LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
@@ -138,12 +138,8 @@ class DataPlotter:
         plotProperties = subplot.GetCopyAllPlotProperties()
         plotData = {}
         # Load data
-        if sys.version_info[0] < 3:
-            for dataSetName, values in axisData.iteritems():
-                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
-        else:
-            for dataSetName, values in axisData.items():
-                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
+        for dataSetName, values in axisData.items():
+            plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
         im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, cMap)

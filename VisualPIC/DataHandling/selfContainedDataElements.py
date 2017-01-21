@@ -23,7 +23,7 @@ from VisualPIC.DataHandling.dataElement import DataElement
 
 
 class SelfContainedDataElement(DataElement):
-    def __init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+    def __init__(self, unitConverter, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
         """Constructor.
 
         Keyword arguments:
@@ -35,7 +35,7 @@ class SelfContainedDataElement(DataElement):
         timeUnits  -- string containing the time units.
         timeSteps  -- a 1D array containing the number of each time step saved to disk during the simulation.
         """
-        DataElement.__init__(self, standardName, timeSteps, speciesName)
+        DataElement.__init__(self, unitConverter, standardName, timeSteps, speciesName)
         self.dataNameInCode = nameInCode
         self.dataValues = dataValues
         self.dataUnits = dataUnits
@@ -45,23 +45,23 @@ class SelfContainedDataElement(DataElement):
     def GetNameInCode(self):
         return self.dataNameInCode
 
-    def GetData(self, timeStep):
+    def GetDataInOriginalUnits(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
         rawValues = self.dataValues[index] # migth contain NaN values
         dataMask = np.isfinite(rawValues)
         return rawValues[dataMask] # return the data without the NaN values
         
-    def GetDataUnits(self):
+    def GetDataOriginalUnits(self):
         return self.dataUnits
 
-    def GetTime(self, timeStep):
+    def GetTimeInOriginal(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
         return self.timeValues[index]
         
-    def GetTimeUnits(self):
+    def GetTimeOriginalUnits(self):
         return self.timeUnits
 
 
 class SelfContainedRawDataSet(SelfContainedDataElement):
-    def __init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
-        SelfContainedDataElement.__init__(self, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+    def __init__(self, unitConverter, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+        SelfContainedDataElement.__init__(self, unitConverter, nameInCode, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)

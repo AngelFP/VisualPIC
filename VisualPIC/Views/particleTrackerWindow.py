@@ -17,10 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import gc
+
 import os
 import sys
-
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import *
@@ -31,15 +30,13 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
 from VisualPIC.DataHandling.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
-from VisualPIC.Controls.plotFieldItem import PlotFieldItem
+from VisualPIC.Controls.subplotItem import SubplotItem
 from VisualPIC.Tools.particleTracking import ParticleTracker
-import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
 if getattr(sys, 'frozen', False):
@@ -49,16 +46,14 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'ParticleTracker.ui' )
-
 Ui_ParticleTrackerWindow, QParticleTrackerWindow = loadUiType(guipath)
 
 	
 class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
-    def __init__(self, dataContainer, unitConverter, colormapsCollection, dataPlotter):
+    def __init__(self, dataContainer, colormapsCollection, dataPlotter):
         super(ParticleTrackerWindow, self).__init__()
         self.setupUi(self)
-        self.unitConverter = unitConverter
-        self.particleTracker = ParticleTracker(dataContainer, unitConverter)
+        self.particleTracker = ParticleTracker(dataContainer)
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
         self.selectorSubplot = None
@@ -105,9 +100,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         dataSets = {}
         xAxis = str(self.xAxis_comboBox.currentText())
         yAxis = str(self.yAxis_comboBox.currentText())
-        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis), self.unitConverter)
-        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis), self.unitConverter)
-        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"), self.unitConverter)
+        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis))
+        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis))
+        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"))
         self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
         self.selectorSubplot.SetPlotType("Scatter")
         self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
@@ -273,7 +268,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         subplot = RawDataEvolutionSubplot(plotPosition, self.colormapsCollection, self.particleTracker.GetTrackedParticlesDataToPlot(xDataSetName, yDataSetName, zDataSetName), self.particleTracker.GetTrackedSpeciesName())
         self.evolSubplotList.append(subplot)
         self.SetAutoEvolColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.subplots_listWidget.addItem(wid2)
@@ -287,24 +282,24 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         plotPosition = len(self.instantSubplotList)+1
         dataSets = {}
         xDataSet = self.particleTracker.GetInstantRawDataSet(xDataSetName)
-        dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
+        dataSets["x"] = RawDataSetToPlot(xDataSet)
         yDataSet = self.particleTracker.GetInstantRawDataSet(yDataSetName)
-        dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+        dataSets["y"] = RawDataSetToPlot(yDataSet)
         pxDataSet = self.particleTracker.GetInstantRawDataSet("Px")
-        dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.unitConverter)
+        dataSets["Px"] = RawDataSetToPlot(pxDataSet)
         pyDataSet = self.particleTracker.GetInstantRawDataSet("Py")
-        dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.unitConverter)
+        dataSets["Py"] = RawDataSetToPlot(pyDataSet)
         if self.instPlotType_radioButton_2.isChecked():
             zDataSet = self.particleTracker.GetInstantRawDataSet(zDataSetName)
-            dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
+            dataSets["z"] = RawDataSetToPlot(zDataSet)
             pzDataSet = self.particleTracker.GetInstantRawDataSet("Pz")
-            dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.unitConverter)
+            dataSets["Pz"] = RawDataSetToPlot(pzDataSet)
         weightDataSet = self.particleTracker.GetInstantRawDataSet("Charge")
-        dataSets["weight"] = RawDataSetToPlot(weightDataSet, self.unitConverter)
+        dataSets["weight"] = RawDataSetToPlot(weightDataSet)
         subplot = RawDataSubplot(plotPosition, self.colormapsCollection, dataSets)
         self.instantSubplotList.append(subplot)
         self.SetAutoInstantColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
+        wid = SubplotItem(subplot, self)
         wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.instantSubplots_listWidget.addItem(wid2)
@@ -469,7 +464,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         maxMinList = []
         for quantity in quantityNamesList:
             dataSet = self.particleTracker.GetSpeciesDataSet(speciesName, quantity)
-            data = dataSet.GetData(timeStep)
+            data = dataSet.GetDataInOriginalUnits(timeStep)
             dataMin = min(data)
             dataMax = max(data)
             maxMinList.append([quantity, dataMin, dataMax])
@@ -491,19 +486,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             sbpList.append(self.selectorSubplot) # we need to create a list of only one subplot because the DataPlotter only accepts lists.
             self.dataPlotter.MakePlot(self.selectorFigure, sbpList, 1, 1, self.selectorTimeStep_Slider.value())
             ax = self.selectorFigure.axes[0]
-            if sys.version_info[0] < 3:
-                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                               drawtype='box', useblit=True,
-                                               button=[1, 3],  # don't use middle button
-                                               minspanx=5, minspany=5,
-                                               spancoords='pixels')
-            else:
-                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                               drawtype='box', useblit=True,
-                                               button=[1, 3],  # don't use middle button
-                                               minspanx=5, minspany=5,
-                                               spancoords='pixels',
-                                               interactive = True)
+            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                                     drawtype='box', useblit=True,
+                                                     button=[1, 3],  # don't use middle button
+                                                     minspanx=5, minspany=5,
+                                                     spancoords='pixels',
+                                                     interactive = True)
             self.toggle_selector.set_active(False)
             self.selectorFigure.tight_layout()
             self.selectorCanvas.draw()

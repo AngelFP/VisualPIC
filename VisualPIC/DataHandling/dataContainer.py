@@ -17,16 +17,18 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
 from VisualPIC.DataHandling.customDataElements import CustomFieldCreator, CustomRawDataSetCreator
 import VisualPIC.DataHandling.unitConverters as unitConverters
 
+
 class DataContainer:
-    """Contains all the fields and rawDataSets available on the simulation folder"""
+    """Contains all the fields and rawDataSets available on the simulation folder, as well as the custom ones"""
     def __init__(self):
         self._folderDataReader = FolderDataReader(self)
         self._simulationParams = dict()
-        self.unitConverter = None
+        self.unitConverter = None # Will be set in "SetSimulationParameters" where the user manually selects the code
         # species (may contain fields and raw data)
         self._availableSpecies = list()
         self._selectedSpecies = list()
@@ -37,7 +39,7 @@ class DataContainer:
         self._selectedDomainField = None
     
     def LoadData(self):
-        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
+        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"], self.unitConverter)
         self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
         for species in self._availableSpecies:
             speciesName = species.GetName()

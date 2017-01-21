@@ -19,8 +19,7 @@
 
 
 import abc
-import sys
-import h5py
+from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
@@ -55,6 +54,7 @@ class RawDataReaderBase(DataReader):
             self.OpenFileAndReadUnits()
         return self.timeUnits
 
+
 class OsirisRawDataReader(RawDataReaderBase):
     def __init__(self, location, speciesName, dataName, internalName):
         RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
@@ -73,19 +73,15 @@ class OsirisRawDataReader(RawDataReaderBase):
 
     def OpenFileAndReadUnits(self):
         file_content = self.OpenFile(0)
-        if sys.version_info[0] < 3:
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
-            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])
-        else:
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
+        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
     def OpenFile(self, timeStep):
         fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
+        file_content = H5File(file_path, 'r')
         return file_content
 
 

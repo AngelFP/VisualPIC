@@ -21,14 +21,7 @@ import sys
 import os
 
 from PyQt5.uic import loadUiType
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import *
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
 
 if getattr(sys, 'frozen', False):
     # we are running in a bundle
@@ -37,8 +30,8 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'aboutWindow.ui' )
-
 Ui_AboutWindow, QAboutWindow = loadUiType(guipath)
+
 
 class AboutWindow(QAboutWindow, Ui_AboutWindow):
     def __init__(self, parent=None):

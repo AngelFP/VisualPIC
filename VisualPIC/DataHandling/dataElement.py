@@ -17,11 +17,14 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from VisualPIC.DataReading.dataReader import DataReader
+
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
+    def __init__(self, unitConverter, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
+        self._unitConverter = unitConverter
         self.dataStandardName = standardName
         self.speciesName = speciesName
         self.timeSteps = timeSteps # array of integers
@@ -36,15 +39,39 @@ class DataElement(object):
     def GetTimeSteps(self):
         return self.timeSteps
 
-    def GetData(self, timeStep):
+    def GetPossibleDataUnits(self):
+        return self._unitConverter.GetPossibleDataUnits(self)
+
+    def GetDataISUnits(self):
+        return self._unitConverter.GetDataISUnits(self)
+
+    def GetDataInISUnits(self, timeStep):
+        return self._unitConverter.GetDataInISUnits(self, timeStep)
+
+    def GetDataInUnits(self, units, timeStep):
+        return self._unitConverter.GetDataInUnits(self, units, timeStep)
+
+    def GetAxisInUnits(self, axis, units, timeStep):
+        return self._unitConverter.GetAxisInUnits(axis, self, units, timeStep)
+
+    def GetAxisInISUnits(self, axis, timeStep):
+        return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
+
+    def GetDataInOriginalUnits(self, timeStep):
         raise NotImplementedError
         
-    def GetDataUnits(self):
+    def GetDataOriginalUnits(self):
         raise NotImplementedError
 
-    def GetTime(self, timeStep):
+    def GetTimeInUnits(self, units, timeStep):
+        return self._unitConverter.GetTimeInUnits(self, units, timeStep)
+
+    def GetTimeInOriginalUnits(self, timeStep):
         raise NotImplementedError
-        
-    def GetTimeUnits(self):
+    
+    def GetPossibleTimeUnits(self):
+        return self._unitConverter.GetPossibleTimeUnits(self)
+
+    def GetTimeOriginalUnits(self):
         raise NotImplementedError
 

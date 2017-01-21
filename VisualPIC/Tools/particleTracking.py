@@ -17,10 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
+
 import numpy as np
-import math
-import h5py
+from h5py import File as H5File
 
 from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet
@@ -77,16 +76,16 @@ class Particle():
         return self._particleIndices[np.where(self._trackedTimeSteps == timeStep)[0][0]]
 
     def WriteDataToFile(self, location, fileName):
-        h5file = h5py.File(location + "/" + fileName + ".h5", "w")
+        h5file = H5File(location + "/" + fileName + ".h5", "w")
         for key in self._wholeSimulationQuantities:
             dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key]["values"])
             dataSet.attrs["Units"] = self._wholeSimulationQuantities[key]["units"]
         h5file.close()
 
+
 class ParticleTracker():
-    def __init__(self, dataContainer, unitConverter):
+    def __init__(self, dataContainer):
         self._dataContainer = dataContainer
-        self.unitConverter = unitConverter
         self._speciesList = self._dataContainer.GetSpeciesWithTrackingData()
         self._speciesToAnalyze = None
         self._particleList = list()
@@ -140,19 +139,15 @@ class ParticleTracker():
             if species.GetName() == speciesName:
                 self._speciesToAnalyze = species
         indicesList = list()
-        if sys.version_info[0] < 3:
-            for rawDataSetName, range in filters.iteritems():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
-        else:
-            for rawDataSetName, range in filters.items():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        for rawDataSetName, range in filters.items():
+            indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
         particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
         return particles
     
     def _GetIndicesOfParticlesInRange(self, timeStep, species, rawDataSetName, range):
         dataSet = species.GetRawDataSet(rawDataSetName)
-        data = dataSet.GetData(timeStep)
+        data = dataSet.GetDataInOriginalUnits(timeStep)
         iLowRange = np.where(data > range[0])
         iHighRange = np.where(data < range[1])
         iRange = np.intersect1d(iLowRange, iHighRange)
@@ -170,16 +165,12 @@ class ParticleTracker():
         particleTags = species.GetRawDataTags(timeStep)
         dataSetValues = {}
         for dataSet in rawDataSets:
-            dataSetValues[dataSet.GetName()] = dataSet.GetData(timeStep) # particle data in selected time step
+            dataSetValues[dataSet.GetName()] = dataSet.GetDataInOriginalUnits(timeStep) # particle data in selected time step
         particlesList = list()
         for index in indices:
             particle = Particle(particleTags[index]) # create particle instance with corresponding tag
-            if sys.version_info[0] < 3:
-                for dataSetName, values in dataSetValues.iteritems():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
-            else:
-                for dataSetName, values in dataSetValues.items():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
+            for dataSetName, values in dataSetValues.items():
+                particle.AddTimeStepQuantity(dataSetName, values[index])
             particlesList.append(particle)
         return particlesList
 
@@ -255,20 +246,20 @@ class ParticleTracker():
         for timeStep in allSimulatedTimeSteps:
             if timeStep <= max(timeStepsWithParticleData) and (timeStep in timeStepsWithParticleData):
                 print(timeStep)
-                data = dataSet.GetData(timeStep)
+                data = dataSet.GetDataInOriginalUnits(timeStep)
                 p = 0
                 for particle in self._particleList:
                     if timeStep in particle.GetTrackedTimeSteps():
                         step = counter[p]
                         quantityValues[p][step] = data[particle.GetIndex(timeStep)]
                         if not self.timeInfoAdded:
-                            timeValues[p][step] = dataSet.GetTime(timeStep)
+                            timeValues[p][step] = dataSet.GetTimeInOriginalUnits(timeStep)
                         counter[p] += 1
                     p += 1
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataUnits())
+            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeUnits())
+                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits())
         self.timeInfoAdded = True
 
     def MakeInstantaneousRawDataSets(self):
@@ -295,6 +286,7 @@ class ParticleTracker():
                     dataCodeName = quantityData["codeName"]
                     timeUnits = timeData["units"]
                     n += 1 
+                # TODO: bug here with custom raw data because they dont have a codeName. Is it really necessary this parameter?
                 self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
 
     def GetTrackedParticles(self):
@@ -315,10 +307,10 @@ class ParticleTracker():
             singleParticleData = {}
             singleParticleData["plotStyle"] = "b-" # todo: find a better place for storing the plotStyles in all dataTypes (Field, Raw and RawEvolution)
             singleParticleData["particle"] = particle
-            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)#, self.unitConverter)
-            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)#, self.unitConverter)
+            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)
+            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)
             if zDataName != None:
-                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)#, self.unitConverter)
+                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)
             allParticlesData.append(singleParticleData)
         return allParticlesData
 

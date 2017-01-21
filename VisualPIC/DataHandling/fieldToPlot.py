@@ -16,26 +16,27 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
-import numpy as np
+
+
 import copy
 
+
 class FieldToPlot:
-    def __init__(self, field, dataToPlotDimension, unitConverter, colorMapsCollection, isPartOfMultiplot = False):
+    def __init__(self, field, dataToPlotDimension, colorMapsCollection, isPartOfMultiplot = False):
         self.__field = field
         self.__dataToPlotDimension = dataToPlotDimension # dimension of the data we want to plot
         self.__fieldDimension = field.GetFieldDimension() # original dimension of the field, as simulated
-        self.__unitConverter = unitConverter
         self.__colorMapsCollection = colorMapsCollection
         self.__isPartOfMultiplot = isPartOfMultiplot
         self.__fieldProperties = {
             "name":field.GetName(), 
             "speciesName":field.GetSpeciesName(),
             "timeSteps":field.GetTimeSteps(), 
-            "fieldUnits":copy.copy(field.GetDataUnits()), 
-            "originalFieldUnits":field.GetDataUnits(),
+            "fieldUnits":copy.copy(field.GetDataOriginalUnits()), 
+            "originalFieldUnits":field.GetDataOriginalUnits(),
             "possibleFieldUnits":self.__GetPossibleFieldUnits(),
-            "axesUnits":copy.copy(field.GetAxisUnits()), #dictionary
-            "originalAxesUnits":field.GetAxisUnits(), 
+            "axesUnits":copy.copy(field.GetAxisOriginalUnits()), #dictionary
+            "originalAxesUnits":field.GetAxisOriginalUnits(), 
             "possibleAxisUnits":self.__GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
@@ -52,10 +53,10 @@ class FieldToPlot:
         self.__SetDefaultPlotType()
                
     def __GetPossibleFieldUnits(self):
-        return self.__unitConverter.GetPossibleDataUnits(self.__field)
+        return self.__field.GetPossibleDataUnits() 
                 
     def __GetPossibleAxisUnits(self):
-        return self.__unitConverter.GetPossibleAxisUnits(self.__field)
+        return self.__field.GetPossibleAxisUnits()
             
     def __GetPossibleColorMaps(self):
         if self.__isPartOfMultiplot:
@@ -74,7 +75,7 @@ class FieldToPlot:
         if self.__isPartOfMultiplot:
             colorMap = "Base gray"
         else:
-            fieldISUnits = self.__unitConverter.GetDataISUnits(self.__field)
+            fieldISUnits = self.__field.GetDataISUnits()
             if fieldISUnits== "V/m" or fieldISUnits== "T":
                 colorMap = "RdBu"
             elif fieldISUnits== "C/m^2":
@@ -103,10 +104,10 @@ class FieldToPlot:
        
     def __GetAllData(self, timeStep):
         #returns fieldData, extent
-        return self.__unitConverter.GetDataInUnits(self.__field, self.GetProperty("fieldUnits"), timeStep)
+        return self.__field.GetDataInUnits(self.GetProperty("fieldUnits"), timeStep)
 
     def __GetAxisData(self, axis, timeStep):
-        return self.__unitConverter.GetAxisInUnits( axis, self.__field, self.GetProperty("axesUnits")[axis], timeStep)
+        return self.__field.GetAxisInUnits( axis, self.GetProperty("axesUnits")[axis], timeStep)
             
     def __Get1DSlice(self, slicePosition, timeStep):
         # slice along the longitudinal axis
