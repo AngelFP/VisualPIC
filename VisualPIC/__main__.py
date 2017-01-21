@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # Splash screen (loading heavy imports)
     screenGeometry = app.desktop().screenGeometry()
-    splashPic = QPixmap("../Logo/logo_horizontal.png")
+    splashPic = QPixmap("Icons/logo_horizontal.png")
     splashWidth = 550
     splashHeight = 150
     splashLabel = QLabel()
