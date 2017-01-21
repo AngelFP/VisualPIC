@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-from VisualPIC.DataReading.dataReader import DataReader
+
 from VisualPIC.DataHandling.dataElement import DataElement
 from VisualPIC.DataReading.dataReaderSelectors import *
 

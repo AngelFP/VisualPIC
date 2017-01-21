@@ -17,10 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import gc
+
 import os
 import sys
-
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
@@ -405,25 +404,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         timeStep = self.timeStep_Slider.value()
         self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, timeStep)
         self.canvas.draw()
-        
-    #def PlotDomainField(self):#, fieldName, timeStep):
-    #    fieldName = self.dataContainer.GetSelectedDomainFieldName();
-    #    timeStep = self.timeStep_Slider.value()
-    #    for field in self.dataContainer.GetAvailableDomainFields():
-    #        if field.GetName() == fieldName:
-    #            plotData = field.GetPlotData(timeStep)
-    #            self.AddPlot(self.dataPlotter.GetSimplePlot(plotData))
-            
-    #def AddPlot(self, figure):
-    #    if self.plotWidget_layout.count() == 0:
-    #        self.figure = figure
-    #        self.canvas = FigureCanvas(self.figure)
-    #        self.plotWidget_layout.addWidget(self.canvas)
-    #        self.canvas.draw()
-    #    else:
-    #        self.dataPlotter.UpdateFigure(self.figure)
-    #        self.canvas.draw()
-    #        gc.collect()
             
     def RemoveSubplot(self, item):
         index = self.subplotList.index(item.subplot)

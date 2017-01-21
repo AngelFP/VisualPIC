@@ -35,7 +35,7 @@ parentdir = os.path.dirname(currentdir)
 os.sys.path.insert(0,parentdir) 
 
 
-# Needed to change taskbar icon
+# Needed to change taskbar icon on Windows
 if platform.system() == 'Windows':
     myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)

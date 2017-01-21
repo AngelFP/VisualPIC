@@ -17,8 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import os
-import h5py
+from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataHandling.species import Species
@@ -134,7 +135,7 @@ class FolderDataReader:
                         dataSetLocation = subDir + "/" + species
                         timeSteps = self.GetTimeStepsInOsirisLocation(dataSetLocation)
                         file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
-                        file_content = h5py.File(file_path, 'r')
+                        file_content = H5File(file_path, 'r')
                         for dataSetName in list(file_content):
                             if dataSetName == "tag":
                                 self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))

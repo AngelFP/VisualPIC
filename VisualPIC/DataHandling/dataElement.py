@@ -17,7 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from VisualPIC.DataReading.dataReader import DataReader
+
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""

@@ -19,8 +19,7 @@
 
 
 import abc
-import sys
-import h5py
+from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
@@ -115,16 +114,10 @@ class OsirisFieldReader(FieldReaderBase):
 
     def OpenFileAndReadUnits(self):
         file_content = self.OpenFile(self.firstTimeStep)
-        if sys.version_info[0] < 3:
-            self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])
-            self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])
-            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])
-        else:
-            self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-            self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-            self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-            self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
+        self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
     def OpenFile(self, timeStep):
@@ -134,7 +127,7 @@ class OsirisFieldReader(FieldReaderBase):
         fileName += str(timeStep).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
-        file_content = h5py.File(file_path, 'r')
+        file_content = H5File(file_path, 'r')
         return file_content
 
 

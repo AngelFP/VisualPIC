@@ -20,6 +20,7 @@
 from VisualPIC.DataReading.rawDataReaders import *
 from VisualPIC.DataReading.fieldReaders import *
 
+
 class RawDataReaderSelector:
     dataReaders = {"Osiris": OsirisRawDataReader,
                    "HiPACE": HiPACERawDataReader,

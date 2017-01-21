@@ -16,8 +16,10 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
-import numpy as np
+
+
 import copy
+
 
 class FieldToPlot:
     def __init__(self, field, dataToPlotDimension, colorMapsCollection, isPartOfMultiplot = False):

@@ -17,10 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
+
 import numpy as np
-import math
-import h5py
+from h5py import File as H5File
 
 from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet
@@ -77,11 +76,12 @@ class Particle():
         return self._particleIndices[np.where(self._trackedTimeSteps == timeStep)[0][0]]
 
     def WriteDataToFile(self, location, fileName):
-        h5file = h5py.File(location + "/" + fileName + ".h5", "w")
+        h5file = H5File(location + "/" + fileName + ".h5", "w")
         for key in self._wholeSimulationQuantities:
             dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key]["values"])
             dataSet.attrs["Units"] = self._wholeSimulationQuantities[key]["units"]
         h5file.close()
+
 
 class ParticleTracker():
     def __init__(self, dataContainer):
@@ -139,12 +139,8 @@ class ParticleTracker():
             if species.GetName() == speciesName:
                 self._speciesToAnalyze = species
         indicesList = list()
-        if sys.version_info[0] < 3:
-            for rawDataSetName, range in filters.iteritems():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
-        else:
-            for rawDataSetName, range in filters.items():
-                indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
+        for rawDataSetName, range in filters.items():
+            indicesList.append(self._GetIndicesOfParticlesInRange(timeStep, self._speciesToAnalyze, rawDataSetName, range))
         indicesOfFoundParticles = self._GetCommonElementsInListOfArrays(indicesList)
         particles = self._GetParticlesFromIndices(timeStep, self._speciesToAnalyze, indicesOfFoundParticles)
         return particles
@@ -173,12 +169,8 @@ class ParticleTracker():
         particlesList = list()
         for index in indices:
             particle = Particle(particleTags[index]) # create particle instance with corresponding tag
-            if sys.version_info[0] < 3:
-                for dataSetName, values in dataSetValues.iteritems():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
-            else:
-                for dataSetName, values in dataSetValues.items():
-                    particle.AddTimeStepQuantity(dataSetName, values[index])
+            for dataSetName, values in dataSetValues.items():
+                particle.AddTimeStepQuantity(dataSetName, values[index])
             particlesList.append(particle)
         return particlesList
 

@@ -17,10 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import gc
+
 import os
 import sys
-
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import *
@@ -30,7 +29,6 @@ from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
-
 
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
@@ -48,7 +46,6 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'ParticleTracker.ui' )
-
 Ui_ParticleTrackerWindow, QParticleTrackerWindow = loadUiType(guipath)
 
 	
@@ -489,19 +486,12 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             sbpList.append(self.selectorSubplot) # we need to create a list of only one subplot because the DataPlotter only accepts lists.
             self.dataPlotter.MakePlot(self.selectorFigure, sbpList, 1, 1, self.selectorTimeStep_Slider.value())
             ax = self.selectorFigure.axes[0]
-            if sys.version_info[0] < 3:
-                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                               drawtype='box', useblit=True,
-                                               button=[1, 3],  # don't use middle button
-                                               minspanx=5, minspany=5,
-                                               spancoords='pixels')
-            else:
-                self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
-                                               drawtype='box', useblit=True,
-                                               button=[1, 3],  # don't use middle button
-                                               minspanx=5, minspany=5,
-                                               spancoords='pixels',
-                                               interactive = True)
+            self.toggle_selector = RectangleSelector(ax, self.line_select_callback,
+                                                     drawtype='box', useblit=True,
+                                                     button=[1, 3],  # don't use middle button
+                                                     minspanx=5, minspany=5,
+                                                     spancoords='pixels',
+                                                     interactive = True)
             self.toggle_selector.set_active(False)
             self.selectorFigure.tight_layout()
             self.selectorCanvas.draw()

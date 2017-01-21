@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 class RawDataSetToPlot:
     def __init__(self, dataSet):
         self._dataSet = dataSet

@@ -21,18 +21,12 @@ import sys
 import os
 
 from PyQt5.uic import loadUiType
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QApplication
 
 from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
 from VisualPIC.DataHandling.subplot import *
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
 
 if getattr(sys, 'frozen', False):
     # we are running in a bundle
@@ -41,8 +35,8 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'EditPlotFieldWindow.ui' )
-
 Ui_EditPlotFieldWindow, QEditPlotFieldWindow = loadUiType(guipath)
+
 
 class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def __init__(self, subplot, parent=None):
@@ -305,26 +299,17 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     # Axes Tab
     def SetXAxisUnits(self):
         if not self.updatingUiData:
-            if sys.version_info[0] < 3:
-                units = unicode(self.xUnits_comboBox.currentText())
-            else:
-                units = self.xUnits_comboBox.currentText()
+            units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
-            if sys.version_info[0] < 3:
-                units = unicode(self.yUnits_comboBox.currentText())
-            else:
-                units = self.yUnits_comboBox.currentText()
+            units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
 
     def SetZAxisUnits(self):
         if not self.updatingUiData:
-            if sys.version_info[0] < 3:
-                units = unicode(self.zUnits_comboBox.currentText())
-            else:
-                units = self.yUnits_comboBox.currentText()
+            units = self.yUnits_comboBox.currentText()
             self.axisProperties["z"]["Units"] = units
 
     def XAutoLabelCheckBox_statusChanged(self):
@@ -561,12 +546,12 @@ class EditFieldPlotWindow(EditPlotWindow):
         self.Fill1DSlicesData()
 
     def FillListView(self):
-        model = QtGui.QStandardItemModel()
+        model = QStandardItemModel()
         for field in self.subplot.GetDataToPlot():
             listLabel = field.GetProperty("name")
             if field.GetProperty("speciesName") != '':
                 listLabel += " / " + field.GetProperty("speciesName")
-            item = QtGui.QStandardItem(listLabel)
+            item = QStandardItem(listLabel)
             model.appendRow(item)
         self.field_listView.setModel(model)
 
@@ -581,20 +566,14 @@ class EditFieldPlotWindow(EditPlotWindow):
     def SetXAxisUnits(self):
         if not self.updatingUiData:
             super(EditFieldPlotWindow, self).SetXAxisUnits()
-            if sys.version_info[0] < 3:
-                units = unicode(self.xUnits_comboBox.currentText())
-            else:
-                units = self.xUnits_comboBox.currentText()
+            units = self.xUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["x"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
             super(EditFieldPlotWindow, self).SetYAxisUnits()
-            if sys.version_info[0] < 3:
-                units = unicode(self.yUnits_comboBox.currentText())
-            else:
-                units = self.yUnits_comboBox.currentText()
+            units = self.yUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["y"] = units
 
