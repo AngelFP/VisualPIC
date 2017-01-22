@@ -36,7 +36,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False,
-          icon='C:\\Users\\Angel\\Source\\Repos\\VisualPIC\\VisualPIC\\Icons\\WindowsIcon.ico' )
+          icon='..\\..\\VisualPIC\\Icons\\WindowsIcon.ico' )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
