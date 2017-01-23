@@ -23,8 +23,13 @@ from VisualPIC.DataReading.dataReader import DataReader
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, unitConverter, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
-        self._unitConverter = unitConverter
+    _unitConverter = None
+
+    @classmethod
+    def SetUnitConverter(cls, unitConverter):
+        cls._unitConverter = unitConverter
+
+    def __init__(self, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
         self.dataStandardName = standardName
         self.speciesName = speciesName
         self.timeSteps = timeSteps # array of integers

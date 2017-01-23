@@ -40,7 +40,6 @@ class CustomDataElement(DataElement):
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.dataContainer = dataContainer
-        self._unitConverter = dataContainer.unitConverter
         self.dataStandardName = self.standardName
         self.speciesName = speciesName
         self.hasNonISUnits = not self.ISUnits

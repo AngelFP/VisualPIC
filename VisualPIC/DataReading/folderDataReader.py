@@ -81,14 +81,14 @@ class FolderDataReader:
     """
     Main data loader. It will automatically call the specific loader for a particular simulation code
     """
-    def LoadData(self, simulationCode, unitConverter):
-        self._loadDataFrom[simulationCode](unitConverter)
+    def LoadData(self, simulationCode):
+        self._loadDataFrom[simulationCode]()
 
     """
     Specific data loaders
     """
     # OSIRIS
-    def LoadOsirisData(self,unitConverter):
+    def LoadOsirisData(self):
         """Osiris Loader"""
         keyFolderNames = ["DENSITY", "FLD", "PHA", "RAW" ]
         mainFolders = os.listdir(self._dataLocation)
@@ -105,7 +105,7 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                                self.AddFieldToSpecies(species, FolderField("Osiris", unitConverter, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
+                                self.AddFieldToSpecies(species, FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -113,7 +113,7 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                        self.AddDomainField(FolderField("Osiris", unitConverter, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
+                        self.AddDomainField(FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -140,7 +140,7 @@ class FolderDataReader:
                             if dataSetName == "tag":
                                 self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))
                             else:
-                                self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", unitConverter, dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
+                                self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
                         file_content.close()
 
     def GetTimeStepsInOsirisLocation(self, location):
@@ -195,7 +195,7 @@ class FolderDataReader:
             return osirisName
 
     # HiPACE
-    def LoadHiPaceData(self, unitConverter):
+    def LoadHiPaceData(self):
         """HiPACE loader"""
         raise NotImplementedError
         """

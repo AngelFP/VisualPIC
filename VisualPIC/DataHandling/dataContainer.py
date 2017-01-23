@@ -20,6 +20,7 @@
 
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
 from VisualPIC.DataHandling.customDataElements import CustomFieldCreator, CustomRawDataSetCreator
+from VisualPIC.DataHandling.dataElement import DataElement
 import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
@@ -39,7 +40,7 @@ class DataContainer:
         self._selectedDomainField = None
     
     def LoadData(self):
-        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"], self.unitConverter)
+        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
         self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
         for species in self._availableSpecies:
             speciesName = species.GetName()
@@ -57,6 +58,7 @@ class DataContainer:
         # If there is no unitConverter or the simulation code has changed, create a new unitConverter.
         if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
             self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(parameters)
+            DataElement.SetUnitConverter(self.unitConverter)
         # otherwise, update the current one.
         else:
             self.unitConverter.SetSimulationParameters(parameters)
