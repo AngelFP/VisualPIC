@@ -36,8 +36,8 @@ class Particle():
     def AddTimeStepQuantity(self, quantityName, quantityValue):
         self._timeStepQuantities[quantityName] = quantityValue
 
-    def AddWholeSimulationQuantity(self, quantityName, quantityCodeName, quantityValues, quantityUnits):
-        self._wholeSimulationQuantities[quantityName] = {"codeName":quantityCodeName, "values":quantityValues, "units":quantityUnits}
+    def AddWholeSimulationQuantity(self, quantityName, quantityValues, quantityUnits):
+        self._wholeSimulationQuantities[quantityName] = {"values":quantityValues, "units":quantityUnits}
 
     def GetNamesOfWholeSimulationQuantities(self):
         quantitiesList = list()
@@ -257,9 +257,9 @@ class ParticleTracker():
                         counter[p] += 1
                     p += 1
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), dataSet.GetNameInCode(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
+            particle.AddWholeSimulationQuantity(dataSet.GetName(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", "", timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits())
+                particle.AddWholeSimulationQuantity("Time", timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits())
         self.timeInfoAdded = True
 
     def MakeInstantaneousRawDataSets(self):
@@ -283,11 +283,9 @@ class ParticleTracker():
                     timeData = particle.GetWholeSimulationQuantity("Time")
                     timeValues = np.unique(np.concatenate((timeValues,timeData["values"]),0))
                     dataUnits = quantityData["units"]
-                    dataCodeName = quantityData["codeName"]
                     timeUnits = timeData["units"]
                     n += 1 
-                # TODO: bug here with custom raw data because they dont have a codeName. Is it really necessary this parameter?
-                self._instantRawDataSetsList.append(SelfContainedRawDataSet(dataCodeName, quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
+                self._instantRawDataSetsList.append(SelfContainedRawDataSet(quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
 
     def GetTrackedParticles(self):
         return self._particleList

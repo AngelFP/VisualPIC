@@ -129,13 +129,33 @@ class GeneralUnitConverter(object):
             axisDataInISUnits = self.GetAxisInISUnits(axis, dataElement, timeStep)
             if units == "μm":
                 return axisDataInISUnits * 1e6
+
+    def GetDataISUnits(self, dataElement):
+        """ Returns the IS units of the data (only the units, not the data!).
+            The purpose of this is to identify"""
+        if not dataElement.hasNonISUnits:
+            return dataElement.GetDataOriginalUnits()    
+        else:
+            dataElementName = dataElement.GetName()
+            if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
+                return "V/m"
+            elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
+                return "T"
+            elif dataElementName == "Charge density":
+                return "C/m^2"
+            elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+                return "m"
+            elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+                return "kg*m/s"
+            elif dataElementName == "Energy":
+                return "J"
+            elif dataElementName == "Charge":
+                return "C"
+
     """
     To implement by children classes
     """
     def SetNormalizationFactor(self, value):
-        raise NotImplementedError
-
-    def GetDataISUnits(self, dataElement):
         raise NotImplementedError
 
     def GetDataInISUnits(self, dataElement, timeStep):
@@ -161,48 +181,26 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def SetSimulationParameters(self, params):
         super().SetSimulationParameters(params)
         self._SetNormalizationFactor(params["n_p"])
-    
-    def GetDataISUnits(self, dataElement):
-        """ Returns the IS units of the data (only the units, not the data!).
-            The purpose of this is to identify"""
-        if not dataElement.hasNonISUnits:
-            return dataElement.GetDataOriginalUnits()    
-        else:
-            dataElementName = dataElement.GetNameInCode()
-            if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
-                return "V/m"
-            elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
-                return "T"
-            elif "charge" in dataElementName:
-                return "C/m^2"
-            elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
-                return "m"
-            elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
-                return "kg*m/s"
-            elif "ene" == dataElementName:
-                return "J"
-            elif "q" == dataElementName:
-                return "C"
                 
     def GetDataInISUnits(self, dataElement, timeStep):
         if not dataElement.hasNonISUnits:
             return dataElement.GetDataInOriginalUnits(timeStep)
         else:
-            dataElementName = dataElement.GetNameInCode()
+            dataElementName = dataElement.GetName()
             data = dataElement.GetDataInOriginalUnits(timeStep)
-            if "e1" in dataElementName or "e2" in dataElementName or "e3" in dataElementName:
+            if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
                 return data*self.E0 # V/m
-            elif "b1" in dataElementName or "b2" in dataElementName or "b3" in dataElementName:
+            elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
                 return data*self.E0/self.c # T
-            elif "charge" in dataElementName:
+            elif dataElementName == "Charge density":
                 return data * self.e * (self.w_p / self.c)**2 # C/m^2
-            elif "x1" == dataElementName or "x2" == dataElementName or "x3" == dataElementName:
+            elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
                 return data*self.s_d # m
-            elif "p1" == dataElementName or "p2" == dataElementName or "p3" == dataElementName:
+            elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
                 return data*self.m_e*self.c # kg*m/s
-            elif "ene" == dataElementName:
+            elif dataElementName == "Energy":
                 return data*self.m_e*self.c**2 # J
-            elif "q" == dataElementName:
+            elif dataElementName == "Charge":
                 return data*self.e # C
 
     def GetTimeInISUnits(self, dataElement, timeStep):
