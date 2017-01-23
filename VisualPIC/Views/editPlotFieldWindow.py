@@ -39,9 +39,10 @@ Ui_EditPlotFieldWindow, QEditPlotFieldWindow = loadUiType(guipath)
 
 
 class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
-    def __init__(self, subplot, parent=None):
+    def __init__(self, subplot, plotterMethod, parent=None):
         super(EditPlotWindow, self).__init__()
         self.setupUi(self)
+        self.plotterMethod = plotterMethod
         self.mainWindow = parent
         self.subplot = subplot
         self.selectedFieldIndex = 0
@@ -240,7 +241,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     # Window
     def ApplyButton_Clicked(self):
         self.SaveChanges()
-        self.mainWindow.MakePlots()
+        self.plotterMethod()
 
     def AcceptButton_Clicked(self):
         self.SaveChanges()
@@ -523,8 +524,8 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
 
 class EditFieldPlotWindow(EditPlotWindow):
-    def __init__(self, subplot, parent = None):
-        super(EditFieldPlotWindow, self).__init__(subplot, parent)  
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditFieldPlotWindow, self).__init__(subplot, plotterMethod, parent)  
         self.GetFieldsInfo()
         self.FillInitialUI()
 
@@ -586,8 +587,8 @@ class EditFieldPlotWindow(EditPlotWindow):
 
 
 class EditRawPlotWindow(EditPlotWindow):
-    def __init__(self, subplot, parent = None):
-        super(EditRawPlotWindow, self).__init__(subplot, parent)
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditRawPlotWindow, self).__init__(subplot, plotterMethod, parent)
         self.GetPlotProperties()
         self.FillInitialUI()
 
@@ -604,7 +605,6 @@ class EditRawPlotWindow(EditPlotWindow):
         self.FillAxesData()
         self.FillColorbarData()
         self.FillTitleData()
-        self.Fill1DSlicesData()
 
     def FillPlotSettingsData(self):
         self.updatingUiData = True
@@ -684,5 +684,5 @@ class EditPlotWindowSelector:
                    "Raw": EditRawPlotWindow
                    }
     @classmethod
-    def GetEditPlotWindow(cls, subplot, mainWindow):
-        return cls.editWindows[subplot.GetDataType()](subplot, mainWindow)
+    def GetEditPlotWindow(cls, subplot, plotterMethod, mainWindow):
+        return cls.editWindows[subplot.GetDataType()](subplot, plotterMethod, mainWindow)

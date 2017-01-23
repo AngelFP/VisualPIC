@@ -28,11 +28,12 @@ except AttributeError:
 
 
 class SubplotItem(QtWidgets.QWidget):
-    def __init__(self, subplot, parent=None):
+    def __init__(self, subplot, plotterMethod, parent=None):
         super(SubplotItem, self).__init__(parent)
         self.subplot = subplot
         
         self.mainWindow = parent
+        self.plotterMethod = plotterMethod
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_5.setObjectName(_fromUtf8("verticalLayout_5"))
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -78,7 +79,7 @@ class SubplotItem(QtWidgets.QWidget):
         self.deleteButton.clicked.connect(self.deleteButton_Clicked)
         
     def editButton_Clicked(self):
-        self.EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.mainWindow)
+        self.EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.plotterMethod, self.mainWindow)
         self.EditWindow.show()
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.EditWindow.width()) / 2;
