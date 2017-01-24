@@ -176,12 +176,30 @@ class TransverseWakefieldSlope(CustomField):
         return slope
 
 
+class BxSlope(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D":["Bx"],
+                     "3D":["Bx"]}
+    necessaryParameters = []
+    units = "T/m"
+    ISUnits = True
+    standardName = "Bx Slope"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        Bx = self.data["Bx"].GetDataInISUnits( timeStep)
+        y = self.data["Bx"].GetAxisInISUnits("y", timeStep)
+        dy = abs(y[1]-y[0]) # distance between data points in y direction
+        slope = np.gradient(Bx, dy, axis=0)
+        return slope
+
+
 class CustomFieldCreator:
     customFields = [
         TransverseWakefield,
         TransverseWakefieldSlope,
         LaserIntensityField,
-        NormalizedVectorPotential
+        NormalizedVectorPotential,
+        BxSlope
         ]
     @classmethod
     def GetCustomFields(cls, dataContainer):
