@@ -51,11 +51,13 @@ class GeneralUnitConverter(object):
         elif dataISUnits == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
         elif dataISUnits == "m":
-            return ["m", "μm"]
+            return ["m", "mm", "μm"]
         elif dataISUnits == "kg*m/s":
             return ["kg*m/s", "MeV/c"]
         elif dataISUnits == "J":
             return ["J", "MeV"]
+        elif dataISUnits == "rad":
+            return ["rad", "mrad"]
         else:
             return list()
 
@@ -80,7 +82,7 @@ class GeneralUnitConverter(object):
         return allUnits
 
     def _GetAllOtherAxisUnitsOptions(self):
-        return ["m", "μm"]
+        return ["m", "mm", "μm"]
 
     def GetDataInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
@@ -102,12 +104,17 @@ class GeneralUnitConverter(object):
             elif dataISUnits == "m":
                 if units == "μm":
                     return dataInISUnits * 1e6
+                elif units == "mm":
+                    return dataInISUnits * 1e3
             elif dataISUnits == "kg*m/s":
                 if units == "MeV/c":
                     return dataInISUnits / self.e * 1e-6
             elif dataISUnits == "J":
                 if units == "MeV":
                     return dataInISUnits / self.e * 1e-6
+            elif dataISUnits == "rad":
+                if units == "mrad":
+                    return dataInISUnits * 1e3
                 
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
@@ -129,6 +136,8 @@ class GeneralUnitConverter(object):
             axisDataInISUnits = self.GetAxisInISUnits(axis, dataElement, timeStep)
             if units == "μm":
                 return axisDataInISUnits * 1e6
+            elif units == "mm":
+                return axisDataInISUnits * 1e3
 
     def GetDataISUnits(self, dataElement):
         """ Returns the IS units of the data (only the units, not the data!).
