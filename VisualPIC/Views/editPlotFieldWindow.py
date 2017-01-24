@@ -310,7 +310,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def SetZAxisUnits(self):
         if not self.updatingUiData:
-            units = self.yUnits_comboBox.currentText()
+            units = self.zUnits_comboBox.currentText()
             self.axisProperties["z"]["Units"] = units
 
     def XAutoLabelCheckBox_statusChanged(self):
