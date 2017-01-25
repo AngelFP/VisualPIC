@@ -108,7 +108,7 @@ class GeneralUnitConverter(object):
                     return dataInISUnits * 1e3
             elif dataISUnits == "kg*m/s":
                 if units == "MeV/c":
-                    return dataInISUnits / self.e * 1e-6
+                    return dataInISUnits / self.e * self.c * 1e-6
             elif dataISUnits == "J":
                 if units == "MeV":
                     return dataInISUnits / self.e * 1e-6
