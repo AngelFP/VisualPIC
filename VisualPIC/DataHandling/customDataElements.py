@@ -256,11 +256,43 @@ class yPrimeDataSet(CustomRawDataSet):
         yP = np.divide(Py, Pz)
         return yP
 
+class deltaZPrimeDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["z"],
+                     "3D":["z"]}
+    necessaryParameters = []
+    units = "m"
+    ISUnits = True
+    standardName = "Δz"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        z = self.data["z"].GetDataInISUnits( timeStep)
+        meanZ = np.average(z)
+        dZ = z-meanZ
+        return dZ
+
+class forwardMomentumVariationDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["Pz"],
+                     "3D":["Pz"]}
+    necessaryParameters = []
+    units = "rad"
+    ISUnits = True
+    standardName = "ΔPz/Pz"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        Pz = self.data["Pz"].GetDataInISUnits( timeStep)
+        meanPz = np.average(Pz)
+        dPz = np.divide(Pz-meanPz, meanPz)
+        return dPz
+
     
 class CustomRawDataSetCreator:
     customDataSets = [
         xPrimeDataSet,
-        yPrimeDataSet
+        yPrimeDataSet,
+        deltaZPrimeDataSet,
+        forwardMomentumVariationDataSet
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):
