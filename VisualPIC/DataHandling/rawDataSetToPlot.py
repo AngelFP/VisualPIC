@@ -27,15 +27,9 @@ class RawDataSetToPlot:
             "timeSteps":dataSet.GetTimeSteps(),
             "dataSetUnits":dataSet.GetDataOriginalUnits(), 
             "timeUnits":dataSet.GetTimeOriginalUnits(),
-            "possibleDataSetUnits":self._GetPossibleDataSetUnits(),
-            "possibleTimeUnits":self._GetPossibleTimeUnits()
+            "possibleDataSetUnits":dataSet.GetPossibleDataUnits(),
+            "possibleTimeUnits":dataSet.GetPossibleTimeUnits()
         }
-            
-    def _GetPossibleDataSetUnits(self):
-        return self._dataSet.GetPossibleDataUnits()
-
-    def _GetPossibleTimeUnits(self):
-        return self._dataSet.GetPossibleTimeUnits()
 
     def GetTime(self, timeStep):
         return self._dataSet.GetTimeInUnits(self._dataProperties["timeUnits"], timeStep)

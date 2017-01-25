@@ -34,10 +34,10 @@ class FieldToPlot:
             "timeSteps":field.GetTimeSteps(), 
             "fieldUnits":copy.copy(field.GetDataOriginalUnits()), 
             "originalFieldUnits":field.GetDataOriginalUnits(),
-            "possibleFieldUnits":self.__GetPossibleFieldUnits(),
+            "possibleFieldUnits":field.GetPossibleDataUnits(),
             "axesUnits":copy.copy(field.GetAxisOriginalUnits()), #dictionary
             "originalAxesUnits":field.GetAxisOriginalUnits(), 
-            "possibleAxisUnits":self.__GetPossibleAxisUnits(),
+            "possibleAxisUnits":field.GetPossibleAxisUnits(),
             "autoScale": True,
             "maxVal":1,
             "minVal":0,
@@ -51,12 +51,6 @@ class FieldToPlot:
     def __SetDefaultProperties(self):
         self.__SetDefaultColorMap()
         self.__SetDefaultPlotType()
-               
-    def __GetPossibleFieldUnits(self):
-        return self.__field.GetPossibleDataUnits() 
-                
-    def __GetPossibleAxisUnits(self):
-        return self.__field.GetPossibleAxisUnits()
             
     def __GetPossibleColorMaps(self):
         if self.__isPartOfMultiplot:
