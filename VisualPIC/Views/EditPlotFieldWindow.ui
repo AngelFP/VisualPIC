@@ -20,9 +20,8 @@
    <string>Edit plot</string>
   </property>
   <property name="windowIcon">
-    <iconset>
-      <normaloff>Icons/logo.png</normaloff>Icons/logo.png
-    </iconset>
+   <iconset>
+    <normaloff>Icons/logo.png</normaloff>Icons/logo.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <property name="sizeConstraint">
@@ -1071,7 +1070,7 @@
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Margin: </string>
+                <string>Axis limits:</string>
                </property>
               </widget>
              </item>
@@ -1089,6 +1088,13 @@
               </spacer>
              </item>
              <item>
+              <widget class="QCheckBox" name="xAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_50">
                <property name="text">
                 <string>Min:</string>
@@ -1096,7 +1102,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit">
+              <widget class="QLineEdit" name="xAxisMin_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1122,7 +1128,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_2">
+              <widget class="QLineEdit" name="xAxisMax_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1256,7 +1262,7 @@
              <item>
               <widget class="QLabel" name="label_52">
                <property name="text">
-                <string>Margin: </string>
+                <string>Axis limits:</string>
                </property>
               </widget>
              </item>
@@ -1274,6 +1280,13 @@
               </spacer>
              </item>
              <item>
+              <widget class="QCheckBox" name="yAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_53">
                <property name="text">
                 <string>Min:</string>
@@ -1281,7 +1294,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_3">
+              <widget class="QLineEdit" name="yAxisMin_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1307,7 +1320,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_4">
+              <widget class="QLineEdit" name="yAxisMax_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1441,7 +1454,7 @@
              <item>
               <widget class="QLabel" name="label_61">
                <property name="text">
-                <string>Margin: </string>
+                <string>Axis limits</string>
                </property>
               </widget>
              </item>
@@ -1459,6 +1472,13 @@
               </spacer>
              </item>
              <item>
+              <widget class="QCheckBox" name="zAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="label_62">
                <property name="text">
                 <string>Min:</string>
@@ -1466,7 +1486,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_5">
+              <widget class="QLineEdit" name="zAxisMin_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1492,7 +1512,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_6">
+              <widget class="QLineEdit" name="zAxisMax_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>

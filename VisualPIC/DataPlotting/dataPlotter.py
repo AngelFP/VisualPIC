@@ -74,6 +74,15 @@ class DataPlotter:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition(), projection='3d')
                 else:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition())
+                # set axis limits
+                ax.set_xlim([subplot.GetAxisProperty("x", "AxisLimits")["Min"],subplot.GetAxisProperty("x", "AxisLimits")["Max"]])
+                ax.set_autoscalex_on(subplot.GetAxisProperty("x", "AutoAxisLimits"))
+                ax.set_ylim([subplot.GetAxisProperty("y", "AxisLimits")["Min"],subplot.GetAxisProperty("y", "AxisLimits")["Max"]])
+                ax.set_autoscaley_on(subplot.GetAxisProperty("y", "AutoAxisLimits"))
+                if subplot.GetAxesDimension() == "3D":
+                    if not subplot.GetAxisProperty("z", "AutoAxisLimits"):
+                        ax.set_zlim([subplot.GetAxisProperty("z", "AxisLimits")["Min"],subplot.GetAxisProperty("z", "AxisLimits")["Max"]])
+
                 # make plot on axes
                 self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
 

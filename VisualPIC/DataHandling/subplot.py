@@ -36,6 +36,7 @@ class Subplot(object):
                           "z":{}}
         self.axisTitleProps = {}
         self.colorbarProps = {}
+        self.defaultFontSize = 10
         self._SetSubplotName()  
         self._SetPlottedSpeciesName()
         self._LoadPossiblePlotTypes()
@@ -65,7 +66,13 @@ class Subplot(object):
         self.SetTitleToDefaultValues()
         
     def LoadDefaultAxesValues(self):
-        raise NotImplementedError
+        self.SetAxisProperty("x", "DefaultLabelFontSize", self.defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", self.defaultFontSize)
+        self.SetAxisProperty("x", "DefaultAutoAxisLimits", True)
+        self.SetAxisProperty("y", "DefaultAutoAxisLimits", True)
+        self.SetAxisProperty("x", "DefaultAxisLimits", {"Min":0, "Max":1})
+        self.SetAxisProperty("y", "DefaultAxisLimits", {"Min":0, "Max":1})
+
             
     def SetAxesToDefaultValues(self):
         self.SetAxisProperty("x", "LabelText", self.GetAxisProperty("x", "DefaultLabelText"))
@@ -76,11 +83,17 @@ class Subplot(object):
         self.SetAxisProperty("y", "Units", self.GetAxisProperty("y", "DefaultUnits"))
         self.SetAxisProperty("x", "LabelFontSize", self.GetAxisProperty("x", "DefaultLabelFontSize"))
         self.SetAxisProperty("y", "LabelFontSize", self.GetAxisProperty("y", "DefaultLabelFontSize"))
+        self.SetAxisProperty("x", "AutoAxisLimits", self.GetAxisProperty("x", "DefaultAutoAxisLimits"))
+        self.SetAxisProperty("y", "AutoAxisLimits", self.GetAxisProperty("y", "DefaultAutoAxisLimits"))
+        self.SetAxisProperty("x", "AxisLimits", self.GetAxisProperty("x", "DefaultAxisLimits"))
+        self.SetAxisProperty("y", "AxisLimits", self.GetAxisProperty("y", "DefaultAxisLimits"))
         if len(self.axisProps["z"])>0:
             self.SetAxisProperty("z", "LabelText", self.GetAxisProperty("z", "DefaultLabelText"))
             self.SetAxisProperty("z", "AutoLabel", True)
             self.SetAxisProperty("z", "Units", self.GetAxisProperty("z", "DefaultUnits"))
             self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
+            self.SetAxisProperty("z", "AutoAxisLimits", self.GetAxisProperty("z", "DefaultAutoAxisLimits"))
+            self.SetAxisProperty("z", "AxisLimits", self.GetAxisProperty("z", "DefaultAxisLimits"))
             
     def LoadDefaultColorBarValues(self):
         self.colorbarProps["DefaultFontSize"] = 10
@@ -197,15 +210,13 @@ class FieldSubplot(Subplot):
             self.possiblePlotTypes = ["Image", "Surface"]
         
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 10  
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", "z")
         self.SetAxisProperty("y", "DefaultLabelText", "y")
         #self.SetAxisProperty("z", "DefaultLabelText", "x")
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["x"])
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["y"])
         #self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
 
     def _SetTimeSteps(self):
         i = 0
@@ -289,17 +300,18 @@ class RawDataSubplot(Subplot):
         self.SetPlotPropertiesToDefault()
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 10  
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot["y"].GetProperty("dataSetUnits"))
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
         if "z" in self.dataToPlot:
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot["z"].GetProperty("dataSetUnits"))
-            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("z", "DefaultLabelFontSize", self.defaultFontSize)
+            self.SetAxisProperty("z", "DefaultAutoAxisLimits", True)
+            self.SetAxisProperty("z", "DefaultAxisLimits", {"Min":0, "Max":1})
+
         
     def LoadDefaultPlotProperties(self):
         # General
@@ -430,17 +442,16 @@ class RawDataEvolutionSubplot(Subplot):
         pass
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 10
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
+        self.SetAxisProperty("x", "DefaultLabelFontSize", self.defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", self.defaultFontSize)
         if "z" in self.dataToPlot[0]:
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
-            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("z", "DefaultLabelFontSize", self.defaultFontSize)
 
     def GetAxesDimension(self):
         if "z" in self.dataToPlot[0]:

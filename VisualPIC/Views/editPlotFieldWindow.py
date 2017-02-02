@@ -114,6 +114,15 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.autoTitle_checkBox.toggled.connect(self.AutoTitleCheckBox_statusChanged)
         self.titleFontSize_spinBox.valueChanged.connect(self.TitleFontSizeSpinBox_valueChanged)
         self.autoTitle_lineEdit.textChanged.connect(self.AutoTitleLineEdit_textChanged)
+        self.xAutoAxisLimits_checkBox.toggled.connect(self.xAutoAxisLimitsCheckBox_statusChanged)
+        self.yAutoAxisLimits_checkBox.toggled.connect(self.yAutoAxisLimitsCheckBox_statusChanged)
+        self.zAutoAxisLimits_checkBox.toggled.connect(self.zAutoAxisLimitsCheckBox_statusChanged)
+        self.xAxisMin_lineEdit.textChanged.connect(self.xAxisMinLineEdit_textChanged)
+        self.yAxisMin_lineEdit.textChanged.connect(self.yAxisMinLineEdit_textChanged)
+        self.zAxisMin_lineEdit.textChanged.connect(self.zAxisMinLineEdit_textChanged)
+        self.xAxisMax_lineEdit.textChanged.connect(self.xAxisMaxLineEdit_textChanged)
+        self.yAxisMax_lineEdit.textChanged.connect(self.yAxisMaxLineEdit_textChanged)
+        self.zAxisMax_lineEdit.textChanged.connect(self.zAxisMaxLineEdit_textChanged)
         # Colorbar tab
         self.cbAutoLabel_checkBox.toggled.connect(self.CbAutoLabelCheckBox_statusChanged)
         self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
@@ -197,6 +206,12 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["LabelText"])
         self.xFontSize_spinBox.setValue(self.axisProperties["x"]["LabelFontSize"])
         self.yFontSize_spinBox.setValue(self.axisProperties["y"]["LabelFontSize"])
+        self.xAutoAxisLimits_checkBox.setChecked(self.axisProperties["x"]["AutoAxisLimits"])
+        self.yAutoAxisLimits_checkBox.setChecked(self.axisProperties["y"]["AutoAxisLimits"])
+        self.xAxisMin_lineEdit.setText(str(self.axisProperties["x"]["AxisLimits"]["Min"]))
+        self.xAxisMax_lineEdit.setText(str(self.axisProperties["x"]["AxisLimits"]["Max"]))
+        self.yAxisMin_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Min"]))
+        self.yAxisMax_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Max"]))
         if self.subplot.GetAxesDimension() == "3D":
             self.zUnits_comboBox.clear()
             self.zUnits_comboBox.addItems(unitOptions["z"])
@@ -206,6 +221,9 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.zAutoLabel_checkBox.setChecked(self.axisProperties["z"]["AutoLabel"])
             self.zAutoLabel_lineEdit.setText(self.axisProperties["z"]["LabelText"])
             self.zFontSize_spinBox.setValue(self.axisProperties["z"]["LabelFontSize"])
+            self.zAutoAxisLimits_checkBox.setChecked(self.axisProperties["z"]["AutoAxisLimits"])
+            self.zAxisMin_lineEdit.setText(str(self.axisProperties["z"]["AxisLimits"]["Min"]))
+            self.zAxisMax_lineEdit.setText(str(self.axisProperties["z"]["AxisLimits"]["Max"]))
         self.updatingUiData = False
 
     def FillColorbarData(self):
@@ -378,6 +396,67 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def AutoTitleLineEdit_textChanged(self, text):
         self.titleProperties["Text"] = text
+
+    def xAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.xAxisMin_lineEdit.setEnabled(not status)
+        self.xAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["x"]["AutoAxisLimits"] = status
+
+    def yAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.yAxisMin_lineEdit.setEnabled(not status)
+        self.yAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["y"]["AutoAxisLimits"] = status
+
+    def zAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.zAxisMin_lineEdit.setEnabled(not status)
+        self.zAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["z"]["AutoAxisLimits"] = status
+
+    def xAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["x"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+            
+    def yAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["y"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+
+    def zAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["z"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+
+    def xAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["x"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+
+    def yAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["y"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+
+    def zAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["z"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+        
 
     # Plot settings tab
     ## General
