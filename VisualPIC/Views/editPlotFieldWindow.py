@@ -24,8 +24,8 @@ from PyQt5.uic import loadUiType
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QApplication
 
-from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
-from VisualPIC.DataHandling.subplot import *
+from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
+from VisualPIC.DataPlotting.subplot import *
 
 
 if getattr(sys, 'frozen', False):

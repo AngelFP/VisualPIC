@@ -33,9 +33,9 @@ from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindo
 from VisualPIC.Views.aboutWindow import AboutWindow
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
-from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
-from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
-from VisualPIC.DataHandling.subplot import *
+from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
+from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
+from VisualPIC.DataPlotting.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.subplotItem import SubplotItem

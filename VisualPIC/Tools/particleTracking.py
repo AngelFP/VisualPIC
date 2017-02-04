@@ -21,7 +21,7 @@
 import numpy as np
 from h5py import File as H5File
 
-from VisualPIC.DataHandling.rawDataEvolutionToPlot import RawDataEvolutionToPlot
+from VisualPIC.DataPlotting.rawDataEvolutionToPlot import RawDataEvolutionToPlot
 from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet
 
 

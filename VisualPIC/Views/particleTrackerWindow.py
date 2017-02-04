@@ -31,8 +31,8 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.DataHandling.dataContainer import DataContainer
-from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
-from VisualPIC.DataHandling.subplot import *
+from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
+from VisualPIC.DataPlotting.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.subplotItem import SubplotItem
