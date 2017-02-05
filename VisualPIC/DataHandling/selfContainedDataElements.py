@@ -59,4 +59,9 @@ class SelfContainedDataElement(DataElement):
 
 class SelfContainedRawDataSet(SelfContainedDataElement):
     def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
-        SelfContainedDataElement.__init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+        return super().__init__(standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+
+
+class EvolutionData(SelfContainedDataElement):
+    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+        return super().__init__(standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
