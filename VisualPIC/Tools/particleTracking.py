@@ -22,7 +22,7 @@ import numpy as np
 from h5py import File as H5File
 
 from VisualPIC.DataPlotting.rawDataEvolutionToPlot import RawDataEvolutionToPlot
-from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet
+from VisualPIC.DataHandling.selfContainedDataElements import SelfContainedRawDataSet, EvolutionData
 
 
 class Particle():
@@ -36,8 +36,16 @@ class Particle():
     def AddTimeStepQuantity(self, quantityName, quantityValue):
         self._timeStepQuantities[quantityName] = quantityValue
 
-    def AddWholeSimulationQuantity(self, quantityName, quantityValues, quantityUnits):
-        self._wholeSimulationQuantities[quantityName] = {"values":quantityValues, "units":quantityUnits}
+    def AddWholeSimulationQuantity(self, dataSet, quantityValues):
+        #self._wholeSimulationQuantities[quantityName] = {"values":quantityValues, "units":quantityUnits}
+        quantityName = dataSet.GetName()
+        quantityUnits = dataSet.GetDataOriginalUnits()
+        timeValues = self._wholeSimulationQuantities["Time"].GetAllDataInOriginalUnits()
+        timeUnits = dataSet.GetTimeOriginalUnits()
+        self._wholeSimulationQuantities[quantityName] = EvolutionData(quantityName, quantityValues, quantityUnits, dataSet.hasNonISUnits, timeValues, timeUnits, self._trackedTimeSteps)
+
+    def AddTimeInfo(self, timeValues, timeUnits, hasNonISUnits):
+        self._wholeSimulationQuantities["Time"] = EvolutionData("Time", timeValues, timeUnits, hasNonISUnits, timeValues, timeUnits, self._trackedTimeSteps)
 
     def GetNamesOfWholeSimulationQuantities(self):
         quantitiesList = list()
@@ -257,9 +265,9 @@ class ParticleTracker():
                         counter[p] += 1
                     p += 1
         for particle in self._particleList:
-            particle.AddWholeSimulationQuantity(dataSet.GetName(), quantityValues[self._particleList.index(particle)], dataSet.GetDataOriginalUnits())
             if not self.timeInfoAdded:
-                particle.AddWholeSimulationQuantity("Time", timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits())
+                particle.AddTimeInfo(timeValues[self._particleList.index(particle)], dataSet.GetTimeOriginalUnits(), dataSet.hasNonISUnits)
+            particle.AddWholeSimulationQuantity(dataSet, quantityValues[self._particleList.index(particle)])
         self.timeInfoAdded = True
 
     def MakeInstantaneousRawDataSets(self):
@@ -268,24 +276,24 @@ class ParticleTracker():
         timeStepsWithParticleData = np.array([])
         for particle in self._particleList:
             timeStepsWithParticleData = np.unique(np.concatenate((timeStepsWithParticleData,particle.GetTrackedTimeSteps()),0))
-        for quantity in trackedQuantities:
-            if quantity != "Time":
+        for quantityName in trackedQuantities:
+            if quantityName != "Time":
                 data = np.zeros([len(timeStepsWithParticleData),len(self._particleList)])
                 data.fill(np.nan)
                 timeValues = np.array([])
                 n = 0
                 for particle in self._particleList:
-                    quantityData = particle.GetWholeSimulationQuantity(quantity)
+                    quantity = particle.GetWholeSimulationQuantity(quantityName)
                     particleTimeSteps = particle.GetTrackedTimeSteps()
                     first = np.where(timeStepsWithParticleData == particleTimeSteps.min())[0][0]
                     last = np.where(timeStepsWithParticleData == particleTimeSteps.max())[0][0]
-                    data[first:last+1,n] = quantityData["values"]
+                    data[first:last+1,n] = quantity.GetAllDataInOriginalUnits()
                     timeData = particle.GetWholeSimulationQuantity("Time")
-                    timeValues = np.unique(np.concatenate((timeValues,timeData["values"]),0))
-                    dataUnits = quantityData["units"]
-                    timeUnits = timeData["units"]
+                    timeValues = np.unique(np.concatenate((timeValues,timeData.GetAllDataInOriginalUnits()),0))
+                    dataUnits = quantity.GetDataOriginalUnits()
+                    timeUnits = timeData.GetTimeOriginalUnits()
                     n += 1 
-                self._instantRawDataSetsList.append(SelfContainedRawDataSet(quantity, data, dataUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
+                self._instantRawDataSetsList.append(SelfContainedRawDataSet(quantityName, data, dataUnits, quantity.hasNonISUnits, timeValues, timeUnits, timeStepsWithParticleData, self._speciesToAnalyze.GetName()))
 
     def GetTrackedParticles(self):
         return self._particleList
@@ -305,10 +313,10 @@ class ParticleTracker():
             singleParticleData = {}
             singleParticleData["plotStyle"] = "b-" # todo: find a better place for storing the plotStyles in all dataTypes (Field, Raw and RawEvolution)
             singleParticleData["particle"] = particle
-            singleParticleData["x"] = RawDataEvolutionToPlot(xDataName, particle)
-            singleParticleData["y"] = RawDataEvolutionToPlot(yDataName, particle)
+            singleParticleData["x"] = RawDataEvolutionToPlot(particle.GetWholeSimulationQuantity(xDataName))
+            singleParticleData["y"] = RawDataEvolutionToPlot(particle.GetWholeSimulationQuantity(yDataName))
             if zDataName != None:
-                singleParticleData["z"] = RawDataEvolutionToPlot(zDataName, particle)
+                singleParticleData["z"] = RawDataEvolutionToPlot(particle.GetWholeSimulationQuantity(zDataName))
             allParticlesData.append(singleParticleData)
         return allParticlesData
 

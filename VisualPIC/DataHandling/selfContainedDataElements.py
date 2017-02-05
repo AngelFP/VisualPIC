@@ -23,7 +23,7 @@ from VisualPIC.DataHandling.dataElement import DataElement
 
 
 class SelfContainedDataElement(DataElement):
-    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+    def __init__(self, standardName, dataValues, dataUnits, hasNonIsUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
         """Constructor.
 
         Keyword arguments:
@@ -34,7 +34,7 @@ class SelfContainedDataElement(DataElement):
         timeUnits  -- string containing the time units.
         timeSteps  -- a 1D array containing the number of each time step saved to disk during the simulation.
         """
-        DataElement.__init__(self, standardName, timeSteps, speciesName)
+        DataElement.__init__(self, standardName, timeSteps, speciesName, hasNonIsUnits)
         self.dataValues = dataValues
         self.dataUnits = dataUnits
         self.timeValues = timeValues
@@ -49,7 +49,7 @@ class SelfContainedDataElement(DataElement):
     def GetDataOriginalUnits(self):
         return self.dataUnits
 
-    def GetTimeInOriginal(self, timeStep):
+    def GetTimeInOriginalUnits(self, timeStep):
         index = np.where(self.timeSteps == timeStep)[0][0]
         return self.timeValues[index]
         
@@ -58,10 +58,19 @@ class SelfContainedDataElement(DataElement):
 
 
 class SelfContainedRawDataSet(SelfContainedDataElement):
-    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
-        return super().__init__(standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+    def __init__(self, standardName, dataValues, dataUnits, hasNonIsUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+        return super().__init__(standardName, dataValues, dataUnits, hasNonIsUnits, timeValues, timeUnits, timeSteps, speciesName)
 
 
 class EvolutionData(SelfContainedDataElement):
-    def __init__(self, standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
-        return super().__init__(standardName, dataValues, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+    def __init__(self, standardName, dataValues, dataUnits, hasNonIsUnits, timeValues, timeUnits, timeSteps, speciesName = ''):
+        return super().__init__(standardName, dataValues, hasNonIsUnits, dataUnits, timeValues, timeUnits, timeSteps, speciesName)
+
+    def GetAllDataInOriginalUnits(self):
+        return self.dataValues
+
+    def GetAllDataInUnits(self, units):
+        return self._unitConverter.GetAllDataInUnits(self, units)
+
+    def GetAllTimeInOriginalUnits(self):
+        return self.timeValues
