@@ -45,7 +45,9 @@ class GeneralUnitConverter(object):
 
     def _GetAllOtherDataUnitsOptions(self, dataISUnits):
         if dataISUnits == "V/m":
-            return ["V/m", "GV/m"]
+            return ["V/m", "GV/m", "T"]
+        if dataISUnits == "V/m^2":
+            return ["V/m^2", "GV/m^2", "T/m"]
         elif dataISUnits == "T":
             return ["T", "V/m"]
         elif dataISUnits == "C/m^2":
@@ -93,30 +95,13 @@ class GeneralUnitConverter(object):
         else:
             dataInISUnits = self.GetDataInISUnits(dataElement, timeStep)
             dataISUnits = self.GetDataISUnits(dataElement)
-            if dataISUnits == "V/m":
-                if units == "GV/m":
-                    return dataInISUnits * 1e-9
-            elif dataISUnits == "C/m^2":
-                pass
-            elif dataISUnits == "T":
-                if units == "V/m":
-                    return dataInISUnits * self.c
-            elif dataISUnits == "m":
-                if units == "μm":
-                    return dataInISUnits * 1e6
-                elif units == "mm":
-                    return dataInISUnits * 1e3
-            elif dataISUnits == "kg*m/s":
-                if units == "MeV/c":
-                    return dataInISUnits / self.e * self.c * 1e-6
-            elif dataISUnits == "J":
-                if units == "MeV":
-                    return dataInISUnits / self.e * 1e-6
-            elif dataISUnits == "rad":
-                if units == "mrad":
-                    return dataInISUnits * 1e3
+            return self._MakeConversion(units, dataISUnits, dataInISUnits)
 
     def GetAllDataInUnits(self, dataElement, units):
+        """
+        This method is meant to be used only by selfContainedDataElements in 1D which
+        display at the same time the data in all time Steps
+        """
         if dataElement.hasNonISUnits:
             if units == dataElement.GetDataOriginalUnits():
                 return dataElement.GetAllDataInOriginalUnits()
@@ -125,28 +110,38 @@ class GeneralUnitConverter(object):
         else:
             dataInISUnits = self.GetAllDataInISUnits(dataElement)
             dataISUnits = self.GetDataISUnits(dataElement)
-            if dataISUnits == "V/m":
-                if units == "GV/m":
-                    return dataInISUnits * 1e-9
-            elif dataISUnits == "C/m^2":
-                pass
-            elif dataISUnits == "T":
-                if units == "V/m":
-                    return dataInISUnits * self.c
-            elif dataISUnits == "m":
-                if units == "μm":
-                    return dataInISUnits * 1e6
-                elif units == "mm":
-                    return dataInISUnits * 1e3
-            elif dataISUnits == "kg*m/s":
-                if units == "MeV/c":
-                    return dataInISUnits / self.e * self.c * 1e-6
-            elif dataISUnits == "J":
-                if units == "MeV":
-                    return dataInISUnits / self.e * 1e-6
-            elif dataISUnits == "rad":
-                if units == "mrad":
-                    return dataInISUnits * 1e3
+            return self._MakeConversion(units, dataISUnits, dataInISUnits)
+
+    def _MakeConversion(self, units, dataISUnits, dataInISUnits):
+        if dataISUnits == "V/m":
+            if units == "GV/m":
+                return dataInISUnits * 1e-9
+            elif units == "T":
+                return dataInISUnits / self.c
+        elif dataISUnits == "V/m^2":
+            if units == "GV/m^2":
+                return dataInISUnits * 1e-9
+            elif units == "T/m":
+                return dataInISUnits / self.c
+        elif dataISUnits == "C/m^2":
+            pass
+        elif dataISUnits == "T":
+            if units == "V/m":
+                return dataInISUnits * self.c
+        elif dataISUnits == "m":
+            if units == "μm":
+                return dataInISUnits * 1e6
+            elif units == "mm":
+                return dataInISUnits * 1e3
+        elif dataISUnits == "kg*m/s":
+            if units == "MeV/c":
+                return dataInISUnits / self.e * self.c * 1e-6
+        elif dataISUnits == "J":
+            if units == "MeV":
+                return dataInISUnits / self.e * 1e-6
+        elif dataISUnits == "rad":
+            if units == "mrad":
+                return dataInISUnits * 1e3
                 
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
