@@ -90,7 +90,7 @@ class OsirisFieldReader(FieldReaderBase):
         FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
         
     def ReadInternalName(self, file_content):
-        self.internalName = "/" + list(file_content.keys())[1]
+        self.internalName = list(file_content.keys())[1]
 
     def DetermineFieldDimension(self, file_content):
         if '/AXIS/AXIS3' in file_content:
