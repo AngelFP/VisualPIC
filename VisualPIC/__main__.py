@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # Enable scaling for high DPI displays
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    #QApplication.setStyle(QStyleFactory.create('Fusion'))
+    QApplication.setStyle(QStyleFactory.create('Fusion'))
     
     app = QApplication(sys.argv)
 
