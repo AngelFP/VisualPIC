@@ -32,7 +32,7 @@ from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
 from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindow
 from VisualPIC.Views.aboutWindow import AboutWindow
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
-from VisualPIC.Views.visualizer3D import Visualizer3D
+from VisualPIC.Views.visualizer3DWindow import Visualizer3D
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
 from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
