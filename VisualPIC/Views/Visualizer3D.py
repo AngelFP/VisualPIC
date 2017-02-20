@@ -50,11 +50,37 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.RegisterUIEvents()
         self.CreateVTKRenderer()
         self.timeSteps = np.zeros(1)
+        #self.FillUIWithData()
         
     def CreateVTKRenderer(self):
-        self.frame =  QtWidgets.QFrame()
-        self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
+        #self.frame =  QtWidgets.QFrame()
+        self.vtkWidget = QVTKRenderWindowInteractor(self.plot_Widget)
         self.plotWidget_layout.addWidget(self.vtkWidget)
+        self.renderer = vtk.vtkRenderer()
+        self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
+        self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
+        #Create source
+        source = vtk.vtkSphereSource()
+        source.SetCenter(0, 0, 0)
+        source.SetRadius(5.0)
+ 
+        # Create a mapper
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(source.GetOutputPort())
+ 
+        # Create an actor
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+ 
+        self.renderer.AddActor(actor)
+ 
+        self.renderer.ResetCamera()
+ 
+        #self.frame.setLayout(self.plotWidget_layout)
+        #self.setCentralWidget(self.frame)
+
+        self.show()
+        self.interactor.Initialize()
     
     def RegisterUIEvents(self):
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
@@ -67,10 +93,27 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
 
+    def FillUIWithData(self):
+        self.av2DDomainFields_comboBox.clear()
+        self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
+        self.FillAvailableSpeciesList()
+        self.SetSelectedDomainField()
+        self.SetSelectedSpeciesField()
+
+    def FillAvailableSpeciesList(self):
+        model = QtGui.QStandardItemModel()
+        avSpecies = list()
+        avSpecies = self.dataContainer.GetAvailableSpeciesNames()
+        for species in avSpecies:
+            item = QtGui.QStandardItem(species)
+            item.setCheckable(True)
+            model.appendRow(item)
+        model.itemChanged.connect(self.Item_Changed)
+        self.selectedSpecies_listView.setModel(model)
+
     """
     UI event handlers
     """
-        
     def Av2DDomainFieldsComboBox_IndexChanged(self):
         self.SetSelectedDomainField()
 
@@ -120,18 +163,6 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
     """
     Called from UI event handlers
     """
-        
-    def FillAvailableSpeciesList(self):
-        model = QtGui.QStandardItemModel()
-        avSpecies = list()
-        avSpecies = self.dataContainer.GetAvailableSpeciesNames()
-        for species in avSpecies:
-            item = QtGui.QStandardItem(species)
-            item.setCheckable(True)
-            model.appendRow(item)
-        model.itemChanged.connect(self.Item_Changed)
-        self.selectedSpecies_listView.setModel(model)
-
     def Item_Changed(self,item):
         # If the item is checked, add the species to the list of selected species
         if item.checkState():
@@ -147,16 +178,12 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.fieldsToPlot_listWidget.clear()
         self.currentAxesFieldsToPlot[:] = []
         self.subplotList[:] = []
-        
-
     
     def SetSelectedDomainField(self):
         self.dataContainer.SetSelectedDomainField(self.av2DDomainFields_comboBox.currentText())
         
     def SetSelectedSpeciesField(self):
         self.dataContainer.SetSelectedSpeciesField(self.avSpeciesFields_comboBox.currentText())
-
-
         
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
@@ -175,12 +202,29 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.SetTimeSteps()
         
     def MakePlots(self):
-        rows = self.rows_spinBox.value()
-        columns = self.columns_spinBox.value()
-        timeStep = self.timeStep_Slider.value()
-        self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, timeStep)
-        self.canvas.draw()
-            
+        # Create source
+        source = vtk.vtkSphereSource()
+        source.SetCenter(0, 0, 0)
+        source.SetRadius(5.0)
+ 
+        # Create a mapper
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(source.GetOutputPort())
+ 
+        # Create an actor
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+ 
+        self.renderer.AddActor(actor)
+ 
+        self.renderer.ResetCamera()
+ 
+        self.frame.setLayout(self.plotWidget_layout)
+        #self.setCentralWidget(self.frame)
+
+        self.show()
+        self.interactor.Initialize()
+
     def RemoveSubplot(self, item):
         index = self.subplotList.index(item.subplot)
         self.subplotList.remove(item.subplot)
