@@ -114,6 +114,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSimulation_parameters.triggered.connect(self.ActionSimulationParameters_Toggled)
         self.actionAbout.triggered.connect(self.ActionAbout_Toggled)
         self.actionOpen_Folder.triggered.connect(self.BrowseButton_Clicked)
+        self.action3D_Visualizer.triggered.connect(self.Action3D_Visualizer_Toggled)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
     """
@@ -174,6 +175,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         y = (screenGeometry.height()-self.particleTracker.height()) / 2 -20;
         self.particleTracker.move(x, y);
         self.particleTracker.show()
+
+    def Action3D_Visualizer_Toggled(self):
+        self.visualizer3D = ParticleTrackerWindow(self.dataContainer)
+        screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
+        x = (screenGeometry.width()-self.visualizer3D.width()) / 2;
+        y = (screenGeometry.height()-self.visualizer3D.height()) / 2 -20;
+        self.visualizer3D.move(x, y);
+        self.visualizer3D.show()
 
     def ActionMakeVideo_Toggled(self):
         AnimationWindow = CreateAnimationWindow(self)
