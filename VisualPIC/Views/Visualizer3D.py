@@ -50,37 +50,14 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.RegisterUIEvents()
         self.CreateVTKRenderer()
         self.timeSteps = np.zeros(1)
-        #self.FillUIWithData()
+        self.FillUIWithData()
         
     def CreateVTKRenderer(self):
-        #self.frame =  QtWidgets.QFrame()
         self.vtkWidget = QVTKRenderWindowInteractor(self.plot_Widget)
         self.plotWidget_layout.addWidget(self.vtkWidget)
         self.renderer = vtk.vtkRenderer()
         self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
-        #Create source
-        source = vtk.vtkSphereSource()
-        source.SetCenter(0, 0, 0)
-        source.SetRadius(5.0)
- 
-        # Create a mapper
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(source.GetOutputPort())
- 
-        # Create an actor
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
- 
-        self.renderer.AddActor(actor)
- 
-        self.renderer.ResetCamera()
- 
-        #self.frame.setLayout(self.plotWidget_layout)
-        #self.setCentralWidget(self.frame)
-
-        self.show()
-        self.interactor.Initialize()
     
     def RegisterUIEvents(self):
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
@@ -202,7 +179,7 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.SetTimeSteps()
         
     def MakePlots(self):
-        # Create source
+        #Create source
         source = vtk.vtkSphereSource()
         source.SetCenter(0, 0, 0)
         source.SetRadius(5.0)
@@ -218,9 +195,6 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.renderer.AddActor(actor)
  
         self.renderer.ResetCamera()
- 
-        self.frame.setLayout(self.plotWidget_layout)
-        #self.setCentralWidget(self.frame)
 
         self.show()
         self.interactor.Initialize()
