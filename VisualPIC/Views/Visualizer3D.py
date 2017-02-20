@@ -22,6 +22,7 @@ import os
 import sys
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
+import numpy as np
 
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
@@ -40,12 +41,12 @@ Ui_Visualizer3D, QVisualizer3D = loadUiType(guipath)
 
 	
 class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
-    def __init__(self):
+    def __init__(self, dataContainer):
         super(Visualizer3D, self).__init__()
         self.setupUi(self)
-        self.InitialUIValues()
+        self.dataContainer = dataContainer
         self.RegisterUIEvents()
-        self.CreateCanvasAndFigure()
+        #self.CreateCanvasAndFigure()
         self.timeSteps = np.zeros(1)
         
     def CreateCanvasAndFigure(self):
