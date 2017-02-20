@@ -23,6 +23,8 @@ import sys
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
+import vtk
+from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
@@ -46,17 +48,13 @@ class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
         self.setupUi(self)
         self.dataContainer = dataContainer
         self.RegisterUIEvents()
-        #self.CreateCanvasAndFigure()
+        self.CreateVTKRenderer()
         self.timeSteps = np.zeros(1)
         
-    def CreateCanvasAndFigure(self):
-        self.figure = Figure()
-        self.figure.patch.set_facecolor("white")
-        self.canvas = FigureCanvas(self.figure)
-        self.plotWidget_layout.addWidget(self.canvas)
-        self.canvas.draw()
-        self.toolbar = NavigationToolbar(self.canvas, self.plot_Widget, coordinates=True)
-        self.plotWidget_layout.addWidget(self.toolbar)
+    def CreateVTKRenderer(self):
+        self.frame =  QtWidgets.QFrame()
+        self.vtkWidget = QVTKRenderWindowInteractor(self.frame)
+        self.plotWidget_layout.addWidget(self.vtkWidget)
     
     def RegisterUIEvents(self):
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
