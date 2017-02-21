@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Ángel Ferran Pousa
+#Copyright 2016-2017 ?ngel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -23,8 +23,9 @@ import sys
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
-import vtk
-from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from traits.api import HasTraits, Instance, on_trait_change
+from traitsui.api import View, Item
+from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
 
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
@@ -37,28 +38,24 @@ if getattr(sys, 'frozen', False):
 else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
-guipath = os.path.join( bundle_dir, 'Visualizer3D.ui' )
+guipath = os.path.join( bundle_dir, 'Visualizer3Dmayavi.ui' )
 
-Ui_Visualizer3D, QVisualizer3D = loadUiType(guipath)
+Ui_Visualizer3Dmayavi, QVisualizer3Dmayavi = loadUiType(guipath)
 
 	
-class Visualizer3D(QVisualizer3D, Ui_Visualizer3D):
+class Visualizer3Dmayavi(QVisualizer3Dmayavi, Ui_Visualizer3Dmayavi):
     def __init__(self, dataContainer):
-        super(Visualizer3D, self).__init__()
+        super(Visualizer3Dmayavi, self).__init__()
         self.setupUi(self)
         self.dataContainer = dataContainer
         self.RegisterUIEvents()
-        self.CreateVTKRenderer()
+        self.CreateMayaviRenderer()
         self.timeSteps = np.zeros(1)
         self.FillUIWithData()
         
-    def CreateVTKRenderer(self):
-        self.vtkWidget = QVTKRenderWindowInteractor(self.plot_Widget)
-        self.plotWidget_layout.addWidget(self.vtkWidget)
-        self.renderer = vtk.vtkRenderer()
-        self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
-        self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
-    
+    def CreateMayaviRenderer(self):
+        pass
+
     def RegisterUIEvents(self):
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
         self.addSpeciesField_Button.clicked.connect(self.AddSpeciesFieldButton_Clicked)
