@@ -178,7 +178,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.particleTracker.show()
 
     def Action3D_Visualizer_Toggled(self):
-        self.visualizer3D = Visualizer3D(self.dataContainer)
+        self.visualizer3D = Visualizer3Dvtk(self.dataContainer)
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.visualizer3D.width()) / 2;
         y = (screenGeometry.height()-self.visualizer3D.height()) / 2 -20;
