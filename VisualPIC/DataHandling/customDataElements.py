@@ -228,7 +228,7 @@ class CustomRawDataSet(CustomDataElement):
 class xPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D":["Px", "Pz"],
-                     "3D":[]}
+                     "3D":["Px", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
@@ -244,7 +244,7 @@ class xPrimeDataSet(CustomRawDataSet):
 class yPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D":["Py", "Pz"],
-                     "3D":[]}
+                     "3D":["Py", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
