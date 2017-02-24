@@ -174,6 +174,7 @@ def new_figure_manager_given_figure(num, figure):
 class TimerQT(TimerBase):
     '''
     Subclass of :class:`backend_bases.TimerBase` that uses Qt4 timer events.
+
     Attributes:
     * interval: The time between timer events in milliseconds. Default
         is 1000 ms.
@@ -339,10 +340,6 @@ class FigureCanvasQT(QtWidgets.QWidget, FigureCanvasBase):
         dpival = self.figure.dpi
         winch = w / dpival
         hinch = h / dpival
-        ### Added by me
-        # This changes the sets the figure dpi every time it is resized. Therefore, if we move the window to a screen with a different DPI, the figure will be scaled properly.
-        self.figure.dpi = self._dpi_ratio * self.figure._original_dpi
-        ###
         self.figure.set_size_inches(winch, hinch, forward=False)
         FigureCanvasBase.resize_event(self)
         self.draw_idle()
@@ -398,12 +395,16 @@ class FigureCanvasQT(QtWidgets.QWidget, FigureCanvasBase):
         :class:`backend_bases.Timer`.  This is useful for getting
         periodic events through the backend's native event
         loop. Implemented only for backends with GUIs.
+
         optional arguments:
+
         *interval*
             Timer interval in milliseconds
+
         *callbacks*
             Sequence of (func, args, kwargs) where func(*args, **kwargs)
             will be executed by the timer every *interval*.
+
     """
         return TimerQT(*args, **kwargs)
 
@@ -434,6 +435,7 @@ class MainWindow(QtWidgets.QMainWindow):
 class FigureManagerQT(FigureManagerBase):
     """
     Public attributes
+
     canvas      : The FigureCanvas instance
     num         : The Figure number
     toolbar     : The qt.QToolBar
@@ -570,8 +572,8 @@ class NavigationToolbar2QT(NavigationToolbar2, QtWidgets.QToolBar):
         NavigationToolbar2.__init__(self, canvas)
 
     def _icon(self, name):
-        #if is_pyqt5():
-            #name = name.replace('.svg', '_large.svg')
+        # if is_pyqt5():
+        #     name = name.replace('.svg', '_large.svg')
         return QtGui.QIcon(os.path.join(self.basedir, name))
 
     def _init_toolbar(self):
@@ -617,7 +619,15 @@ class NavigationToolbar2QT(NavigationToolbar2, QtWidgets.QToolBar):
         if is_pyqt5():
             self.setIconSize(QtCore.QSize(24, 24))
             self.layout().setSpacing(12)
-            self.setMinimumHeight(48)
+
+    if is_pyqt5():
+        # For some reason, self.setMinimumHeight doesn't seem to carry over to
+        # the actual sizeHint, so override it instead in order to make the
+        # aesthetic adjustments noted above.
+        def sizeHint(self):
+            size = super(NavigationToolbar2QT, self).sizeHint()
+            size.setHeight(max(48, size.height()))
+            return size
 
     def edit_parameters(self):
         allaxes = self.canvas.figure.get_axes()
