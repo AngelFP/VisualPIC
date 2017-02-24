@@ -32,7 +32,7 @@ At this moment, the current version has only been tested on a Windows machine. T
 Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0) versions. However, in order to add support for modern High DPI displays it was required to jump to Python 3.5 and Qt 5.7, together with the release candidate of Matplotlib 2.0.
 
 ### Required software
-* Python 3.5.2 (other verions might also work).
+* Python 3.5.2 (other verions might also work). Choose 64 bits version, otherwise you will be very limited in memory.
 * Qt 5.7 (will be installed with PyQt5).
 * FFmpeg.
 
