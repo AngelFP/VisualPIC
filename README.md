@@ -47,9 +47,15 @@ Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0
 * Install Python 3.5.2. Download [here](https://www.python.org/downloads/release/python-352/).
 * Install PyQt5: `pip install pyqt5`.
 * Install Pillow: `pip install pillow`.
-* Install H5Py: `pip install h5py`.
-* Download the Matplotlib 2.0.0 rc2 wheels for your Python version from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib)
-* Once Matplotlib is installed, copy the custom backends found in the folder `VisualPIC/Custom Matplotlib Backends` into `[Your Python Path]\Lib\site-packages\matplotlib\backends`.
+* Dowload the H5Py wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#h5py).
+  * Then, on cmd, go to the folder where you downloaded the file and run `pip install h5py-2.6.0-cp35-cp35m-win_amd64.whl`
+* Install matplotlib: `pip install matplotlib`.
+  * After, copy the custom backend found in the folder `VisualPIC/Custom Matplotlib Backends` into `[Your Python Path]\Lib\site-packages\matplotlib\backends`. This will enable high resolution icons.
+* Dowload the H5Py wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#h5py).
+  * Then, on cmd, go to the folder where you downloaded the file and run `pip install h5py-2.6.0-cp35-cp35m-win_amd64.whl`
+* Download the VTK wheels for your Python version from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#vtk)
+  * Then, on cmd, go to the folder where you downloaded the file and run `pip install h5py-2.6.0-cp35-cp35m-win_amd64.whl`
+  * Finally, copy the custom file `QVTKRenderWindowInteractor.py` found in the folder `VisualPIC/Custom VTK Files` into `[Your Python Path]\Lib\site-packages\vtk\qt4`.
 * Download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
 * After this, you should be able to run VisualPIC just by running the `__main__.py` file in the VisualPIC folder.
 
