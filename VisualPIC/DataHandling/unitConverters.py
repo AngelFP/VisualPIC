@@ -34,6 +34,9 @@ class GeneralUnitConverter(object):
     def SetSimulationParameters(self, params):
         self._simulationParameters = params
 
+    """
+    Possible units
+    """
     def GetPossibleDataUnits(self, dataElement):
         dataISUnits = self.GetDataISUnits(dataElement)
         originalUnits = list()
@@ -86,31 +89,25 @@ class GeneralUnitConverter(object):
     def _GetAllOtherAxisUnitsOptions(self):
         return ["m", "mm", "μm"]
 
-    def GetDataInUnits(self, dataElement, units, timeStep):
-        if dataElement.hasNonISUnits:
-            if units == dataElement.GetDataOriginalUnits():
-                return dataElement.GetDataInOriginalUnits(timeStep)
-        if units == self.GetDataISUnits(dataElement):
-            return self.GetDataInISUnits(dataElement, timeStep)
+    """
+    Unit conversion
+    """
+    def GetDataInUnits(self, dataElement, units, data):
+        if units == dataElement.GetDataOriginalUnits():
+            return data
+        elif units == self.GetDataISUnits(dataElement):
+            return self.GetDataInISUnits(dataElement, data)
         else:
-            dataInISUnits = self.GetDataInISUnits(dataElement, timeStep)
+            dataInISUnits = self.GetDataInISUnits(dataElement, data)
             dataISUnits = self.GetDataISUnits(dataElement)
             return self._MakeConversion(units, dataISUnits, dataInISUnits)
 
-    def GetAllDataInUnits(self, dataElement, units):
-        """
-        This method is meant to be used only by selfContainedDataElements in 1D which
-        display at the same time the data in all time Steps
-        """
-        if dataElement.hasNonISUnits:
-            if units == dataElement.GetDataOriginalUnits():
-                return dataElement.GetAllDataInOriginalUnits()
-        if units == self.GetDataISUnits(dataElement):
-            return self.GetAllDataInISUnits(dataElement)
+    def GetDataInISUnits(self, dataElement, data):
+        if not dataElement.hasNonISUnits:
+            return data
         else:
-            dataInISUnits = self.GetAllDataInISUnits(dataElement)
-            dataISUnits = self.GetDataISUnits(dataElement)
-            return self._MakeConversion(units, dataISUnits, dataInISUnits)
+            dataElementName = dataElement.GetName()
+            return self.ConvertToISUnits(dataElementName, data)
 
     def _MakeConversion(self, units, dataISUnits, dataInISUnits):
         if dataISUnits == "V/m":
@@ -193,22 +190,6 @@ class GeneralUnitConverter(object):
     """
     def SetNormalizationFactor(self, value):
         raise NotImplementedError
-
-    def GetDataInISUnits(self, dataElement, timeStep):
-        if not dataElement.hasNonISUnits:
-            return dataElement.GetDataInOriginalUnits(timeStep)
-        else:
-            dataElementName = dataElement.GetName()
-            data = dataElement.GetDataInOriginalUnits(timeStep)
-            return self.ConvertToISUnits(dataElementName, data)
-
-    def GetAllDataInISUnits(self, dataElement):
-        if not dataElement.hasNonISUnits:
-            return dataElement.GetAllDataInOriginalUnits()
-        else:
-            dataElementName = dataElement.GetName()
-            data = dataElement.GetAllDataInOriginalUnits()
-            return self.ConvertToISUnits(dataElementName, data)
 
     def GetAxisInISUnits(self, axis, dataElement, timeStep):
         raise NotImplementedError

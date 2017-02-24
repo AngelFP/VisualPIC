@@ -83,17 +83,82 @@ class CustomField(CustomDataElement):
         for FieldName in self.necessaryData[dimension]:
             self.data[FieldName] = self.dataContainer.GetDomainField(FieldName)
 
-    def GetPossibleAxisUnits(self):
-        return self._unitConverter.GetPossibleAxisUnits(self)
-
     def GetFieldDimension(self):
         return list(self.data.items())[0][1].GetFieldDimension()
+
+    def GetPossibleAxisUnits(self):
+        return self._unitConverter.GetPossibleAxisUnits(self)
 
     def GetAxisDataInOriginalUnits(self, axis, timeStep):
         return list(self.data.items())[0][1].GetAxisDataInOriginalUnits(axis, timeStep)
         
     def GetAxisOriginalUnits(self):
         return list(self.data.items())[0][1].GetAxisOriginalUnits()
+
+    """
+    Get data in original units
+    """
+    def Get1DSliceInOriginalUnits(self, slicePosition, timeStep):
+        fieldData = self.CalculateField(timeStep)
+        elementsY = fieldData.shape[-2]
+        selectedRow = round(elementsY*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return sliceData
+
+    def Get2DSliceInOriginalUnits(self, sliceAxis, slicePosition, timeStep):
+        fieldData = self.CalculateField(timeStep)
+        elementsX3 = fieldData.shape[-3]
+        selectedRow = round(elementsX3*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return sliceData
+
+    def GetAllFieldDataInOriginalUnits(self, timeStep):
+        return self.CalculateField(timeStep)
+    
+    """
+    Get data in any units
+    """
+    def Get1DSlice(self, slicePosition, timeStep, units):
+        fieldData = self.CalculateField(timeStep)
+        elementsY = fieldData.shape[-2]
+        selectedRow = round(elementsY*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+
+    def Get2DSlice(self, sliceAxis, slicePosition, timeStep, units):
+        fieldData = self.CalculateField(timeStep)
+        elementsX3 = fieldData.shape[-3]
+        selectedRow = round(elementsX3*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+
+    def GetAllFieldData(self, timeStep, units):
+        fieldData = self.CalculateField(timeStep)
+        return self._unitConverter.GetDataInUnits(self, units, fieldData)
+
+    """
+    Get data in IS units
+    """
+    def Get1DSliceISUnits(self, slicePosition, timeStep):
+        fieldData = self.CalculateField(timeStep)
+        elementsY = fieldData.shape[-2]
+        selectedRow = round(elementsY*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return self._unitConverter.GetDataInISUnits(self, sliceData)
+
+    def Get2DSliceISUnits(self, sliceAxis, slicePosition, timeStep):
+        fieldData = self.CalculateField(timeStep)
+        elementsX3 = fieldData.shape[-3]
+        selectedRow = round(elementsX3*(float(slicePosition)/100))
+        sliceData = fieldData[selectedRow]
+        return self._unitConverter.GetDataInISUnits(self, sliceData)
+
+    def GetAllFieldDataISUnits(self, timeStep):
+        fieldData = self.CalculateField(timeStep)
+        return self._unitConverter.GetDataInISUnits(self, fieldData)
+
+    def CalculateField(self, timeStep):
+        raise NotImplementedError
 
 
 class TransverseWakefield(CustomField):
@@ -105,9 +170,9 @@ class TransverseWakefield(CustomField):
     ISUnits = True
     standardName = "Transverse Wakefield"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Ey = self.data["Ey"].GetDataInISUnits(timeStep)
-        Bx = self.data["Bx"].GetDataInISUnits(timeStep)
+    def CalculateField(self, timeStep):
+        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+        Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
         TranvsWF = Ey - self.c*Bx
         return TranvsWF
 
@@ -121,9 +186,9 @@ class LaserIntensityField(CustomField):
     ISUnits = True
     standardName = "Laser Intensity"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Ey = self.data["Ey"].GetDataInISUnits(timeStep)
-        Ez = self.data["Ez"].GetDataInISUnits(timeStep)
+    def CalculateField(self, timeStep):
+        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+        Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
@@ -143,9 +208,9 @@ class NormalizedVectorPotential(CustomField):
     ISUnits = True
     standardName = "Normalized Vector Potential"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Ey = self.data["Ey"].GetDataInISUnits(timeStep)
-        Ez = self.data["Ez"].GetDataInISUnits(timeStep)
+    def CalculateField(self, timeStep):
+        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+        Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
@@ -166,9 +231,9 @@ class TransverseWakefieldSlope(CustomField):
     ISUnits = True
     standardName = "Transverse Wakefield Slope"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Ey = self.data["Ey"].GetDataInISUnits( timeStep)
-        Bx = self.data["Bx"].GetDataInISUnits( timeStep)
+    def CalculateField(self, timeStep):
+        Ey = self.data["Ey"].GetAllFieldDataISUnits( timeStep)
+        Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
         TranvsWF = Ey - self.c*Bx
         y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
@@ -185,8 +250,8 @@ class BxSlope(CustomField):
     ISUnits = True
     standardName = "Bx Slope"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Bx = self.data["Bx"].GetDataInISUnits( timeStep)
+    def CalculateField(self, timeStep):
+        Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
         y = self.data["Bx"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         slope = np.gradient(Bx, dy, axis=0)

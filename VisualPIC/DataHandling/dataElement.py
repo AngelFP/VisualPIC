@@ -44,29 +44,32 @@ class DataElement(object):
     def GetTimeSteps(self):
         return self.timeSteps
 
+    """
+    Possible units
+    """
     def GetPossibleDataUnits(self):
         return self._unitConverter.GetPossibleDataUnits(self)
 
     def GetDataISUnits(self):
         return self._unitConverter.GetDataISUnits(self)
+    
+    def GetPossibleTimeUnits(self):
+        return self._unitConverter.GetPossibleTimeUnits(self)
 
-    def GetDataInISUnits(self, timeStep):
-        return self._unitConverter.GetDataInISUnits(self, timeStep)
+    def GetTimeOriginalUnits(self):
+        raise NotImplementedError
+        
+    def GetDataOriginalUnits(self):
+        raise NotImplementedError
 
-    def GetDataInUnits(self, units, timeStep):
-        return self._unitConverter.GetDataInUnits(self, units, timeStep)
-
+    """
+    Conversion of units
+    """
     def GetAxisInUnits(self, axis, units, timeStep):
         return self._unitConverter.GetAxisInUnits(axis, self, units, timeStep)
 
     def GetAxisInISUnits(self, axis, timeStep):
         return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
-
-    def GetDataInOriginalUnits(self, timeStep):
-        raise NotImplementedError
-        
-    def GetDataOriginalUnits(self):
-        raise NotImplementedError
 
     def GetTimeInUnits(self, units, timeStep):
         return self._unitConverter.GetTimeInUnits(self, units, timeStep)
@@ -74,9 +77,4 @@ class DataElement(object):
     def GetTimeInOriginalUnits(self, timeStep):
         raise NotImplementedError
     
-    def GetPossibleTimeUnits(self):
-        return self._unitConverter.GetPossibleTimeUnits(self)
-
-    def GetTimeOriginalUnits(self):
-        raise NotImplementedError
 

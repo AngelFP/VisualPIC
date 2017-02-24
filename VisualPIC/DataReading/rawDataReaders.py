@@ -28,80 +28,65 @@ from VisualPIC.DataReading.dataReader import DataReader
 class RawDataReaderBase(DataReader):
     """Parent class for all rawDataReaders"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName, internalName):
+    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
         DataReader.__init__(self, location, speciesName, dataName, internalName)
         self.internalName = dataName
+        self.firstTimeStep = firstTimeStep
 
     def GetData(self, timeStep):
         if timeStep != self.currentTimeStep:
             self.currentTimeStep = timeStep
-            self.OpenFileAndReadData()
+            self.data = self._ReadData(timeStep)
         return self.data
 
     def GetDataUnits(self):
         if self.dataUnits == "":
-            self.OpenFileAndReadUnits()
+            self._ReadUnits()
         return self.dataUnits
 
     def GetTime(self, timeStep):
         if timeStep != self.currentTimeStep:
             self.currentTimeStep = timeStep
-            self.OpenFileAndReadData()
+            self._ReadTime(timeStep)
         return self.currentTime
 
     def GetTimeUnits(self):
         if self.timeUnits == "":
-            self.OpenFileAndReadUnits()
+            self._ReadUnits()
         return self.timeUnits
 
 
 class OsirisRawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName):
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
+    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
 
-    def OpenFileAndReadData(self):
-        file_content = self.OpenFile(self.currentTimeStep)
+    def _ReadData(self, timeStep):
+        file_content = self._OpenFile(timeStep)
         if self.internalName == "tag":
             tags = np.array(file_content.get(self.internalName))
             a = tags[:,0]
             b = tags[:,1]
-            self.data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
+            data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
         else:
-            self.data = np.array(file_content.get(self.internalName))
+            data = np.array(file_content.get(self.internalName))
+        self.currentTime = file_content.attrs["TIME"][0]
+        file_content.close()
+        return data
+
+    def _ReadTime(self, timeStep):
+        file_content = self._OpenFile(timeStep)
         self.currentTime = file_content.attrs["TIME"][0]
         file_content.close()
 
-    def OpenFileAndReadUnits(self):
-        file_content = self.OpenFile(0)
+    def _ReadUnits(self):
+        file_content = self._OpenFile(self.firstTimeStep)
         self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
-    def OpenFile(self, timeStep):
+    def _OpenFile(self, timeStep):
         fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
-
-
-class HiPACERawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName):
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
-
-    def OpenFileAndReadData(self):
-        raise NotImplementedError
-
-    def OpenFileAndReadUnits(self):
-        raise NotImplementedError
-
-
-class PIConGPURawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName):
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName)
-
-    def OpenFileAndReadData(self):
-        raise NotImplementedError
-
-    def OpenFileAndReadUnits(self):
-        raise NotImplementedError

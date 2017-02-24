@@ -32,9 +32,6 @@ class FolderDataElement(DataElement):
 
     def GetNameInCode(self):
         return self.dataNameInCode
-
-    def GetDataInOriginalUnits(self, timeStep):
-        return self.dataReader.GetData(timeStep)
         
     def GetDataOriginalUnits(self):
         return self.dataReader.GetDataUnits()
@@ -63,8 +60,74 @@ class FolderField(FolderDataElement):
     def GetAxisOriginalUnits(self):
         return self.dataReader.GetAxisUnits()
 
+    """
+    Get data in original units
+    """
+    def Get1DSliceInOriginalUnits(self, slicePosition, timeStep):
+        return self.dataReader.Get1DSlice(slicePosition, timeStep)
+
+    def Get2DSliceInOriginalUnits(self, sliceAxis, slicePosition, timeStep):
+        return self.dataReader.Get2DSlice(sliceAxis, slicePosition, timeStep)
+
+    def GetAllFieldDataInOriginalUnits(self, timeStep):
+        return  self.dataReader.GetAllFieldData(timeStep)
+    
+    """
+    Get data in any units
+    """
+    def Get1DSlice(self, slicePosition, timeStep, units):
+        sliceData = self.dataReader.Get1DSlice(slicePosition, timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+
+    def Get2DSlice(self, sliceAxis, slicePosition, timeStep, units):
+        sliceData = self.dataReader.Get2DSlice(sliceAxis, slicePosition, timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+
+    def GetAllFieldData(self, timeStep, units):
+        fieldData = self.dataReader.GetAllFieldData(timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInUnits(self, units, fieldData)
+
+    """
+    Get data in IS units
+    """
+    def Get1DSliceISUnits(self, slicePosition, timeStep):
+        sliceData = self.dataReader.Get1DSlice(slicePosition, timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInISUnits(self, sliceData)
+
+    def Get2DSliceISUnits(self, sliceAxis, slicePosition, timeStep):
+        sliceData = self.dataReader.Get2DSlice(sliceAxis, slicePosition, timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInISUnits(self, sliceData)
+
+    def GetAllFieldDataISUnits(self, timeStep):
+        fieldData = self.dataReader.GetAllFieldData(timeStep)
+        originalDataUnits = self.dataReader.GetDataUnits()
+        return self._unitConverter.GetDataInISUnits(self, fieldData)
+
 
 class FolderRawDataSet(FolderDataElement):
     def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName, hasNonISUnits = True):
         FolderDataElement.__init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName, internalName, hasNonISUnits)
-        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode, internalName)
+        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, nameInCode, internalName, timeSteps[0])
+
+    """
+    Get data in original units
+    """
+    def GetDataInOriginalUnits(self, timeStep):
+        return self.dataReader.GetData(timeStep)
+
+    """
+    Get data in any units
+    """
+    def GetDataInUnits(self, units, timeStep):
+        return self._unitConverter.GetDataInUnits(self, units, self.dataReader.GetData(timeStep))
+
+    """
+    Get data in IS units
+    """
+    def GetDataInISUnits(self, timeStep):
+        return self._unitConverter.GetDataInISUnits(self, self.dataReader.GetData(timeStep))

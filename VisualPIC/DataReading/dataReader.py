@@ -36,11 +36,7 @@ class DataReader(object):
         self.data = None
 
     @abc.abstractmethod
-    def OpenFileAndReadData(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def OpenFileAndReadUnits(self):
+    def _ReadUnits(self):
         raise NotImplementedError
 
 

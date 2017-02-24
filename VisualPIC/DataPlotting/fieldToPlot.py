@@ -95,10 +95,6 @@ class FieldToPlot:
         
     def SetFieldProperties(self, props):
         self.__fieldProperties = props
-       
-    def __GetAllData(self, timeStep):
-        #returns fieldData, extent
-        return self.__field.GetDataInUnits(self.GetProperty("fieldUnits"), timeStep)
 
     def __GetAxisData(self, axis, timeStep):
         return self.__field.GetAxisInUnits( axis, self.GetProperty("axesUnits")[axis], timeStep)
@@ -107,26 +103,15 @@ class FieldToPlot:
         # slice along the longitudinal axis
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a %
-        fieldData = self.__GetAllData(timeStep)
-        matrixSize = fieldData.shape
-        elementsY = matrixSize[-2]
-        selectedRow = round(elementsY*(float(slicePosition)/100))
-        fieldSlice = fieldData[selectedRow] # Y data
-        
+        fieldSlice = self.__field.Get1DSlice(slicePosition, timeStep, self.GetProperty("fieldUnits")) # Y data
         return self.__GetAxisData("x", timeStep), fieldSlice
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
-        fieldData = self.__GetAllData(timeStep)
-        matrixSize = fieldData.shape
-        elementsX1 = matrixSize[-1] # number of elements in the longitudinal direction
-        elementsX2 = matrixSize[-2] # number of elements in the transverse direction
-        elementsX3 = matrixSize[-3] # number of elements in the transverse direction
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        fieldSlice = fieldData[selectedRow]
+        fieldSlice = self.__field.Get2DSlice(sliceAxis, slicePosition, timeStep, self.GetProperty("fieldUnits"))
         return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),fieldSlice
 
     def __Get2DField(self, timeStep):
-        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),self.__GetAllData(timeStep)
+        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),self.__field.GetAllFieldData(timeStep, self.GetProperty("fieldUnits"))
     
     def GetData(self, timeStep):
         if self.__fieldDimension == "3D":

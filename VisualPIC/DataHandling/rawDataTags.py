@@ -25,7 +25,7 @@ class RawDataTags(object):
         self.dataLocation = location
         self.speciesName = speciesName
         self.timeSteps = timeSteps
-        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
+        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName, timeSteps[0])
 
     def GetTimeSteps(self):
         return self.timeSteps
