@@ -17,7 +17,19 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-class visualizer3Dvtk(object):
-    """description of class"""
+import vtk
+from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+
+
+class Visualizer3Dvtk():
+    def __init__(self, dataContainer):
+        self.dataContainer = dataContainer
+
+    def GetVTKWidget(self, parentWidget):
+        self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
+        self.renderer = vtk.vtkRenderer()
+        self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
+        self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
+        return self.vtkWidget
 
 

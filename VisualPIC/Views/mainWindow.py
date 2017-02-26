@@ -32,7 +32,7 @@ from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
 from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindow
 from VisualPIC.Views.aboutWindow import AboutWindow
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
-from VisualPIC.Views.visualizer3DvtkWindow import Visualizer3Dvtk
+from VisualPIC.Views.visualizer3DvtkWindow import Visualizer3DvtkWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
 from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
@@ -178,7 +178,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.particleTracker.show()
 
     def Action3D_Visualizer_Toggled(self):
-        self.visualizer3D = Visualizer3Dvtk(self.dataContainer)
+        self.visualizer3D = Visualizer3DvtkWindow(self.dataContainer)
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.visualizer3D.width()) / 2;
         y = (screenGeometry.height()-self.visualizer3D.height()) / 2 -20;

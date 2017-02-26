@@ -29,6 +29,7 @@ from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
+from VisualPIC.Tools.visualizer3Dvtk import Visualizer3Dvtk
 
 
 if getattr(sys, 'frozen', False):
@@ -39,25 +40,21 @@ else:
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'Visualizer3Dvtk.ui' )
 
-Ui_Visualizer3Dvtk, QVisualizer3Dvtk = loadUiType(guipath)
+Ui_Visualizer3DvtkWindow, QVisualizer3DvtkWindow = loadUiType(guipath)
 
 	
-class Visualizer3Dvtk(QVisualizer3Dvtk, Ui_Visualizer3Dvtk):
+class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def __init__(self, dataContainer):
-        super(Visualizer3Dvtk, self).__init__()
+        super(Visualizer3DvtkWindow, self).__init__()
         self.setupUi(self)
-        self.dataContainer = dataContainer
+        self.visualizer3Dvtk = Visualizer3Dvtk(dataContainer)
         self.RegisterUIEvents()
-        self.CreateVTKRenderer()
+        self.CreateVTKWidget()
         self.timeSteps = np.zeros(1)
         self.FillUIWithData()
         
-    def CreateVTKRenderer(self):
-        self.vtkWidget = QVTKRenderWindowInteractor(self.plot_Widget)
-        self.plotWidget_layout.addWidget(self.vtkWidget)
-        self.renderer = vtk.vtkRenderer()
-        self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
-        self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
+    def CreateVTKWidget(self):
+        self.plotWidget_layout.addWidget(self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget))
     
     def RegisterUIEvents(self):
         self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
@@ -72,21 +69,21 @@ class Visualizer3Dvtk(QVisualizer3Dvtk, Ui_Visualizer3Dvtk):
 
     def FillUIWithData(self):
         self.av2DDomainFields_comboBox.clear()
-        self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
-        self.FillAvailableSpeciesList()
-        self.SetSelectedDomainField()
-        self.SetSelectedSpeciesField()
+        #self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
+        #self.FillAvailableSpeciesList()
+        #self.SetSelectedDomainField()
+        #self.SetSelectedSpeciesField()
 
     def FillAvailableSpeciesList(self):
         model = QtGui.QStandardItemModel()
         avSpecies = list()
-        avSpecies = self.dataContainer.GetAvailableSpeciesNames()
-        for species in avSpecies:
-            item = QtGui.QStandardItem(species)
-            item.setCheckable(True)
-            model.appendRow(item)
-        model.itemChanged.connect(self.Item_Changed)
-        self.selectedSpecies_listView.setModel(model)
+        #avSpecies = self.dataContainer.GetAvailableSpeciesNames()
+        #for species in avSpecies:
+        #    item = QtGui.QStandardItem(species)
+        #    item.setCheckable(True)
+        #    model.appendRow(item)
+        #model.itemChanged.connect(self.Item_Changed)
+        #self.selectedSpecies_listView.setModel(model)
 
     """
     UI event handlers
@@ -134,8 +131,17 @@ class Visualizer3Dvtk(QVisualizer3Dvtk, Ui_Visualizer3Dvtk):
         self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
         	
     def AddSpeciesFieldButton_Clicked(self):
-        self.dataContainer.SetSelectedSpeciesFields()
-        self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+        #self.dataContainer.SetSelectedSpeciesFields()
+        #self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+        self.opacity.RemoveAllPoints()
+        self.color.RemoveAllPoints()
+        self.opacity.AddPoint(0, 0.0)
+        self.opacity.AddPoint(self.maxvalue, 1.0)
+
+        self.color.AddRGBPoint(0.0, 0, 0, 1)
+        self.color.AddRGBPoint(0.2*self.maxvalue, 0, 0, 1)
+        self.color.AddRGBPoint(0.4*self.maxvalue, 0, 0, 1)
+        self.color.AddRGBPoint(1.0*self.maxvalue, 0, 0, 1)
 
     """
     Called from UI event handlers
@@ -179,24 +185,93 @@ class Visualizer3Dvtk(QVisualizer3Dvtk, Ui_Visualizer3Dvtk):
         self.SetTimeSteps()
         
     def MakePlots(self):
-        #Create source
-        source = vtk.vtkSphereSource()
-        source.SetCenter(0, 0, 0)
-        source.SetRadius(5.0)
- 
-        # Create a mapper
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(source.GetOutputPort())
- 
-        # Create an actor
-        actor = vtk.vtkActor()
-        actor.SetMapper(mapper)
- 
-        self.renderer.AddActor(actor)
- 
+        
+
+        volumeprop = vtk.vtkVolumeProperty()
+
+        #volumeprop.SetIndependentComponents(ncomp)
+        volumeprop.IndependentComponentsOn()
+        volumeprop.SetInterpolationTypeToLinear()
+
+        charge = self.dataContainer.GetSpeciesField("plasma", "Charge density")
+        axisz = charge.GetAxisDataInOriginalUnits("x", 20)
+        axisy = charge.GetAxisDataInOriginalUnits("y", 20)
+        axisx = charge.GetAxisDataInOriginalUnits("z", 20)
+        
+        dz = (axisz[1]-axisz[0])
+        dy = (axisy[1]-axisy[0])
+        dx = (axisx[1]-axisx[0])
+
+        chargeData = np.absolute(charge.GetAllFieldDataInOriginalUnits(20))
+        minvalue = np.amin(chargeData)
+        maxvalue = np.amax(chargeData)
+
+        den1 = 255.0/maxvalue
+        chargeData = np.round(den1 * chargeData)
+
+        # Change data from float to unsigned char
+        npdatauchar = np.array(chargeData, dtype=np.uint8)
+        minvalue = np.amin(npdatauchar)
+        self.maxvalue = np.amax(npdatauchar)
+
+        self.opacity = vtk.vtkPiecewiseFunction()
+        self.color = vtk.vtkColorTransferFunction()
+
+        self.opacity.AddPoint(0, 0.1)
+        self.opacity.AddPoint(0.5*self.maxvalue, 0.1)
+        self.opacity.AddPoint(self.maxvalue, 0.1)
+        
+        self.color.AddRGBPoint(0.0,0, 0, 1)
+        self.color.AddRGBPoint(100, 1.000,0, 0)
+        self.color.AddRGBPoint(self.maxvalue, 0, 1.0, 0)
+
+        volumeprop.SetColor(0,self.color)
+        volumeprop.SetScalarOpacity(0,self.opacity)
+        volumeprop.ShadeOff(0)
+
+        dataImport = vtk.vtkImageImport()
+        dataImport.SetImportVoidPointer(npdatauchar)
+
+        dataImport.SetDataScalarTypeToUnsignedChar()
+
+        # Number of scalar components
+        dataImport.SetNumberOfScalarComponents(1)
+        # The following two functions describe how the data is stored
+        # and the dimensions of the array it is stored in.
+        dataImport.SetDataExtent(0, npdatauchar.shape[0]-1, 0, npdatauchar.shape[1]-1, 0, npdatauchar.shape[2]-1)
+        dataImport.SetWholeExtent(0, npdatauchar.shape[0]-1, 0, npdatauchar.shape[1]-1, 0, npdatauchar.shape[2]-1)
+        dataImport.SetDataSpacing(dx,dy,dz)
+        dataImport.SetDataOrigin(axisx[0],axisy[0],axisz[0])
+
+        dataImport.Update()
+
+        # Set the mapper
+        mapper = vtk.vtkGPUVolumeRayCastMapper()
+
+        # Add data to the mapper
+        mapper.SetInputConnection(dataImport.GetOutputPort())
+
+        # The class vtkVolume is used to pair the previously declared volume
+        # as well as the properties to be used when rendering that volume.
+        volume = vtk.vtkVolume()
+        volume.SetMapper(mapper)
+        volume.SetProperty(volumeprop)
+        volume.GetProperty()
+
+        planeClip = vtk.vtkPlane()
+        planeClip.SetOrigin((axisz[0]+axisz[1])/2.0-axisz[0],0.0,0.0)
+        planeClip.SetNormal(0.0, 0.0, -1.0)
+
+        light = vtk.vtkLight()
+        light.SetColor(1.0, 0.0, 0.0)
+        light.SwitchOn()
+        light.SetIntensity(1)
+        #renderer.AddLight(light)
+
+        # Add the volume to the renderer ...
+        self.renderer.AddVolume(volume)
         self.renderer.ResetCamera()
 
-        self.show()
         self.interactor.Initialize()
 
     def RemoveSubplot(self, item):
