@@ -57,12 +57,12 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.plotWidget_layout.addWidget(self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget))
     
     def RegisterUIEvents(self):
-        self.addSpeciesField_Button.clicked.connect(self.AddSpeciesFieldButton_Clicked)
+        self.addToRender_Button.clicked.connect(self.AddToRenderButton_Clicked)
         self.timeStep_Slider.sliderReleased.connect(self.TimeStepSlider_Released)
         self.timeStep_Slider.valueChanged.connect(self.TimeStepSlider_ValueChanged)
         self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
-        self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
+        self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
 
     def FillUIWithData(self):
         self.av2DDomainFields_comboBox.clear()
@@ -115,10 +115,10 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             self.timeStep_Slider.setValue(self.timeSteps[currentIndex - 1])
         self.MakePlots()
 
-    def PlotButton_Clicked(self):
+    def RenderButton_Clicked(self):
         self.MakePlots()
         	
-    def AddSpeciesFieldButton_Clicked(self):
+    def AddToRenderButton_Clicked(self):
         #self.dataContainer.SetSelectedSpeciesFields()
         #self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
         field = self.visualizer3Dvtk.GetVolumeField("Charge density", "plasma")
@@ -141,7 +141,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def ClearData(self):
         self.rows_spinBox.setValue(1)
         self.columns_spinBox.setValue(1)
-        self.fieldsToPlot_listWidget.clear()
+        self.fieldsToRender_listWidget.clear()
         self.currentAxesFieldsToPlot[:] = []
         self.subplotList[:] = []
         
@@ -152,7 +152,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def RemoveSubplot(self, item):
         index = self.subplotList.index(item.subplot)
         self.subplotList.remove(item.subplot)
-        self.fieldsToPlot_listWidget.takeItem(index)
+        self.fieldsToRender_listWidget.takeItem(index)
         for subplot in self.subplotList:
             if subplot.GetPosition() > index+1:
                 subplot.SetPosition(subplot.GetPosition()-1)
