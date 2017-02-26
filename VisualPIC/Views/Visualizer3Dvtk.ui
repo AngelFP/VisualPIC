@@ -181,7 +181,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QListView" name="selectedSpecies_listView">
+                   <widget class="QListView" name="availableFields_listView">
                     <property name="maximumSize">
                      <size>
                       <width>16777215</width>
@@ -198,7 +198,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="addSpeciesField_Button">
+                   <widget class="QPushButton" name="addToRender_Button">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -265,10 +265,10 @@
                    <number>7</number>
                   </property>
                   <item>
-                   <widget class="QListWidget" name="fieldsToPlot_listWidget"/>
+                   <widget class="QListWidget" name="fieldsToRender_listWidget"/>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="plot_pushButton">
+                   <widget class="QPushButton" name="render_pushButton">
                     <property name="text">
                      <string>Render</string>
                     </property>

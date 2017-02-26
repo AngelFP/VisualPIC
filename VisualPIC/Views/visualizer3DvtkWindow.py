@@ -65,22 +65,23 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
 
     def FillUIWithData(self):
-        self.av2DDomainFields_comboBox.clear()
         #self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
-        #self.FillAvailableSpeciesList()
+        self.FillAvailable3DFieldsList()
         #self.SetSelectedDomainField()
         #self.SetSelectedSpeciesField()
 
-    def FillAvailableSpeciesList(self):
+    def FillAvailable3DFieldsList(self):
         model = QtGui.QStandardItemModel()
-        avSpecies = list()
-        #avSpecies = self.dataContainer.GetAvailableSpeciesNames()
-        #for species in avSpecies:
-        #    item = QtGui.QStandardItem(species)
-        #    item.setCheckable(True)
-        #    model.appendRow(item)
-        #model.itemChanged.connect(self.Item_Changed)
-        #self.selectedSpecies_listView.setModel(model)
+        avFields = self.visualizer3Dvtk.GetListOfAvailable3DFields()
+        for field in avFields:
+            text = field["fieldName"]
+            if field["speciesName"] != "":
+                text += " [" + field["speciesName"] + "]"
+            item = QtGui.QStandardItem(text)
+            item.setCheckable(True)
+            model.appendRow(item)
+        model.itemChanged.connect(self.Item_Changed)
+        self.availableFields_listView.setModel(model)
 
     """
     UI event handlers
