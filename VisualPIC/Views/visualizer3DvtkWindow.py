@@ -57,10 +57,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.plotWidget_layout.addWidget(self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget))
     
     def RegisterUIEvents(self):
-        self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
         self.addSpeciesField_Button.clicked.connect(self.AddSpeciesFieldButton_Clicked)
-        self.av2DDomainFields_comboBox.currentIndexChanged.connect(self.Av2DDomainFieldsComboBox_IndexChanged)
-        self.avSpeciesFields_comboBox.currentIndexChanged.connect(self.AvSpeciesFieldsComboBox_IndexChanged)
         self.timeStep_Slider.sliderReleased.connect(self.TimeStepSlider_Released)
         self.timeStep_Slider.valueChanged.connect(self.TimeStepSlider_ValueChanged)
         self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
@@ -88,12 +85,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     """
     UI event handlers
     """
-    def Av2DDomainFieldsComboBox_IndexChanged(self):
-        self.SetSelectedDomainField()
-
-    def AvSpeciesFieldsComboBox_IndexChanged(self):
-        self.SetSelectedSpeciesField()
-
     def TimeStepSlider_Released(self):
         if self.timeStep_Slider.value() in self.timeSteps:
             self.MakePlots()
@@ -126,9 +117,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
 
     def PlotButton_Clicked(self):
         self.MakePlots()
-        
-    def AddDomainFieldButton_Clicked(self):
-        self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
         	
     def AddSpeciesFieldButton_Clicked(self):
         #self.dataContainer.SetSelectedSpeciesFields()
@@ -156,28 +144,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.fieldsToPlot_listWidget.clear()
         self.currentAxesFieldsToPlot[:] = []
         self.subplotList[:] = []
-    
-    def SetSelectedDomainField(self):
-        self.dataContainer.SetSelectedDomainField(self.av2DDomainFields_comboBox.currentText())
-        
-    def SetSelectedSpeciesField(self):
-        self.dataContainer.SetSelectedSpeciesField(self.avSpeciesFields_comboBox.currentText())
-        
-    def AddFieldsToPlot(self, fields, fieldPlotDimension):
-        fldList = list()
-        for fld in fields:
-            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
-            fldList.append(fieldToPlot)
-        plotPosition = len(self.subplotList)+1
-        subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)
-        self.subplotList.append(subplot)
-        self.SetAutoColumnsAndRows()
-        wid = SubplotItem(subplot, self.MakePlots, self)
-        wid2 = QtWidgets.QListWidgetItem()
-        wid2.setSizeHint(QtCore.QSize(100, 40))
-        self.fieldsToPlot_listWidget.addItem(wid2)
-        self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
-        self.SetTimeSteps()
         
     def MakePlots(self):
         self.visualizer3Dvtk.AddVolumeField("Charge density", "plasma")
