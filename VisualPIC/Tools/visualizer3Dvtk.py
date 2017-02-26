@@ -92,7 +92,26 @@ class VolumeVTK():
 class Visualizer3Dvtk():
     def __init__(self, dataContainer):
         self.dataContainer = dataContainer
+        self._GetAvailable3DFields()
         self.volumeList = list()
+
+    def _GetAvailable3DFields(self):
+        self.availableFields = list()
+        speciesList = self.dataContainer.GetAvailableSpecies()
+        domainFields = self.dataContainer.GetAvailableDomainFields()
+        for species in speciesList:
+            for field in species.GetAvailableFields():
+                if field.GetFieldDimension() == "3D":
+                    self.availableFields.append(field)
+        for field in domainFields:
+            if field.GetFieldDimension() == "3D":
+                self.availableFields.append(field)
+
+    def GetListOfAvailable3DFields(self):
+        namesList = list()
+        for field in self.availableFields:
+            namesList.append({"fieldName":field.GetName(), "speciesName":field.GetSpeciesName()})
+        return namesList
 
     def GetVTKWidget(self, parentWidget):
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
