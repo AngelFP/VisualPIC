@@ -40,6 +40,15 @@ class VolumeVTK():
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 0, 1.0, 0)
 
+    def GetFieldName(self):
+        return self.field.GetName()
+
+    def GetSpeciesName(self):
+        return self.field.GetSpeciesName()
+
+    def GetTimeSteps(self):
+        return self.field.GetTimeSteps()
+
     def SetColorPoints(self, points):
         # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
         self.color.RemoveAllPoints()
@@ -113,6 +122,17 @@ class Visualizer3Dvtk():
             namesList.append({"fieldName":field.GetName(), "speciesName":field.GetSpeciesName()})
         return namesList
 
+    def GetTimeSteps(self):
+        i = 0
+        timeSteps = np.array([0])
+        for volume in self.volumeList:
+            if i == 0:
+                timeSteps = volume.GetTimeSteps()
+            else :
+                timeSteps = np.intersect1d(timeSteps, volume.GetTimeSteps())
+            i+=1
+        return timeSteps
+
     def GetVTKWidget(self, parentWidget):
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
         self.renderer = vtk.vtkRenderer()
@@ -122,9 +142,23 @@ class Visualizer3Dvtk():
 
     def AddVolumeField(self, fieldName, speciesName = None):
         if speciesName == None:
-            pass
+            # TODO: implement domain fields
+            return False
         else:
+            for volume in self.volumeList:
+                if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
+                    return False
             self.volumeList.append(VolumeVTK(self.dataContainer.GetSpeciesField(speciesName, fieldName)))
+            return True
+
+    def RemoveVolumeFromName(self, fieldName, speciesName):
+        for volumeField in self.volumeList:
+            if (volumeField.GetFieldName() == fieldName) and (volumeField.GetSpeciesName() == speciesName):
+                self.volumeList.remove(volumeField)
+                return
+
+    def RemoveVolume(self, volume):
+        self.volumeList.remove(volume)
 
     def GetVolumeField(self, fieldName, speciesName):
         for volume in self.volumeList:

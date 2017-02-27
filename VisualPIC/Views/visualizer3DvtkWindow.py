@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 ?ngel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -26,10 +26,9 @@ import numpy as np
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
-from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
 from VisualPIC.Tools.visualizer3Dvtk import Visualizer3Dvtk
+from VisualPIC.Controls.volumeVTKItem import VolumeVTKItem
 
 
 if getattr(sys, 'frozen', False):
@@ -80,7 +79,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             item = QtGui.QStandardItem(text)
             item.setCheckable(True)
             model.appendRow(item)
-        model.itemChanged.connect(self.Item_Changed)
         self.availableFields_listView.setModel(model)
 
     """
@@ -88,7 +86,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     """
     def TimeStepSlider_Released(self):
         if self.timeStep_Slider.value() in self.timeSteps:
-            self.MakePlots()
+            self.MakeRender()
         else:
             val = self.timeStep_Slider.value()
             closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
@@ -97,7 +95,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
                 self.timeStep_Slider.setValue(closestHigher)
             else:
                 self.timeStep_Slider.setValue(closestLower)
-            self.MakePlots()
+            self.MakeRender()
             
     def TimeStepSlider_ValueChanged(self):
         self.timeStep_LineEdit.setText(str(self.timeStep_Slider.value()))
@@ -107,77 +105,57 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
         if currentIndex < len(self.timeSteps)-1:
             self.timeStep_Slider.setValue(self.timeSteps[currentIndex + 1])
-        self.MakePlots()
+        self.MakeRender()
         
     def PrevButton_Clicked(self):
         currentTimeStep = self.timeStep_Slider.value()
         currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
         if currentIndex > 0:
             self.timeStep_Slider.setValue(self.timeSteps[currentIndex - 1])
-        self.MakePlots()
+        self.MakeRender()
 
     def RenderButton_Clicked(self):
-        self.MakePlots()
+        self.MakeRender()
         	
     def AddToRenderButton_Clicked(self):
-        #self.dataContainer.SetSelectedSpeciesFields()
-        #self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
-        field = self.visualizer3Dvtk.GetVolumeField("Charge density", "plasma")
-        field.SetColorPoints([0, 1, 0, 0, 100, 1, 0, 0, 255, 1, 0, 0])
-        field.SetOpacityPoints([0, 1, 255, 1])
-        self.visualizer3Dvtk.UpdateRender()
+        model = self.availableFields_listView.model()
+        for index in range(model.rowCount()):
+            item = model.item(index)
+            if item.checkState() == QtCore.Qt.Checked:
+                text = item.text()
+                fieldName = text.split(" [")[0]
+                speciesName = text.split(" [")[1][:-1]
+                if self.visualizer3Dvtk.AddVolumeField(fieldName, speciesName):
+                    wid = VolumeVTKItem(self.visualizer3Dvtk.GetVolumeField(fieldName, speciesName), self)
+                    wid2 = QtWidgets.QListWidgetItem()
+                    wid2.setSizeHint(QtCore.QSize(100, 40))
+                    self.fieldsToRender_listWidget.addItem(wid2)
+                    self.fieldsToRender_listWidget.setItemWidget(wid2, wid)
+        self.SetTimeSteps()
+        #field = self.visualizer3Dvtk.GetVolumeField("Charge density", "plasma")
+        #field.SetColorPoints([0, 1, 0, 0, 100, 1, 0, 0, 255, 1, 0, 0])
+        #field.SetOpacityPoints([0, 1, 255, 1])
+        #self.visualizer3Dvtk.UpdateRender()
 
     """
     Called from UI event handlers
     """
-    def Item_Changed(self,item):
-        # If the item is checked, add the species to the list of selected species
-        if item.checkState():
-            self.dataContainer.AddSelectedSpecies(item.text())
-        else:
-            self.dataContainer.RemoveSelectedSpecies(item.text())
-        self.avSpeciesFields_comboBox.clear()
-        self.avSpeciesFields_comboBox.addItems(self.dataContainer.GetCommonlyAvailableFields())
-    
     def ClearData(self):
-        self.rows_spinBox.setValue(1)
-        self.columns_spinBox.setValue(1)
         self.fieldsToRender_listWidget.clear()
-        self.currentAxesFieldsToPlot[:] = []
-        self.subplotList[:] = []
+        self.volumeList[:] = []
         
-    def MakePlots(self):
-        self.visualizer3Dvtk.AddVolumeField("Charge density", "plasma")
+    def MakeRender(self):
         self.visualizer3Dvtk.MakeRender(26)
 
-    def RemoveSubplot(self, item):
-        index = self.subplotList.index(item.subplot)
-        self.subplotList.remove(item.subplot)
-        self.fieldsToRender_listWidget.takeItem(index)
-        for subplot in self.subplotList:
-            if subplot.GetPosition() > index+1:
-                subplot.SetPosition(subplot.GetPosition()-1)
-        rows = self.rows_spinBox.value()
-        columns = self.columns_spinBox.value()
-        if len(self.subplotList) > 0:
-            if self.increaseRowsColumnsCounter % 2 == 0:
-                if len(self.subplotList) <= rows*(columns-1):
-                    self.DecreaseColumns()
-                    self.increaseRowsColumnsCounter -= 1
-            else:
-                if len(self.subplotList) <= (rows-1)*columns:
-                    self.DecreaseRows()
-                    self.increaseRowsColumnsCounter -= 1
+    def RemoveField(self, item):
+        self.visualizer3Dvtk.RemoveVolume(item.volume)
+        for i in np.arange(0, self.fieldsToRender_listWidget.count()):
+            if item == self.fieldsToRender_listWidget.itemWidget(self.fieldsToRender_listWidget.item(i)):
+                self.fieldsToRender_listWidget.takeItem(i)
         self.SetTimeSteps()
 
     def SetTimeSteps(self):
-        i = 0
-        for subplot in self.subplotList:
-            if i == 0:
-                self.timeSteps = subplot.GetTimeSteps()
-            else :
-                self.timeSteps = np.intersect1d(self.timeSteps, subplot.GetTimeSteps())
-            i+=1
+        self.timeSteps = self.visualizer3Dvtk.GetTimeSteps()
         minTime = min(self.timeSteps)
         maxTime = max(self.timeSteps)
         self.timeStep_Slider.setMinimum(minTime)
