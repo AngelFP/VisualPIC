@@ -18,6 +18,7 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from VisualPIC.Views.editVolumeVTKWindow import EditVolumeVTKWindow
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -76,12 +77,12 @@ class VolumeVTKItem(QtWidgets.QWidget):
         self.deleteButton.clicked.connect(self.deleteButton_Clicked)
         
     def editButton_Clicked(self):
-        #self.EditWindow = EditPlotWindowSelector.GetEditPlotWindow(self.subplot, self.plotterMethod, self.mainWindow)
-        #self.EditWindow.show()
+        self.EditWindow = EditVolumeVTKWindow(self.volume, self.mainWindow)
+        self.EditWindow.show()
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.EditWindow.width()) / 2;
         y = (screenGeometry.height()-self.EditWindow.height()) / 2;
-        #self.EditWindow.move(x, y);
+        self.EditWindow.move(x, y);
         
     def deleteButton_Clicked(self):
         self.mainWindow.RemoveField(self)
