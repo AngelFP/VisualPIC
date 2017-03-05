@@ -1,4 +1,4 @@
-# Code from: http://stackoverflow.com/questions/21654008/matplotlib-drag-overlapping-points-interactively
+# Code based on: http://stackoverflow.com/questions/21654008/matplotlib-drag-overlapping-points-interactively
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse

@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import h5py
+
 import numpy as np
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -43,7 +43,7 @@ class VolumeVTK():
         self.opacity.AddPoint(255/10*7, 0.1)
         self.opacity.AddPoint(255/10*8, 0.1)
         self.opacity.AddPoint(255/10*9, 0.1)
-        self.opacity.AddPoint(255, 1)
+        self.opacity.AddPoint(255, 0.1)
         
         self.color.AddRGBPoint(0.0,0, 0, 1)
         self.color.AddRGBPoint(100, 1.000,0, 0)

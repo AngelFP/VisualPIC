@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import h5py
+
 import os
 import sys
 from PyQt5.uic import loadUiType
