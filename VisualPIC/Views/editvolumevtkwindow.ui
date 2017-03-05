@@ -25,7 +25,9 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QWidget" name="opacityWidget" native="true"/>
+        <widget class="QWidget" name="opacityWidget" native="true">
+         <layout class="QHBoxLayout" name="opacityWidgetLayout"/>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -35,7 +37,9 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QWidget" name="colorsWidget" native="true"/>
+        <widget class="QWidget" name="colorsWidget" native="true">
+         <layout class="QHBoxLayout" name="colorsWidgetLayout"/>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -47,7 +51,10 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Ok</set>
+     </property>
+     <property name="centerButtons">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
