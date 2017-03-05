@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -21,8 +21,12 @@ import sys
 import os
 
 from PyQt5.uic import loadUiType
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QDialogButtonBox
+import matplotlib.patches as patches
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas)
+
+from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
 
 
 if getattr(sys, 'frozen', False):
@@ -40,3 +44,27 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.setupUi(self)
         self.mainWindow = parent
         self.volume = volume
+        self.RegisterUIEvents()
+        self.CreateCanvasAndFigure()
+
+    def CreateCanvasAndFigure(self):
+        self.opacityFigure = FigureWithPoints()
+        self.opacityFigure.patch.set_facecolor("white")
+        self.opacityCanvas = FigureCanvas(self.opacityFigure)
+        self.opacityWidgetLayout.addWidget(self.opacityCanvas)
+        self.opacityCanvas.draw()
+        self.colorsFigure = FigureWithPoints()
+        self.colorsFigure.patch.set_facecolor("white")
+        self.colorsCanvas = FigureCanvas(self.colorsFigure)
+        self.colorsWidgetLayout.addWidget(self.colorsCanvas)
+        self.colorsCanvas.draw()
+        
+        points = self.volume.GetOpacityValues()
+        self.opacityFigure.AddPoints(points)
+
+    def RegisterUIEvents(self):
+        self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
+
+    def UpdateVolumeProperties(self):
+        self.volume.SetOpacityValues(self.opacityFigure.GetPoints())
+        self.mainWindow.UpdateRender()

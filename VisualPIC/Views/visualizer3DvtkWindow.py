@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import h5py
 import os
 import sys
 from PyQt5.uic import loadUiType
@@ -53,7 +53,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.FillUIWithData()
         
     def CreateVTKWidget(self):
-        self.plotWidget_layout.addWidget(self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget))
+        self.vtkwidget = self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget)
+        self.plotWidget_layout.addWidget(self.vtkwidget)
     
     def RegisterUIEvents(self):
         self.addToRender_Button.clicked.connect(self.AddToRenderButton_Clicked)
@@ -64,10 +65,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
 
     def FillUIWithData(self):
-        #self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
         self.FillAvailable3DFieldsList()
-        #self.SetSelectedDomainField()
-        #self.SetSelectedSpeciesField()
 
     def FillAvailable3DFieldsList(self):
         model = QtGui.QStandardItemModel()
@@ -80,6 +78,9 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             item.setCheckable(True)
             model.appendRow(item)
         self.availableFields_listView.setModel(model)
+
+    def UpdateRender(self):
+        self.visualizer3Dvtk.UpdateRender()
 
     """
     UI event handlers
@@ -132,10 +133,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
                     self.fieldsToRender_listWidget.addItem(wid2)
                     self.fieldsToRender_listWidget.setItemWidget(wid2, wid)
         self.SetTimeSteps()
-        #field = self.visualizer3Dvtk.GetVolumeField("Charge density", "plasma")
-        #field.SetColorPoints([0, 1, 0, 0, 100, 1, 0, 0, 255, 1, 0, 0])
-        #field.SetOpacityPoints([0, 1, 255, 1])
-        #self.visualizer3Dvtk.UpdateRender()
 
     """
     Called from UI event handlers
@@ -145,7 +142,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.volumeList[:] = []
         
     def MakeRender(self):
-        self.visualizer3Dvtk.MakeRender(26)
+        timeStep = self.timeStep_Slider.value()
+        self.visualizer3Dvtk.MakeRender(timeStep)
 
     def RemoveField(self, item):
         self.visualizer3Dvtk.RemoveVolume(item.volume)
