@@ -99,7 +99,10 @@ class VolumeVTK():
         self.color.AddRGBPoint(255, 1, 00, 0)
 
     def GetData(self, timeStep):
-        fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
+        if self.field.GetFieldDimension() == "3D":
+            fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
+        if self.field.GetFieldDimension() == "2D":
+            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep))
         maxvalue = np.amax(fieldData)
 
         den1 = 255.0/maxvalue
