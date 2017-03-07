@@ -71,6 +71,22 @@ class FolderField(FolderDataElement):
 
     def GetAllFieldDataInOriginalUnits(self, timeStep):
         return  self.dataReader.GetAllFieldData(timeStep)
+
+    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep):
+        field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
+        nx = field2D.shape[0]
+        field2D = field2D[0:int(nx/2+1)] # we get only half
+        cilShape = field2D.shape
+        field3D = np.zeros([cilShape[0]*2, cilShape[0]*2, cilShape[1]])
+        for i in range(0, field3D.shape[0]-1):
+            for j in range(0, field3D.shape[1]-1):
+                for k in range(0, field3D.shape[2]-1):
+                    r = abs(cilShape[0] - round(np.sqrt(i^2 +j^2)))
+                    if r>cilShape[0]:
+                        field3D[i,j,k] = 0
+                    else:
+                        field3D[i,j,k] = field2D[r,k]
+        return field3D
     
     """
     Get data in any units
