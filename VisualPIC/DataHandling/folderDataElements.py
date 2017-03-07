@@ -76,7 +76,7 @@ class FolderField(FolderDataElement):
     def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep):
         field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
         nx = field2D.shape[0]
-        field2D = field2D[0:int(nx/2)] # we get only half
+        field2D = field2D[int(nx/2):nx] # we get only half
         cilShape = field2D.shape
         #field3D = np.zeros([cilShape[0]*2, cilShape[0]*2, cilShape[1]])
         #for i in range(0, field3D.shape[0]-1):
@@ -87,14 +87,14 @@ class FolderField(FolderDataElement):
         #                field3D[i,j,k] = 0
         #            else:
         #                field3D[i,j,k] = field2D[r,k]
-        Zin,Rin = np.mgrid[0:cilShape[0], 0:cilShape[1]] # cyl. coordinates of original data
+        Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] # cyl. coordinates of original data
         Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])
         Rin = np.reshape(Rin, Rin.shape[0]*Rin.shape[1])
         field2D = np.reshape(field2D, field2D.shape[0]*field2D.shape[1])
-        X, Y, Z = np.mgrid[-cilShape[0]:cilShape[0]:10,-cilShape[0]:cilShape[0]:10,0:cilShape[1]:10] # cart. coordinates of 3D field
+        X, Y, Z = np.mgrid[-cilShape[0]:cilShape[0]:2,-cilShape[0]:cilShape[0]:2,0:cilShape[1]:10] # cart. coordinates of 3D field
         Rout = np.sqrt(X**2 + Y**2)
         field3D = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z))
-        return field3D
+        return np.nan_to_num(field3D)
     
     """
     Get data in any units
