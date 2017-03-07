@@ -124,8 +124,12 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             item = model.item(index)
             if item.checkState() == QtCore.Qt.Checked:
                 text = item.text()
-                fieldName = text.split(" [")[0]
-                speciesName = text.split(" [")[1][:-1]
+                if "[" in text:
+                    fieldName = text.split(" [")[0]
+                    speciesName = text.split(" [")[1][:-1]
+                else:
+                    fieldName = text
+                    speciesName = ""
                 if self.visualizer3Dvtk.AddVolumeField(fieldName, speciesName):
                     wid = VolumeVTKItem(self.visualizer3Dvtk.GetVolumeField(fieldName, speciesName), self)
                     wid2 = QtWidgets.QListWidgetItem()
