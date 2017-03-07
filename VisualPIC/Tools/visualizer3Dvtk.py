@@ -140,11 +140,11 @@ class Visualizer3Dvtk():
         domainFields = self.dataContainer.GetAvailableDomainFields()
         for species in speciesList:
             for field in species.GetAvailableFields():
-                if field.GetFieldDimension() == "3D":
-                    self.availableFields.append(field)
-        for field in domainFields:
-            if field.GetFieldDimension() == "3D":
+                #if field.GetFieldDimension() == "3D":
                 self.availableFields.append(field)
+        for field in domainFields:
+            #if field.GetFieldDimension() == "3D":
+            self.availableFields.append(field)
 
     def GetListOfAvailable3DFields(self):
         namesList = list()
