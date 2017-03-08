@@ -40,6 +40,7 @@ os.sys.path.insert(0,parentdir)
 if platform.system() == 'Windows':
     myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    ctypes.windll.user32.SetProcessDPIAware() 
 
  
 if __name__ == '__main__':
