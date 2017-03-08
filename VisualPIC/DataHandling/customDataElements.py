@@ -116,7 +116,7 @@ class CustomField(CustomDataElement):
     def GetAllFieldDataInOriginalUnits(self, timeStep):
         return self.CalculateField(timeStep)
 
-    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep):
+    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl):
         field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
         nx = field2D.shape[0]
         field2D = field2D[int(nx/2):nx] # we get only half
@@ -125,7 +125,9 @@ class CustomField(CustomDataElement):
         Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])
         Rin = np.reshape(Rin, Rin.shape[0]*Rin.shape[1])
         field2D = np.reshape(field2D, field2D.shape[0]*field2D.shape[1])
-        X, Y, Z = np.mgrid[-cilShape[0]:cilShape[0]:2,-cilShape[0]:cilShape[0]:2,0:cilShape[1]:10] # cart. coordinates of 3D field
+        transvSpacing = cilShape[0]*2/transvEl
+        lonSpacing = cilShape[1]/longEl
+        X, Y, Z = np.mgrid[-cilShape[0]:cilShape[0]:transvSpacing,-cilShape[0]:cilShape[0]:transvSpacing,0:cilShape[1]:lonSpacing] # cart. coordinates of 3D field
         Rout = np.sqrt(X**2 + Y**2)
         field3D = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z))
         return np.nan_to_num(field3D)

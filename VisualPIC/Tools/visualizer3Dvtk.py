@@ -98,11 +98,11 @@ class VolumeVTK():
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 1, 00, 0)
 
-    def GetData(self, timeStep):
+    def GetData(self, timeStep, transvEl = None, longEl = None):
         if self.field.GetFieldDimension() == "3D":
             fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
         if self.field.GetFieldDimension() == "2D":
-            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep))
+            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl))
         maxvalue = np.amax(fieldData)
 
         den1 = 255.0/maxvalue
@@ -116,19 +116,28 @@ class VolumeVTK():
 
     def GetAxes(self, timeStep):
         axes = {}
-        axes["z"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
+        if self.field.GetFieldDimension() == "3D":
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+        if self.field.GetFieldDimension() == "2D":
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
         axes["y"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axes["x"] = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
         return axes
 
-    def GetAxesSpacing(self, timeStep):
+    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None):
         spacing = {}
-        axesz = self.field.GetAxisDataInOriginalUnits("x", timeStep)
+        axesx = self.field.GetAxisDataInOriginalUnits("x", timeStep)
         axesy = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axesx = self.field.GetAxisDataInOriginalUnits("z", timeStep)
-        spacing["x"] = np.abs(axesx[1]-axesx[0])
-        spacing["y"] = np.abs(axesy[1]-axesy[0])
-        spacing["z"] = np.abs(axesz[1]-axesz[0])
+        if self.field.GetFieldDimension() == "3D":
+            axesz = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+            spacing["x"] = np.abs(axesx[1]-axesx[0])
+            spacing["y"] = np.abs(axesy[1]-axesy[0])
+            spacing["z"] = np.abs(axesz[1]-axesz[0])
+        if self.field.GetFieldDimension() == "2D":
+            axesz = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+            spacing["x"] = np.abs(axesx[-1]-axesx[0])/longEl
+            spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl
+            spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl
         return spacing
 
 class Visualizer3Dvtk():
@@ -174,10 +183,13 @@ class Visualizer3Dvtk():
         self.interactor.Initialize()
         return self.vtkWidget
 
-    def AddVolumeField(self, fieldName, speciesName = None):
-        if speciesName == None:
-            # TODO: implement domain fields
-            return False
+    def AddVolumeField(self, fieldName, speciesName):
+        if speciesName == "":
+            for volume in self.volumeList:
+                if (volume.GetFieldName() == fieldName):
+                    return False
+            self.volumeList.append(VolumeVTK(self.dataContainer.GetDomainField(fieldName)))
+            return True
         else:
             for volume in self.volumeList:
                 if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
@@ -206,13 +218,13 @@ class Visualizer3Dvtk():
         volumeprop.IndependentComponentsOn()
         volumeprop.SetInterpolationTypeToLinear()
         for i, volume in enumerate(self.volumeList):
-            npdatauchar.append(volume.GetData(timeStep))
+            npdatauchar.append(volume.GetData(timeStep, 250, 500)) # limit on elements only applies for 2d case
             volumeprop.SetColor(i,volume.color)
             volumeprop.SetScalarOpacity(i,volume.opacity)
             volumeprop.ShadeOff(i)
         npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)
-        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep)
+        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 250, 500) # limit on elements only applies for 2d case
         # Put data in VTK format
         dataImport = vtk.vtkImageImport()
         dataImport.SetImportVoidPointer(npdatamulti)
@@ -220,8 +232,8 @@ class Visualizer3Dvtk():
         dataImport.SetNumberOfScalarComponents(len(self.volumeList))
         dataImport.SetDataExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
         dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
-        dataImport.SetDataSpacing(axesSpacing["z"],axesSpacing["y"],axesSpacing["x"])
-        dataImport.SetDataOrigin(axes["z"][0],axes["y"][0],axes["x"][0])
+        dataImport.SetDataSpacing(axesSpacing["x"],axesSpacing["y"],axesSpacing["z"])
+        dataImport.SetDataOrigin(axes["x"][0],axes["y"][0],axes["z"][0])
         dataImport.Update()
         # Set the mapper
         mapper = vtk.vtkGPUVolumeRayCastMapper()
