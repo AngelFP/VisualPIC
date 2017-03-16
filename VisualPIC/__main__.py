@@ -41,6 +41,8 @@ if platform.system() == 'Windows':
     myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ctypes.windll.user32.SetProcessDPIAware() 
+    #shcore = ctypes.windll.LoadLibrary("Shcore.dll") 
+    #shcore.SetProcessDpiAwareness(0) 
 
  
 if __name__ == '__main__':
