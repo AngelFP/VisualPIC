@@ -101,11 +101,11 @@ class FolderField(FolderDataElement):
         field3D = np.zeros((transvEl, transvEl, longEl))
         X, Y, Z = np.mgrid[0:cilShape[0]:transvSpacing,0:cilShape[0]:transvSpacing,0:cilShape[1]:lonSpacing] # cart. coordinates of 3D field
         Rout = np.sqrt(X**2 + Y**2)
-        field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1] = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z)) # top right section when looking back from z to the x-y plane.
+        field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1] = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z), method='nearest', fill_value = 0) # top right section when looking back from z to the x-y plane.
         field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1] = np.flip(field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1], 0)
         field3D[0:int(transvEl/2),0:int(transvEl/2)] = np.flip(field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1], 1)
         field3D[int(transvEl/2):transvEl+1,0:int(transvEl/2)] = np.flip(field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1], 1)
-        return np.nan_to_num(field3D)
+        return field3D
     
     """
     Get data in any units
