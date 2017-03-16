@@ -74,20 +74,6 @@ class FolderField(FolderDataElement):
         return  self.dataReader.GetAllFieldData(timeStep)
 
     def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl):
-        #field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
-        #nx = field2D.shape[0]
-        #field2D = field2D[int(nx/2):nx] # we get only half
-        #cilShape = field2D.shape
-        #Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] # cyl. coordinates of original data
-        #Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])
-        #Rin = np.reshape(Rin, Rin.shape[0]*Rin.shape[1])
-        #field2D = np.reshape(field2D, field2D.shape[0]*field2D.shape[1])
-        #transvSpacing = cilShape[0]*2/transvEl
-        #lonSpacing = cilShape[1]/longEl
-        #X, Y, Z = np.mgrid[-cilShape[0]:cilShape[0]:transvSpacing,-cilShape[0]:cilShape[0]:transvSpacing,0:cilShape[1]:lonSpacing] # cart. coordinates of 3D field
-        #Rout = np.sqrt(X**2 + Y**2)
-        #field3D = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z))
-        #return np.nan_to_num(field3D)
         field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
         nx = field2D.shape[0]
         field2D = field2D[int(nx/2):nx] # we get only half
@@ -101,6 +87,7 @@ class FolderField(FolderDataElement):
         field3D = np.zeros((transvEl, transvEl, longEl))
         X, Y, Z = np.mgrid[0:cilShape[0]:transvSpacing,0:cilShape[0]:transvSpacing,0:cilShape[1]:lonSpacing] # cart. coordinates of 3D field
         Rout = np.sqrt(X**2 + Y**2)
+        # Fill the field sector by sector (only the first has to be calculated. The rest are simlpy mirrored)
         field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1] = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z), method='nearest', fill_value = 0) # top right section when looking back from z to the x-y plane.
         field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1] = np.flip(field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1], 0)
         field3D[0:int(transvEl/2),0:int(transvEl/2)] = np.flip(field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1], 1)
