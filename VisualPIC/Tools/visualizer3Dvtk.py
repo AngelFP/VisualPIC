@@ -145,6 +145,7 @@ class Visualizer3Dvtk():
         self.dataContainer = dataContainer
         self._GetAvailable3DFields()
         self.volumeList = list()
+        self.volume = None
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -213,6 +214,7 @@ class Visualizer3Dvtk():
                 return volume
 
     def CreateVolume(self, timeStep):
+        firstTime = False
         # Get data
         npdatauchar = list()
         volumeprop = vtk.vtkVolumeProperty()
@@ -241,11 +243,15 @@ class Visualizer3Dvtk():
         mapper.SetAutoAdjustSampleDistances(1)
         mapper.SetInputConnection(dataImport.GetOutputPort())
         # Create volume
-        volume = vtk.vtkVolume()
-        volume.SetMapper(mapper)
-        volume.SetProperty(volumeprop)
+        if self.volume == None:
+            self.volume = vtk.vtkVolume()
+            firstTime = True
+        self.volume.SetMapper(mapper)
+        self.volume.SetProperty(volumeprop)
         # Add to render
-        self.renderer.AddVolume(volume)
+        if not firstTime:
+            self.renderer.RemoveVolume(self.volume)
+        self.renderer.AddVolume(self.volume)
         self.renderer.ResetCamera()
         self.interactor.Initialize()
 
