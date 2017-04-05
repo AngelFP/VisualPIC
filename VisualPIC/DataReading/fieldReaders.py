@@ -150,11 +150,11 @@ class OsirisFieldReader(FieldReaderBase):
         # TODO: add support for 3D fields
         file_content = self._OpenFile(timeStep)
         fieldData = file_content[self.internalName]
-        if fieldDimension == '2D':
+        if self.fieldDimension == '2D':
             elementsX = self.matrixShape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = np.array(fieldData[selectedRow])
-        elif fieldDimension == '3D':
+        elif self.fieldDimension == '3D':
             elementsX = self.matrixShape[-3]
             elementsY = self.matrixShape[-2]
             selectedX = round(elementsX*(float(slicePositionX)/100))
