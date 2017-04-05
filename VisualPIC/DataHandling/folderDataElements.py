@@ -64,8 +64,8 @@ class FolderField(FolderDataElement):
     """
     Get data in original units
     """
-    def Get1DSliceInOriginalUnits(self, slicePosition, timeStep):
-        return self.dataReader.Get1DSlice(slicePosition, timeStep)
+    def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX, slicePositionY = None):
+        return self.dataReader.Get1DSlice(timeStep, slicePositionX, slicePositionY)
 
     def Get2DSliceInOriginalUnits(self, sliceAxis, slicePosition, timeStep):
         return self.dataReader.Get2DSlice(sliceAxis, slicePosition, timeStep)
@@ -97,8 +97,8 @@ class FolderField(FolderDataElement):
     """
     Get data in any units
     """
-    def Get1DSlice(self, slicePosition, timeStep, units):
-        sliceData = self.dataReader.Get1DSlice(slicePosition, timeStep)
+    def Get1DSlice(self, timeStep, units, slicePositionX, slicePositionY = None):
+        sliceData = self.dataReader.Get1DSlice(timeStep, slicePositionX, slicePositionY)
         originalDataUnits = self.dataReader.GetDataUnits()
         return self._unitConverter.GetDataInUnits(self, units, sliceData)
 
@@ -115,8 +115,8 @@ class FolderField(FolderDataElement):
     """
     Get data in IS units
     """
-    def Get1DSliceISUnits(self, slicePosition, timeStep):
-        sliceData = self.dataReader.Get1DSlice(slicePosition, timeStep)
+    def Get1DSliceISUnits(self, timeStep, slicePositionX, slicePositionY = None):
+        sliceData = self.dataReader.Get1DSlice(timeStep, slicePositionX, slicePositionY)
         originalDataUnits = self.dataReader.GetDataUnits()
         return self._unitConverter.GetDataInISUnits(self, sliceData)
 

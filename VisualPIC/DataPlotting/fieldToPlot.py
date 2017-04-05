@@ -99,11 +99,11 @@ class FieldToPlot:
     def __GetAxisData(self, axis, timeStep):
         return self.__field.GetAxisInUnits( axis, self.GetProperty("axesUnits")[axis], timeStep)
             
-    def __Get1DSlice(self, slicePosition, timeStep):
+    def __Get1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
         # slice along the longitudinal axis
         # slicePosition has to be a double between 0 and 100
-        #this gives the position in the transverse axis as a %
-        fieldSlice = self.__field.Get1DSlice(slicePosition, timeStep, self.GetProperty("fieldUnits")) # Y data
+        #this gives the position in the transverse axis as a 
+        fieldSlice = self.__field.Get1DSlice(timeStep, self.GetProperty("fieldUnits"), slicePositionX, slicePositionY) # Y data
         return self.__GetAxisData("x", timeStep), fieldSlice
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
@@ -117,10 +117,12 @@ class FieldToPlot:
         if self.__fieldDimension == "3D":
             if self.__dataToPlotDimension == "2D":
                 return self.__Get2DSlice("z", 50, timeStep)
+            elif self.__dataToPlotDimension == "1D":
+                return self.__Get1DSlice(timeStep, 50, 50)
             else:
                 raise NotImplementedError
         elif self.__fieldDimension == "2D":
             if self.__dataToPlotDimension == "2D":
                 return self.__Get2DField(timeStep)
             elif self.__dataToPlotDimension == "1D":
-                return self.__Get1DSlice(50, timeStep)
+                return self.__Get1DSlice(timeStep, 50)

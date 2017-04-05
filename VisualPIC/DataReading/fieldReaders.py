@@ -42,11 +42,11 @@ class FieldReaderBase(DataReader):
         self.currentSlicePosition = {"Slice-1D":-1, "Slice-2D":-1}
         self._ReadBasicData()
 
-    def Get1DSlice(self, slicePosition, timeStep):
-        if (timeStep != self.currentTimeStep["Slice-1D"]) or (slicePosition != self.currentSlicePosition["Slice-1D"]):
+    def Get1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
+        if (timeStep != self.currentTimeStep["Slice-1D"]) or ((slicePositionX, slicePositionY) != self.currentSlicePosition["Slice-1D"]):
             self.currentTimeStep["Slice-1D"] = timeStep
-            self.currentSlicePosition["Slice-1D"] = slicePosition
-            self.data["Slice-1D"] = self._Read1DSlice(slicePosition, timeStep)
+            self.currentSlicePosition["Slice-1D"] = (slicePositionX, slicePositionY)
+            self.data["Slice-1D"] = self._Read1DSlice(timeStep, slicePositionX, slicePositionY)
         return self.data["Slice-1D"]
 
     def Get2DSlice(self, sliceAxis, slicePosition, timeStep):
@@ -103,7 +103,7 @@ class FieldReaderBase(DataReader):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _Read1DSlice(self, slicePosition, timeStep):
+    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -146,13 +146,20 @@ class OsirisFieldReader(FieldReaderBase):
         else:
             self.fieldDimension = "2D"
 
-    def _Read1DSlice(self, slicePosition, timeStep):
+    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
         # TODO: add support for 3D fields
         file_content = self._OpenFile(timeStep)
         fieldData = file_content[self.internalName]
-        elementsY = self.matrixShape[-2]
-        selectedRow = round(elementsY*(float(slicePosition)/100))
-        sliceData = np.array(fieldData[selectedRow])
+        if fieldDimension == '2D':
+            elementsX = self.matrixShape[-2]
+            selectedRow = round(elementsX*(float(slicePositionX)/100))
+            sliceData = np.array(fieldData[selectedRow])
+        elif fieldDimension == '3D':
+            elementsX = self.matrixShape[-3]
+            elementsY = self.matrixShape[-2]
+            selectedX = round(elementsX*(float(slicePositionX)/100))
+            selectedY = round(elementsY*(float(slicePositionY)/100))
+            sliceData = np.array(fieldData[selectedX, selectedY])
         file_content.close()
         return sliceData
 

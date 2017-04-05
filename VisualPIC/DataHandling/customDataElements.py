@@ -99,11 +99,18 @@ class CustomField(CustomDataElement):
     """
     Get data in original units
     """
-    def Get1DSliceInOriginalUnits(self, slicePosition, timeStep):
+    def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        elementsY = fieldData.shape[-2]
-        selectedRow = round(elementsY*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
+        if GetFieldDimension() == '2D':
+            elementsX = fieldData.shape[-2]
+            selectedRow = round(elementsX*(float(slicePositionX)/100))
+            sliceData = fieldData[selectedRow]
+        elif GetFieldDimension() == '3D':
+            elementsX = fieldData.shape[-3]
+            elementsY = fieldData.shape[-2]
+            selectedX = round(elementsX*(float(slicePositionX)/100))
+            selectedY = round(elementsY*(float(slicePositionY)/100))
+            sliceData = fieldData[selectedX, selectedY]
         return sliceData
 
     def Get2DSliceInOriginalUnits(self, sliceAxis, slicePosition, timeStep):
@@ -140,11 +147,18 @@ class CustomField(CustomDataElement):
     """
     Get data in any units
     """
-    def Get1DSlice(self, slicePosition, timeStep, units):
+    def Get1DSlice(self, timeStep, units, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        elementsY = fieldData.shape[-2]
-        selectedRow = round(elementsY*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
+        if GetFieldDimension() == '2D':
+            elementsX = fieldData.shape[-2]
+            selectedRow = round(elementsX*(float(slicePositionX)/100))
+            sliceData = fieldData[selectedRow]
+        elif GetFieldDimension() == '3D':
+            elementsX = fieldData.shape[-3]
+            elementsY = fieldData.shape[-2]
+            selectedX = round(elementsX*(float(slicePositionX)/100))
+            selectedY = round(elementsY*(float(slicePositionY)/100))
+            sliceData = fieldData[selectedX, selectedY]
         return self._unitConverter.GetDataInUnits(self, units, sliceData)
 
     def Get2DSlice(self, sliceAxis, slicePosition, timeStep, units):
@@ -161,11 +175,18 @@ class CustomField(CustomDataElement):
     """
     Get data in IS units
     """
-    def Get1DSliceISUnits(self, slicePosition, timeStep):
+    def Get1DSliceISUnits(self, timeStep, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        elementsY = fieldData.shape[-2]
-        selectedRow = round(elementsY*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
+        if GetFieldDimension() == '2D':
+            elementsX = fieldData.shape[-2]
+            selectedRow = round(elementsX*(float(slicePositionX)/100))
+            sliceData = fieldData[selectedRow]
+        elif GetFieldDimension() == '3D':
+            elementsX = fieldData.shape[-3]
+            elementsY = fieldData.shape[-2]
+            selectedX = round(elementsX*(float(slicePositionX)/100))
+            selectedY = round(elementsY*(float(slicePositionY)/100))
+            sliceData = fieldData[selectedX, selectedY]
         return self._unitConverter.GetDataInISUnits(self, sliceData)
 
     def Get2DSliceISUnits(self, sliceAxis, slicePosition, timeStep):
