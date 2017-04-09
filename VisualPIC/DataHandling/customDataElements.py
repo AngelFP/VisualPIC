@@ -101,11 +101,11 @@ class CustomField(CustomDataElement):
     """
     def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        if GetFieldDimension() == '2D':
+        if self.GetFieldDimension() == '2D':
             elementsX = fieldData.shape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = fieldData[selectedRow]
-        elif GetFieldDimension() == '3D':
+        elif self.GetFieldDimension() == '3D':
             elementsX = fieldData.shape[-3]
             elementsY = fieldData.shape[-2]
             selectedX = round(elementsX*(float(slicePositionX)/100))
@@ -149,11 +149,11 @@ class CustomField(CustomDataElement):
     """
     def Get1DSlice(self, timeStep, units, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        if GetFieldDimension() == '2D':
+        if self.GetFieldDimension() == '2D':
             elementsX = fieldData.shape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = fieldData[selectedRow]
-        elif GetFieldDimension() == '3D':
+        elif self.GetFieldDimension() == '3D':
             elementsX = fieldData.shape[-3]
             elementsY = fieldData.shape[-2]
             selectedX = round(elementsX*(float(slicePositionX)/100))
@@ -177,11 +177,11 @@ class CustomField(CustomDataElement):
     """
     def Get1DSliceISUnits(self, timeStep, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        if GetFieldDimension() == '2D':
+        if self.GetFieldDimension() == '2D':
             elementsX = fieldData.shape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = fieldData[selectedRow]
-        elif GetFieldDimension() == '3D':
+        elif self.GetFieldDimension() == '3D':
             elementsX = fieldData.shape[-3]
             elementsY = fieldData.shape[-2]
             selectedX = round(elementsX*(float(slicePositionX)/100))
