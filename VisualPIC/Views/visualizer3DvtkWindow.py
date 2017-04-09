@@ -63,6 +63,11 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
+        self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
+
+
+    def ScreenshotButton_Clicked(self):
+        self.visualizer3Dvtk.TakeScreenshot()
 
     def FillUIWithData(self):
         self.FillAvailable3DFieldsList()
