@@ -263,11 +263,11 @@ class Visualizer3Dvtk():
 
     def TakeScreenshot(self):
         w2if = vtk.vtkWindowToImageFilter()
-        w2if.SetInput(self.vtkWidget)
+        w2if.SetInput(self.vtkWidget.GetRenderWindow())
         w2if.Update()
  
         writer = vtk.vtkPNGWriter()
         writer.SetFileName("screenshot.png")
-        writer.SetInput(w2if.GetOutput())
+        writer.SetInputData(w2if.GetOutput())
         writer.Write()
 
