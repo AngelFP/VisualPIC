@@ -146,6 +146,7 @@ class Visualizer3Dvtk():
         self._GetAvailable3DFields()
         self.volumeList = list()
         self.volume = None
+        self.volumeMapper = None
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -183,6 +184,7 @@ class Visualizer3Dvtk():
         self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
+        self.vtkCamera = self.renderer.GetActiveCamera()
         return self.vtkWidget
 
     def AddVolumeField(self, fieldName, speciesName):
@@ -239,21 +241,31 @@ class Visualizer3Dvtk():
         dataImport.SetDataOrigin(axes["x"][0],axes["y"][0],axes["z"][0])
         dataImport.Update()
         # Set the mapper
-        mapper = vtk.vtkGPUVolumeRayCastMapper()
-        mapper.SetAutoAdjustSampleDistances(1)
-        mapper.SetInputConnection(dataImport.GetOutputPort())
+        if self.volumeMapper == None:
+            self.volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+        self.volumeMapper.SetAutoAdjustSampleDistances(1)
+        self.volumeMapper.SetInputConnection(dataImport.GetOutputPort())
+        self.volumeMapper.Update()
         # Create volume
         if self.volume == None:
             self.volume = vtk.vtkVolume()
             firstTime = True
-        self.volume.SetMapper(mapper)
-        self.volume.SetProperty(volumeprop)
+            self.volume.SetMapper(self.volumeMapper)
+            self.volume.SetProperty(volumeprop)
         # Add to render
-        if not firstTime:
-            self.renderer.RemoveVolume(self.volume)
-        self.renderer.AddVolume(self.volume)
+        if firstTime:
+            self.renderer.AddVolume(self.volume)
+        else:
+            self.volume.Modified()
+        #if firstTime:
         self.renderer.ResetCamera()
+        self.initialCameraPosition = np.array(self.vtkCamera.GetPosition())
+        self.initialDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
         self.interactor.Initialize()
+        #else:
+        #    newDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
+        #    newCameraPosition = newDataOrigin - self.initialDataOrigin + self.initialCameraPosition
+        #    #self.vtkCamera.SetPosition(newCameraPosition[0],newCameraPosition[1],newCameraPosition[2])
 
     def MakeRender(self, timeStep):
         self.CreateVolume(timeStep)
