@@ -53,8 +53,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.FillUIWithData()
         
     def CreateVTKWidget(self):
-        self.vtkwidget = self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget)
-        self.plotWidget_layout.addWidget(self.vtkwidget)
+        self.vtkWidget = self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget)
+        self.plotWidget_layout.addWidget(self.vtkWidget)
     
     def RegisterUIEvents(self):
         self.addToRender_Button.clicked.connect(self.AddToRenderButton_Clicked)
