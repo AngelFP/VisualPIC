@@ -30,6 +30,7 @@ class VolumeVTK():
         self.field = field3D
         self.opacity = vtk.vtkPiecewiseFunction()
         self.color = vtk.vtkColorTransferFunction()
+        self.normalizationFactor = None
         self._SetDefaultStyle()
 
     def _SetDefaultStyle(self):
@@ -76,6 +77,17 @@ class VolumeVTK():
             self.opacity.AddPoint(point[0], point[1])
             #self.SetOpacityValue(i, point[0], point[1])
 
+    def SetNormalizationValueFromCurrentMaximum(self, timeStep):
+        if self.field.GetFieldDimension() == "3D":
+            fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
+        if self.field.GetFieldDimension() == "2D":
+            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl))
+        if self.normalizationFactor == None:
+            self.normalizationFactor = np.amax(fieldData)
+
+    def SetNormalizationFactor(self, value):
+        self.normalizationFactor = value
+
     def GetOpacityValues(self):
         values = list()
         size = self.opacity.GetSize()
@@ -103,8 +115,10 @@ class VolumeVTK():
             fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
         if self.field.GetFieldDimension() == "2D":
             fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl))
-        maxvalue = np.amax(fieldData)
-
+        if self.normalizationFactor == None:
+            maxvalue = np.amax(fieldData)
+        else:
+            maxvalue = self.normalizationFactor
         den1 = 255.0/maxvalue
         fieldData = np.round(den1 * fieldData)
         maxvalue = np.amax(fieldData)
@@ -257,15 +271,18 @@ class Visualizer3Dvtk():
             self.renderer.AddVolume(self.volume)
         else:
             self.volume.Modified()
-        #if firstTime:
-        self.renderer.ResetCamera()
-        self.initialCameraPosition = np.array(self.vtkCamera.GetPosition())
-        self.initialDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
+        if firstTime:
+            self.renderer.ResetCamera()
+            self.renderer.GetRenderWindow().Render()
+        else:
+            #currentCameraPosition = np.array(self.renderer.GetActiveCamera().GetPosition())
+            #newDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
+            #newCameraPosition = newDataOrigin - self.pastDataOrigin + currentCameraPosition
+            self.renderer.ResetCamera()
+            #self.renderer.GetActiveCamera().SetPosition(newCameraPosition[0],newCameraPosition[1],newCameraPosition[2])
+            self.vtkWidget.GetRenderWindow().Render()
+        #self.pastDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
         self.interactor.Initialize()
-        #else:
-        #    newDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
-        #    newCameraPosition = newDataOrigin - self.initialDataOrigin + self.initialCameraPosition
-        #    #self.vtkCamera.SetPosition(newCameraPosition[0],newCameraPosition[1],newCameraPosition[2])
 
     def MakeRender(self, timeStep):
         self.CreateVolume(timeStep)
