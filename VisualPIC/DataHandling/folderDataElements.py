@@ -73,10 +73,15 @@ class FolderField(FolderDataElement):
     def GetAllFieldDataInOriginalUnits(self, timeStep):
         return  self.dataReader.GetAllFieldData(timeStep)
 
-    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl):
+    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl, fraction):
+        """
+            fraction: used to define the range of data we want to visualize in the transverse direction.
+                - fraction = 1 -> get all the data
+                - fraction = 0.5 -> get only from x=0 to x=x_max/2
+        """
         field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
         nx = field2D.shape[0]
-        field2D = field2D[int(nx/2):nx] # we get only half
+        field2D = field2D[int(nx/2):int(nx/2+nx/2*fraction)] # we get only half
         cilShape = field2D.shape
         Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] # cyl. coordinates of original data
         Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])

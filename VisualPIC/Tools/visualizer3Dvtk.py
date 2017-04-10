@@ -106,11 +106,11 @@ class VolumeVTK():
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 1, 00, 0)
 
-    def GetData(self, timeStep, transvEl = None, longEl = None):
+    def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         if self.field.GetFieldDimension() == "3D":
             fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
         if self.field.GetFieldDimension() == "2D":
-            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl))
+            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction))
         if self.normalizationFactor == None:
             maxvalue = np.amax(fieldData)
         else:
@@ -134,7 +134,7 @@ class VolumeVTK():
         axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
         return axes
 
-    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None):
+    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         spacing = {}
         axesx = self.field.GetAxisDataInOriginalUnits("x", timeStep)
         axesy = self.field.GetAxisDataInOriginalUnits("y", timeStep)
@@ -146,8 +146,8 @@ class VolumeVTK():
         if self.field.GetFieldDimension() == "2D":
             axesz = self.field.GetAxisDataInOriginalUnits("y", timeStep)
             spacing["x"] = np.abs(axesx[-1]-axesx[0])/longEl
-            spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl
-            spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl
+            spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl*fraction
+            spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl*fraction
         return spacing
 
 class Visualizer3Dvtk():
@@ -233,13 +233,13 @@ class Visualizer3Dvtk():
         volumeprop.IndependentComponentsOn()
         volumeprop.SetInterpolationTypeToLinear()
         for i, volume in enumerate(self.volumeList):
-            npdatauchar.append(volume.GetData(timeStep, 200, 100)) # limit on elements only applies for 2d case
+            npdatauchar.append(volume.GetData(timeStep, 200, 100, 0.5)) # limit on elements only applies for 2d case
             volumeprop.SetColor(i,volume.color)
             volumeprop.SetScalarOpacity(i,volume.opacity)
             volumeprop.ShadeOff(i)
         npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)
-        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 100) # limit on elements only applies for 2d case
+        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 100, 0.5) # limit on elements only applies for 2d case
         # Put data in VTK format
         dataImport = vtk.vtkImageImport()
         dataImport.SetImportVoidPointer(npdatamulti)
