@@ -157,7 +157,7 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
         self.label_8.setText("File name:")
         self.create_Button.setText("Create")
         self.browse_Button.setText("Browse")
-        self.saveTo_lineEdit.setText(str(self.mainWindow.folderLocation_lineEdit.text()) + "/Animation")
+        self.saveTo_lineEdit.setText(self.mainWindow.GetDataFolderLocation() + "/3D_Animation")
         self.fileName_lineEdit.setText("movie")
         self.onlySnaps_checkBox.setChecked(True)
         self.makeVideo_checkBox.setChecked(True)
@@ -188,15 +188,6 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
             self.totalTime_radioButton.setEnabled(False)
             self.gifTime_lineEdit.setEnabled(False)
 
-    # The animation function seems to be called twice sometimes for some reason, but the video is only created on the first run.
-    def init(self):
-        if not self.hasAlreadyRun:
-            self.isFirstRun = True
-            self.hasAlreadyRun = True
-            print("Creating animation...")
-        else:
-            print("Animation completed.")
-            self.isFirstRun = False
 
     def animation_function(self, step):
         if self.isFirstRun:
@@ -219,29 +210,15 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
         lastTimeStep = int(self.lastStep_lineEdit.text())
         lastIndex = np.where(simulationTimeSteps == lastTimeStep)[0][0]
         freq = int(self.frequency_lineEdit.text())
-        animDir = self.saveTo_lineEdit.text()
-        fileName = self.fileName_lineEdit.text() + ".mp4"
-        nameAndPath = animDir + "/" + fileName
-        if self.makeVideo_checkBox.isChecked():
-            # Calculate time between frames
-            if self.frameTime_radioButton.isChecked():
-                time = float(self.gifTime_lineEdit.text()) * 1000
-            else:
-                numberOfSteps = len(simulationTimeSteps[firstIndex:lastIndex+1:freq])
-                time = float(self.gifTime_lineEdit.text()) / numberOfSteps * 1000
-            # Make animation
-            ani = FuncAnimation(self.mainWindow.figure, self.animation_function, frames=simulationTimeSteps[firstIndex:lastIndex+1:freq], init_func=self.init, interval = time, repeat=False)
-            ani.save(nameAndPath)
-        else:
-            for i in simulationTimeSteps[firstIndex:lastIndex+1:freq]:
-                self.mainWindow.timeStep_Slider.setValue(i)
-                self.mainWindow.MakePlots()
-                movieName = self.fileName_lineEdit.text()
-                framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
-                frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(i).zfill(6)
-                if not os.path.exists(framesDir):
-                    os.makedirs(framesDir)
-                self.mainWindow.figure.savefig(frameNameAndPath)
+        for i in simulationTimeSteps[firstIndex:lastIndex+1:freq]:
+            self.mainWindow.timeStep_Slider.setValue(i)
+            self.mainWindow.MakeRender()
+            movieName = self.fileName_lineEdit.text()
+            framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
+            frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(i).zfill(6)
+            if not os.path.exists(framesDir):
+                os.makedirs(framesDir)
+            self.mainWindow.SaveScreenshot(frameNameAndPath)
 
 
 class InputFilter(QtCore.QObject):

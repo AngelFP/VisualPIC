@@ -29,6 +29,7 @@ from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.Tools.visualizer3Dvtk import Visualizer3Dvtk
 from VisualPIC.Controls.volumeVTKItem import VolumeVTKItem
+from VisualPIC.Views.createVTKAnimationWindow import CreateVTKAnimationWindow
 
 
 if getattr(sys, 'frozen', False):
@@ -67,7 +68,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
 
 
     def ScreenshotButton_Clicked(self):
-        self.visualizer3Dvtk.TakeScreenshot()
+        AnimationWindow = CreateVTKAnimationWindow(self)
+        AnimationWindow.exec_()
 
     def FillUIWithData(self):
         self.FillAvailable3DFieldsList()
@@ -170,3 +172,12 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         maxTime = max(self.timeSteps)
         self.timeStep_Slider.setMinimum(minTime)
         self.timeStep_Slider.setMaximum(maxTime)
+
+    """
+    Others
+    """
+    def GetDataFolderLocation(self):
+        return self.visualizer3Dvtk.dataContainer.GetDataFolderLocation()
+
+    def SaveScreenshot(self, path):
+        self.visualizer3Dvtk.SaveScreenshot(path)
