@@ -51,6 +51,9 @@ class DataContainer:
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
 
+    def GetDataFolderLocation(self):
+        return self.GetDataFolderLocation()
+
     def GetSimulationCodeName(self):
         return self._simulationParams["SimulationCode"]
 
