@@ -38,6 +38,7 @@ Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0
 
 ### Required Python packages
 * Numpy.
+* SciPy.
 * Matplotlib 2.0.0 RC 2 + custom backends.
 * PyQt5.
 * H5Py.
