@@ -87,6 +87,9 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def UpdateRender(self):
         self.visualizer3Dvtk.UpdateRender()
 
+    def GetCurrentTimeStep(self):
+        return self.timeStep_Slider.value()
+
     """
     UI event handlers
     """

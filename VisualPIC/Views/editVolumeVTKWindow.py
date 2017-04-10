@@ -64,7 +64,12 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
 
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
+        self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
 
     def UpdateVolumeProperties(self):
         self.volume.SetOpacityValues(self.opacityFigure.GetPoints())
         self.mainWindow.UpdateRender()
+
+    def NormalizationButton_Clicked(self):
+        timeStep = self.mainWindow.GetCurrentTimeStep()
+        self.volume.SetNormalizationValueFromCurrentMaximum(timeStep)

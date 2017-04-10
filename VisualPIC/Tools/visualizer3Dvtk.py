@@ -78,12 +78,8 @@ class VolumeVTK():
             #self.SetOpacityValue(i, point[0], point[1])
 
     def SetNormalizationValueFromCurrentMaximum(self, timeStep):
-        if self.field.GetFieldDimension() == "3D":
-            fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
-        if self.field.GetFieldDimension() == "2D":
-            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl))
-        if self.normalizationFactor == None:
-            self.normalizationFactor = np.amax(fieldData)
+        fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
+        self.normalizationFactor = np.amax(fieldData)
 
     def SetNormalizationFactor(self, value):
         self.normalizationFactor = value
