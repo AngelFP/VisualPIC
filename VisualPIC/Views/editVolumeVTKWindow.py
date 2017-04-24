@@ -71,13 +71,16 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
 
     def FillUI(self):
+        self.isUpdatingUI = True
         self.colorMap_comboBox.clear()
         self.colorMap_comboBox.addItems(VTKColorMapCreator.GetColorMapListOfNames())
+        self.isUpdatingUI = False
 
     def SetColorMap(self):
-        cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.colorMap_comboBox.currentText())
-        self.volume.SetColorPoints(cmapPoints)
-        self.mainWindow.UpdateRender()
+        if not self.isUpdatingUI:
+            cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.colorMap_comboBox.currentText())
+            self.volume.SetColorPoints(cmapPoints)
+            self.mainWindow.UpdateRender()
 
     def greenColor(self):
         self.volume.SetGreenColor()
