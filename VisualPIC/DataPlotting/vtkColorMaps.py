@@ -18,29 +18,30 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
+import numpy as np
 from vtk import vtkColorTransferFunction as vtkColor
 
-class VTKColorMap():
-    __metaclass__  = abc.ABCMeta
+class VTKColorMap(object):
     _name = ""
-    def GetName(self):
-        return self._name
-
-    @abc.abstractmethod
-    def GetColorMap(self):
+    @classmethod
+    def GetName(cls):
+        return cls._name
+    @classmethod
+    def GetColorMap(cls):
         raise NotImplementedError
 
 
 class RGB256CMP(VTKColorMap):
     _rgbData = list()
-    def GetColorMap(self):
-        colorMap = vtkColor()
-        for i, point in enumerate(self._rgbData):
-            colorMap.AddRGBPoint(i, point[0], point[1], point[2])
-        return colorMap
+    @classmethod
+    def GetColorMapPoints(cls):
+        data = np.array(cls._rgbData)
+        index = np.matrix(np.arange(0,256)).T
+        points = np.concatenate((index, data), axis=1)
+        return list(points.flat)
 
 class ViridisCMP(RGB256CMP):
-    name = "Viridis"
+    _name = "Viridis"
     _rgbData = [[0.267004, 0.004874, 0.329415],
                 [0.268510, 0.009605, 0.335427],
                 [0.269944, 0.014625, 0.341379],
@@ -300,7 +301,7 @@ class ViridisCMP(RGB256CMP):
 
 
 class PlasmaCMP(RGB256CMP):
-    name = "Plasma"
+    _name = "Plasma"
     _rgbData = [[0.050383, 0.029803, 0.527975],
                 [0.063536, 0.028426, 0.533124],
                 [0.075353, 0.027206, 0.538007],
@@ -559,7 +560,7 @@ class PlasmaCMP(RGB256CMP):
                 [0.940015, 0.975158, 0.131326]]
 
 
-class VTKColorMapCreator:
+class VTKColorMapCreator(object):
     colorMaps = [
         ViridisCMP,
         PlasmaCMP
@@ -570,8 +571,9 @@ class VTKColorMapCreator:
         for cmap in cls.colorMaps:
             cmapList.append(cmap.GetName())
         return cmapList
-
-    def GetColorMap(cls, cmapName):
+    
+    @classmethod
+    def GetColorMapPoints(cls, cmapName):
         for cmap in cls.colorMaps:
             if cmap.GetName() == cmapName:
-                return cmap.GetColorMap()
+                return cmap.GetColorMapPoints()
