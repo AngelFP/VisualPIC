@@ -67,6 +67,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
         self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
+        self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
         self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
 
     def FillUI(self):
@@ -94,3 +95,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def NormalizationButton_Clicked(self):
         timeStep = self.mainWindow.GetCurrentTimeStep()
         self.volume.SetNormalizationValueFromCurrentMaximum(timeStep)
+
+    def CustomNormalizationButton_Clicked(self):
+        norm = float(self.norm_lineEdit.text())
+        self.volume.SetNormalizationFactor(norm)
