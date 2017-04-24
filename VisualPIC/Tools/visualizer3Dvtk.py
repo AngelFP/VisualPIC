@@ -50,6 +50,18 @@ class VolumeVTK():
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 0, 1.0, 0)
 
+    # Provisional code
+    def SetBlueColor(self):
+        self.color.RemoveAllPoints()
+        self.color.AddRGBPoint(0.0,0, 0, 1)
+        self.color.AddRGBPoint(255,0, 0, 1)
+
+    def SetGreenColor(self):
+        self.color.RemoveAllPoints()
+        self.color.AddRGBPoint(0.0,0, 1, 0)
+        self.color.AddRGBPoint(255,0, 1, 0)
+    # End of provisional code
+
     def GetFieldName(self):
         return self.field.GetName()
 
@@ -190,7 +202,7 @@ class Visualizer3Dvtk():
     def GetVTKWidget(self, parentWidget):
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
         self.renderer = vtk.vtkRenderer()
-        #self.renderer.SetBackground(1,1,1)
+        self.renderer.SetBackground(1,1,1)
         self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
@@ -233,13 +245,13 @@ class Visualizer3Dvtk():
         volumeprop.IndependentComponentsOn()
         volumeprop.SetInterpolationTypeToLinear()
         for i, volume in enumerate(self.volumeList):
-            npdatauchar.append(volume.GetData(timeStep, 200, 100, 0.5)) # limit on elements only applies for 2d case
+            npdatauchar.append(volume.GetData(timeStep, 200, 300, 0.5)) # limit on elements only applies for 2d case
             volumeprop.SetColor(i,volume.color)
             volumeprop.SetScalarOpacity(i,volume.opacity)
             volumeprop.ShadeOff(i)
         npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)
-        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 100, 0.5) # limit on elements only applies for 2d case
+        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 300, 0.5) # limit on elements only applies for 2d case
         # Put data in VTK format
         dataImport = vtk.vtkImageImport()
         dataImport.SetImportVoidPointer(npdatamulti)

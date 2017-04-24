@@ -65,6 +65,18 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
         self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
+        #Temporary code
+        self.pushButton_2.clicked.connect(self.greenColor)
+        self.pushButton.clicked.connect(self.blueColor)
+
+    def greenColor(self):
+        self.volume.SetGreenColor()
+        self.mainWindow.UpdateRender()
+
+    def blueColor(self):
+        self.volume.SetBlueColor()
+        self.mainWindow.UpdateRender()
+        #End of temporary code
 
     def UpdateVolumeProperties(self):
         self.volume.SetOpacityValues(self.opacityFigure.GetPoints())
