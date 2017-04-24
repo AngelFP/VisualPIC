@@ -27,6 +27,7 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 
 from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
+from VisualPIC.DataPlotting.vtkColorMaps import VTKColorMapCreator
 
 
 if getattr(sys, 'frozen', False):
@@ -46,6 +47,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.volume = volume
         self.RegisterUIEvents()
         self.CreateCanvasAndFigure()
+        self.FillUI()
 
     def CreateCanvasAndFigure(self):
         self.opacityFigure = FigureWithPoints()
@@ -65,16 +67,23 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
         self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
-        #Temporary code
-        self.pushButton_2.clicked.connect(self.greenColor)
-        self.pushButton.clicked.connect(self.blueColor)
+        self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
+
+    def FillUI(self):
+        self.colorMap_comboBox.clear()
+        self.colorMap_comboBox.addItems(VTKColorMapCreator.GetColorMapListOfNames())
+
+    def SetColorMap(self):
+        cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.colorMap_comboBox.currentText())
+        self.volume.SetColorPoints(cmapPoints)
+        self.mainWindow.UpdateRender()
 
     def greenColor(self):
         self.volume.SetGreenColor()
         self.mainWindow.UpdateRender()
 
     def blueColor(self):
-        self.volume.SetBlueColor()
+        self.volume.SetViridis()
         self.mainWindow.UpdateRender()
         #End of temporary code
 
