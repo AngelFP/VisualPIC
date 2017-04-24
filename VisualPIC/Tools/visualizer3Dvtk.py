@@ -50,9 +50,6 @@ class VolumeVTK():
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 0, 1.0, 0)
 
-    def SetColorMap(self, cmap):
-        self.color = cmap
-
     def GetFieldName(self):
         return self.field.GetName()
 
