@@ -93,19 +93,6 @@ class VolumeVTK():
             values.append([val[0], val[1]])
         return values
 
-
-    def ChangeStyle(self):
-        self.opacity.RemoveAllPoints()
-        self.color.RemoveAllPoints()
-        
-        self.opacity.AddPoint(0, 0.1)
-        self.opacity.AddPoint(0.5*255, 0.1)
-        self.opacity.AddPoint(255, 0.1)
-        
-        self.color.AddRGBPoint(0.0, 1, 0, 0)
-        self.color.AddRGBPoint(100, 1.000,0, 0)
-        self.color.AddRGBPoint(255, 1, 00, 0)
-
     def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         if self.field.GetFieldDimension() == "3D":
             fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
