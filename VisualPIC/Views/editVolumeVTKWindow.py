@@ -97,8 +97,9 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
 
     def NormalizationButton_Clicked(self):
         timeStep = self.mainWindow.GetCurrentTimeStep()
-        self.volume.SetNormalizationValueFromCurrentMaximum(timeStep)
+        self.volume.SetCMapRangeFromCurrentTimeStep(timeStep)
 
     def CustomNormalizationButton_Clicked(self):
-        norm = float(self.norm_lineEdit.text())
-        self.volume.SetNormalizationFactor(norm)
+        min = float(self.min_lineEdit.text())
+        max = float(self.max_lineEdit.text())
+        self.volume.SetCMapRange(min, max)
