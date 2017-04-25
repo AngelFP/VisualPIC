@@ -30,7 +30,7 @@ class VolumeVTK():
         self.field = field3D
         self.opacity = vtk.vtkPiecewiseFunction()
         self.color = vtk.vtkColorTransferFunction()
-        self.normalizationFactor = None
+        self.customCMapRange = False
         self._SetDefaultStyle()
 
     def _SetDefaultStyle(self):
@@ -79,10 +79,14 @@ class VolumeVTK():
 
     def SetNormalizationValueFromCurrentMaximum(self, timeStep):
         fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
-        self.normalizationFactor = np.amax(fieldData)
+        self.maxRange = np.amax(fieldData)
+        self.minRange = np.amin(fieldData)
+        self.customCMapRange = True
 
-    def SetNormalizationFactor(self, value):
-        self.normalizationFactor = value
+    def SetNormalizationFactor(self, max, min):
+        self.maxRange = np.amax(max)
+        self.minRange = np.amin(min)
+        self.customCMapRange = True
 
     def GetOpacityValues(self):
         values = list()
@@ -98,17 +102,15 @@ class VolumeVTK():
             fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
         if self.field.GetFieldDimension() == "2D":
             fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction))
-        if self.normalizationFactor == None:
-            maxvalue = np.amax(fieldData)
+        if self.customCMapRange:
+            maxvalue = self.maxRange
+            minvalue = self.minRange
         else:
-            maxvalue = self.normalizationFactor
-        den1 = 255.0/maxvalue
-        fieldData = np.round(den1 * fieldData)
-        maxvalue = np.amax(fieldData)
-
+            maxvalue = np.amax(fieldData)
+            minvalue = np.amin(fieldData)
+        fieldData = np.round(255 * (fieldData-minvalue)/(maxvalue-minvalue))
         # Change data from float to unsigned char
         npdatauchar = np.array(fieldData, dtype=np.uint8)
-        maxvalue = np.amax(npdatauchar)
         return npdatauchar
 
     def GetAxes(self, timeStep):
