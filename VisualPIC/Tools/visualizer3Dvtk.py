@@ -77,15 +77,15 @@ class VolumeVTK():
             self.opacity.AddPoint(point[0], point[1])
             #self.SetOpacityValue(i, point[0], point[1])
 
-    def SetNormalizationValueFromCurrentMaximum(self, timeStep):
+    def SetCMapRangeFromCurrentTimeStep(self, timeStep):
         fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
         self.maxRange = np.amax(fieldData)
         self.minRange = np.amin(fieldData)
         self.customCMapRange = True
 
-    def SetNormalizationFactor(self, max, min):
-        self.maxRange = np.amax(max)
-        self.minRange = np.amin(min)
+    def SetCMapRange(self, min, max):
+        self.maxRange = max
+        self.minRange = min
         self.customCMapRange = True
 
     def GetOpacityValues(self):
@@ -109,6 +109,8 @@ class VolumeVTK():
             maxvalue = np.amax(fieldData)
             minvalue = np.amin(fieldData)
         fieldData = np.round(255 * (fieldData-minvalue)/(maxvalue-minvalue))
+        fieldData[fieldData < 0] = 0
+        fieldData[fieldData > 255] = 255
         # Change data from float to unsigned char
         npdatauchar = np.array(fieldData, dtype=np.uint8)
         return npdatauchar
