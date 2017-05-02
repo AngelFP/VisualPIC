@@ -758,9 +758,36 @@ class EditRawPlotWindow(EditPlotWindow):
             dataToPlot["z"].SetProperty("dataSetUnits", self.axisProperties["z"]["Units"])
 
 
+class EditRawEvolutionPlotWindow(EditPlotWindow):
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditRawEvolutionPlotWindow, self).__init__(subplot, plotterMethod, parent)
+        self.FillInitialUI()
+
+    def SetVisibleTabs(self):
+        super(EditRawEvolutionPlotWindow, self).SetVisibleTabs()
+        self.tabWidget.removeTab(5)
+        self.tabWidget.removeTab(1)
+        self.tabWidget.removeTab(0)
+
+    def FillInitialUI(self):
+        self.FillAxesData()
+        self.FillColorbarData()
+        self.FillTitleData()
+
+    def SaveChanges(self):
+        super(EditRawEvolutionPlotWindow, self).SaveChanges()
+        dataToPlot = self.subplot.GetDataToPlot()
+        for particleData in dataToPlot:
+            particleData["x"].SetProperty("dataSetUnits", self.axisProperties["x"]["Units"])
+            particleData["y"].SetProperty("dataSetUnits", self.axisProperties["y"]["Units"])
+            if "z" in dataToPlot:
+                particleData["z"].SetProperty("dataSetUnits", self.axisProperties["z"]["Units"])
+
+
 class EditPlotWindowSelector:
     editWindows = {"Field": EditFieldPlotWindow,
-                   "Raw": EditRawPlotWindow
+                   "Raw": EditRawPlotWindow,
+                   "RawEvolution": EditRawEvolutionPlotWindow
                    }
     @classmethod
     def GetEditPlotWindow(cls, subplot, plotterMethod, mainWindow):

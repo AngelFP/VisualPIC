@@ -72,7 +72,6 @@ class Subplot(object):
         self.SetAxisProperty("y", "DefaultAutoAxisLimits", True)
         self.SetAxisProperty("x", "DefaultAxisLimits", {"Min":0, "Max":1})
         self.SetAxisProperty("y", "DefaultAxisLimits", {"Min":0, "Max":1})
-
             
     def SetAxesToDefaultValues(self):
         self.SetAxisProperty("x", "LabelText", self.GetAxisProperty("x", "DefaultLabelText"))
@@ -448,6 +447,8 @@ class RawDataEvolutionSubplot(Subplot):
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
         if "z" in self.dataToPlot[0]:
+            self.SetAxisProperty("z", "DefaultAutoAxisLimits", True)
+            self.SetAxisProperty("z", "DefaultAxisLimits", {"Min":0, "Max":1})
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
             self.SetAxisProperty("z", "DefaultLabelFontSize", self.defaultFontSize)
@@ -456,6 +457,14 @@ class RawDataEvolutionSubplot(Subplot):
         if "z" in self.dataToPlot[0]:
                 return "3D"
         return "2D"
+
+    def GetAxesUnitsOptions(self):
+        unitsOptions = {}
+        unitsOptions["x"] = self.dataToPlot[0]["x"].GetProperty("possibleDataSetUnits")
+        unitsOptions["y"] = self.dataToPlot[0]["y"].GetProperty("possibleDataSetUnits")
+        if "z" in self.dataToPlot:
+            unitsOptions["z"] = self.dataToPlot[0]["z"].GetProperty("possibleDataSetUnits")
+        return unitsOptions
 
     def GetAxisColorMapOptions(self, plotType):
         return self.colorMapsCollection.GetAllColorMapNames()
