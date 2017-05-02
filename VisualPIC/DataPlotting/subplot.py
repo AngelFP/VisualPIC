@@ -442,12 +442,11 @@ class RawDataEvolutionSubplot(Subplot):
         pass
 
     def LoadDefaultAxesValues(self):
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
-        self.SetAxisProperty("x", "DefaultLabelFontSize", self.defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", self.defaultFontSize)
         if "z" in self.dataToPlot[0]:
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
