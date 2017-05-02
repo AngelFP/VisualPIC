@@ -27,8 +27,16 @@ class VTKColorMap(object):
     def GetName(cls):
         return cls._name
     @classmethod
-    def GetColorMap(cls):
+    def GetColorMapPoints(cls):
         raise NotImplementedError
+
+
+class ArbitratyPointsCMP(VTKColorMap):
+    _pointsData = list()
+    @classmethod
+    def GetColorMapPoints(cls):
+        data = np.array(cls._pointsData)
+        return list(data.flat)
 
 
 class RGB256CMP(VTKColorMap):
@@ -39,6 +47,25 @@ class RGB256CMP(VTKColorMap):
         index = np.matrix(np.arange(0,256)).T
         points = np.concatenate((index, data), axis=1)
         return list(points.flat)
+
+
+class DarkBlue(ArbitratyPointsCMP):
+    _name = "Dark blue"
+    _pointsData = [[0, 0/255, 105/255, 146/255],
+                   [255, 0/255, 105/255, 146/255]]
+
+
+class DarkYellow(ArbitratyPointsCMP):
+    _name = "Dark yellow"
+    _pointsData = [[0, 236/255, 164/255, 0/255],
+                   [255, 236/255, 164/255, 0/255]]
+
+
+class OrangeRed(ArbitratyPointsCMP):
+    _name = "Orange red"
+    _pointsData = [[0, 228/255, 87/255, 46/255],
+                   [255, 228/255, 87/255, 46/255]]
+
 
 class ViridisCMP(RGB256CMP):
     _name = "Viridis"
@@ -562,6 +589,9 @@ class PlasmaCMP(RGB256CMP):
 
 class VTKColorMapCreator(object):
     colorMaps = [
+        DarkBlue,
+        DarkYellow,
+        OrangeRed,
         ViridisCMP,
         PlasmaCMP
         ]
