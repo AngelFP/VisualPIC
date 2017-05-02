@@ -337,6 +337,24 @@ class CustomRawDataSet(CustomDataElement):
         for DataSetName in self.necessaryData[dimension]:
             self.data[DataSetName] = self.dataContainer.GetSpecies(self.speciesName).GetRawDataSet(DataSetName)
 
+    """
+    Get data in original units (to be implemented in each subclass)
+    """
+    def GetDataInOriginalUnits(self, timeStep):
+        raise NotImplementedError
+
+    """
+    Get data in any units
+    """
+    def GetDataInUnits(self, units, timeStep):
+        return self._unitConverter.GetDataInUnits(self, units, self.GetDataInOriginalUnits(timeStep))
+
+    """
+    Get data in IS units
+    """
+    def GetDataInISUnits(self, timeStep):
+        return self._unitConverter.GetDataInISUnits(self, self.GetDataInOriginalUnits(timeStep))
+
 
 class xPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
