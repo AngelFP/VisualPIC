@@ -367,30 +367,31 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def CreateParticleTable(self):
         n = len(self.particleList)
-        variableNames = self.particleList[0].GetNamesOfTimeStepQuantities()
-        allParticlesData = list()
-        tableData = {}
-        for particle in self.particleList:
-            allParticlesData.append(particle.GetCurrentTimeStepQuantities())
-        for variableName in variableNames:
-            varValues = np.zeros(n)
+        if n > 0:
+            variableNames = self.particleList[0].GetNamesOfTimeStepQuantities()
+            allParticlesData = list()
+            tableData = {}
+            for particle in self.particleList:
+                allParticlesData.append(particle.GetCurrentTimeStepQuantities())
+            for variableName in variableNames:
+                varValues = np.zeros(n)
+                for i in np.arange(0,n):
+                    varValues[i] = allParticlesData[i][variableName]
+                tableData[variableName] = varValues
+            self.particleList_tableWidget.setColumnCount(len(variableNames)+1)
+            self.particleList_tableWidget.setRowCount(n)
+            tableHeaders = variableNames
+            tableHeaders.insert(0," ")
             for i in np.arange(0,n):
-                varValues[i] = allParticlesData[i][variableName]
-            tableData[variableName] = varValues
-        self.particleList_tableWidget.setColumnCount(len(variableNames)+1)
-        self.particleList_tableWidget.setRowCount(n)
-        tableHeaders = variableNames
-        tableHeaders.insert(0," ")
-        for i in np.arange(0,n):
-            newItem = QtWidgets.QTableWidgetItem()
-            newItem.setCheckState(QtCore.Qt.Unchecked)
-            self.particleList_tableWidget.setItem(i, 0, newItem)
-        for n, key in enumerate(tableHeaders[1:]):
-            for m, item in enumerate(tableData[key]):
-                newItem = QtWidgets.QTableWidgetItem(str(item))
-                self.particleList_tableWidget.setItem(m, n+1, newItem)
-        self.particleList_tableWidget.resizeColumnsToContents()
-        self.particleList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
+                newItem = QtWidgets.QTableWidgetItem()
+                newItem.setCheckState(QtCore.Qt.Unchecked)
+                self.particleList_tableWidget.setItem(i, 0, newItem)
+            for n, key in enumerate(tableHeaders[1:]):
+                for m, item in enumerate(tableData[key]):
+                    newItem = QtWidgets.QTableWidgetItem(str(item))
+                    self.particleList_tableWidget.setItem(m, n+1, newItem)
+            self.particleList_tableWidget.resizeColumnsToContents()
+            self.particleList_tableWidget.setHorizontalHeaderLabels(tableHeaders)
 
     def GetSelectedParticles(self):
         selectedParticles = list()
