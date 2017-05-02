@@ -387,6 +387,7 @@ class yPrimeDataSet(CustomRawDataSet):
         yP = np.divide(Py, Pz)
         return yP
 
+
 class deltaZPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D":["z"],
@@ -401,6 +402,7 @@ class deltaZPrimeDataSet(CustomRawDataSet):
         meanZ = np.average(z)
         dZ = z-meanZ
         return dZ
+
 
 class forwardMomentumVariationDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
