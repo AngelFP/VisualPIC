@@ -44,6 +44,9 @@ class DataElement(object):
     def GetTimeSteps(self):
         return self.timeSteps
 
+    def GetFirstTimeStep(self):
+        return self.timeSteps[0]
+
     """
     Possible units
     """
