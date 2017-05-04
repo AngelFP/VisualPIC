@@ -419,13 +419,30 @@ class forwardMomentumVariationDataSet(CustomRawDataSet):
         dPz = np.divide(Pz-meanPz, meanPz)
         return dPz
 
+
+class SpeedOfLightCoordinate(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["z"],
+                     "3D":["z"]}
+    necessaryParameters = []
+    units = "m"
+    ISUnits = True
+    standardName = "xi"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        z = self.data["z"].GetDataInISUnits(timeStep)
+        t = self.data["z"].GetTimeInUnits("s", timeStep)
+        xi = z - 299792458*t
+        return xi
+
     
 class CustomRawDataSetCreator:
     customDataSets = [
         xPrimeDataSet,
         yPrimeDataSet,
         deltaZPrimeDataSet,
-        forwardMomentumVariationDataSet
+        forwardMomentumVariationDataSet,
+        SpeedOfLightCoordinate
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):
