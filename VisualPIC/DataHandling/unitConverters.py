@@ -230,7 +230,7 @@ class OsirisUnitConverter(GeneralUnitConverter):
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         time = dataElement.GetTimeInOriginalUnits(timeStep)
-        return time * self.w_p
+        return time / self.w_p
     
     def GetAxisInISUnits(self, axis, dataElement, timeStep):
         axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
