@@ -280,7 +280,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         	
     def AddSpeciesFieldButton_Clicked(self):
         self.dataContainer.SetSelectedSpeciesFields()
-        if self.addLaser_checkBox.checkState():
+        if self.addLaser_checkBox.isVisible() and self.addLaser_checkBox.checkState():
             fields = self.dataContainer.GetSelectedSpeciesFields()
             fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
             self.AddFieldsToPlot(fields, self.speciesFieldPlotDimension)
