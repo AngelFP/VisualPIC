@@ -265,8 +265,14 @@
                   </item>
                   <item>
                    <widget class="QCheckBox" name="addLaser_checkBox">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
                     <property name="text">
                      <string>Add laser</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
