@@ -84,6 +84,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def InitialUIValues(self):
         # due to 2D button toggled
+        self.addLaser_checkBox.setVisible(False)
         self.freeRaw_widget.setVisible(True)
         self.premadeRaw_widget.setVisible(False)
         self.yRaw_comboBox.setEnabled(True)
@@ -154,6 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataContainer.ClearData()
         self.LoadFolderData()
         self.AdaptUIToSpecificSimulationCode()
+        self.AdaptUIToSimulationParams()
 
     def AdaptUIToSpecificSimulationCode(self):
         simulationCode = self.dataContainer.GetSimulationCodeName()
@@ -164,6 +166,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.removedNormalizationTab != None:
             self.tabWidget_2.addTab(self.removedNormalizationTab, "Normalization")
             self.removedNormalizationTab = None
+
+    def AdaptUIToSimulationParams(self):
+        simulationParams = self.dataContainer.GetSimulationParameters()
+        isLaser = simulationParams["isLaser"]
+        self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
@@ -273,7 +280,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         	
     def AddSpeciesFieldButton_Clicked(self):
         self.dataContainer.SetSelectedSpeciesFields()
-        self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+        if self.addLaser_checkBox.checkState():
+            fields = self.dataContainer.GetSelectedSpeciesFields()
+            fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
+            self.AddFieldsToPlot(fields, self.speciesFieldPlotDimension)
+        else:
+            self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+
 
     """
     Called from UI event handlers
