@@ -64,37 +64,75 @@ class ColorMapsCollection:
         base_gray = CustomColorMap("Base gray", gray_cmap)
         self.TransparentColorMapList.append(base_gray)
         
-        afmhot_cmap = matplotlib.cm.get_cmap('afmhot')
-        afmhot_cmap._init()
-        alphas = np.abs(np.linspace(1.0, 0, afmhot_cmap.N))
-        afmhot_cmap._lut[:-3,-1] = alphas 
+        """
+        Plain CMaps with transparency
+        """
+        oranges_cmap = matplotlib.cm.get_cmap('Oranges')
+        oranges_cmap._init()
+        alphas = np.abs(np.linspace(0, 1.0, oranges_cmap.N))
+        oranges_cmap._lut[:-3,-1] = alphas 
         
-        orange = CustomColorMap("OrangeT", afmhot_cmap)
+        orange = CustomColorMap("Orange", oranges_cmap)
         self.TransparentColorMapList.append(orange)
+        
+        blues_cmap = matplotlib.cm.get_cmap('Blues')
+        blues_cmap._init()
+        alphas = np.abs(np.linspace(0, 1.0, blues_cmap.N))
+        blues_cmap._lut[:-3,-1] = alphas  
+        
+        blue = CustomColorMap("Blue", blues_cmap)
+        self.TransparentColorMapList.append(blue)
+        
+        greens_cmap = matplotlib.cm.get_cmap('Greens')
+        greens_cmap._init()
+        alphas = np.abs(np.linspace(0, 1.0, greens_cmap.N))
+        greens_cmap._lut[:-3,-1] = alphas  
+        
+        green = CustomColorMap("Green", greens_cmap)
+        self.TransparentColorMapList.append(green)
+        
+        bupu_cmap = matplotlib.cm.get_cmap('BuPu')
+        bupu_cmap._init()
+        alphas = np.abs(np.linspace(0, 1.0, bupu_cmap.N))
+        bupu_cmap._lut[:-3,-1] = alphas  
+        
+        purple = CustomColorMap("Purple", bupu_cmap)
+        self.TransparentColorMapList.append(purple)
+
+        """
+        Reverse CMaps
+        """
+        oranges_cmap = matplotlib.cm.get_cmap('Oranges_r')
+        oranges_cmap._init()
+        alphas = np.abs(np.linspace(1.0, 0, oranges_cmap.N))
+        oranges_cmap._lut[:-3,-1] = alphas 
+        
+        orange_r = CustomColorMap("Orange_r", oranges_cmap)
+        self.TransparentColorMapList.append(orange_r)
         
         blues_cmap = matplotlib.cm.get_cmap('Blues_r')
         blues_cmap._init()
         alphas = np.abs(np.linspace(1.0, 0, blues_cmap.N))
         blues_cmap._lut[:-3,-1] = alphas  
         
-        blue = CustomColorMap("BlueT", blues_cmap)
-        self.TransparentColorMapList.append(blue)
+        blue_r = CustomColorMap("Blue_r", blues_cmap)
+        self.TransparentColorMapList.append(blue_r)
         
         greens_cmap = matplotlib.cm.get_cmap('Greens_r')
         greens_cmap._init()
         alphas = np.abs(np.linspace(1.0, 0, greens_cmap.N))
         greens_cmap._lut[:-3,-1] = alphas  
         
-        green = CustomColorMap("GreenT", greens_cmap	)
-        self.TransparentColorMapList.append(green)
+        green_r = CustomColorMap("Green_r", greens_cmap)
+        self.TransparentColorMapList.append(green_r)
         
         bupu_cmap = matplotlib.cm.get_cmap('BuPu_r')
         bupu_cmap._init()
         alphas = np.abs(np.linspace(1.0, 0, bupu_cmap.N))
         bupu_cmap._lut[:-3,-1] = alphas  
         
-        purple = CustomColorMap("PurpleT", bupu_cmap)
-        self.TransparentColorMapList.append(purple)
+        purple_r = CustomColorMap("Purple_r", bupu_cmap)
+        self.TransparentColorMapList.append(purple_r)
     
     def CreateUniformColorMapsWithTransparency(self):
         
