@@ -219,7 +219,7 @@ class DataPlotter:
         rStride = 10
         return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=True, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
-    def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
+    def MakeLinePlot(self, ax, plotData, plotStyle = 'C0'):
         xValues = plotData[-2]
         yValues = plotData[-1]
         ax.plot(xValues, yValues, plotStyle)
