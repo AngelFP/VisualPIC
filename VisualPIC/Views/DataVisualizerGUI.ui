@@ -264,6 +264,13 @@
                    <widget class="QComboBox" name="avSpeciesFields_comboBox"/>
                   </item>
                   <item>
+                   <widget class="QCheckBox" name="addLaser_checkBox">
+                    <property name="text">
+                     <string>Add laser</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer_5">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
