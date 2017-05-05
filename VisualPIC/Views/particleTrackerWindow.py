@@ -129,7 +129,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.addToInstantPlot_Button.clicked.connect(self.AddToInstantPlotButton_Clicked)
         self.plot_pushButton.clicked.connect(self.PlotPushButton_Clicked)
         self.plotInstant_pushButton.clicked.connect(self.PlotInstantPushButton_Clicked)
-        self.selectAll_checkBox.toggled.connect(self.SelectAllCheckBox_StatusChanged)
+        self.manualSelection_radioButton.toggled.connect(self.SelectMode_Changed)
+        self.selectAll_radioButton.toggled.connect(self.SelectMode_Changed)
+        self.selectFraction_radioButton.toggled.connect(self.SelectMode_Changed)
         self.browseExportPath_pushButton.clicked.connect(self.BrowseExportPathButton_Clicked)
         self.selectAllExport_checkBox.toggled.connect(self.SelectAllExportCheckBox_StatusChanged)
         self.exportData_pushButton.clicked.connect(self.ExportDataButton_Clicked)
@@ -312,15 +314,23 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def PlotInstantPushButton_Clicked(self):
         self.MakeInstantPlots()
 
-    def SelectAllCheckBox_StatusChanged(self):
-        if self.selectAll_checkBox.checkState():
+    def SelectMode_Changed(self):
+        if self.selectAll_radioButton.isChecked():
             for row in np.arange(0, self.particleList_tableWidget.rowCount()):
                 item = self.particleList_tableWidget.item(row, 0)
                 item.setCheckState(QtCore.Qt.Checked)
-        else:
+        elif self.manualSelection_radioButton.isChecked():
             for row in np.arange(0, self.particleList_tableWidget.rowCount()):
                 item = self.particleList_tableWidget.item(row, 0)
                 item.setCheckState(QtCore.Qt.Unchecked)
+        elif self.selectFraction_radioButton.isChecked():
+            step = self.selectFraction_spinBox.value()
+            for row in np.arange(0, self.particleList_tableWidget.rowCount()):
+                item = self.particleList_tableWidget.item(row, 0)
+                if row % step == 0:
+                    item.setCheckState(QtCore.Qt.Checked)
+                else:
+                    item.setCheckState(QtCore.Qt.Unchecked)
 
     def SelectAllExportCheckBox_StatusChanged(self):
         if self.selectAllExport_checkBox.checkState():
