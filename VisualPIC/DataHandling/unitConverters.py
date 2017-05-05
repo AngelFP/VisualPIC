@@ -63,6 +63,8 @@ class GeneralUnitConverter(object):
             return ["J", "MeV"]
         elif dataISUnits == "rad":
             return ["rad", "mrad"]
+        elif dataISUnits == "s":
+            return ["s", "fs"]
         else:
             return list()
 
@@ -139,6 +141,9 @@ class GeneralUnitConverter(object):
         elif dataISUnits == "rad":
             if units == "mrad":
                 return dataInISUnits * 1e3
+        elif dataISUnits == "s":
+            if units == "fs":
+                return dataInISUnits * 1e15
                 
     def GetTimeInUnits(self, dataElement, units, timeStep):
         if dataElement.hasNonISUnits:
@@ -184,6 +189,8 @@ class GeneralUnitConverter(object):
                 return "J"
             elif dataElementName == "Charge":
                 return "C"
+            elif dataElementName == "Time":
+                return "s"
 
     """
     To implement by children classes
@@ -227,6 +234,8 @@ class OsirisUnitConverter(GeneralUnitConverter):
             return data*self.m_e*self.c**2 # J
         elif dataElementName == "Charge":
             return data*self.e # C
+        elif dataElementName == "Time":
+            return data/self.w_p # s
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         time = dataElement.GetTimeInOriginalUnits(timeStep)

@@ -89,3 +89,6 @@ class EvolutionData(SelfContainedDataElement):
 
     def GetAllTimeInOriginalUnits(self):
         return self.timeValues
+
+    def GetAllDataInISUnits(self):
+        return self._unitConverter.GetDataInISUnits(self, self.GetAllDataInOriginalUnits())
