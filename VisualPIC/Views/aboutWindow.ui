@@ -102,7 +102,7 @@
    <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Last updated: 10/04/2017</string>
+      <string>Last updated: 05/05/2017</string>
      </property>
     </widget>
    </item>
