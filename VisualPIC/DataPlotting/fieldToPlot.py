@@ -67,7 +67,10 @@ class FieldToPlot:
             
     def __SetDefaultColorMap(self):
         if self.__isPartOfMultiplot:
-            colorMap = "Base gray"
+            if self.__field.GetName() == "Normalized Vector Potential":
+                colorMap = "Orange"
+            else:
+                colorMap = "Base gray"
         else:
             fieldISUnits = self.__field.GetDataISUnits()
             if fieldISUnits== "V/m" or fieldISUnits== "T":
