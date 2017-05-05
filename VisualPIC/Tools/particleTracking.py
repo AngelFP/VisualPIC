@@ -86,8 +86,8 @@ class Particle():
     def WriteDataToFile(self, location, fileName):
         h5file = H5File(location + "/" + fileName + ".h5", "w")
         for key in self._wholeSimulationQuantities:
-            dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key]["values"])
-            dataSet.attrs["Units"] = self._wholeSimulationQuantities[key]["units"]
+            dataSet = h5file.create_dataset(key, data = self._wholeSimulationQuantities[key].GetAllDataInISUnits())
+            dataSet.attrs["Units"] = self._wholeSimulationQuantities[key].GetDataISUnits()
         h5file.close()
 
 
