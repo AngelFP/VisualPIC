@@ -170,7 +170,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def AdaptUIToSimulationParams(self):
         simulationParams = self.dataContainer.GetSimulationParameters()
         isLaser = simulationParams["isLaser"]
-        self.addLaser_checkBox.setVisible(isLaser)
+        if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
+            self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
@@ -282,7 +283,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dataContainer.SetSelectedSpeciesFields()
         if self.addLaser_checkBox.isVisible() and self.addLaser_checkBox.checkState():
             fields = self.dataContainer.GetSelectedSpeciesFields()
-            fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
+            if "Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames():
+                fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
+            elif "a_mod" in self.dataContainer.GetAvailableDomainFieldsNames():
+                fields.append(self.dataContainer.GetDomainField("a_mod"))
             self.AddFieldsToPlot(fields, self.speciesFieldPlotDimension)
         else:
             self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
