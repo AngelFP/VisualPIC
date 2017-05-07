@@ -22,14 +22,14 @@ import matplotlib
 from matplotlib.ticker import LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-    
+from matplotlib import ticker
 
 class DataPlotter:
     def __init__(self, colorMapsCollection):
         self.testprop = 0
         self.currentAxesNumber = 1
         self.colorMapsCollection = colorMapsCollection
-        self.cbSpacing = 0.01 # vertical space between color bars
+        self.cbSpacing = 0.02 # vertical space between color bars
         self.LoadPlotFromDataTypes()
         self.LoadPlotTypes()
      
@@ -114,6 +114,9 @@ class DataPlotter:
             cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
             cbar.solids.set_edgecolor("face")
             cbar.set_label(label="$"+units+"$",size=subplot.GetColorBarProperty("FontSize"))
+            tick_locator = ticker.MaxNLocator(nbins=int(10/num2DFields))
+            cbar.locator = tick_locator
+            cbar.update_ticks()
             i += 1
             # label axes
             ax.xaxis.set_major_locator( LinearLocator(5) )
