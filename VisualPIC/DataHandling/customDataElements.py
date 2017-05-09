@@ -435,6 +435,20 @@ class SpeedOfLightCoordinate(CustomRawDataSet):
         xi = z - 299792458*t
         return xi
 
+class BeamComovingCoordinate(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["z"],
+                     "3D":["z"]}
+    necessaryParameters = []
+    units = "m"
+    ISUnits = True
+    standardName = "xi_beam"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        z = self.data["z"].GetDataInISUnits(timeStep)
+        xi_b = z - min(z)
+        return xi_b
+
     
 class CustomRawDataSetCreator:
     customDataSets = [
@@ -442,7 +456,8 @@ class CustomRawDataSetCreator:
         yPrimeDataSet,
         deltaZPrimeDataSet,
         forwardMomentumVariationDataSet,
-        SpeedOfLightCoordinate
+        SpeedOfLightCoordinate,
+        BeamComovingCoordinate
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):
