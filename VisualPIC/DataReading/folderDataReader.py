@@ -105,7 +105,8 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                                self.AddFieldToSpecies(species, FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
+                                if timeSteps.size != 0:
+                                    self.AddFieldToSpecies(species, FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -113,7 +114,8 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                        self.AddDomainField(FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
+                        if timeSteps.size != 0:
+                            self.AddDomainField(FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -134,14 +136,15 @@ class FolderDataReader:
                         self.AddSpecies(Species(species))
                         dataSetLocation = subDir + "/" + species
                         timeSteps = self.GetTimeStepsInOsirisLocation(dataSetLocation)
-                        file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
-                        file_content = H5File(file_path, 'r')
-                        for dataSetName in list(file_content):
-                            if dataSetName == "tag":
-                                self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))
-                            else:
-                                self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
-                        file_content.close()
+                        if timeSteps.size != 0:
+                            file_path = dataSetLocation + "/" + "RAW-" + species + "-" + str(timeSteps[0]).zfill(6) + ".h5"
+                            file_content = H5File(file_path, 'r')
+                            for dataSetName in list(file_content):
+                                if dataSetName == "tag":
+                                    self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))
+                                else:
+                                    self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
+                            file_content.close()
 
     def GetTimeStepsInOsirisLocation(self, location):
         fileNamesList = os.listdir(location)
