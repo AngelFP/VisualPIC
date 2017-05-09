@@ -49,6 +49,13 @@ class RGB256CMP(VTKColorMap):
         return list(points.flat)
 
 
+class Default(ArbitratyPointsCMP):
+    _name = "Default"
+    _pointsData = [[0, 0, 0, 1],
+                   [100, 1, 0, 0],
+                   [255, 0, 1, 0]]
+
+
 class DarkBlue(ArbitratyPointsCMP):
     _name = "Dark blue"
     _pointsData = [[0, 0/255, 105/255, 146/255],
@@ -589,6 +596,7 @@ class PlasmaCMP(RGB256CMP):
 
 class VTKColorMapCreator(object):
     colorMaps = [
+        Default,
         DarkBlue,
         DarkYellow,
         OrangeRed,
