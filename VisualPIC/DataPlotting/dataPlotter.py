@@ -20,6 +20,7 @@
 
 import matplotlib
 from matplotlib.ticker import LinearLocator
+#from matplotlib.ticker import FormatStrFormatter
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from matplotlib import ticker
@@ -146,6 +147,7 @@ class DataPlotter:
                 axis1D.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
         
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
+        #ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         axisData = subplot.GetDataToPlot()
         plotProperties = subplot.GetCopyAllPlotProperties()
         plotData = {}
