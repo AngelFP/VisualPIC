@@ -390,8 +390,8 @@ class yPrimeDataSet(CustomRawDataSet):
 
 class deltaZPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["z"],
-                     "3D":["z"]}
+    necessaryData = {"2D":["z", "Charge"],
+                     "3D":["z", "Charge"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -399,7 +399,8 @@ class deltaZPrimeDataSet(CustomRawDataSet):
 
     def GetDataInOriginalUnits(self, timeStep):
         z = self.data["z"].GetDataInISUnits( timeStep)
-        meanZ = np.average(z)
+        q = self.data["Charge"].GetDataInISUnits( timeStep)
+        meanZ = np.average(z, weights=q)
         dZ = z-meanZ
         return dZ
 
