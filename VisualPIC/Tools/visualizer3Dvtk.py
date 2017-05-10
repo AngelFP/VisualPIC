@@ -181,7 +181,7 @@ class Visualizer3Dvtk():
     def GetVTKWidget(self, parentWidget):
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
         self.renderer = vtk.vtkRenderer()
-        self.renderer.SetBackground(1,1,1)
+        self.renderer.SetBackground(0,0,0)
         self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
