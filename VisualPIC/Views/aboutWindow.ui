@@ -102,14 +102,14 @@
    <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Last updated: 05/05/2017</string>
+      <string>Last updated: 16/05/2017</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>Copyright © 2016-2017 Ángel Ferran Pousa</string>
+      <string>Copyright © 2016-2017 Ángel Ferran Pousa, DESY</string>
      </property>
     </widget>
    </item>
