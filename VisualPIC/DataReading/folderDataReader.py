@@ -32,9 +32,6 @@ class FolderDataReader:
     def __init__(self, parentDataContainer):
         self._dataContainer = parentDataContainer
         self._dataLocation = ""
-        self.CreateCodeDictionaries()
-    
-    def CreateCodeDictionaries(self):
         self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                                "HiPACE": self.LoadHiPaceData,
                                "PIConGPU":self.LoadPIConGPUData}
