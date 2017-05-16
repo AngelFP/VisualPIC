@@ -1,3 +1,6 @@
+NOTE: Documentation still in development, some information might be missing or incomplete.
+
+
 # Support for multiple PIC codes
 
 VisualPIC is designed in a way such that only a number of classes which are in direct contact with the 
@@ -8,7 +11,7 @@ In the following simplified class diagram, these would correspond to the dark gr
 All of these classes read and process the data so that the rest of the VisualPIC code is independent of the
 inner format of the files.
 
-![Class Diagram](../Class Diagram/SimplifiedClassDiagram.png)
+![Class Diagram](../Class_Diagram/SimplifiedClassDiagram.png)
 
 ## Structure of the data in VisualPIC
 
@@ -46,21 +49,14 @@ Location: VisualPIC/DataReading/folderDataReader.py
 
 #### 1.1. Detecting the simulation code and calling the right method.
 
-In VisualPIC, the user has to indicate the location of the data folder (e.g. MS folder in the case of OSIRIS). Then, when pressing "Load Data", VisualPIC detects from which simulation code does the data come from and calls the corresponding method to effectively load the data. 
-
-At the moment, the detection of the simulation code is done based on the name of the simulation data folder because at least for Osiris and PIConGPU this is always called "MS" or "simOutput" respectively.
-
-The implementation of this detection can be seen in the `CreateCodeDictionaries` method. In order to add a new code, one has to add an entry to the `self._codeName` dictionary in the following way: 
+In VisualPIC, the user has to indicate the location of the data folder (e.g. MS folder in the case of OSIRIS). Then, when pressing "Load Data", VisualPIC will show a dialog asking from which code is the data coming from so that the correct data readers can be loaded. In order for your code to appear on that window, you need to add its name to the list
 
 ```python
-self._codeName = {"MS":"Osiris",
-                  "simOutput":"PIConGPU",
-                  "folderName":"myCodeName"} # <-- Line to add
+self.supportedSimulationCodes = ["Osiris", "HiPACE"]
 ```
+located in the `SimulationParametersWindow` class.
 
-Where `"folderName"` is the typical name of the simulation data folder created by your code, and `"myCodeName"` is the name of your simulation code.
-
-Then, since every simulation software stores the data in a different way, a specific method for scanning the folder and loading the data has to be created for each case, and VisualPIC will know which method to call depending on the detected simulation code name. This is also done by using a dictionary:
+Therefore, since every simulation code stores the data in a different way, a specific method for scanning the folder and loading the data has to be created for each case, and VisualPIC will know which method to call depending on the detected simulation code name. This is also done by using a dictionary:
 
 ```python
 self._loadDataFrom = {"Osiris": self.LoadOsirisData,
@@ -69,9 +65,6 @@ self._loadDataFrom = {"Osiris": self.LoadOsirisData,
 ```
 
 #### 1.2. Methods to create
-
-First of all, I have to say that the way in which data loading is implemented in this class might not be the prettiest one, but it's the best I could do in the short time I had until now to develop this tool.
-
 Under the section "Specific data loaders", we will have to create a subsection for the new code in which we wil create 3 methods. As an example, this is what it looks like for Osiris:
 
 ```python
@@ -126,7 +119,7 @@ Let's see what's the function of each of them (replace "MyCode" with the name of
 The FieldReader and RawDataReader classes are very similar, sharing most of their methods. In fact, 
 as seen in the picture below, both of them inherit from the more general parent class `DataReader`.
 
-![VisualPIC Screnshot](../Class Diagram/DataReadersStructure.png)
+![VisualPIC Screnshot](../Class_Diagram/DataReadersStructure.png)
 
 At the same time, FieldReader and RawDataReader include all the necessary methods required by VisualPIC, 
 but not all of them are implemented. Instead, the strategy used here is that, as seen in the picture, 
@@ -139,7 +132,7 @@ Methods to implement (apart from constructor):
   * DetermineFieldDimension(self, file_content)
   * OpenFileAndReadData(self)
   * OpenFileAndReadUnits(self)
-  * OpenFile(self, timeStep)
+  * _OpenFile(self, timeStep)
 
 * RawDataReader:
   * OpenFileAndReadData(self)
