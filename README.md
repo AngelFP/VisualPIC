@@ -27,7 +27,7 @@ The code is currently still in its early stages and it only supports OSIRIS data
 ![VisualPIC Screnshot](Logo/VisualPIC.PNG)
 
 ## Installation
-At this moment, the current version has only been tested on a Windows machine. Therefore, the installation instructions only apply tho this case, but the list of dependencies is the same for all OSes.
+At this moment, the current version has only been tested on a Windows machine. Therefore, the installation instructions only apply tho this case, but the list of dependencies is the same for all OSs.
 
 Initially, VisualPIC was developed to work on older Python (< 3.0) and Qt (< 5.0) versions. However, in order to add support for modern High DPI displays it was required to jump to Python 3.5 and Qt 5.7, together with the release candidate of Matplotlib 2.0.
 
