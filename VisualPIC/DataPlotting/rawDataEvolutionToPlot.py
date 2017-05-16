@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 ?ngel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -18,24 +18,23 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 class RawDataEvolutionToPlot:
-    # todo: implement unitConverter
-    def __init__(self, dataSetName, particle): #, unitConverter):
-        self._dataSet = particle.GetWholeSimulationQuantity(dataSetName)
-        #self._unitConverter = unitConverter
+    # todo: implement unit conversion
+    def __init__(self, dataSet):
+        self._dataSet = dataSet
         self._dataProperties = {
-            "name":dataSetName,
-            "dataSetUnits":self._dataSet["units"], 
-            "possibleDataSetUnits":self._GetPossibleDataSetUnits()
+            "name":dataSet.GetName(),
+            "dataSetUnits":dataSet.GetDataOriginalUnits(), 
+            "possibleDataSetUnits":dataSet.GetPossibleDataUnits()
         }
-            
-    def _GetPossibleDataSetUnits(self):
-        return self._dataSet["units"]
         
     def GetDataSetPlotData(self):
-        return self._dataSet["values"]
+        return self._dataSet.GetAllDataInUnits(self.GetProperty("dataSetUnits"))
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]
+
+    def SetProperty(self, propertyName, value):
+        self._dataProperties[propertyName] = value
 
     def GetDataProperties(self):
         return self._dataProperties

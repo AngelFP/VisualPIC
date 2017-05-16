@@ -21,6 +21,9 @@ $RECYCLE.BIN/
 *.suo
 *.pyproj
 
+# UI autosave files
+*.autosave
+
 # Windows shortcuts
 *.lnk
 
@@ -65,3 +68,7 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/VisualPIC/use_lib.py
+/VisualPIC/__main__.spec
+/Compile/Windows/dist
+/Logo/logo_horizontal_transp.xcf

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>721</height>
+    <height>625</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,6 +18,10 @@
   </property>
   <property name="windowTitle">
    <string>Edit plot</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>Icons/logo.png</normaloff>Icons/logo.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <property name="sizeConstraint">
@@ -51,6 +55,18 @@
        <string>Fields</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_9">
          <item>
@@ -266,6 +282,18 @@
        <string>Plot settings</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_14">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_27">
          <item>
@@ -393,7 +421,16 @@
        <item>
         <widget class="QWidget" name="histogramSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_20">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -545,7 +582,16 @@
        <item>
         <widget class="QWidget" name="scatterSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_21">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -618,13 +664,31 @@
        <item>
         <widget class="QWidget" name="arrowsSettings_widget" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_24">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_3" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_29">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -758,7 +822,16 @@
           <item>
            <widget class="QWidget" name="widget_2" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_28">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -837,7 +910,16 @@
           <item>
            <widget class="QWidget" name="widget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_19">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
             </layout>
@@ -869,6 +951,18 @@
        <string>Axes</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_9">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <widget class="QTabWidget" name="tabWidget_2">
          <property name="tabPosition">
@@ -882,6 +976,18 @@
            <string>X axis</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_8">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_15">
              <property name="text">
@@ -960,37 +1066,43 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
-              <widget class="QLabel" name="label_10">
-               <property name="text">
-                <string>Scale:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="xScale_comboBox"/>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_43">
              <item>
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Margin: </string>
+                <string>Axis limits:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="xAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="label_50">
                <property name="text">
-                <string>Left:</string>
+                <string>Min:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit">
+              <widget class="QLineEdit" name="xAxisMin_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1011,12 +1123,12 @@
              <item>
               <widget class="QLabel" name="label_51">
                <property name="text">
-                <string>Right:</string>
+                <string>Max:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_2">
+              <widget class="QLineEdit" name="xAxisMax_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1033,19 +1145,6 @@
                 <string>0</string>
                </property>
               </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </item>
@@ -1069,6 +1168,18 @@
            <string>Y axis</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_11">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_20">
              <property name="text">
@@ -1147,37 +1258,43 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_14">
-             <item>
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>Scale:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="yScale_comboBox"/>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_44">
              <item>
               <widget class="QLabel" name="label_52">
                <property name="text">
-                <string>Margin: </string>
+                <string>Axis limits:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="yAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="label_53">
                <property name="text">
-                <string>Bottom:</string>
+                <string>Min:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_3">
+              <widget class="QLineEdit" name="yAxisMin_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1198,12 +1315,12 @@
              <item>
               <widget class="QLabel" name="label_54">
                <property name="text">
-                <string>Top:</string>
+                <string>Max:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_4">
+              <widget class="QLineEdit" name="yAxisMax_lineEdit">
                <property name="minimumSize">
                 <size>
                  <width>60</width>
@@ -1220,19 +1337,6 @@
                 <string>0</string>
                </property>
               </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_8">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </item>
@@ -1251,11 +1355,215 @@
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="tab_9">
+          <attribute name="title">
+           <string>Z axis</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_65">
+             <property name="text">
+              <string>Label:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_41">
+             <item>
+              <widget class="QLabel" name="label_66">
+               <property name="text">
+                <string>Text</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="zAutoLabel_checkBox">
+               <property name="text">
+                <string>Auto</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="zAutoLabel_lineEdit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_28">
+             <item>
+              <widget class="QLabel" name="label_38">
+               <property name="text">
+                <string>Fontsize:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="zFontSize_spinBox">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="value">
+                <number>20</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_37">
+             <property name="text">
+              <string>Properties:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_35">
+             <item>
+              <widget class="QLabel" name="label_42">
+               <property name="text">
+                <string>Units</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="zUnits_comboBox"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_49">
+             <item>
+              <widget class="QLabel" name="label_61">
+               <property name="text">
+                <string>Axis limits</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_9">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="zAutoAxisLimits_checkBox">
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_62">
+               <property name="text">
+                <string>Min:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="zAxisMin_lineEdit">
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_63">
+               <property name="text">
+                <string>Max:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="zAxisMax_lineEdit">
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
          <widget class="QWidget" name="tab_7">
           <attribute name="title">
            <string>Title</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_13">
+           <property name="leftMargin">
+            <number>7</number>
+           </property>
+           <property name="topMargin">
+            <number>7</number>
+           </property>
+           <property name="rightMargin">
+            <number>7</number>
+           </property>
+           <property name="bottomMargin">
+            <number>7</number>
+           </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_12">
              <item>
@@ -1329,6 +1637,18 @@
        <string>Colorbars</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_12">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_17">
          <item>
@@ -1398,6 +1718,18 @@
        <string>Text</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_14">
          <property name="text">
@@ -1415,6 +1747,18 @@
        <string>1D Slices</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_18">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>7</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>7</number>
+       </property>
        <item>
         <widget class="QLabel" name="label_32">
          <property name="text">

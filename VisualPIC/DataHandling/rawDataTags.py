@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Angel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -20,13 +20,12 @@
 from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 class RawDataTags(object):
-    """Base class for all data elements (fields and rawDataSets)"""
     def __init__(self, simulationCode, name, location, timeSteps, speciesName = "", internalName = ""):
         self.dataName = name
         self.dataLocation = location
         self.speciesName = speciesName
         self.timeSteps = timeSteps
-        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName)
+        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName, timeSteps[0])
 
     def GetTimeSteps(self):
         return self.timeSteps

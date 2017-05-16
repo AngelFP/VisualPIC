@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,19 +17,20 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys 
+
 import matplotlib
 from matplotlib.ticker import LinearLocator
+#from matplotlib.ticker import FormatStrFormatter
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-    
+from matplotlib import ticker
 
 class DataPlotter:
     def __init__(self, colorMapsCollection):
         self.testprop = 0
         self.currentAxesNumber = 1
         self.colorMapsCollection = colorMapsCollection
-        self.cbSpacing = 0.01 # vertical space between color bars
+        self.cbSpacing = 0.02 # vertical space between color bars
         self.LoadPlotFromDataTypes()
         self.LoadPlotTypes()
      
@@ -74,6 +75,15 @@ class DataPlotter:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition(), projection='3d')
                 else:
                     ax = figure.add_subplot(rows,columns,subplot.GetPosition())
+                # set axis limits
+                ax.set_xlim([subplot.GetAxisProperty("x", "AxisLimits")["Min"],subplot.GetAxisProperty("x", "AxisLimits")["Max"]])
+                ax.set_autoscalex_on(subplot.GetAxisProperty("x", "AutoAxisLimits"))
+                ax.set_ylim([subplot.GetAxisProperty("y", "AxisLimits")["Min"],subplot.GetAxisProperty("y", "AxisLimits")["Max"]])
+                ax.set_autoscaley_on(subplot.GetAxisProperty("y", "AutoAxisLimits"))
+                if subplot.GetAxesDimension() == "3D":
+                    if not subplot.GetAxisProperty("z", "AutoAxisLimits"):
+                        ax.set_zlim([subplot.GetAxisProperty("z", "AxisLimits")["Min"],subplot.GetAxisProperty("z", "AxisLimits")["Max"]])
+
                 # make plot on axes
                 self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
 
@@ -105,6 +115,9 @@ class DataPlotter:
             cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
             cbar.solids.set_edgecolor("face")
             cbar.set_label(label="$"+units+"$",size=subplot.GetColorBarProperty("FontSize"))
+            tick_locator = ticker.MaxNLocator(nbins=int(10/num2DFields))
+            cbar.locator = tick_locator
+            cbar.update_ticks()
             i += 1
             # label axes
             ax.xaxis.set_major_locator( LinearLocator(5) )
@@ -134,16 +147,13 @@ class DataPlotter:
                 axis1D.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
         
     def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
+        #ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         axisData = subplot.GetDataToPlot()
         plotProperties = subplot.GetCopyAllPlotProperties()
         plotData = {}
         # Load data
-        if sys.version_info[0] < 3:
-            for dataSetName, values in axisData.iteritems():
-                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
-        else:
-            for dataSetName, values in axisData.items():
-                plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
+        for dataSetName, values in axisData.items():
+            plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
         im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, cMap)
@@ -169,6 +179,8 @@ class DataPlotter:
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
         ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
+        if subplot.GetAxesDimension() == "3D":
+            ax.set_zlabel(subplot.GetAxisProperty("z", "LabelText") + " $["+subplot.GetAxisProperty("z", "Units")+"]$", fontsize=subplot.GetAxisProperty("z", "LabelFontSize"))
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
 
     def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
@@ -199,7 +211,7 @@ class DataPlotter:
         yAxisData = plotData[-2]
         xAxisData = plotData[-3]
         axesLimits =[min(xAxisData), max(xAxisData), min(yAxisData), max(yAxisData)]
-        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower")
+        return ax.imshow(fieldData, extent = axesLimits, aspect='auto', cmap=cMap, vmin=scale[0], vmax = scale[1], origin="lower", interpolation='none')
         
     def MakeSurfacePlot(self, ax, plotData, cMap, scale, autoScale):  
         if autoScale:
@@ -208,11 +220,11 @@ class DataPlotter:
         y = plotData[-2]
         X, Y = np.meshgrid(x,y)
         Z = plotData[-1]
-        cStride = 100
-        rStride = 100
-        return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=False, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
+        cStride = 10
+        rStride = 10
+        return ax.plot_surface(X, Y, Z, cmap=cMap, linewidth=0.0, antialiased=True, shade=False, rstride=rStride, cstride=cStride, vmin=scale[0], vmax = scale[1])
    
-    def MakeLinePlot(self, ax, plotData, plotStyle = "b-"):
+    def MakeLinePlot(self, ax, plotData, plotStyle = 'C0'):
         xValues = plotData[-2]
         yValues = plotData[-1]
         ax.plot(xValues, yValues, plotStyle)

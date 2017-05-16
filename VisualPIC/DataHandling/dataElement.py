@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,23 +17,26 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from VisualPIC.DataReading.dataReader import DataReader
+
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    def __init__(self, simulationCode, nameInCode, standardName, location, timeSteps, speciesName = "", internalName = ""):
-        self.dataNameInCode = nameInCode # name of the variable in the simulation code (e.g. "e1-savg" for the averaged longitudinal E field in Osiris)
+    _unitConverter = None
+
+    @classmethod
+    def SetUnitConverter(cls, unitConverter):
+        cls._unitConverter = unitConverter
+
+    def __init__(self, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
         self.dataStandardName = standardName
-        self.dataLocation = location
         self.speciesName = speciesName
         self.timeSteps = timeSteps # array of integers
-        self.dataReader = None # Each subclass will load its own
+        self.hasNonISUnits = hasNonISUnits
         
     def GetName(self):
         return self.dataStandardName
-
-    def GetNameInCode(self):
-        return self.dataNameInCode
 
     def GetSpeciesName(self):
         return self.speciesName
@@ -41,15 +44,40 @@ class DataElement(object):
     def GetTimeSteps(self):
         return self.timeSteps
 
-    def GetData(self, timeStep):
-        return self.dataReader.GetData(timeStep)
-        
-    def GetDataUnits(self):
-        return self.dataReader.GetDataUnits()
+    def GetFirstTimeStep(self):
+        return self.timeSteps[0]
 
-    def GetTime(self, timeStep):
-        return self.dataReader.GetTime(timeStep)
+    """
+    Possible units
+    """
+    def GetPossibleDataUnits(self):
+        return self._unitConverter.GetPossibleDataUnits(self)
+
+    def GetDataISUnits(self):
+        return self._unitConverter.GetDataISUnits(self)
+    
+    def GetPossibleTimeUnits(self):
+        return self._unitConverter.GetPossibleTimeUnits(self)
+
+    def GetTimeOriginalUnits(self):
+        raise NotImplementedError
         
-    def GetTimeUnits(self):
-        return self.dataReader.GetTimeUnits()
+    def GetDataOriginalUnits(self):
+        raise NotImplementedError
+
+    """
+    Conversion of units
+    """
+    def GetAxisInUnits(self, axis, units, timeStep):
+        return self._unitConverter.GetAxisInUnits(axis, self, units, timeStep)
+
+    def GetAxisInISUnits(self, axis, timeStep):
+        return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
+
+    def GetTimeInUnits(self, units, timeStep):
+        return self._unitConverter.GetTimeInUnits(self, units, timeStep)
+
+    def GetTimeInOriginalUnits(self, timeStep):
+        raise NotImplementedError
+    
 

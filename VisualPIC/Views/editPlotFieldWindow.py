@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -20,18 +20,13 @@
 import sys
 import os
 
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import *
+from PyQt5.uic import loadUiType
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtWidgets import QApplication
 
-from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
-from VisualPIC.DataHandling.subplot import *
+from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
+from VisualPIC.DataPlotting.subplot import *
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
 
 if getattr(sys, 'frozen', False):
     # we are running in a bundle
@@ -40,13 +35,14 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'EditPlotFieldWindow.ui' )
-
 Ui_EditPlotFieldWindow, QEditPlotFieldWindow = loadUiType(guipath)
 
+
 class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
-    def __init__(self, subplot, parent=None):
+    def __init__(self, subplot, plotterMethod, parent=None):
         super(EditPlotWindow, self).__init__()
         self.setupUi(self)
+        self.plotterMethod = plotterMethod
         self.mainWindow = parent
         self.subplot = subplot
         self.selectedFieldIndex = 0
@@ -105,15 +101,28 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         # Axes tab
         self.xUnits_comboBox.currentIndexChanged.connect(self.SetXAxisUnits)
         self.yUnits_comboBox.currentIndexChanged.connect(self.SetYAxisUnits)
+        self.zUnits_comboBox.currentIndexChanged.connect(self.SetZAxisUnits)
         self.xAutoLabel_checkBox.toggled.connect(self.XAutoLabelCheckBox_statusChanged)
         self.yAutoLabel_checkBox.toggled.connect(self.YAutoLabelCheckBox_statusChanged)
+        self.zAutoLabel_checkBox.toggled.connect(self.ZAutoLabelCheckBox_statusChanged)
         self.xAutoLabel_lineEdit.textChanged.connect(self.XAutoLabelLineEdit_textChanged)
         self.yAutoLabel_lineEdit.textChanged.connect(self.YAutoLabelLineEdit_textChanged)
+        self.zAutoLabel_lineEdit.textChanged.connect(self.ZAutoLabelLineEdit_textChanged)
         self.xFontSize_spinBox.valueChanged.connect(self.XFontSizeSpinBox_valueChanged)
         self.yFontSize_spinBox.valueChanged.connect(self.YFontSizeSpinBox_valueChanged)
+        self.zFontSize_spinBox.valueChanged.connect(self.ZFontSizeSpinBox_valueChanged)
         self.autoTitle_checkBox.toggled.connect(self.AutoTitleCheckBox_statusChanged)
         self.titleFontSize_spinBox.valueChanged.connect(self.TitleFontSizeSpinBox_valueChanged)
         self.autoTitle_lineEdit.textChanged.connect(self.AutoTitleLineEdit_textChanged)
+        self.xAutoAxisLimits_checkBox.toggled.connect(self.xAutoAxisLimitsCheckBox_statusChanged)
+        self.yAutoAxisLimits_checkBox.toggled.connect(self.yAutoAxisLimitsCheckBox_statusChanged)
+        self.zAutoAxisLimits_checkBox.toggled.connect(self.zAutoAxisLimitsCheckBox_statusChanged)
+        self.xAxisMin_lineEdit.textChanged.connect(self.xAxisMinLineEdit_textChanged)
+        self.yAxisMin_lineEdit.textChanged.connect(self.yAxisMinLineEdit_textChanged)
+        self.zAxisMin_lineEdit.textChanged.connect(self.zAxisMinLineEdit_textChanged)
+        self.xAxisMax_lineEdit.textChanged.connect(self.xAxisMaxLineEdit_textChanged)
+        self.yAxisMax_lineEdit.textChanged.connect(self.yAxisMaxLineEdit_textChanged)
+        self.zAxisMax_lineEdit.textChanged.connect(self.zAxisMaxLineEdit_textChanged)
         # Colorbar tab
         self.cbAutoLabel_checkBox.toggled.connect(self.CbAutoLabelCheckBox_statusChanged)
         self.cbFontSize_spinBox.valueChanged.connect(self.CbFontSizeSpinBox_valueChanged)
@@ -124,13 +133,21 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
 
     def SetVisibleTabs(self):
-        raise NotImplementedError
+        if self.subplot.GetAxesDimension() == "2D":
+            self.tabWidget_2.removeTab(2)
 
     def GetAxisProperties(self):
-        self.axisProperties = {
-            "x":self.subplot.GetCopyAllAxisProperties("x"),
-            "y":self.subplot.GetCopyAllAxisProperties("y")
-            }
+        if self.subplot.GetAxesDimension() == "3D":
+            self.axisProperties = {
+                "x":self.subplot.GetCopyAllAxisProperties("x"),
+                "y":self.subplot.GetCopyAllAxisProperties("y"),
+                "z":self.subplot.GetCopyAllAxisProperties("z")
+                }
+        else:
+            self.axisProperties = {
+                "x":self.subplot.GetCopyAllAxisProperties("x"),
+                "y":self.subplot.GetCopyAllAxisProperties("y")
+                }
 
     def GetColorbarProperties(self):
         self.cbProperties = self.subplot.GetCopyAllColorbarProperties()
@@ -189,6 +206,24 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.yAutoLabel_lineEdit.setText(self.axisProperties["y"]["LabelText"])
         self.xFontSize_spinBox.setValue(self.axisProperties["x"]["LabelFontSize"])
         self.yFontSize_spinBox.setValue(self.axisProperties["y"]["LabelFontSize"])
+        self.xAutoAxisLimits_checkBox.setChecked(self.axisProperties["x"]["AutoAxisLimits"])
+        self.yAutoAxisLimits_checkBox.setChecked(self.axisProperties["y"]["AutoAxisLimits"])
+        self.xAxisMin_lineEdit.setText(str(self.axisProperties["x"]["AxisLimits"]["Min"]))
+        self.xAxisMax_lineEdit.setText(str(self.axisProperties["x"]["AxisLimits"]["Max"]))
+        self.yAxisMin_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Min"]))
+        self.yAxisMax_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Max"]))
+        if self.subplot.GetAxesDimension() == "3D":
+            self.zUnits_comboBox.clear()
+            self.zUnits_comboBox.addItems(unitOptions["z"])
+            index = self.zUnits_comboBox.findText(self.axisProperties["z"]["Units"])
+            if index != -1:
+                self.zUnits_comboBox.setCurrentIndex(index)
+            self.zAutoLabel_checkBox.setChecked(self.axisProperties["z"]["AutoLabel"])
+            self.zAutoLabel_lineEdit.setText(self.axisProperties["z"]["LabelText"])
+            self.zFontSize_spinBox.setValue(self.axisProperties["z"]["LabelFontSize"])
+            self.zAutoAxisLimits_checkBox.setChecked(self.axisProperties["z"]["AutoAxisLimits"])
+            self.zAxisMin_lineEdit.setText(str(self.axisProperties["z"]["AxisLimits"]["Min"]))
+            self.zAxisMax_lineEdit.setText(str(self.axisProperties["z"]["AxisLimits"]["Max"]))
         self.updatingUiData = False
 
     def FillColorbarData(self):
@@ -213,6 +248,8 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def SaveChanges(self):
         self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
         self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
+        if "z" in self.axisProperties:
+            self.subplot.SetAllAxisProperties("z", self.axisProperties["z"])
         self.subplot.SetAllColorbarProperties(self.cbProperties)
         self.subplot.SetAllTitleProperties(self.titleProperties)
 
@@ -222,7 +259,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     # Window
     def ApplyButton_Clicked(self):
         self.SaveChanges()
-        self.mainWindow.MakePlots()
+        self.plotterMethod()
 
     def AcceptButton_Clicked(self):
         self.SaveChanges()
@@ -250,10 +287,13 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def MinMaxLineEdit_textChanged(self):
         if not self.updatingUiData:
-            vMin = float(self.min_lineEdit.text())
-            vMax = float(self.max_lineEdit.text())
-            self.selectedFieldProperties["minVal"] = vMin
-            self.selectedFieldProperties["maxVal"] = vMax
+            try:
+                vMin = float(self.min_lineEdit.text())
+                vMax = float(self.max_lineEdit.text())
+                self.selectedFieldProperties["minVal"] = vMin
+                self.selectedFieldProperties["maxVal"] = vMax
+            except:
+                pass
 
     def SetColorMap(self):
         if not self.updatingUiData:
@@ -278,19 +318,18 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     # Axes Tab
     def SetXAxisUnits(self):
         if not self.updatingUiData:
-            if sys.version_info[0] < 3:
-                units = unicode(self.xUnits_comboBox.currentText())
-            else:
-                units = self.xUnits_comboBox.currentText()
+            units = self.xUnits_comboBox.currentText()
             self.axisProperties["x"]["Units"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
-            if sys.version_info[0] < 3:
-                units = unicode(self.yUnits_comboBox.currentText())
-            else:
-                units = self.yUnits_comboBox.currentText()
+            units = self.yUnits_comboBox.currentText()
             self.axisProperties["y"]["Units"] = units
+
+    def SetZAxisUnits(self):
+        if not self.updatingUiData:
+            units = self.zUnits_comboBox.currentText()
+            self.axisProperties["z"]["Units"] = units
 
     def XAutoLabelCheckBox_statusChanged(self):
         if self.xAutoLabel_checkBox.checkState():
@@ -307,6 +346,14 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         else:
             self.yAutoLabel_lineEdit.setEnabled(True)
         self.axisProperties["y"]["AutoLabel"] = self.yAutoLabel_checkBox.checkState()
+
+    def ZAutoLabelCheckBox_statusChanged(self):
+        if self.zAutoLabel_checkBox.checkState():
+            self.zAutoLabel_lineEdit.setEnabled(False)
+            self.zAutoLabel_lineEdit.setText(self.axisProperties["z"]["DefaultLabelText"] )
+        else:
+            self.zAutoLabel_lineEdit.setEnabled(True)
+        self.axisProperties["z"]["AutoLabel"] = self.zAutoLabel_checkBox.checkState()
 
     def CbAutoLabelCheckBox_statusChanged(self):
         if self.cbAutoLabel_checkBox.checkState():
@@ -329,11 +376,17 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def YAutoLabelLineEdit_textChanged(self, text):
         self.axisProperties["y"]["LabelText"] = text
 
+    def ZAutoLabelLineEdit_textChanged(self, text):
+        self.axisProperties["z"]["LabelText"] = text
+
     def XFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["x"]["LabelFontSize"] = value
 
     def YFontSizeSpinBox_valueChanged(self, value):
         self.axisProperties["y"]["LabelFontSize"] = value
+
+    def ZFontSizeSpinBox_valueChanged(self, value):
+        self.axisProperties["z"]["LabelFontSize"] = value
 
     def CbFontSizeSpinBox_valueChanged(self, value):
         self.cbProperties["FontSize"] = value
@@ -343,6 +396,67 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def AutoTitleLineEdit_textChanged(self, text):
         self.titleProperties["Text"] = text
+
+    def xAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.xAxisMin_lineEdit.setEnabled(not status)
+        self.xAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["x"]["AutoAxisLimits"] = status
+
+    def yAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.yAxisMin_lineEdit.setEnabled(not status)
+        self.yAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["y"]["AutoAxisLimits"] = status
+
+    def zAutoAxisLimitsCheckBox_statusChanged(self, status):
+        self.zAxisMin_lineEdit.setEnabled(not status)
+        self.zAxisMax_lineEdit.setEnabled(not status)
+        if not self.updatingUiData:
+            self.axisProperties["z"]["AutoAxisLimits"] = status
+
+    def xAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["x"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+            
+    def yAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["y"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+
+    def zAxisMinLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["z"]["AxisLimits"]["Min"] = float(text)
+            except:
+                pass
+
+    def xAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["x"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+
+    def yAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["y"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+
+    def zAxisMaxLineEdit_textChanged(self, text):
+        if not self.updatingUiData:
+            try:
+                self.axisProperties["z"]["AxisLimits"]["Max"] = float(text)
+            except:
+                pass
+        
 
     # Plot settings tab
     ## General
@@ -354,6 +468,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     
     def YMinPlotSpinbox_ValueChanged(self, value):
         self.plotProperties["General"]["PlotLimits"]["YMin"] = value
+
     def XMaxPlotSpinbox_ValueChanged(self, value):
         self.plotProperties["General"]["PlotLimits"]["XMax"] = value
     
@@ -368,6 +483,10 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             self.scatterSettings_widget.setVisible(False)
             self.arrowsSettings_widget.setVisible(False)
         elif plotType == "Scatter":
+            self.histogramSettings_widget.setVisible(False)
+            self.scatterSettings_widget.setVisible(True)
+            self.arrowsSettings_widget.setVisible(False)
+        elif plotType == "Scatter3D":
             self.histogramSettings_widget.setVisible(False)
             self.scatterSettings_widget.setVisible(True)
             self.arrowsSettings_widget.setVisible(False)
@@ -476,7 +595,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
             fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
             field = self.mainWindow.dataContainer.GetDomainField(fieldName)
             
-        fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.unitConverter, self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
+        fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
         self.subplot.AddFieldToPlot(fieldToPlot)
         self.fieldPropertiesList.append(fieldToPlot.GetFieldProperties())
         self.FillListView()
@@ -484,12 +603,13 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
 
 class EditFieldPlotWindow(EditPlotWindow):
-    def __init__(self, subplot, parent = None):
-        super(EditFieldPlotWindow, self).__init__(subplot, parent)  
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditFieldPlotWindow, self).__init__(subplot, plotterMethod, parent)  
         self.GetFieldsInfo()
         self.FillInitialUI()
 
     def SetVisibleTabs(self):
+        super(EditFieldPlotWindow, self).SetVisibleTabs()
         self.tabWidget.removeTab(1)
 
     def GetFieldsInfo(self):
@@ -506,12 +626,12 @@ class EditFieldPlotWindow(EditPlotWindow):
         self.Fill1DSlicesData()
 
     def FillListView(self):
-        model = QtGui.QStandardItemModel()
+        model = QStandardItemModel()
         for field in self.subplot.GetDataToPlot():
             listLabel = field.GetProperty("name")
             if field.GetProperty("speciesName") != '':
                 listLabel += " / " + field.GetProperty("speciesName")
-            item = QtGui.QStandardItem(listLabel)
+            item = QStandardItem(listLabel)
             model.appendRow(item)
         self.field_listView.setModel(model)
 
@@ -526,20 +646,14 @@ class EditFieldPlotWindow(EditPlotWindow):
     def SetXAxisUnits(self):
         if not self.updatingUiData:
             super(EditFieldPlotWindow, self).SetXAxisUnits()
-            if sys.version_info[0] < 3:
-                units = unicode(self.xUnits_comboBox.currentText())
-            else:
-                units = self.xUnits_comboBox.currentText()
+            units = self.xUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["x"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
             super(EditFieldPlotWindow, self).SetYAxisUnits()
-            if sys.version_info[0] < 3:
-                units = unicode(self.yUnits_comboBox.currentText())
-            else:
-                units = self.yUnits_comboBox.currentText()
+            units = self.yUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
                 fieldProperties["axesUnits"]["y"] = units
 
@@ -552,8 +666,8 @@ class EditFieldPlotWindow(EditPlotWindow):
 
 
 class EditRawPlotWindow(EditPlotWindow):
-    def __init__(self, subplot, parent = None):
-        super(EditRawPlotWindow, self).__init__(subplot, parent)
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditRawPlotWindow, self).__init__(subplot, plotterMethod, parent)
         self.GetPlotProperties()
         self.FillInitialUI()
 
@@ -561,6 +675,7 @@ class EditRawPlotWindow(EditPlotWindow):
         self.plotProperties = self.subplot.GetCopyAllPlotProperties()
 
     def SetVisibleTabs(self):
+        super(EditRawPlotWindow, self).SetVisibleTabs()
         self.tabWidget.removeTab(5)
         self.tabWidget.removeTab(0)
 
@@ -569,7 +684,6 @@ class EditRawPlotWindow(EditPlotWindow):
         self.FillAxesData()
         self.FillColorbarData()
         self.FillTitleData()
-        self.Fill1DSlicesData()
 
     def FillPlotSettingsData(self):
         self.updatingUiData = True
@@ -644,10 +758,37 @@ class EditRawPlotWindow(EditPlotWindow):
             dataToPlot["z"].SetProperty("dataSetUnits", self.axisProperties["z"]["Units"])
 
 
+class EditRawEvolutionPlotWindow(EditPlotWindow):
+    def __init__(self, subplot, plotterMethod, parent = None):
+        super(EditRawEvolutionPlotWindow, self).__init__(subplot, plotterMethod, parent)
+        self.FillInitialUI()
+
+    def SetVisibleTabs(self):
+        super(EditRawEvolutionPlotWindow, self).SetVisibleTabs()
+        self.tabWidget.removeTab(5)
+        self.tabWidget.removeTab(1)
+        self.tabWidget.removeTab(0)
+
+    def FillInitialUI(self):
+        self.FillAxesData()
+        self.FillColorbarData()
+        self.FillTitleData()
+
+    def SaveChanges(self):
+        super(EditRawEvolutionPlotWindow, self).SaveChanges()
+        dataToPlot = self.subplot.GetDataToPlot()
+        for particleData in dataToPlot:
+            particleData["x"].SetProperty("dataSetUnits", self.axisProperties["x"]["Units"])
+            particleData["y"].SetProperty("dataSetUnits", self.axisProperties["y"]["Units"])
+            if "z" in dataToPlot:
+                particleData["z"].SetProperty("dataSetUnits", self.axisProperties["z"]["Units"])
+
+
 class EditPlotWindowSelector:
     editWindows = {"Field": EditFieldPlotWindow,
-                   "Raw": EditRawPlotWindow
+                   "Raw": EditRawPlotWindow,
+                   "RawEvolution": EditRawEvolutionPlotWindow
                    }
     @classmethod
-    def GetEditPlotWindow(cls, subplot, mainWindow):
-        return cls.editWindows[subplot.GetDataType()](subplot, mainWindow)
+    def GetEditPlotWindow(cls, subplot, plotterMethod, mainWindow):
+        return cls.editWindows[subplot.GetDataType()](subplot, plotterMethod, mainWindow)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,14 +17,14 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import os
-import h5py
+from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataHandling.species import Species
-from VisualPIC.DataHandling.rawDataSet import RawDataSet
+from VisualPIC.DataHandling.folderDataElements import FolderField, FolderRawDataSet
 from VisualPIC.DataHandling.rawDataTags import RawDataTags
-from VisualPIC.DataHandling.field import Field
 
 
 class FolderDataReader:
@@ -32,13 +32,6 @@ class FolderDataReader:
     def __init__(self, parentDataContainer):
         self._dataContainer = parentDataContainer
         self._dataLocation = ""
-        self._simulationCode = ""
-        self.CreateCodeDictionaries()
-    
-    def CreateCodeDictionaries(self):
-        self._codeName = {"MS":"Osiris",
-                          "Something":"HiPACE",
-                          "simOutput":"PIConGPU"}
         self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                                "HiPACE": self.LoadHiPaceData,
                                "PIConGPU":self.LoadPIConGPUData}
@@ -82,14 +75,8 @@ class FolderDataReader:
     """
     Main data loader. It will automatically call the specific loader for a particular simulation code
     """
-    def LoadData(self):
-        self._DetectSimulationCodeName()
-        self._loadDataFrom[self._simulationCode]()
-
-    def _DetectSimulationCodeName(self):
-        dataFolderName = os.path.basename(self._dataLocation)
-        self._simulationCode = self._codeName[dataFolderName]
-        self._dataContainer._simulationCode = self._simulationCode
+    def LoadData(self, simulationCode):
+        self._loadDataFrom[simulationCode]()
 
     """
     Specific data loaders
@@ -112,7 +99,8 @@ class FolderDataReader:
                                 fieldLocation = subDir + "/" + species + "/" + field
                                 fieldName = field
                                 timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                                self.AddFieldToSpecies(species, Field(self._simulationCode, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
+                                if timeSteps.size != 0:
+                                    self.AddFieldToSpecies(species, FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps, species))
             elif folder == keyFolderNames[1]:
                 domainFields = os.listdir(subDir)
                 for field in domainFields:
@@ -120,7 +108,8 @@ class FolderDataReader:
                         fieldLocation = subDir + "/" + field
                         fieldName = field
                         timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
-                        self.AddDomainField(Field(self._simulationCode, fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
+                        if timeSteps.size != 0:
+                            self.AddDomainField(FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
             #elif folder ==  keyFolderNames[2]:
             #    phaseFields = os.listdir(subDir)
             #    for field in phaseFields:
@@ -132,7 +121,7 @@ class FolderDataReader:
             #                    fieldLocation = subDir + "/" + field + "/" + species
             #                    fieldName = field
             #                    totalTimeSteps = len(os.listdir(fieldLocation))
-            #                    self.AddFieldToSpecies(species, Field(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self._codeName))
+            #                    self.AddFieldToSpecies(species, FolderField(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self._codeName))
             elif folder ==  keyFolderNames[3]:
                 subDir = self._dataLocation + "/" + folder
                 speciesNames = os.listdir(subDir)
@@ -141,14 +130,15 @@ class FolderDataReader:
                         self.AddSpecies(Species(species))
                         dataSetLocation = subDir + "/" + species
                         timeSteps = self.GetTimeStepsInOsirisLocation(dataSetLocation)
-                        file_path = dataSetLocation + "/" + "RAW-" + species + "-000000.h5"
-                        file_content = h5py.File(file_path, 'r')
-                        for dataSetName in list(file_content):
-                            if dataSetName == "tag":
-                                self.AddRawDataTagsToSpecies(species, RawDataTags(self._simulationCode, dataSetName, dataSetLocation, timeSteps, species, dataSetName))
-                            else:
-                                self.AddRawDataToSpecies(species, RawDataSet(self._simulationCode, dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
-                        file_content.close()
+                        if timeSteps.size != 0:
+                            file_path = dataSetLocation + "/" + "RAW-" + species + "-" + str(timeSteps[0]).zfill(6) + ".h5"
+                            file_content = H5File(file_path, 'r')
+                            for dataSetName in list(file_content):
+                                if dataSetName == "tag":
+                                    self.AddRawDataTagsToSpecies(species, RawDataTags("Osiris", dataSetName, dataSetLocation, timeSteps, species, dataSetName))
+                                else:
+                                    self.AddRawDataToSpecies(species, FolderRawDataSet("Osiris", dataSetName, self.GiveStandardNameForOsirisQuantity(dataSetName), dataSetLocation, timeSteps, species, dataSetName))
+                            file_content.close()
 
     def GetTimeStepsInOsirisLocation(self, location):
         fileNamesList = os.listdir(location)
@@ -209,7 +199,7 @@ class FolderDataReader:
         HOW TO USE:
         
         This function has to scan the folder where the simulation data is stored.
-        It will create a Species, Field, RawDataSet or RawDataTags object for each
+        It will create a Species, FolderField, FolderRawDataSet or RawDataTags object for each
         species, field, raw (particle) data set and particle tags found in the folder.
 
         To add these data into the dataContainer the following functions have to be used:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,28 +17,29 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-import gc
+
 import os
 import sys
-
-from PyQt4.uic import loadUiType
-from PyQt4 import QtCore, QtGui
+from PyQt5.uic import loadUiType
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
+from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindow
+from VisualPIC.Views.aboutWindow import AboutWindow
 from VisualPIC.Views.particleTrackerWindow import ParticleTrackerWindow
+from VisualPIC.Views.visualizer3DvtkWindow import Visualizer3DvtkWindow
 from VisualPIC.DataHandling.dataContainer import DataContainer
-from VisualPIC.DataHandling.fieldToPlot import FieldToPlot
-from VisualPIC.DataHandling.rawDataSetToPlot import RawDataSetToPlot
-from VisualPIC.DataHandling.subplot import *
+from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
+from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
+from VisualPIC.DataPlotting.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
-from VisualPIC.Controls.plotFieldItem import PlotFieldItem
-import VisualPIC.DataHandling.unitConverters as unitConverters
+from VisualPIC.Controls.subplotItem import SubplotItem
 
 
 if getattr(sys, 'frozen', False):
@@ -83,6 +84,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def InitialUIValues(self):
         # due to 2D button toggled
+        self.addLaser_checkBox.setVisible(False)
         self.freeRaw_widget.setVisible(True)
         self.premadeRaw_widget.setVisible(False)
         self.yRaw_comboBox.setEnabled(True)
@@ -111,7 +113,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.plot_pushButton.clicked.connect(self.PlotButton_Clicked)
         self.actionParticle_Tracker.triggered.connect(self.ActionParticleTracker_Toggled)
         self.actionMake_video.triggered.connect(self.ActionMakeVideo_Toggled)
-        self.setNormalization_Button.clicked.connect(self.SetNormalizationButton_Clicked)
+        self.actionSimulation_parameters.triggered.connect(self.ActionSimulationParameters_Toggled)
+        self.actionAbout.triggered.connect(self.ActionAbout_Toggled)
+        self.actionOpen_Folder.triggered.connect(self.BrowseButton_Clicked)
+        self.action3D_Visualizer.triggered.connect(self.Action3D_Visualizer_Toggled)
         self.addRawField_Button.clicked.connect(self.AddRawFieldButton_Clicked)
 
     """
@@ -144,17 +149,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def ColumnsSpinBox_ValueChanged(self):
         self.SetListOfPlotPositions()
-
-    def SetNormalizationButton_Clicked(self):
-        n_p = float(self.plasmaDensity_lineEdit.text())
-        self.unitConverter.SetNormalizationFactor(n_p)
     
     def LoadDataButton_Cicked(self):
         self.ClearData()
         self.dataContainer.ClearData()
         self.LoadFolderData()
-        self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(self.dataContainer.GetSimulationCodeName())
         self.AdaptUIToSpecificSimulationCode()
+        self.AdaptUIToSimulationParams()
 
     def AdaptUIToSpecificSimulationCode(self):
         simulationCode = self.dataContainer.GetSimulationCodeName()
@@ -165,18 +166,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.removedNormalizationTab != None:
             self.tabWidget_2.addTab(self.removedNormalizationTab, "Normalization")
             self.removedNormalizationTab = None
+
+    def AdaptUIToSimulationParams(self):
+        simulationParams = self.dataContainer.GetSimulationParameters()
+        isLaser = simulationParams["isLaser"]
+        if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
+            self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
         self.dataContainer.SetDataFolderLocation(folderPath)
-    
+
     def ActionParticleTracker_Toggled(self):
-        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.unitConverter, self.colorMapsCollection, self.dataPlotter)
+        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.colorMapsCollection, self.dataPlotter)
+        screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
+        x = (screenGeometry.width()-self.particleTracker.width()) / 2;
+        y = (screenGeometry.height()-self.particleTracker.height()) / 2 -20;
+        self.particleTracker.move(x, y);
         self.particleTracker.show()
+
+    def Action3D_Visualizer_Toggled(self):
+        self.visualizer3D = Visualizer3DvtkWindow(self.dataContainer)
+        screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
+        x = (screenGeometry.width()-self.visualizer3D.width()) / 2;
+        y = (screenGeometry.height()-self.visualizer3D.height()) / 2 -20;
+        self.visualizer3D.move(x, y);
+        self.visualizer3D.show()
 
     def ActionMakeVideo_Toggled(self):
         AnimationWindow = CreateAnimationWindow(self)
         AnimationWindow.exec_()
+
+    def ActionSimulationParameters_Toggled(self):
+        ParametersWindow = SimulationParametersWindow(self)
+        ParametersWindow.exec_()
+
+    def ActionAbout_Toggled(self):
+        aboutWindow = AboutWindow(self)
+        aboutWindow.exec_()
         
     def SpeciesFieldsRadioButton_Toggled(self):
         if self.oneDimSpeciesField_radioButton.isChecked():
@@ -230,20 +257,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for species in self.dataContainer.GetAvailableSpecies():
             if species.GetName() == speciesName:
                xDataSet = species.GetRawDataSet(xDataSetName) 
-               dataSets["x"] = RawDataSetToPlot(xDataSet, self.unitConverter)
+               dataSets["x"] = RawDataSetToPlot(xDataSet)
                yDataSet = species.GetRawDataSet(yDataSetName) 
-               dataSets["y"] = RawDataSetToPlot(yDataSet, self.unitConverter)
+               dataSets["y"] = RawDataSetToPlot(yDataSet)
                pxDataSet = species.GetRawDataSet("Pz") 
-               dataSets["Px"] = RawDataSetToPlot(pxDataSet, self.unitConverter)
+               dataSets["Px"] = RawDataSetToPlot(pxDataSet)
                pyDataSet = species.GetRawDataSet("Py") 
-               dataSets["Py"] = RawDataSetToPlot(pyDataSet, self.unitConverter)
+               dataSets["Py"] = RawDataSetToPlot(pyDataSet)
                if self.rawPlotType_radioButton_2.isChecked():
                    zDataSet = species.GetRawDataSet(zDataSetName) 
-                   dataSets["z"] = RawDataSetToPlot(zDataSet, self.unitConverter)
+                   dataSets["z"] = RawDataSetToPlot(zDataSet)
                    pzDataSet = species.GetRawDataSet("Pz") 
-                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet, self.unitConverter)
+                   dataSets["Pz"] = RawDataSetToPlot(pzDataSet)
                weightingDataSet = species.GetRawDataSet("Charge")
-               dataSets["weight"] = RawDataSetToPlot(weightingDataSet, self.unitConverter)
+               dataSets["weight"] = RawDataSetToPlot(weightingDataSet)
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
@@ -254,14 +281,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         	
     def AddSpeciesFieldButton_Clicked(self):
         self.dataContainer.SetSelectedSpeciesFields()
-        self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+        if self.addLaser_checkBox.isVisible() and self.addLaser_checkBox.checkState():
+            fields = self.dataContainer.GetSelectedSpeciesFields()
+            if "Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames():
+                fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
+            elif "a_mod" in self.dataContainer.GetAvailableDomainFieldsNames():
+                fields.append(self.dataContainer.GetDomainField("a_mod"))
+            self.AddFieldsToPlot(fields, self.speciesFieldPlotDimension)
+        else:
+            self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+
 
     """
     Called from UI event handlers
     """
 
     def OpenFolderDialog(self):
-        folderPath = str(QtGui.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.dataContainer.GetFolderPath()))
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.dataContainer.GetFolderPath()))
         if folderPath != "":
             self.SetFolderPath(folderPath)
         
@@ -285,8 +321,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         subplot = RawDataSubplot(plotPosition, self.colorMapsCollection, dataSets)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid = SubplotItem(subplot, self.MakePlots, self)
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
@@ -320,6 +356,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList[:] = []
         
     def LoadFolderData(self):
+        ParametersWindow = SimulationParametersWindow(self)
+        ParametersWindow.exec_()
         self.dataContainer.LoadData()
         self.av2DDomainFields_comboBox.clear()
         self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
@@ -352,14 +390,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
         for fld in fields:
-            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.unitConverter, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
+            fieldToPlot = FieldToPlot(fld, fieldPlotDimension, self.colorMapsCollection, isPartOfMultiplot = len(fields)>1)
             fldList.append(fieldToPlot)
         plotPosition = len(self.subplotList)+1
         subplot = FieldSubplot(plotPosition, self.colorMapsCollection, fldList)
         self.subplotList.append(subplot)
         self.SetAutoColumnsAndRows()
-        wid = PlotFieldItem(subplot, self)
-        wid2 = QtGui.QListWidgetItem()
+        wid = SubplotItem(subplot, self.MakePlots, self)
+        wid2 = QtWidgets.QListWidgetItem()
         wid2.setSizeHint(QtCore.QSize(100, 40))
         self.fieldsToPlot_listWidget.addItem(wid2)
         self.fieldsToPlot_listWidget.setItemWidget(wid2, wid)
@@ -393,25 +431,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         timeStep = self.timeStep_Slider.value()
         self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, timeStep)
         self.canvas.draw()
-        
-    def PlotDomainField(self):#, fieldName, timeStep):
-        fieldName = self.dataContainer.GetSelectedDomainFieldName();
-        timeStep = self.timeStep_Slider.value()
-        for field in self.dataContainer.GetAvailableDomainFields():
-            if field.GetName() == fieldName:
-                plotData = field.GetPlotData(timeStep)
-                self.AddPlot(self.dataPlotter.GetSimplePlot(plotData))
-            
-    def AddPlot(self, figure):
-        if self.plotWidget_layout.count() == 0:
-            self.figure = figure
-            self.canvas = FigureCanvas(self.figure)
-            self.plotWidget_layout.addWidget(self.canvas)
-            self.canvas.draw()
-        else:
-            self.dataPlotter.UpdateFigure(self.figure)
-            self.canvas.draw()
-            gc.collect()
             
     def RemoveSubplot(self, item):
         index = self.subplotList.index(item.subplot)

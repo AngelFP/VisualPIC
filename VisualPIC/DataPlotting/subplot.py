@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,8 +17,10 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import copy
 import numpy as np
+
 
 class Subplot(object):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
@@ -34,6 +36,7 @@ class Subplot(object):
                           "z":{}}
         self.axisTitleProps = {}
         self.colorbarProps = {}
+        self.defaultFontSize = 10
         self._SetSubplotName()  
         self._SetPlottedSpeciesName()
         self._LoadPossiblePlotTypes()
@@ -63,7 +66,12 @@ class Subplot(object):
         self.SetTitleToDefaultValues()
         
     def LoadDefaultAxesValues(self):
-        raise NotImplementedError
+        self.SetAxisProperty("x", "DefaultLabelFontSize", self.defaultFontSize)
+        self.SetAxisProperty("y", "DefaultLabelFontSize", self.defaultFontSize)
+        self.SetAxisProperty("x", "DefaultAutoAxisLimits", True)
+        self.SetAxisProperty("y", "DefaultAutoAxisLimits", True)
+        self.SetAxisProperty("x", "DefaultAxisLimits", {"Min":0, "Max":1})
+        self.SetAxisProperty("y", "DefaultAxisLimits", {"Min":0, "Max":1})
             
     def SetAxesToDefaultValues(self):
         self.SetAxisProperty("x", "LabelText", self.GetAxisProperty("x", "DefaultLabelText"))
@@ -74,13 +82,20 @@ class Subplot(object):
         self.SetAxisProperty("y", "Units", self.GetAxisProperty("y", "DefaultUnits"))
         self.SetAxisProperty("x", "LabelFontSize", self.GetAxisProperty("x", "DefaultLabelFontSize"))
         self.SetAxisProperty("y", "LabelFontSize", self.GetAxisProperty("y", "DefaultLabelFontSize"))
+        self.SetAxisProperty("x", "AutoAxisLimits", self.GetAxisProperty("x", "DefaultAutoAxisLimits"))
+        self.SetAxisProperty("y", "AutoAxisLimits", self.GetAxisProperty("y", "DefaultAutoAxisLimits"))
+        self.SetAxisProperty("x", "AxisLimits", self.GetAxisProperty("x", "DefaultAxisLimits"))
+        self.SetAxisProperty("y", "AxisLimits", self.GetAxisProperty("y", "DefaultAxisLimits"))
         if len(self.axisProps["z"])>0:
             self.SetAxisProperty("z", "LabelText", self.GetAxisProperty("z", "DefaultLabelText"))
+            self.SetAxisProperty("z", "AutoLabel", True)
             self.SetAxisProperty("z", "Units", self.GetAxisProperty("z", "DefaultUnits"))
             self.SetAxisProperty("z", "LabelFontSize", self.GetAxisProperty("z", "DefaultLabelFontSize"))
+            self.SetAxisProperty("z", "AutoAxisLimits", self.GetAxisProperty("z", "DefaultAutoAxisLimits"))
+            self.SetAxisProperty("z", "AxisLimits", self.GetAxisProperty("z", "DefaultAxisLimits"))
             
     def LoadDefaultColorBarValues(self):
-        self.colorbarProps["DefaultFontSize"] = 20
+        self.colorbarProps["DefaultFontSize"] = 10
         self.colorbarProps["DefaultAutoTickLabelSpacing"] = True
         
     def SetColorbarToDefaultValues(self):
@@ -88,7 +103,7 @@ class Subplot(object):
         self.colorbarProps["AutoTickLabelSpacing"] = self.colorbarProps["DefaultAutoTickLabelSpacing"]
         
     def LoadDefaultTitleValues(self):
-        self.SetTitleProperty("DefaultFontSize", 20)
+        self.SetTitleProperty("DefaultFontSize", 10)
         self.SetTitleProperty("DefaultText", self.subplotName)
         self.SetTitleProperty("DefaultAutoText", True)
         
@@ -194,15 +209,13 @@ class FieldSubplot(Subplot):
             self.possiblePlotTypes = ["Image", "Surface"]
         
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", "z")
         self.SetAxisProperty("y", "DefaultLabelText", "y")
         #self.SetAxisProperty("z", "DefaultLabelText", "x")
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["x"])
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["y"])
         #self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
 
     def _SetTimeSteps(self):
         i = 0
@@ -246,7 +259,7 @@ class FieldSubplot(Subplot):
 class RawDataSubplot(Subplot):
     def __init__(self, subplotPosition, colorMapsCollection, dataToPlot):
         self.plotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
-        self.defaultPlotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Arrows":{}}
+        self.defaultPlotProps = {"General":{}, "Histogram":{}, "Scatter":{}, "Scatter3D":{}, "Arrows":{}}
         super(RawDataSubplot, self).__init__(subplotPosition, colorMapsCollection, dataToPlot)
         self.dataType = "Raw"
         self._SetTimeSteps()
@@ -286,17 +299,18 @@ class RawDataSubplot(Subplot):
         self.SetPlotPropertiesToDefault()
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20  
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot["y"].GetProperty("dataSetUnits"))
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
         if "z" in self.dataToPlot:
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot["z"].GetProperty("dataSetUnits"))
-            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("z", "DefaultLabelFontSize", self.defaultFontSize)
+            self.SetAxisProperty("z", "DefaultAutoAxisLimits", True)
+            self.SetAxisProperty("z", "DefaultAxisLimits", {"Min":0, "Max":1})
+
         
     def LoadDefaultPlotProperties(self):
         # General
@@ -315,6 +329,11 @@ class RawDataSubplot(Subplot):
         if "weight" in self.dataToPlot:
             self.defaultPlotProps["Scatter"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
         self.defaultPlotProps["Scatter"]["CMap"] = self.GetAxisDefaultColorMap("Scatter")
+        # Scatter3D
+        self.defaultPlotProps["Scatter3D"]["UseChargeWeighting"] = True
+        if "weight" in self.dataToPlot:
+            self.defaultPlotProps["Scatter3D"]["ChargeUnits"] = self.dataToPlot["weight"].GetProperty("dataSetUnits")
+        self.defaultPlotProps["Scatter3D"]["CMap"] = self.GetAxisDefaultColorMap("Scatter3D")
         # Arrows
         self.defaultPlotProps["Arrows"]["MakeGrid"] = True
         self.defaultPlotProps["Arrows"]["Bins"] = {"XBins":100, "YBins":100}
@@ -349,6 +368,8 @@ class RawDataSubplot(Subplot):
         if plotType == "Histogram":
             return "BlueT"
         elif plotType == "Scatter":
+            return "Uniform Blue Transparent"
+        elif plotType == "Scatter3D":
             return "Uniform Blue Transparent"
         elif plotType == "Arrows":
             return "jet"
@@ -391,8 +412,8 @@ class RawDataSubplot(Subplot):
     def SetAllPlotProperties(self, properties):
         self.plotProps = properties
         
-    def GetPlotProperty(self, propertzType, targetProperty):
-        return self.plotProps[propertzType][targetProperty]
+    def GetPlotProperty(self, propertyType, targetProperty):
+        return self.plotProps[propertyType][targetProperty]
 
     def SetPlotProperty(self, propertzType, targetProperty, value):
         self.plotProps[propertzType][targetProperty] = value
@@ -420,22 +441,30 @@ class RawDataEvolutionSubplot(Subplot):
         pass
 
     def LoadDefaultAxesValues(self):
-        defaultFontSize = 20
+        super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", self.dataToPlot[0]["x"].GetProperty("name"))
         self.SetAxisProperty("y", "DefaultLabelText", self.dataToPlot[0]["y"].GetProperty("name"))
         self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0]["x"].GetProperty("dataSetUnits"))
         self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0]["y"].GetProperty("dataSetUnits"))
-        self.SetAxisProperty("x", "DefaultLabelFontSize", defaultFontSize)
-        self.SetAxisProperty("y", "DefaultLabelFontSize", defaultFontSize)
         if "z" in self.dataToPlot[0]:
+            self.SetAxisProperty("z", "DefaultAutoAxisLimits", True)
+            self.SetAxisProperty("z", "DefaultAxisLimits", {"Min":0, "Max":1})
             self.SetAxisProperty("z", "DefaultLabelText", self.dataToPlot[0]["z"].GetProperty("name"))
             self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0]["z"].GetProperty("dataSetUnits"))
-            self.SetAxisProperty("z", "DefaultLabelFontSize", defaultFontSize)
+            self.SetAxisProperty("z", "DefaultLabelFontSize", self.defaultFontSize)
 
     def GetAxesDimension(self):
         if "z" in self.dataToPlot[0]:
                 return "3D"
         return "2D"
+
+    def GetAxesUnitsOptions(self):
+        unitsOptions = {}
+        unitsOptions["x"] = self.dataToPlot[0]["x"].GetProperty("possibleDataSetUnits")
+        unitsOptions["y"] = self.dataToPlot[0]["y"].GetProperty("possibleDataSetUnits")
+        if "z" in self.dataToPlot:
+            unitsOptions["z"] = self.dataToPlot[0]["z"].GetProperty("possibleDataSetUnits")
+        return unitsOptions
 
     def GetAxisColorMapOptions(self, plotType):
         return self.colorMapsCollection.GetAllColorMapNames()

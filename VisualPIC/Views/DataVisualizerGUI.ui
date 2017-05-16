@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1153</width>
-    <height>746</height>
+    <width>900</width>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,10 +31,44 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="1">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLineEdit" name="folderLocation_lineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="browse_Button">
+          <property name="text">
+           <string>Browse</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loadData_Button">
+          <property name="text">
+           <string>Load Data</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item row="4" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QSlider" name="timeStep_Slider">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -74,34 +108,6 @@
         </item>
        </layout>
       </item>
-      <item row="0" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLineEdit" name="folderLocation_lineEdit"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="browse_Button">
-          <property name="text">
-           <string>Browse</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="loadData_Button">
-          <property name="text">
-           <string>Load Data</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <widget class="Line" name="line_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -113,7 +119,16 @@
            </size>
           </property>
           <layout class="QVBoxLayout" name="plotWidget_layout">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
           </layout>
@@ -121,14 +136,29 @@
         </item>
         <item>
          <widget class="QWidget" name="widget_2" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="maximumSize">
            <size>
-            <width>300</width>
+            <width>16777215</width>
             <height>16777215</height>
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -136,7 +166,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>333</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="title">
@@ -159,6 +189,18 @@
                   <string>Species Fields</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
+                  <property name="leftMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>7</number>
+                  </property>
                   <item>
                    <widget class="QLabel" name="label">
                     <property name="text">
@@ -222,6 +264,19 @@
                    <widget class="QComboBox" name="avSpeciesFields_comboBox"/>
                   </item>
                   <item>
+                   <widget class="QCheckBox" name="addLaser_checkBox">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Add laser</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer_5">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -261,6 +316,18 @@
                   <string>Domain Fields</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_2">
+                  <property name="leftMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>7</number>
+                  </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_17">
                     <item>
@@ -333,6 +400,18 @@
                   <string>Raw Data</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <property name="leftMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>7</number>
+                  </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_15">
                     <item>
@@ -348,14 +427,14 @@
                    </layout>
                   </item>
                   <item>
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Plot type:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QLabel" name="label_2">
+                      <property name="text">
+                       <string>Plot:</string>
+                      </property>
+                     </widget>
+                    </item>
                     <item>
                      <widget class="QRadioButton" name="rawPlotType_radioButton_1">
                       <property name="text">
@@ -388,7 +467,16 @@
                   <item>
                    <widget class="QWidget" name="freeRaw_widget" native="true">
                     <layout class="QVBoxLayout" name="verticalLayout_13">
-                     <property name="margin">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
                       <number>0</number>
                      </property>
                      <item>
@@ -473,7 +561,16 @@
                      <bool>true</bool>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_14">
-                     <property name="margin">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
                       <number>0</number>
                      </property>
                      <item>
@@ -532,6 +629,18 @@
                   <string>Subplot List</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <property name="leftMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>7</number>
+                  </property>
                   <item>
                    <widget class="QListWidget" name="fieldsToPlot_listWidget"/>
                   </item>
@@ -549,6 +658,18 @@
                   <string>Multiplot</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <property name="leftMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>7</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>7</number>
+                  </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_9">
                     <item>
@@ -626,96 +747,7 @@
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="tab_5">
-                 <attribute name="title">
-                  <string>Normalization</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_6">
-                    <item>
-                     <widget class="QLabel" name="label_9">
-                      <property name="text">
-                       <string>Plasma density (10&lt;sup&gt;18&lt;/sup&gt; cm&lt;sup&gt;-3&lt;/sup&gt;)</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="plasmaDensity_lineEdit">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="setNormalization_Button">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="text">
-                     <string>Set</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </widget>
                </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="title">
-              <string>Time</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_8">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QLabel" name="label_7">
-                  <property name="text">
-                   <string>Normalized</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="normTime_lineEdit">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_8">
-                  <property name="text">
-                   <string>IS (fs)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="SITime_lineEdit">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
               </item>
              </layout>
             </widget>
@@ -734,8 +766,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1153</width>
-     <height>21</height>
+     <width>900</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -750,6 +782,7 @@
     </property>
     <addaction name="actionParticle_Tracker"/>
     <addaction name="actionMake_video"/>
+    <addaction name="action3D_Visualizer"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -757,7 +790,14 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionSimulation_parameters"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuTools"/>
    <addaction name="menuAbout"/>
   </widget>
@@ -779,6 +819,16 @@
   <action name="actionParticle_Tracker">
    <property name="text">
     <string>Particle Tracker</string>
+   </property>
+  </action>
+  <action name="actionSimulation_parameters">
+   <property name="text">
+    <string>Simulation parameters</string>
+   </property>
+  </action>
+  <action name="action3D_Visualizer">
+   <property name="text">
+    <string>3D Visualizer</string>
    </property>
   </action>
  </widget>

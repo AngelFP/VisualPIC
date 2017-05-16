@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,14 +17,19 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from VisualPIC.DataReading.folderDataReader import FolderDataReader
+from VisualPIC.DataHandling.customDataElements import CustomFieldCreator, CustomRawDataSetCreator
+from VisualPIC.DataHandling.dataElement import DataElement
+import VisualPIC.DataHandling.unitConverters as unitConverters
 
 
 class DataContainer:
-    """Contains all the fields and rawDataSets available on the simulation folder"""
+    """Contains all the fields and rawDataSets available on the simulation folder, as well as the custom ones"""
     def __init__(self):
         self._folderDataReader = FolderDataReader(self)
-        self._simulationCode = ""
+        self._simulationParams = dict()
+        self.unitConverter = None # Will be set in "SetSimulationParameters" where the user manually selects the code
         # species (may contain fields and raw data)
         self._availableSpecies = list()
         self._selectedSpecies = list()
@@ -35,18 +40,60 @@ class DataContainer:
         self._selectedDomainField = None
     
     def LoadData(self):
-        self._folderDataReader.LoadData()
+        self._folderDataReader.LoadData(self._simulationParams["SimulationCode"])
+        self._availableDomainFields = self._availableDomainFields + CustomFieldCreator.GetCustomFields(self)
+        for species in self._availableSpecies:
+            speciesName = species.GetName()
+            speciesCustomFields = CustomRawDataSetCreator.GetCustomDataSets(self, speciesName)
+            for dataSet in speciesCustomFields:
+                species.AddRawDataSet(dataSet)
 
     def SetDataFolderLocation(self, folderLocation):
         self._folderDataReader.SetDataLocation(str(folderLocation))
 
+    def GetDataFolderLocation(self):
+        return self._folderDataReader.GetDataLocation()
+
     def GetSimulationCodeName(self):
-        return self._simulationCode
+        return self._simulationParams["SimulationCode"]
+
+    def SetSimulationParameters(self, parameters):
+        # If there is no unitConverter or the simulation code has changed, create a new unitConverter.
+        if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
+            self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(parameters)
+            DataElement.SetUnitConverter(self.unitConverter)
+        # otherwise, update the current one.
+        else:
+            self.unitConverter.SetSimulationParameters(parameters)
+        self._simulationParams = parameters
+
+    def GetSimulationParameters(self):
+        return self._simulationParams
+
+    def GetNamesOfAvailableParameters(self):
+        paramNames = list()
+        for paramName in self._simulationParams:
+            paramNames.append(paramName)
+        return paramNames
+
+    def GetSimulationParameter(self, paramName):
+        return self._simulationParams[paramName]
                 
     def AddSelectedSpecies(self, speciesName):
         for species in self._availableSpecies:
             if species.GetName() == speciesName:
                 self._selectedSpecies.append(species)
+
+    def GetSimulationDimension(self):
+        # If any field is in 3D, it will return 3D. 2D otherwise.
+        for field in self._availableDomainFields:
+            if field.GetFieldDimension() == "3D":
+                return "3D"
+        for species in self._availableSpecies:
+            for field in species.GetAvailableFields():
+                if field.GetFieldDimension() == "3D":
+                    return "3D"
+        return "2D"
          
     def RemoveSelectedSpecies(self, speciesName):
         for species in self._selectedSpecies:
@@ -67,6 +114,11 @@ class DataContainer:
     
     def GetAvailableSpecies(self):
         return self._availableSpecies
+
+    def GetSpecies(self, speciesName):
+        for species in self._availableSpecies:
+            if species.GetName() == speciesName:
+                return species
         
     def GetSpeciesWithRawData(self):
         speciesList = list()

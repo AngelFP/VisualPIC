@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,31 +17,25 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 class RawDataSetToPlot:
-    def __init__(self, dataSet, unitConverter):
+    def __init__(self, dataSet):
         self._dataSet = dataSet
-        self._unitConverter = unitConverter
         self._dataProperties = {
             "name":dataSet.GetName(), 
             "speciesName":dataSet.GetSpeciesName(), 
             "timeSteps":dataSet.GetTimeSteps(),
-            "dataSetUnits":dataSet.GetDataUnits(), 
-            "timeUnits":dataSet.GetTimeUnits(),
-            "possibleDataSetUnits":self._GetPossibleDataSetUnits(),
-            "possibleTimeUnits":self._GetPossibleTimeUnits()
+            "dataSetUnits":dataSet.GetDataOriginalUnits(), 
+            "timeUnits":dataSet.GetTimeOriginalUnits(),
+            "possibleDataSetUnits":dataSet.GetPossibleDataUnits(),
+            "possibleTimeUnits":dataSet.GetPossibleTimeUnits()
         }
-            
-    def _GetPossibleDataSetUnits(self):
-        return self._unitConverter.GetPossibleDataUnits(self._dataSet)
-
-    def _GetPossibleTimeUnits(self):
-        return self._unitConverter.GetPossibleTimeUnits(self._dataSet)
 
     def GetTime(self, timeStep):
-        return self._unitConverter.GetTimeInUnits(self._dataSet, self._dataProperties["timeUnits"], timeStep)
+        return self._dataSet.GetTimeInUnits(self._dataProperties["timeUnits"], timeStep)
         
     def GetDataSetPlotData(self, timeStep):
-        return self._unitConverter.GetDataInUnits(self._dataSet, self._dataProperties["dataSetUnits"], timeStep)
+        return self._dataSet.GetDataInUnits(self._dataProperties["dataSetUnits"], timeStep)
     
     def GetProperty(self, propertyName):
         return self._dataProperties[propertyName]

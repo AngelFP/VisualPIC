@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -17,8 +17,8 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+
 class Species:
-    
     def __init__(self, name):
         self.name = name
         self.availableFields = list()
@@ -70,13 +70,19 @@ class Species:
 
     def GetRawDataTags(self, timeStep):
         return self.rawDataTags.GetTags(timeStep)
+
+    def GetRawDataTimeSteps(self):
+        """ Assumes all RawDataSets have the same number of time steps)"""
+        return self.rawDataSets[0].GetTimeSteps()
             
     def GetAvailableFieldNamesList(self):
         fieldNames = list()
         for field in self.availableFields:
             fieldNames.append(field.GetName())
-        
         return fieldNames
+
+    def GetAvailableFields(self):
+        return self.availableFields
         
     def GetCustomFieldNamesList(self):
         fieldNames = list()

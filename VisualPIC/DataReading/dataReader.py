@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016 Ángel Ferran Pousa
+#Copyright 2016-2017 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -16,6 +16,7 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+
 
 import abc
 
@@ -35,11 +36,7 @@ class DataReader(object):
         self.data = None
 
     @abc.abstractmethod
-    def OpenFileAndReadData(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def OpenFileAndReadUnits(self):
+    def _ReadUnits(self):
         raise NotImplementedError
 
 
