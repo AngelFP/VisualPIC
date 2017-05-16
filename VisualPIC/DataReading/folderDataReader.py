@@ -35,9 +35,6 @@ class FolderDataReader:
         self.CreateCodeDictionaries()
     
     def CreateCodeDictionaries(self):
-        self._codeName = {"MS":"Osiris",
-                          "Something":"HiPACE",
-                          "simOutput":"PIConGPU"}
         self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                                "HiPACE": self.LoadHiPaceData,
                                "PIConGPU":self.LoadPIConGPUData}
