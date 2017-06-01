@@ -285,7 +285,11 @@ class TransverseWakefieldSlope(CustomField):
         TranvsWF = Ey - self.c*Bx
         y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
-        slope = np.gradient(TranvsWF, dy, axis=0)
+        
+        if self.GetFieldDimension() == '2D':
+            slope = np.gradient(TranvsWF, dy, axis=0)
+        elif self.GetFieldDimension() == '3D':
+            slope = np.gradient(TranvsWF, dy, axis=1)
         return slope
 
 
