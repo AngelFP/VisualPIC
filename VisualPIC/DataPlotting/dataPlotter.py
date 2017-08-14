@@ -90,7 +90,6 @@ class DataPlotter:
     def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
         num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
         num2DFields = len(subplot.GetFieldsToPlotWithDimension("2D"))
-        ax.hold(False)
         i = 0
         for field in subplot.GetFieldsToPlotWithDimension("2D"):
             plotData = field.GetData(timeStep)
@@ -105,7 +104,6 @@ class DataPlotter:
                 pos1 = ax.get_position()
                 pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
                 ax.set_position(pos2)
-            ax.hold(True)
             # colorBar
             cbWidth = 0.015
             cbHeight = (pos2[3]-(num2DFields-1)*self.cbSpacing)/num2DFields
@@ -128,14 +126,12 @@ class DataPlotter:
             axPos = ax.get_position()
             newAxPos = [axPos.x0, axPos.y0 ,  axPos.width-0.07, axPos.height]
             ax.set_position(newAxPos)
+            axis1D = ax.twinx()
+            axis1D.set_position(axPos)
+        elif num1DFields > 0:
+            axis1D = ax
         for field in subplot.GetFieldsToPlotWithDimension("1D"):
             units = field.GetProperty("fieldUnits")
-            if num2DFields > 0:
-                axPos = ax.get_position()
-                axis1D = ax.twinx()
-                axis1D.set_position(axPos)
-            else:
-                axis1D = ax
             plotData = field.GetData(timeStep)
             self.plotTypes["Field"][field.GetProperty("plotType")](axis1D, plotData)  
             if num2DFields > 0:
@@ -163,7 +159,6 @@ class DataPlotter:
             pos1 = ax.get_position()
             pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
             ax.set_position(pos2)
-            # ax.hold(True)
             cbWidth = 0.015
             cbHeight = pos2[3]
             cbX = pos2[0] + pos2[2] + 0.02
@@ -184,7 +179,6 @@ class DataPlotter:
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
 
     def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        ax.hold(False)
         allPaticlesData = subplot.GetDataToPlot() # list of dictionaries (with keys "particle", "x", "y" and "z")
         for particleData in allPaticlesData:
             plotData = {}
@@ -194,7 +188,6 @@ class DataPlotter:
                 plotData["z"] = particleData["z"].GetDataSetPlotData()
             # make plot
             im = self.plotTypes["RawEvolution"][subplot.GetAxesDimension()](ax, plotData, particleData["plotStyle"])
-            ax.hold(True)
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
