@@ -50,7 +50,7 @@ class GeneralUnitConverter(object):
         if dataISUnits == "V/m":
             return ["V/m", "GV/m", "T"]
         if dataISUnits == "V/m^2":
-            return ["V/m^2", "GV/m^2", "T/m"]
+            return ["V/m^2", "GV/m^2", "T/m", "MT/m"]
         elif dataISUnits == "T":
             return ["T", "V/m"]
         elif dataISUnits == "C/m^2":
@@ -122,6 +122,8 @@ class GeneralUnitConverter(object):
                 return dataInISUnits * 1e-9
             elif units == "T/m":
                 return dataInISUnits / self.c
+            elif units == "MT/m":
+                return dataInISUnits / self.c * 1e-6
         elif dataISUnits == "C/m^2":
             pass
         elif dataISUnits == "T":
