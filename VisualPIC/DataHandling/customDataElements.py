@@ -454,6 +454,29 @@ class BeamComovingCoordinate(CustomRawDataSet):
         xi_b = z - min(z)
         return xi_b
 
+
+class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["Pz", "Py", "z", "Charge"],
+                     "3D":["Pz", "Py", "Pz", "z", "Charge"]}
+    necessaryParameters = []
+    units = " "
+    ISUnits = True
+    standardName = "UncEneSp"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        Pz = self.data["Pz"].GetDataInOriginalUnits(timeStep)
+        Py = self.data["Py"].GetDataInOriginalUnits(timeStep)
+        z = self.data["z"].GetDataInOriginalUnits(timeStep)
+        q = self.data["Charge"].GetDataInOriginalUnits(timeStep)
+        gamma = np.sqrt(Pz**2 + Py**2)
+        mean_gamma = np.average(gamma, weights=np.abs(q))
+        rel_gamma_spread = (gamma-mean_gamma)/mean_gamma
+        dz = z - np.average(z, weights=q)
+        p = np.polyfit(dz, rel_gamma_spread, 3, w=q)
+        slope = p[0]
+        unc_gamma_spread = rel_gamma_spread - p[0]*dz**3 - p[1]*dz**2 - p[2]*dz
+        return unc_gamma_spread
     
 class CustomRawDataSetCreator:
     customDataSets = [
@@ -462,7 +485,8 @@ class CustomRawDataSetCreator:
         deltaZPrimeDataSet,
         forwardMomentumVariationDataSet,
         SpeedOfLightCoordinate,
-        BeamComovingCoordinate
+        BeamComovingCoordinate,
+        UncorrelatedEnergyVariationDataSet
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):
