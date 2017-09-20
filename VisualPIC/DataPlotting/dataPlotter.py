@@ -146,13 +146,14 @@ class DataPlotter:
         #ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         axisData = subplot.GetDataToPlot()
         plotProperties = subplot.GetCopyAllPlotProperties()
+        axisProperties = subplot.GetCopyAllAxesProperties()
         plotData = {}
         # Load data
         for dataSetName, values in axisData.items():
             plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
-        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, cMap)
+        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, axisProperties, cMap)
         # colorBar
         if subplot.GetPlotProperty("General", "DisplayColorbar") == True:
             # change plot size to make room for the colorBar
@@ -227,7 +228,7 @@ class DataPlotter:
     Raw (non-evolving) data plot types
     """  
     #todo: change cMap argument for a plotSettings argument.
-    def MakeArrowPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeArrowPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         pxValues = plotData["Px"]
@@ -254,20 +255,29 @@ class DataPlotter:
             pivot='mid',                                           
             cmap=cMap)
 
-    def MakeHistogramPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeHistogramPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         weightValues = plotData["weight"]
         histogramProperties = plotProperties["Histogram"]
         histBins = [histogramProperties["Bins"]["XBins"], histogramProperties["Bins"]["YBins"]]
-        if histogramProperties["UseChargeWeighting"]:
-            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues)
+        if axisProperties["x"]["AutoAxisLimits"]:
+            x_lims = [min(xValues), max(xValues)]
         else:
-            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins)
+            x_lims = [axisProperties["x"]["AxisLimits"]["Min"], axisProperties["x"]["AxisLimits"]["Max"]]
+        if axisProperties["y"]["AutoAxisLimits"]:
+            y_lims = [min(yValues), max(yValues)]
+        else:
+            y_lims = [axisProperties["y"]["AxisLimits"]["Min"], axisProperties["y"]["AxisLimits"]["Max"]]
+        hist_range = [x_lims, y_lims]
+        if histogramProperties["UseChargeWeighting"]:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues, range=hist_range)
+        else:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
         extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
         return ax.imshow(H.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
         
-    def MakeScatterPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeScatterPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         scatterProperties = plotProperties["Scatter"]
@@ -277,7 +287,7 @@ class DataPlotter:
         else:
             return ax.scatter(xValues, yValues, cmap=cMap, linewidths=0)
         
-    def Make3DScatterPlot(self, ax, plotData, plotProperties, cMap):
+    def Make3DScatterPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         zValues = plotData["z"]

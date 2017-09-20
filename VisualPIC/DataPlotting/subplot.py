@@ -139,6 +139,9 @@ class Subplot(object):
             
     def GetCopyAllAxisProperties(self, axis):
         return copy.copy(self.axisProps[axis])
+
+    def GetCopyAllAxesProperties(self):
+        return copy.copy(self.axisProps)
             
     def SetPosition(self, position):
         self.subplotPosition = position
