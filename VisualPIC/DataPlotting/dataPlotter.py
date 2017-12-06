@@ -276,6 +276,17 @@ class DataPlotter:
             H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
         extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
         return ax.imshow(H.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
+        #if histogramProperties["UseChargeWeighting"]:
+        #    H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues, range=hist_range)
+        #    H_count, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
+        #    H = H/H_count
+        #    H = H.transpose()
+        #    s = H.shape
+        #    H = H - H[int(s[0]/2),:]
+        #else:
+        #    H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
+        #extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
+        #return ax.imshow(H, extent=extent, cmap=cMap, aspect='auto', origin='lower')
         
     def MakeScatterPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
