@@ -309,6 +309,22 @@ class BxSlope(CustomField):
         slope = np.gradient(Bx, dy, axis=0)
         return slope
 
+class EzSlope(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D":["Ez"],
+                     "3D":["Ez"]}
+    necessaryParameters = []
+    units = "V/m^2"
+    ISUnits = True
+    standardName = "Ez Slope"
+
+    def CalculateField(self, timeStep):
+        Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
+        z = self.data["Ez"].GetAxisInISUnits("x", timeStep)
+        dz = abs(z[1]-z[0]) # distance between data points in z direction
+        slope = np.gradient(Ez, dz, axis=2)
+        return slope
+
 
 class CustomFieldCreator:
     customFields = [
@@ -316,7 +332,8 @@ class CustomFieldCreator:
         TransverseWakefieldSlope,
         LaserIntensityField,
         NormalizedVectorPotential,
-        BxSlope
+        BxSlope,
+        EzSlope
         ]
     @classmethod
     def GetCustomFields(cls, dataContainer):
