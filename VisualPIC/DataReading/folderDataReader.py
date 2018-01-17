@@ -194,26 +194,10 @@ class FolderDataReader:
     # HiPACE
     def LoadHiPaceData(self):
         """HiPACE loader"""
-        raise NotImplementedError
-        """
-        HOW TO USE:
-        
-        This function has to scan the folder where the simulation data is stored.
-        It will create a Species, FolderField, FolderRawDataSet or RawDataTags object for each
-        species, field, raw (particle) data set and particle tags found in the folder.
-
-        To add these data into the dataContainer the following functions have to be used:
-
-        self.AddSpecies(..)
-        self.AddFieldToSpecies(..)
-        self.AddDomainField(..)
-        self.AddRawDataToSpecies(..)
-        self.AddRawDataTagsToSpecies(..)
-        """
         data_folder = self._dataLocation
         data_types = ['density', 'field', 'raw']
         
-        files_in_folder = os.listdir(location)
+        files_in_folder = os.listdir(data_folder)
 
         for data_type in data_types:
             if data_type == 'field':
@@ -249,7 +233,7 @@ class FolderDataReader:
                     data_time_steps = list()
                     for file in data_files:
                         if species_name in file:
-                            time_step = int(file[-9, -3])
+                            time_step = int(file[-9:-3])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddFieldToSpecies(species_name, FolderField("HiPACE", data_name, self.GiveStandardNameForOsirisQuantity(data_name), data_folder, data_time_steps, species_name))
@@ -270,7 +254,7 @@ class FolderDataReader:
                     data_time_steps = list()
                     for file in data_files:
                         if species_name in file:
-                            time_step = int(file[-9, -3])
+                            time_step = int(file[-9:-3])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     if data_time_steps.size != 0:
@@ -312,3 +296,18 @@ class FolderDataReader:
     def LoadPIConGPUData(self):
         """PIConGPU loader"""
         raise NotImplementedError
+        """
+        HOW TO USE:
+        
+        This function has to scan the folder where the simulation data is stored.
+        It will create a Species, FolderField, FolderRawDataSet or RawDataTags object for each
+        species, field, raw (particle) data set and particle tags found in the folder.
+
+        To add these data into the dataContainer the following functions have to be used:
+
+        self.AddSpecies(..)
+        self.AddFieldToSpecies(..)
+        self.AddDomainField(..)
+        self.AddRawDataToSpecies(..)
+        self.AddRawDataTagsToSpecies(..)
+        """
