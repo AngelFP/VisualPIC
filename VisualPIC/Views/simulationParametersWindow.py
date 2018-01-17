@@ -44,8 +44,12 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.line.setObjectName("line")
         self.verticalLayout.addWidget(self.line)
 
+        self.code_layouts = QtWidgets.QVBoxLayout(self)
+        self.code_layouts.setObjectName("code_layouts")
+        self.verticalLayout.addLayout(self.code_layouts)
+
         # Osiris layout
-        self.osirisWidget = QtWidgets.QWidget(self)
+        self.osirisWidget = QtWidgets.QWidget()
         self.osirisVerticalLayout = QtWidgets.QVBoxLayout(self.osirisWidget)
         self.osirisVerticalLayout.setObjectName("osirisVerticalLayout")
         self.osirisHorizontalLayout = QtWidgets.QHBoxLayout()
@@ -79,16 +83,26 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.osirisLaserWavelength_lineEdit.setObjectName("osirisLaserWavelength_lineEdit")
         self.osirisHorizontalLayout_2.addWidget(self.osirisLaserWavelength_lineEdit)
         self.osirisVerticalLayout.addLayout(self.osirisHorizontalLayout_2)
-        self.verticalLayout.addWidget(self.osirisWidget)
+        self.code_layouts.addWidget(self.osirisWidget)
 
         # HiPACE layout
-        self.hiPACEWidget = QtWidgets.QWidget(self)
+        self.hiPACEWidget = QtWidgets.QWidget()
         self.hiPACEVerticalLayout = QtWidgets.QVBoxLayout(self.hiPACEWidget)
         self.hiPACEVerticalLayout.setObjectName("hiPACEVerticalLayout")
         """
         Add here your controls to the hiPACEVerticalLayout
         """
-        self.verticalLayout.addWidget(self.hiPACEWidget)
+        self.hiPACEHorizontalLayout = QtWidgets.QHBoxLayout()
+        self.hiPACEHorizontalLayout.setObjectName("hiPACEHorizontalLayout")
+        self.hiPACELabel = QtWidgets.QLabel(self)
+        self.hiPACELabel.setObjectName("hiPACELabel")
+        self.hiPACEHorizontalLayout.addWidget(self.hiPACELabel)
+        self.hiPACEPlasmaDensity_lineEdit = QtWidgets.QLineEdit(self)
+        self.hiPACEPlasmaDensity_lineEdit.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.hiPACEPlasmaDensity_lineEdit.setObjectName("hiPACEPlasmaDensity_lineEdit")
+        self.hiPACEHorizontalLayout.addWidget(self.hiPACEPlasmaDensity_lineEdit)
+        self.hiPACEVerticalLayout.addLayout(self.hiPACEHorizontalLayout)
+        self.code_layouts.addWidget(self.hiPACEWidget)
 
         # General
         self.accept_Button = QtWidgets.QPushButton(self)
@@ -102,11 +116,13 @@ class SimulationParametersWindow(QtWidgets.QDialog):
 
     def SetUpUI(self):
         simParams = self.mainWindow.dataContainer.GetSimulationParameters()
+
         # General
         self.setWindowTitle("Simulation Parameters")
         self.label.setText("Simulation code:")
         self.simulationCode_comboBox.addItems(self.supportedSimulationCodes)
         self.accept_Button.setText("Accept")
+
         # Osiris
         self.osirisLabel.setText("Plasma density (10<sup>18</sup> cm<sup>-3</sup>):")
         self.osirisLabel_2.setText("Laser wavelength (nm):")
@@ -119,6 +135,16 @@ class SimulationParametersWindow(QtWidgets.QDialog):
             self.osirisPlasmaDensity_lineEdit.setText(str(simParams["n_p"]))
             self.osirisLaserWavelength_lineEdit.setText(str(simParams["lambda_l"]))
             self.osirisLaserInSimulation_checkBox.setChecked(simParams["isLaser"])
+
+        # HiPACE
+        self.hiPACELabel.setText("Plasma density (10<sup>18</sup> cm<sup>-3</sup>):")
+        if (len(simParams) == 0) or (simParams["SimulationCode"] != "HiPACE"):
+            self.hiPACEPlasmaDensity_lineEdit.setText("0.1")
+        elif simParams["SimulationCode"] == "HiPACE":
+            self.hiPACEPlasmaDensity_lineEdit.setText(str(simParams["n_p"]))
+
+        # Default code options
+        self.hiPACEWidget.setVisible(False)
         
     def registerUiEvents(self):
         # General
@@ -129,11 +155,11 @@ class SimulationParametersWindow(QtWidgets.QDialog):
 
     def simulationCodeComboBox_IndexChanged(self):
         if self.simulationCode_comboBox.currentText() == "Osiris":
-            self.osirisWidget.setVisible(True)
             self.hiPACEWidget.setVisible(False)
+            self.osirisWidget.setVisible(True)
         elif self.simulationCode_comboBox.currentText() == "HiPACE":
-            self.osirisWidget.setVisible(False)
             self.hiPACEWidget.setVisible(True)
+            self.osirisWidget.setVisible(False)
 
     def acceptButton_clicked(self):
         self.SetSimulationParameters()
@@ -152,5 +178,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
             simParams["isLaser"] = self.osirisLaserInSimulation_checkBox.isChecked()
             if simParams["isLaser"]:
                 simParams["lambda_l"] = float(self.osirisLaserWavelength_lineEdit.text())
+        if simulationCode == "HiPACE":
+            simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
         self.mainWindow.dataContainer.SetSimulationParameters(simParams)
         self.close()
