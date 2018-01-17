@@ -90,3 +90,47 @@ class OsirisRawDataReader(RawDataReaderBase):
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
+
+
+class HiPACERawDataReader(RawDataReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
+
+    def _ReadData(self, timeStep):
+        file_content = self._OpenFile(timeStep)
+        if self.internalName == "tag":
+            tags = np.array(file_content.get(self.internalName))
+            a = tags[:,0]
+            b = tags[:,1]
+            data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
+        else:
+            data = np.array(file_content.get(self.internalName))
+        self.currentTime = file_content.attrs["TIME"][0]
+        if self.internalName == "x1":
+            data += self.currentTime 
+        file_content.close()
+        return data
+
+    def _ReadTime(self, timeStep):
+        file_content = self._OpenFile(timeStep)
+        self.currentTime = file_content.attrs["TIME"][0]
+        file_content.close()
+
+    def _ReadUnits(self):
+        # No units information is currently stored by HiPACE
+        if self.dataName == "x1" or self.dataName == "x2" or self.dataName == "x3":
+            self.dataUnits = 'c/ \omega_p'
+        elif self.dataName == "p1" or self.dataName == "p2" or self.dataName == "p3":
+            self.dataUnits = 'm_e c'
+        elif self.dataName == "q":
+            self.dataUnits = 'e'
+        else:
+            self.dataUnits = 'unknown'
+        self.timeUnits = '1/ \omega_p'
+
+    def _OpenFile(self, timeStep):
+        fileName = "raw_" + self.speciesName + "_" + str(timeStep).zfill(6)
+        ending = ".h5"
+        file_path = self.location + "/" + fileName + ending
+        file_content = H5File(file_path, 'r')
+        return file_content

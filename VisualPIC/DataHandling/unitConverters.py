@@ -252,6 +252,43 @@ class HiPACEUnitConverter(GeneralUnitConverter):
     def __init__(self, simulationParams):
         super(HiPACEUnitConverter, self).__init__(simulationParams)
 
+    def _SetNormalizationFactor(self, value):
+        """ In HiPACE the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
+        self.normalizationFactor = value * 1e24
+        self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
+        self.s_d = self.c / self.w_p  #skin depth (m)
+        self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
+
+    def SetSimulationParameters(self, params):
+        super().SetSimulationParameters(params)
+        self._SetNormalizationFactor(params["n_p"])
+
+    def ConvertToISUnits(self, dataElementName, data):
+        if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
+            return data*self.E0 # V/m
+        elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
+            return data*self.E0/self.c # T
+        elif dataElementName == "Charge density":
+            return data * self.e * (self.w_p / self.c)**2 # C/m^2
+        elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+            return data*self.s_d # m
+        elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+            return data*self.m_e*self.c # kg*m/s
+        elif dataElementName == "Energy":
+            return data*self.m_e*self.c**2 # J
+        elif dataElementName == "Charge":
+            return data*self.e # C
+        elif dataElementName == "Time":
+            return data/self.w_p # s
+
+    def GetTimeInISUnits(self, dataElement, timeStep):
+        time = dataElement.GetTimeInOriginalUnits(timeStep)
+        return time / self.w_p
+    
+    def GetAxisInISUnits(self, axis, dataElement, timeStep):
+        axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
+        return axisData* self.c / self.w_p
+
 
 class PIConGPUUnitConverter(GeneralUnitConverter):
     def __init__(self, simulationParams):

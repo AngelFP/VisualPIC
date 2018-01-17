@@ -22,8 +22,8 @@ from VisualPIC.DataReading.fieldReaders import *
 
 
 class RawDataReaderSelector:
-    dataReaders = {"Osiris": OsirisRawDataReader
-                   #"HiPACE": HiPACERawDataReader,
+    dataReaders = {"Osiris": OsirisRawDataReader,
+                   "HiPACE": HiPACERawDataReader
                    #"PIConGPU": PIConGPURawDataReader
                    }
     @classmethod
@@ -32,8 +32,8 @@ class RawDataReaderSelector:
 
 
 class FieldReaderSelector:
-    dataReaders = {"Osiris": OsirisFieldReader
-                   #"HiPACE": HiPACEFieldReader,
+    dataReaders = {"Osiris": OsirisFieldReader,
+                   "HiPACE": HiPACEFieldReader
                    #"PIConGPU": PIConGPUFieldReader
                    }
     @classmethod

@@ -169,9 +169,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def AdaptUIToSimulationParams(self):
         simulationParams = self.dataContainer.GetSimulationParameters()
-        isLaser = simulationParams["isLaser"]
-        if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
-            self.addLaser_checkBox.setVisible(isLaser)
+        if 'isLaser' in simulationParams:
+            isLaser = simulationParams["isLaser"]
+            if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
+                self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
