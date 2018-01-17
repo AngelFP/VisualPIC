@@ -210,7 +210,104 @@ class FolderDataReader:
         self.AddRawDataToSpecies(..)
         self.AddRawDataTagsToSpecies(..)
         """
+        data_folder = self._dataLocation
+        data_types = ['density', 'field', 'raw']
         
+        files_in_folder = os.listdir(location)
+
+        for data_type in data_types:
+            if data_type == 'field':
+                data_files = list()
+                data_names = list()
+                for file in files_in_folder:
+                    if file.endswith(".h5") and data_type in file:
+                        data_files.append(file)
+                        data_name = file.replace(data_type + '_', '')[0:-10]
+                        if data_name not in data_names:
+                            data_names.append(data_name)
+                for data_name in data_names:
+                    data_time_steps = list()
+                    for file in data_files:
+                        if data_name in file:
+                            time_step = int(file[-9, -3])
+                            data_time_steps.append(time_step)
+                    data_time_steps = np.array(data_time_steps)
+                    self.AddDomainField(FolderField("HiPACE", data_name, self.GiveStandardNameForHiPACEQuantity(data_name), data_folder, data_time_steps))
+            
+            if data_type == 'density':
+                data_name = 'charge'
+                data_files = list()
+                species_names = list()
+                for file in files_in_folder:
+                    if file.endswith(".h5") and data_type in file:
+                        data_files.append(file)
+                        species_name = file.replace(data_type + '_', '').replace('_' + data_name + '_', '')[0:-9]
+                        if species_name not in species_names:
+                            species_names.append(species_name)
+                for species_name in species_names:
+                    self.AddSpecies(Species(species_name))
+                    data_time_steps = list()
+                    for file in data_files:
+                        if species_name in file:
+                            time_step = int(file[-9, -3])
+                            data_time_steps.append(time_step)
+                    data_time_steps = np.array(data_time_steps)
+                    self.AddFieldToSpecies(species_name, FolderField("HiPACE", data_name, self.GiveStandardNameForOsirisQuantity(data_name), data_folder, data_time_steps, species_name))
+            
+            if data_type == 'raw':
+                data_files = list()
+                species_names = list()
+                for file in files_in_folder:
+                    if file.endswith(".h5") and data_type in file:
+                        data_files.append(file)
+                        species_name = file.replace(data_type + '_', '')[0:-10]
+                        if species_name not in species_names:
+                            species_names.append(species_name)
+
+
+                for species_name in species_names:
+                    self.AddSpecies(Species(species_name))
+                    data_time_steps = list()
+                    for file in data_files:
+                        if species_name in file:
+                            time_step = int(file[-9, -3])
+                            data_time_steps.append(time_step)
+                    data_time_steps = np.array(data_time_steps)
+                    if data_time_steps.size != 0:
+                        file_path = data_folder + '/' + data_type + '_' + species_name + '_' + str(data_time_steps[0]).zfill(6) + '.h5'
+                        file_content = H5File(file_path, 'r')
+                        for data_set_name in list(file_content):
+                            if data_set_name == "tag":
+                                self.AddRawDataTagsToSpecies(species_name, RawDataTags("HiPACE", data_set_name, data_folder, data_time_steps, species_name, data_set_name))
+                            else:
+                                self.AddRawDataToSpecies(species_name, FolderRawDataSet("HiPACE", data_set_name, self.GiveStandardNameForHiPACEQuantity(data_set_name), data_folder, data_time_steps, species_name, data_set_name))
+                        file_content.close()
+
+    def GiveStandardNameForHiPACEQuantity(self, original_name):
+        if "Ez" in original_name:
+            return "Ez"
+        elif "charge" in original_name:
+            return "Charge density"
+        elif original_name == "x1":
+            return "z"
+        elif original_name == "x2":
+            return "y"
+        elif original_name == "x3":
+            return "x"
+        elif original_name == "p1":
+            return "Pz"
+        elif original_name == "p2":
+            return "Py"
+        elif original_name == "p3":
+            return "Px"
+        elif original_name == "q":
+            return "Charge"
+        elif original_name == "ene":
+            return "Energy"
+        else:
+            return original_name
+
+
     # PIConGPU
     def LoadPIConGPUData(self):
         """PIConGPU loader"""
