@@ -108,8 +108,7 @@ class GeneralUnitConverter(object):
         if not dataElement.hasNonISUnits:
             return data
         else:
-            dataElementName = dataElement.GetName()
-            return self.ConvertToISUnits(dataElementName, data)
+            return self.ConvertToISUnits(dataElement, data)
 
     def _MakeConversion(self, units, dataISUnits, dataInISUnits):
         if dataISUnits == "V/m":
@@ -206,6 +205,9 @@ class GeneralUnitConverter(object):
     def GetTimeInISUnits(self, dataElement, timeStep):
         raise NotImplementedError
 
+    def GetGridSizeInISUnits(self, dataElement):
+        raise NotImplementedError
+
 class OsirisUnitConverter(GeneralUnitConverter):
     def __init__(self, simulationParams):
         super(OsirisUnitConverter, self).__init__(simulationParams)
@@ -221,7 +223,8 @@ class OsirisUnitConverter(GeneralUnitConverter):
         super().SetSimulationParameters(params)
         self._SetNormalizationFactor(params["n_p"])
 
-    def ConvertToISUnits(self, dataElementName, data):
+    def ConvertToISUnits(self, dataElement, data):
+        dataElementName = dataElement.GetName()
         if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
             return data*self.E0 # V/m
         elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
@@ -235,7 +238,9 @@ class OsirisUnitConverter(GeneralUnitConverter):
         elif dataElementName == "Energy":
             return data*self.m_e*self.c**2 # J
         elif dataElementName == "Charge":
-            return data*self.e # C
+            cell_size = self.GetCellSizeInISUnits(dataElement)
+            cell_vol = np.prod(cell_size)
+            return data*self.e*cell_vol*self.normalizationFactor # C
         elif dataElementName == "Time":
             return data/self.w_p # s
 
@@ -246,6 +251,10 @@ class OsirisUnitConverter(GeneralUnitConverter):
     def GetAxisInISUnits(self, axis, dataElement, timeStep):
         axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
         return axisData* self.c / self.w_p
+
+    def GetCellSizeInISUnits(self, dataElement):
+        original_cell_size = dataElement.GetSimulationCellSizeInOriginalUnits()
+        return original_cell_size * self.c / self.w_p
 
 
 class HiPACEUnitConverter(GeneralUnitConverter):
@@ -263,7 +272,8 @@ class HiPACEUnitConverter(GeneralUnitConverter):
         super().SetSimulationParameters(params)
         self._SetNormalizationFactor(params["n_p"])
 
-    def ConvertToISUnits(self, dataElementName, data):
+    def ConvertToISUnits(self, dataElement):
+        dataElementName = dataElement.GetName()
         if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
             return data*self.E0 # V/m
         elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
@@ -288,6 +298,10 @@ class HiPACEUnitConverter(GeneralUnitConverter):
     def GetAxisInISUnits(self, axis, dataElement, timeStep):
         axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
         return axisData* self.c / self.w_p
+
+    def GetGridSizeInISUnits(self, dataElement):
+        original_grid_size = dataElement.GetSimulationCellSizeInOriginalUnits()
+        return original_grid_size * self.c / self.w_p
 
 
 class PIConGPUUnitConverter(GeneralUnitConverter):

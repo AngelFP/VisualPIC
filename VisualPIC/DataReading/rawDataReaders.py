@@ -32,6 +32,7 @@ class RawDataReaderBase(DataReader):
         DataReader.__init__(self, location, speciesName, dataName, internalName)
         self.internalName = dataName
         self.firstTimeStep = firstTimeStep
+        self._ReadBasicData()
 
     def GetData(self, timeStep):
         if timeStep != self.currentTimeStep:
@@ -54,6 +55,10 @@ class RawDataReaderBase(DataReader):
         if self.timeUnits == "":
             self._ReadUnits()
         return self.timeUnits
+
+    @abc.abstractmethod
+    def _ReadBasicData(self):
+        raise NotImplementedError
 
 
 class OsirisRawDataReader(RawDataReaderBase):
@@ -84,12 +89,22 @@ class OsirisRawDataReader(RawDataReaderBase):
         self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
+    def _ReadSimulationProperties(self, file_content):
+        self.grid_resolution = np.array(file_content.attrs['NX'])
+        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_units = 'c/ \omega_p'
+
     def _OpenFile(self, timeStep):
         fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
+
+    def _ReadBasicData(self):
+        file_content = self._OpenFile(self.firstTimeStep)
+        self._ReadSimulationProperties(file_content)
+        file_content.close()
 
 
 class HiPACERawDataReader(RawDataReaderBase):
@@ -134,3 +149,13 @@ class HiPACERawDataReader(RawDataReaderBase):
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
+
+    def _ReadSimulationProperties(self, file_content):
+        self.grid_resolution = np.array(file_content.attrs['NX'])
+        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_units = 'c/ \omega_p'
+
+    def _ReadBasicData(self):
+        file_content = self._OpenFile(self.firstTimeStep)
+        self._ReadSimulationProperties(file_content)
+        file_content.close()

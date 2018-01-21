@@ -132,6 +132,7 @@ class OsirisFieldReader(FieldReaderBase):
         self._ReadInternalName(file_content)
         self._DetermineFieldDimension(file_content)
         self._GetMatrixShape(file_content)
+        self._ReadSimulationProperties(file_content)
         file_content.close()
 
     def _GetMatrixShape(self, file_content):
@@ -204,6 +205,11 @@ class OsirisFieldReader(FieldReaderBase):
         self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
+    def _ReadSimulationProperties(self, file_content):
+        self.grid_resolution = np.array(file_content.attrs['NX'])
+        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+
     def _OpenFile(self, timeStep):
         fileName = self.dataName + "-"
         if self.speciesName != "":
@@ -224,6 +230,7 @@ class HiPACEFieldReader(FieldReaderBase):
         self._ReadInternalName(file_content)
         self._DetermineFieldDimension(file_content)
         self._GetMatrixShape(file_content)
+        self._ReadSimulationProperties(file_content)
         file_content.close()
 
     def _GetMatrixShape(self, file_content):
@@ -297,6 +304,11 @@ class HiPACEFieldReader(FieldReaderBase):
         self.axisUnits["x"] = 'c/ \omega_p'
         self.axisUnits["y"] = 'c/ \omega_p'
         self.axisUnits["z"] = 'c/ \omega_p'
+
+    def _ReadSimulationProperties(self, file_content):
+        self.grid_resolution = np.array(file_content.attrs['NX'])
+        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
 
     def _OpenFile(self, timeStep):
         if self.speciesName != "":

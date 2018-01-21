@@ -47,6 +47,12 @@ class DataElement(object):
     def GetFirstTimeStep(self):
         return self.timeSteps[0]
 
+    def GetSimulationCellSizeInOriginalUnits(self):
+        return self.dataReader.grid_size/self.dataReader.grid_resolution
+
+    def GetSimulationCellSizeInISUnits(self):
+        return self._unitConverter.GetCellSizeInISUnits(self)
+
     """
     Possible units
     """

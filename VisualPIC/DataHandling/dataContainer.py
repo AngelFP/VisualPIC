@@ -94,6 +94,16 @@ class DataContainer:
                 if field.GetFieldDimension() == "3D":
                     return "3D"
         return "2D"
+
+    def GetSimulationCellSize(self):
+        for field in self._availableDomainFields:
+            return field.GetSimulationCellSize()
+        for species in self._availableSpecies:
+            for field in species.GetAvailableFields():
+                return field.GetSimulationCellSize()
+            for dataset in species.GetAvailableRawDataSets():
+                return dataset.GetSimulationCellSize()
+        return "2D"
          
     def RemoveSelectedSpecies(self, speciesName):
         for species in self._selectedSpecies:
