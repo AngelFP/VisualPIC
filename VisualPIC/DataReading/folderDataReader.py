@@ -26,6 +26,9 @@ from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.folderDataElements import FolderField, FolderRawDataSet
 from VisualPIC.DataHandling.rawDataTags import RawDataTags
 
+# Try to import opmd_viewer, for openPMD files
+# TODO: add try/except statements
+from opmd_viewer import OpenPMDTimeSeries
 
 class FolderDataReader:
     """Scans the simulation folder and creates all the necessary species, fields and rawDataSet objects"""
@@ -34,7 +37,7 @@ class FolderDataReader:
         self._dataLocation = ""
         self._loadDataFrom = {"Osiris": self.LoadOsirisData,
                                "HiPACE": self.LoadHiPaceData,
-                               "PIConGPU":self.LoadPIConGPUData}
+                               "openPMD": self.LoadOpenPMDData }
 
     def SetDataLocation(self, dataLocation):
         self._dataLocation = dataLocation
@@ -110,18 +113,7 @@ class FolderDataReader:
                         timeSteps = self.GetTimeStepsInOsirisLocation(fieldLocation)
                         if timeSteps.size != 0:
                             self.AddDomainField(FolderField("Osiris", fieldName, self.GiveStandardNameForOsirisQuantity(fieldName), fieldLocation, timeSteps))
-            #elif folder ==  keyFolderNames[2]:
-            #    phaseFields = os.listdir(subDir)
-            #    for field in phaseFields:
-            #        if os.path.isdir(os.path.join(subDir, field)):
-            #            speciesNames = os.listdir(subDir + "/" + field)
-            #            for species in speciesNames:
-            #                if os.path.isdir(os.path.join(subDir + "/" + field, species)):
-            #                    self.AddSpecies(Species(species))
-            #                    fieldLocation = subDir + "/" + field + "/" + species
-            #                    fieldName = field
-            #                    totalTimeSteps = len(os.listdir(fieldLocation))
-            #                    self.AddFieldToSpecies(species, FolderField(fieldName, fieldLocation, totalTimeSteps, species, simulationCode = self._codeName))
+
             elif folder ==  keyFolderNames[3]:
                 subDir = self._dataLocation + "/" + folder
                 speciesNames = os.listdir(subDir)
@@ -196,7 +188,7 @@ class FolderDataReader:
         """HiPACE loader"""
         data_folder = self._dataLocation
         data_types = ['density', 'field', 'raw']
-        
+
         files_in_folder = os.listdir(data_folder)
 
         for data_type in data_types:
@@ -217,7 +209,7 @@ class FolderDataReader:
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddDomainField(FolderField("HiPACE", data_name, self.GiveStandardNameForHiPACEQuantity(data_name), data_folder, data_time_steps))
-            
+
             if data_type == 'density':
                 data_name = 'charge'
                 data_files = list()
@@ -237,7 +229,7 @@ class FolderDataReader:
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddFieldToSpecies(species_name, FolderField("HiPACE", data_name, self.GiveStandardNameForOsirisQuantity(data_name), data_folder, data_time_steps, species_name))
-            
+
             if data_type == 'raw':
                 data_files = list()
                 species_names = list()
@@ -292,22 +284,76 @@ class FolderDataReader:
             return original_name
 
 
-    # PIConGPU
-    def LoadPIConGPUData(self):
-        """PIConGPU loader"""
-        raise NotImplementedError
-        """
-        HOW TO USE:
-        
-        This function has to scan the folder where the simulation data is stored.
-        It will create a Species, FolderField, FolderRawDataSet or RawDataTags object for each
-        species, field, raw (particle) data set and particle tags found in the folder.
+    # openPMD
+    def LoadOpenPMDData(self):
+        """OpenPMD Loader"""
+        # Scan the folder using openPMD-viewer
+        ts = OpenPMDTimeSeries( self._dataLocation, check_all_files=False )
 
-        To add these data into the dataContainer the following functions have to be used:
+        # Register the available fields
+        if ts.avail_fields is not None:
+            for field in ts.avail_fields:
+                # Vector field
+                if ts.fields_metadata[field]['type'] == 'vector':
+                    available_coord = ['x', 'y', 'z']
+                    # Register each coordinate of the vector
+                    for coord in available_coord:
+                        fieldName = field + '/' + coord
+                        standardName = self.GiveStandardNameForOpenPMDQuantity(fieldName)
+                        self.AddDomainField(
+                            FolderField( "openPMD", fieldName, standardName,
+                                        self._dataLocation, ts.iterations ) )
+                # Scalar field
+                if ts.fields_metadata[field]['type'] == 'scalar':
+                    fieldName = field
+                    standardName = self.GiveStandardNameForOpenPMDQuantity(field)
+                    self.AddDomainField(
+                        FolderField( "openPMD", fieldName, standardName,
+                                    self._dataLocation, ts.iterations ) )
 
-        self.AddSpecies(..)
-        self.AddFieldToSpecies(..)
-        self.AddDomainField(..)
-        self.AddRawDataToSpecies(..)
-        self.AddRawDataTagsToSpecies(..)
-        """
+        # Register the available species
+        if ts.avail_species is not None:
+            for species in ts.avail_species:
+                self.AddSpecies(Species(species))
+                for species_quantity in ts.avail_record_components[species]:
+                    if species_quantity == "id":
+                        self.AddRawDataTagsToSpecies( species,
+                            RawDataTags( "openPMD", species_quantity,
+                                self._dataLocation, ts.iterations,
+                                species, species_quantity) )
+                    else:
+                        self.AddRawDataToSpecies( species,
+                            FolderRawDataSet( "openPMD", species_quantity,
+                                self.GiveStandardNameForOpenPMDQuantity(species_quantity),
+                                self._dataLocation, ts.iterations,
+                                species, species_quantity) )
+
+    def GetTimeStepsInOpenPMDLocation(self, location):
+        ts = OpenPMDTimeSeries( location, check_all_files=False )
+        return ts.iterations
+
+    def GiveStandardNameForOpenPMDQuantity(self, openpmdName):
+        if "E/z" in openpmdName:
+            return "Ez"
+        elif "E/y" in openpmdName:
+            return "Ey"
+        elif "E/x" in openpmdName:
+            return "Ex"
+        elif "B/z" in openpmdName:
+            return "Bz"
+        elif "B/y" in openpmdName:
+            return "By"
+        elif "B/x" in openpmdName:
+            return "Bx"
+        elif "rho" in openpmdName:
+            return "Charge density"
+        elif openpmdName == "uz":
+            return "Pz"
+        elif openpmdName == "uy":
+            return "Py"
+        elif openpmdName == "ux":
+            return "Px"
+        elif openpmdName == "charge":
+            return "Charge"
+        else:
+            return openpmdName

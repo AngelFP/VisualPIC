@@ -24,9 +24,9 @@ from PyQt5 import QtCore, QtWidgets
 class SimulationParametersWindow(QtWidgets.QDialog):
     def __init__(self,parent=None):
         super(SimulationParametersWindow, self).__init__(parent)
-        
+
         self.mainWindow = parent
-        self.supportedSimulationCodes = ["Osiris", "HiPACE"]
+        self.supportedSimulationCodes = ["Osiris", "HiPACE", "openPMD"]
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -145,7 +145,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
 
         # Default code options
         self.hiPACEWidget.setVisible(False)
-        
+
     def registerUiEvents(self):
         # General
         self.accept_Button.clicked.connect(self.acceptButton_clicked)
@@ -173,12 +173,11 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         simulationCode = self.simulationCode_comboBox.currentText()
         simParams = dict()
         simParams["SimulationCode"] = simulationCode
-        if simulationCode == "Osiris":
+        if simulationCode == "Osiris" or simulationCode == "openPMD":
             simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
             simParams["isLaser"] = self.osirisLaserInSimulation_checkBox.isChecked()
             if simParams["isLaser"]:
                 simParams["lambda_l"] = float(self.osirisLaserWavelength_lineEdit.text())
-        if simulationCode == "HiPACE":
-            simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
+
         self.mainWindow.dataContainer.SetSimulationParameters(simParams)
         self.close()

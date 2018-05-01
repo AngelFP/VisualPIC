@@ -24,6 +24,9 @@ import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
 
+# TODO: Add try/except statement for openPMD-viewer
+from opmd_viewer import OpenPMDTimeSeries
+
 
 class RawDataReaderBase(DataReader):
     """Parent class for all rawDataReaders"""
@@ -122,7 +125,7 @@ class HiPACERawDataReader(RawDataReaderBase):
             data = np.array(file_content.get(self.internalName))
         self.currentTime = file_content.attrs["TIME"][0]
         if self.internalName == "x1":
-            data += self.currentTime 
+            data += self.currentTime
         file_content.close()
         return data
 
@@ -154,6 +157,50 @@ class HiPACERawDataReader(RawDataReaderBase):
         self.grid_resolution = np.array(file_content.attrs['NX'])
         self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
         self.grid_units = 'c/ \omega_p'
+
+    def _ReadBasicData(self):
+        file_content = self._OpenFile(self.firstTimeStep)
+        self._ReadSimulationProperties(file_content)
+        file_content.close()
+
+class OpenPMDRawDataReader(RawDataReaderBase):
+    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
+        # Store an openPMD timeseries object
+        # (Its API is used in order to conveniently extract data from the file)
+        self.openpmd_ts = OpenPMDTimeSeries( location, check_all_files=False )
+        # Initialize the instance
+        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
+
+    def _ReadData(self, timeStep):
+        data, = self.openpmd_ts.get_particle( [self.internalName],
+                    species=self.speciesName, iteration=timeStep )
+        self.currentTime = self._ReadTime(timeStep)
+        return data
+
+    def _ReadTime(self, timeStep):
+        # The line below sets the attribute `_current_i` of openpmd_ts
+        self.openpmd_ts._find_output( None, timeStep )
+        # This sets the corresponding time
+        self.currentTime = self.openpmd_ts.t[ self.openpmd_ts._current_i ]
+
+    def _ReadUnits(self):
+        # OpenPMD data always provide conversion to SI units
+        self.dataUnits = "a.u." # TODO: Get the correct unit
+        self.timeUnits = "s"
+
+    def _OpenFile(self, timeStep):
+        # The line below sets the attribute `_current_i` of openpmd_ts
+        self.openpmd_ts._find_output( None, timeStep )
+        # This finds the full path to the corresponding file
+        fileName = self.openpmd_ts.h5_files[ self.openpmd_ts._current_i ]
+        file_content = H5File(fileName, 'r')
+        return file_content
+
+    def _ReadSimulationProperties(self, file_content):
+        # TODO: Add the proper resolution
+        self.grid_resolution = None
+        self.grid_size = None
+        self.grid_units = 'm'
 
     def _ReadBasicData(self):
         file_content = self._OpenFile(self.firstTimeStep)
