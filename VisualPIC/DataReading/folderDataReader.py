@@ -26,9 +26,12 @@ from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.folderDataElements import FolderField, FolderRawDataSet
 from VisualPIC.DataHandling.rawDataTags import RawDataTags
 
-# Try to import opmd_viewer, for openPMD files
-# TODO: add try/except statements
-from opmd_viewer import OpenPMDTimeSeries
+# Try to import openPMD-viewer (required for openPMD data)
+try:
+    from opmd_viewer import OpenPMDTimeSeries
+    openpmd_installed = True
+except ImportError:
+    openpmd_installed = False
 
 class FolderDataReader:
     """Scans the simulation folder and creates all the necessary species, fields and rawDataSet objects"""
@@ -287,6 +290,10 @@ class FolderDataReader:
     # openPMD
     def LoadOpenPMDData(self):
         """OpenPMD Loader"""
+        # First check whether openPMD is installed
+        if not openpmd_installed:
+            raise RunTimeError("You need to install openPMD-viewer, e.g. with:\n"
+                "pip install openPMD-viewer")
         # Scan the folder using openPMD-viewer
         ts = OpenPMDTimeSeries( self._dataLocation, check_all_files=False )
 

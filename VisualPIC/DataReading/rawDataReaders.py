@@ -24,8 +24,12 @@ import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
 
-# TODO: Add try/except statement for openPMD-viewer
-from opmd_viewer import OpenPMDTimeSeries
+# Try to import openPMD-viewer (required for openPMD data)
+try:
+    from opmd_viewer import OpenPMDTimeSeries
+    openpmd_installed = True
+except ImportError:
+    openpmd_installed = False
 
 
 class RawDataReaderBase(DataReader):
@@ -165,6 +169,10 @@ class HiPACERawDataReader(RawDataReaderBase):
 
 class OpenPMDRawDataReader(RawDataReaderBase):
     def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
+        # First check whether openPMD is installed
+        if not openpmd_installed:
+            raise RunTimeError("You need to install openPMD-viewer, e.g. with:\n"
+                "pip install openPMD-viewer")
         # Store an openPMD timeseries object
         # (Its API is used in order to conveniently extract data from the file)
         self.openpmd_ts = OpenPMDTimeSeries( location, check_all_files=False )
