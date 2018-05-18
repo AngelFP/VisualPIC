@@ -341,25 +341,31 @@ class FolderDataReader:
 
     def GiveStandardNameForOpenPMDQuantity(self, openpmdName):
         if "E/z" in openpmdName:
-            return "Ez"
-        elif "E/y" in openpmdName:
             return "Ey"
-        elif "E/x" in openpmdName:
+        elif "E/y" in openpmdName:
             return "Ex"
+        elif "E/x" in openpmdName:
+            return "Ez"
         elif "B/z" in openpmdName:
-            return "Bz"
-        elif "B/y" in openpmdName:
             return "By"
-        elif "B/x" in openpmdName:
+        elif "B/y" in openpmdName:
             return "Bx"
+        elif "B/x" in openpmdName:
+            return "Bz"
         elif "rho" in openpmdName:
             return "Charge density"
+        elif openpmdName == "z":
+            return "y"
+        elif openpmdName == "y":
+            return "x"
+        elif openpmdName == "x":
+            return "z"
         elif openpmdName == "uz":
-            return "Pz"
-        elif openpmdName == "uy":
             return "Py"
-        elif openpmdName == "ux":
+        elif openpmdName == "uy":
             return "Px"
+        elif openpmdName == "ux":
+            return "Pz"
         elif openpmdName == "charge":
             return "Charge"
         else:
