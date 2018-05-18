@@ -237,12 +237,17 @@ class LaserIntensityField(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+        if self.GetFieldDimension() == '3D':
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
         w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
         n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        if self.GetFieldDimension() == '2D':
+            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        elif self.GetFieldDimension() == '3D':
+            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0*n/2*E2
         return Intensity
 
@@ -259,12 +264,17 @@ class NormalizedVectorPotential(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+        if self.GetFieldDimension() == '3D':
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
         w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
         n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        if self.GetFieldDimension() == '2D':
+            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        elif self.GetFieldDimension() == '3D':
+            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0*n/2*E2
         a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
