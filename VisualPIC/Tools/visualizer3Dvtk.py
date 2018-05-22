@@ -78,10 +78,8 @@ class VolumeVTK():
             #self.SetOpacityValue(i, point[0], point[1])
 
     def SetCMapRangeFromCurrentTimeStep(self, timeStep):
-        fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
-        self.maxRange = np.amax(fieldData)
-        self.minRange = np.amin(fieldData)
-        self.customCMapRange = True
+        fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
+        self.SetCMapRange(np.amin(fieldData), np.amax(fieldData))
 
     def SetCMapRange(self, min, max):
         self.maxRange = max
