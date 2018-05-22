@@ -20,6 +20,7 @@
 
 import math
 import numpy as np
+import scipy.constants as ct
 
 
 class GeneralUnitConverter(object):
@@ -317,8 +318,14 @@ class OpenPMDUnitConverter(GeneralUnitConverter):
         super().SetSimulationParameters(params)
         self._SetNormalizationFactor(None)
 
-    def ConvertToISUnits(self, dataElementName, data):
-        return data
+    def ConvertToISUnits(self, dataElement, data):
+        dataElementName = dataElement.GetName()
+        if dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+            return data*1e-6 # m
+        elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+            return data*ct.m_e*ct.c # kg*m/s
+        else:
+            return data
 
     def GetTimeInISUnits(self, dataElement, timeStep):
         time = dataElement.GetTimeInOriginalUnits(timeStep)

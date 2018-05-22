@@ -193,7 +193,13 @@ class OpenPMDRawDataReader(RawDataReaderBase):
 
     def _ReadUnits(self):
         # OpenPMD data always provide conversion to SI units
-        self.dataUnits = "a.u." # TODO: Get the correct unit
+        # TODO: Get the units from file
+        if self.internalName == "x" or self.internalName == "y" or self.internalName == "z":
+            self.dataUnits = "μm"
+        elif self.internalName == "ux" or self.internalName == "uy" or self.internalName == "uz":
+            self.dataUnits = "m_e*c"
+        else:
+            self.dataUnits = "a.u." 
         self.timeUnits = "s"
 
     def _OpenFile(self, timeStep):
