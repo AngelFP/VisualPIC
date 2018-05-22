@@ -244,9 +244,10 @@ class Visualizer3Dvtk():
         # Normalize spacing. Too small values lead to ghost volumes.
         max_sp = max(axesSpacing["x"], axesSpacing["y"], axesSpacing["z"])
         max_cell_size = 0.1 # too big cells turn opaque, too small become transparent
-        axesSpacing["x"] = axesSpacing["x"]/max_sp*max_cell_size
-        axesSpacing["y"] = axesSpacing["y"]/max_sp*max_cell_size
-        axesSpacing["z"] = axesSpacing["z"]/max_sp*max_cell_size
+        norm_factor = max_cell_size/max_sp
+        axesSpacing["x"] = axesSpacing["x"]*norm_factor
+        axesSpacing["y"] = axesSpacing["y"]*norm_factor
+        axesSpacing["z"] = axesSpacing["z"]*norm_factor
         # Put data in VTK format
         dataImport = vtk.vtkImageImport()
         dataImport.SetImportVoidPointer(npdatamulti)
@@ -255,8 +256,7 @@ class Visualizer3Dvtk():
         dataImport.SetDataExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
         dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
         dataImport.SetDataSpacing(axesSpacing["x"],axesSpacing["y"],axesSpacing["z"])
-        #dataImport.SetDataOrigin(axes["x"][0]/max_sp,axes["y"][0]/max_sp,axes["z"][0]/max_sp) # data origin is changed by the normalization
-        dataImport.SetDataOrigin(axes["x"][0],axes["y"][0],axes["z"][0]) # data origin is changed by the normalization
+        dataImport.SetDataOrigin(axes["x"][0]*norm_factor,axes["y"][0]*norm_factor,axes["z"][0]*norm_factor) # data origin is changed by the normalization
         dataImport.Update()
         # Set the mapper
         if self.volumeMapper == None:
