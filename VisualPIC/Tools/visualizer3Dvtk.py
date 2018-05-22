@@ -99,9 +99,9 @@ class VolumeVTK():
 
     def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         if self.field.GetFieldDimension() == "3D":
-            fieldData = np.absolute(self.field.GetAllFieldDataInOriginalUnits(timeStep))
+            fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
         if self.field.GetFieldDimension() == "2D":
-            fieldData = np.absolute(self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction))
+            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction)
         if self.customCMapRange:
             maxvalue = self.maxRange
             minvalue = self.minRange
