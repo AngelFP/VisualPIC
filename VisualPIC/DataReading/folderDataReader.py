@@ -297,6 +297,7 @@ class FolderDataReader:
         # Scan the folder using openPMD-viewer
         ts = OpenPMDTimeSeries( self._dataLocation, check_all_files=False )
 
+        # TODO: Change hasNonISUnits to False once unit reading is implemented
         # Register the available fields
         if ts.avail_fields is not None:
             for field in ts.avail_fields:
@@ -309,14 +310,16 @@ class FolderDataReader:
                         standardName = self.GiveStandardNameForOpenPMDQuantity(fieldName)
                         self.AddDomainField(
                             FolderField( "openPMD", fieldName, standardName,
-                                        self._dataLocation, ts.iterations ) )
+                                        self._dataLocation, ts.iterations,
+                                        hasNonISUnits = True ) )
                 # Scalar field
                 if ts.fields_metadata[field]['type'] == 'scalar':
                     fieldName = field
                     standardName = self.GiveStandardNameForOpenPMDQuantity(field)
                     self.AddDomainField(
                         FolderField( "openPMD", fieldName, standardName,
-                                    self._dataLocation, ts.iterations ) )
+                                    self._dataLocation, ts.iterations,
+                                    hasNonISUnits = True ) )
 
         # Register the available species
         if ts.avail_species is not None:
@@ -333,7 +336,7 @@ class FolderDataReader:
                             FolderRawDataSet( "openPMD", species_quantity,
                                 self.GiveStandardNameForOpenPMDQuantity(species_quantity),
                                 self._dataLocation, ts.iterations,
-                                species, species_quantity) )
+                                species, species_quantity, hasNonISUnits = True) )
 
     def GetTimeStepsInOpenPMDLocation(self, location):
         ts = OpenPMDTimeSeries( location, check_all_files=False )
