@@ -44,7 +44,7 @@ class VolumeVTK():
         self.opacity.AddPoint(255/10*7, 0.7)
         self.opacity.AddPoint(255/10*8, 0.8)
         self.opacity.AddPoint(255/10*9, 0.9)
-        self.opacity.AddPoint(255, 1)
+        self.opacity.AddPoint(255, 0.999) # an opacity of 1 doesnt look good sometimes
         
         self.color.AddRGBPoint(0.0,0, 0, 1)
         self.color.AddRGBPoint(100, 1.000,0, 0)
@@ -127,19 +127,29 @@ class VolumeVTK():
 
     def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         spacing = {}
-        axesx = self.field.GetAxisDataInOriginalUnits("x", timeStep)
-        axesy = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+        axes = self.GetAxes(timeStep)
         if self.field.GetFieldDimension() == "3D":
-            axesz = self.field.GetAxisDataInOriginalUnits("z", timeStep)
-            spacing["x"] = np.abs(axesx[1]-axesx[0])
-            spacing["y"] = np.abs(axesy[1]-axesy[0])
-            spacing["z"] = np.abs(axesz[1]-axesz[0])
+            spacing["x"] = np.abs(axes["x"][1]-axes["x"][0])
+            spacing["y"] = np.abs(axes["y"][1]-axes["y"][0])
+            spacing["z"] = np.abs(axes["z"][1]-axes["z"][0])
         if self.field.GetFieldDimension() == "2D":
-            axesz = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-            spacing["x"] = np.abs(axesx[-1]-axesx[0])/longEl
-            spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl*fraction
-            spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl*fraction
+            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/longEl
+            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
+            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
         return spacing
+        #axesx = self.field.GetAxisDataInOriginalUnits("x", timeStep)
+        #axesy = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+        #if self.field.GetFieldDimension() == "3D":
+        #    axesz = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+        #    spacing["x"] = np.abs(axesx[1]-axesx[0])
+        #    spacing["y"] = np.abs(axesy[1]-axesy[0])
+        #    spacing["z"] = np.abs(axesz[1]-axesz[0])
+        #if self.field.GetFieldDimension() == "2D":
+        #    axesz = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+        #    spacing["x"] = np.abs(axesx[-1]-axesx[0])/longEl
+        #    spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl*fraction
+        #    spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl*fraction
+        #return spacing
 
 class Visualizer3Dvtk():
     def __init__(self, dataContainer):
@@ -231,6 +241,12 @@ class Visualizer3Dvtk():
         npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)
         axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 300, 0.5) # limit on elements only applies for 2d case
+        # Normalize spacing. Too small values lead to ghost volumes.
+        max_sp = max(axesSpacing["x"], axesSpacing["y"], axesSpacing["z"])
+        max_cell_size = 0.1 # too big cells turn opaque, too small become transparent
+        axesSpacing["x"] = axesSpacing["x"]/max_sp*max_cell_size
+        axesSpacing["y"] = axesSpacing["y"]/max_sp*max_cell_size
+        axesSpacing["z"] = axesSpacing["z"]/max_sp*max_cell_size
         # Put data in VTK format
         dataImport = vtk.vtkImageImport()
         dataImport.SetImportVoidPointer(npdatamulti)
@@ -239,7 +255,8 @@ class Visualizer3Dvtk():
         dataImport.SetDataExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
         dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
         dataImport.SetDataSpacing(axesSpacing["x"],axesSpacing["y"],axesSpacing["z"])
-        dataImport.SetDataOrigin(axes["x"][0],axes["y"][0],axes["z"][0])
+        #dataImport.SetDataOrigin(axes["x"][0]/max_sp,axes["y"][0]/max_sp,axes["z"][0]/max_sp) # data origin is changed by the normalization
+        dataImport.SetDataOrigin(axes["x"][0],axes["y"][0],axes["z"][0]) # data origin is changed by the normalization
         dataImport.Update()
         # Set the mapper
         if self.volumeMapper == None:
