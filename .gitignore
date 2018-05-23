@@ -36,6 +36,8 @@ $RECYCLE.BIN/
 *.pyproj
 *.user
 *.TMP
+/UpgradeLog.htm
+/.vs/
 
 # ArgoUML files
 *.zargo~
@@ -68,8 +70,9 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-/VisualPIC/use_lib.py
-/VisualPIC/__main__.spec
+
+# Other
 /Compile/Windows/dist
 /Logo/logo_horizontal_transp.xcf
-/UpgradeLog.htm
+/VisualPIC/use_lib.py
+/VisualPIC/__main__.spec
