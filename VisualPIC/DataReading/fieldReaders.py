@@ -438,7 +438,7 @@ class OpenPMDFieldReader(FieldReaderBase):
         self.axisUnits["y"] = "m"
         self.axisUnits["z"] = "m"
         self.timeUnits = "t"
-        self.dataUnits = "a.u." # TODO find the exact unit; needs navigation in file
+        self.dataUnits = "arb.u." # TODO find the exact unit; needs navigation in file
         file_content.close()
 
     def _ReadSimulationProperties(self, file_content):
