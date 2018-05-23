@@ -20,8 +20,6 @@ The main principles under which this application was developed are:
 
 The main capabilities of the program include 2D and 3D visualization of fields and particle data, particle tracking through the simulation, the creation of snapshots and animations, as well as a dedicated visualizer for making eye-catching 3D renders of the simulation.
 
-The code is currently still in its early stages and it only supports OSIRIS data, but it's being actively developed and collaborators are always welcome to join!
-
 ![VisualPIC Screnshot](Logo/VisualPIC.PNG)
 
 ## Installation
@@ -77,4 +75,3 @@ For more details about this and on how to add compatibility for more simulation 
 If you use VisualPIC to produce plots or figures for any scientific work, please provide a reference to the following publication:
 
 A. Ferran Pousa et al., “VisualPIC: A New Data Visualizer and Post-Processor for Particle-in-Cell Codes”, presented at IPAC’17, Copenhagen, Denmark, May 2017, paper TUPIK007.
-

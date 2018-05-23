@@ -24,9 +24,9 @@ from PyQt5 import QtCore, QtWidgets
 class SimulationParametersWindow(QtWidgets.QDialog):
     def __init__(self,parent=None):
         super(SimulationParametersWindow, self).__init__(parent)
-        
+
         self.mainWindow = parent
-        self.supportedSimulationCodes = ["Osiris", "HiPACE"]
+        self.supportedSimulationCodes = ["Osiris", "HiPACE", "openPMD"]
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -104,6 +104,31 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.hiPACEVerticalLayout.addLayout(self.hiPACEHorizontalLayout)
         self.code_layouts.addWidget(self.hiPACEWidget)
 
+        # openPMD layout
+        self.openPMDWidget = QtWidgets.QWidget()
+        self.openPMDVerticalLayout = QtWidgets.QVBoxLayout(self.openPMDWidget)
+        self.openPMDVerticalLayout.setObjectName("openPMDVerticalLayout")
+        self.openPMDHorizontalLayout = QtWidgets.QHBoxLayout()
+        self.openPMDHorizontalLayout.setObjectName("openPMDHorizontalLayout")
+        self.openPMDVerticalLayout.addLayout(self.openPMDHorizontalLayout)
+        self.openPMDHorizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.openPMDHorizontalLayout_4.setObjectName("openPMDHorizontalLayout_4")
+        self.openPMDLaserInSimulation_checkBox = QtWidgets.QCheckBox(self)
+        self.openPMDLaserInSimulation_checkBox.setObjectName("openPMDLaserInSimulation_checkBox")
+        self.openPMDHorizontalLayout_4.addWidget(self.openPMDLaserInSimulation_checkBox)
+        self.openPMDVerticalLayout.addLayout(self.openPMDHorizontalLayout_4)
+        self.openPMDHorizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.openPMDHorizontalLayout_2.setObjectName("openPMDHorizontalLayout_2")
+        self.openPMDLabel_2 = QtWidgets.QLabel(self)
+        self.openPMDLabel_2.setObjectName("openPMDLabel_2")
+        self.openPMDHorizontalLayout_2.addWidget(self.openPMDLabel_2)
+        self.openPMDLaserWavelength_lineEdit = QtWidgets.QLineEdit(self)
+        self.openPMDLaserWavelength_lineEdit.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.openPMDLaserWavelength_lineEdit.setObjectName("openPMDLaserWavelength_lineEdit")
+        self.openPMDHorizontalLayout_2.addWidget(self.openPMDLaserWavelength_lineEdit)
+        self.openPMDVerticalLayout.addLayout(self.openPMDHorizontalLayout_2)
+        self.code_layouts.addWidget(self.openPMDWidget)
+
         # General
         self.accept_Button = QtWidgets.QPushButton(self)
         self.accept_Button.setObjectName("accept_Button")
@@ -143,22 +168,41 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         elif simParams["SimulationCode"] == "HiPACE":
             self.hiPACEPlasmaDensity_lineEdit.setText(str(simParams["n_p"]))
 
+        # openPMD
+        self.openPMDLabel_2.setText("Laser wavelength (nm):")
+        self.openPMDLaserInSimulation_checkBox.setText("Laser in simulation.")
+        if (len(simParams) == 0) or (simParams["SimulationCode"] != "openPMD"):
+            self.openPMDLaserWavelength_lineEdit.setText("800")
+            self.openPMDLaserInSimulation_checkBox.setChecked(True)
+        elif simParams["SimulationCode"] == "openPMD":
+            self.openPMDLaserWavelength_lineEdit.setText(str(simParams["lambda_l"]))
+            self.openPMDLaserInSimulation_checkBox.setChecked(simParams["isLaser"])
+
         # Default code options
         self.hiPACEWidget.setVisible(False)
-        
+        self.openPMDWidget.setVisible(False)
+
     def registerUiEvents(self):
         # General
         self.accept_Button.clicked.connect(self.acceptButton_clicked)
         self.simulationCode_comboBox.currentIndexChanged.connect(self.simulationCodeComboBox_IndexChanged)
         # Osiris
         self.osirisLaserInSimulation_checkBox.toggled.connect(self.osirisLaserInSimulationCheckBox_StatusChanged)
+        # openPMD
+        self.openPMDLaserInSimulation_checkBox.toggled.connect(self.openPMDLaserInSimulationCheckBox_StatusChanged)
 
     def simulationCodeComboBox_IndexChanged(self):
         if self.simulationCode_comboBox.currentText() == "Osiris":
+            self.openPMDWidget.setVisible(False)
             self.hiPACEWidget.setVisible(False)
             self.osirisWidget.setVisible(True)
         elif self.simulationCode_comboBox.currentText() == "HiPACE":
+            self.openPMDWidget.setVisible(False)
             self.hiPACEWidget.setVisible(True)
+            self.osirisWidget.setVisible(False)
+        elif self.simulationCode_comboBox.currentText() == "openPMD":
+            self.openPMDWidget.setVisible(True)
+            self.hiPACEWidget.setVisible(False)
             self.osirisWidget.setVisible(False)
 
     def acceptButton_clicked(self):
@@ -169,16 +213,26 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.osirisLaserWavelength_lineEdit.setEnabled(status)
         self.osirisLabel_2.setEnabled(status)
 
+    def openPMDLaserInSimulationCheckBox_StatusChanged(self):
+        status = self.openPMDLaserInSimulation_checkBox.isChecked()
+        self.openPMDLaserWavelength_lineEdit.setEnabled(status)
+        self.openPMDLabel_2.setEnabled(status)
+
     def SetSimulationParameters(self):
         simulationCode = self.simulationCode_comboBox.currentText()
         simParams = dict()
         simParams["SimulationCode"] = simulationCode
-        if simulationCode == "Osiris":
+        if simulationCode == "Osiris" or simulationCode == "openPMD":
             simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
             simParams["isLaser"] = self.osirisLaserInSimulation_checkBox.isChecked()
             if simParams["isLaser"]:
                 simParams["lambda_l"] = float(self.osirisLaserWavelength_lineEdit.text())
-        if simulationCode == "HiPACE":
-            simParams["n_p"] = float(self.osirisPlasmaDensity_lineEdit.text())
+        elif simulationCode == "HiPACE":
+            simParams["n_p"] = float(self.hiPACEPlasmaDensity_lineEdit.text())
+        elif simulationCode == "openPMD":
+            simParams["isLaser"] = self.openPMDLaserInSimulation_checkBox.isChecked()
+            if simParams["isLaser"]:
+                simParams["lambda_l"] = float(self.openPMDLaserWavelength_lineEdit.text())
+
         self.mainWindow.dataContainer.SetSimulationParameters(simParams)
         self.close()
