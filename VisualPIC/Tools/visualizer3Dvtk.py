@@ -147,8 +147,6 @@ class Visualizer3Dvtk():
         self._GetAvailable3DFields()
         self.volumeList = list()
         self.volume = vtk.vtkVolume()
-        self.cmap_handler = ColormapHandler()
-        self._get_available_opacities()
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -161,9 +159,6 @@ class Visualizer3Dvtk():
         for field in domainFields:
             #if field.GetFieldDimension() == "3D":
             self.availableFields.append(field)
-
-    def _get_available_opacities(self):
-        self.available_opacities = self.cmap_handler.get_available_opacities()
 
     def GetListOfAvailable3DFields(self):
         namesList = list()
