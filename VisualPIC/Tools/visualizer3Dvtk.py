@@ -185,18 +185,25 @@ class Visualizer3Dvtk():
         return self.vtkWidget
 
     def AddVolumeField(self, fieldName, speciesName):
-        if speciesName == "":
-            for volume in self.volumeList:
-                if (volume.GetFieldName() == fieldName):
-                    return False
-            self.volumeList.append(Volume_3d(self.dataContainer.GetDomainField(fieldName)))
+        # maximum volume number is 4, only add if this limit is not reached
+        if len(self.volumeList) < 4:
+            if speciesName == "":
+                for volume in self.volumeList:
+                    # do not add volume if already in list
+                    if (volume.GetFieldName() == fieldName):
+                        return False
+                new_volume = Volume_3d(self.dataContainer.GetDomainField(fieldName))
+            else:
+                for volume in self.volumeList:
+                    # do not add volume if already in list
+                    if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
+                        return False
+                new_volume = Volume_3d(self.dataContainer.GetSpeciesField(speciesName, fieldName))
+            # add volume to list
+            self.volumeList.append(new_volume)
             return True
         else:
-            for volume in self.volumeList:
-                if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
-                    return False
-            self.volumeList.append(Volume_3d(self.dataContainer.GetSpeciesField(speciesName, fieldName)))
-            return True
+            return False
 
     def RemoveVolumeFromName(self, fieldName, speciesName):
         for volumeField in self.volumeList:
