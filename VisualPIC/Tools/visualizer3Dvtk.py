@@ -17,10 +17,13 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import os
 import numpy as np
+from h5py import File as H5File
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from pkg_resources import resource_listdir, resource_filename
+
 
 class Volume3D():
     def __init__(self, field3D):
@@ -144,6 +147,8 @@ class Visualizer3Dvtk():
         self._GetAvailable3DFields()
         self.volumeList = list()
         self.volume = vtk.vtkVolume()
+        self.cmap_handler = ColormapHandler()
+        self._get_available_opacities()
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -156,6 +161,9 @@ class Visualizer3Dvtk():
         for field in domainFields:
             #if field.GetFieldDimension() == "3D":
             self.availableFields.append(field)
+
+    def _get_available_opacities(self):
+        self.available_opacities = self.cmap_handler.get_available_opacities()
 
     def GetListOfAvailable3DFields(self):
         namesList = list()
@@ -280,3 +288,68 @@ class Visualizer3Dvtk():
         writer.SetFileName(path + ".png")
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
+
+
+class ColormapHandler():
+    def __init__(self, *args, **kwargs):
+        self.max_len = 50
+        return super().__init__(*args, **kwargs)
+
+    def get_available_opacities(self):
+        files_in_folder = resource_listdir(
+            'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+        h5_files = list()
+        avail_op = list()
+        for file in files_in_folder:
+            if file.endswith('.h5'):
+                h5_files.append(file)
+        abs_folder_path = resource_filename(
+            'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+        for file in h5_files:
+            avail_op.append(self.read_data_name(file, abs_folder_path))
+        print(avail_op)
+
+    def save_cmap(self, r, g, b):
+        pass
+
+    def save_opacity(self, field_values, opacity_values, name, folder_path):
+        if ( field_values.min()>=0 and field_values.max()<=255
+            and opacity_values.min()>=0 and opacity_values.max()<=1
+            and len(field_values) == len(opacity_values)
+            and len(opacity_values) <= self.max_len ):
+            file = self.get_h5_file_to_write(name, folder_path)
+            opacity_dataset = file.create_dataset(
+                "opacity", data = opacity_values )
+            field_dataset = file.create_dataset("field", data = field_values)
+            file.attrs["opacity_name"] = name
+            file.close()
+            return True
+        else:
+            return False
+
+    def read_data_name(self, file_name, folder_path):
+        file = self.get_h5_file_to_read(file_name, folder_path)
+        name = file.attrs["opacity_name"]
+        return name
+
+    def read_opacity(self, file_name, folder_path):
+        file = self.get_h5_file_to_read(file_name, folder_path)
+        name = file.attrs["opacity_name"]
+        opacity_data = np.array(file["/opacity"])
+        field_data = np.array(file["/field"])
+        return name, field_data, opacity_data
+
+    def get_h5_file_to_write(self, file_name, folder_path):
+        file = H5File(self.create_file_path(file_name, folder_path),  "w")
+        return file
+
+    def get_h5_file_to_read(self, file_name, folder_path):
+        file = H5File(self.create_file_path(file_name, folder_path), "r")
+        return file
+
+    def create_file_path(self, file_name, folder_path):
+        if not file_name.endswith('.h5'):
+            file_name += ".h5"
+        file_path = os.path.join(
+            folder_path, file_name.replace(' ', '_').lower() )
+        return file_path
