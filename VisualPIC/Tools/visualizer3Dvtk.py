@@ -34,6 +34,7 @@ class Volume3D():
         self.opacity = vtk.vtkPiecewiseFunction()
         self.color = vtk.vtkColorTransferFunction()
         self.vtk_volume = vtk.vtkVolume()
+        self.cmap_handler = ColormapHandler()
         self.customCMapRange = False
         self._SetDefaultStyle()
 
