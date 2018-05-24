@@ -302,8 +302,7 @@ class ColormapHandler():
         return super().__init__(*args, **kwargs)
 
     def get_available_opacities(self):
-        files_in_folder = resource_listdir(
-            'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+        files_in_folder = os.listdir(self.opacity_folder_path)
         h5_files = list()
         avail_op = list()
         for file in files_in_folder:
