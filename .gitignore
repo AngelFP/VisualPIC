@@ -42,6 +42,9 @@ $RECYCLE.BIN/
 # ArgoUML files
 *.zargo~
 
+# Scripts folder
+/Scripts/
+
 # =========================
 # Operating System Files
 # =========================
