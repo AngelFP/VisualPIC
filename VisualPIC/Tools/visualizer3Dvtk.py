@@ -39,21 +39,27 @@ class Volume3D():
         self._SetDefaultStyle()
 
     def _SetDefaultStyle(self):
-        self.opacity.AddPoint(0, 0)
-        self.opacity.AddPoint(255/10, 0.1)
-        self.opacity.AddPoint(255/10*2, 0.2)
-        self.opacity.AddPoint(255/10*3, 0.3)
-        self.opacity.AddPoint(255/10*4, 0.4)
-        self.opacity.AddPoint(255/10*5, 0.5)
-        self.opacity.AddPoint(255/10*6, 0.6)
-        self.opacity.AddPoint(255/10*7, 0.7)
-        self.opacity.AddPoint(255/10*8, 0.8)
-        self.opacity.AddPoint(255/10*9, 0.9)
-        self.opacity.AddPoint(255, 0.999) # an opacity of 1 doesnt look good sometimes
+        #self.opacity.AddPoint(0, 0)
+        #self.opacity.AddPoint(255/10, 0.1)
+        #self.opacity.AddPoint(255/10*2, 0.2)
+        #self.opacity.AddPoint(255/10*3, 0.3)
+        #self.opacity.AddPoint(255/10*4, 0.4)
+        #self.opacity.AddPoint(255/10*5, 0.5)
+        #self.opacity.AddPoint(255/10*6, 0.6)
+        #self.opacity.AddPoint(255/10*7, 0.7)
+        #self.opacity.AddPoint(255/10*8, 0.8)
+        #self.opacity.AddPoint(255/10*9, 0.9)
+        #self.opacity.AddPoint(255, 0.999) # an opacity of 1 doesnt look good sometimes
+        self._set_default_opacity()
         
         self.color.AddRGBPoint(0.0,0, 0, 1)
         self.color.AddRGBPoint(100, 1.000,0, 0)
         self.color.AddRGBPoint(255, 0, 1.0, 0)
+
+    def _set_default_opacity(self):
+        default_op = "linear positve"
+        name, fld_val, op_val = self.cmap_handler.read_opacity(default_op)
+        self.SetOpacityValues(fld_val, op_val)
 
     def GetFieldName(self):
         return self.field.GetName()
@@ -291,6 +297,8 @@ class Visualizer3Dvtk():
 class ColormapHandler():
     def __init__(self, *args, **kwargs):
         self.max_len = 50
+        self.opacity_folder_path = resource_filename(
+            'VisualPIC.Assets.Visualizer3D.Opacities', '' )
         return super().__init__(*args, **kwargs)
 
     def get_available_opacities(self):
@@ -301,10 +309,8 @@ class ColormapHandler():
         for file in files_in_folder:
             if file.endswith('.h5'):
                 h5_files.append(file)
-        abs_folder_path = resource_filename(
-            'VisualPIC.Assets.Visualizer3D.Opacities', '' )
         for file in h5_files:
-            avail_op.append(self.read_data_name(file, abs_folder_path))
+            avail_op.append(self.read_data_name(file, self.opacity_folder_path))
         print(avail_op)
 
     def save_cmap(self, r, g, b):
@@ -325,16 +331,24 @@ class ColormapHandler():
         else:
             return False
 
-    def read_data_name(self, file_name, folder_path):
+    def read_data_name(self, file_name, folder_path=None):
+        if folder_path == None:
+            folder_path = self.opacity_folder_path
         file = self.get_h5_file_to_read(file_name, folder_path)
         name = file.attrs["opacity_name"]
         return name
 
-    def read_opacity(self, file_name, folder_path):
-        file = self.get_h5_file_to_read(file_name, folder_path)
-        name = file.attrs["opacity_name"]
-        opacity_data = np.array(file["/opacity"])
-        field_data = np.array(file["/field"])
+    def read_opacity(self, file_name, folder_path=None):
+        if folder_path == None:
+            folder_path = self.opacity_folder_path
+        try:
+            file = self.get_h5_file_to_read(file_name, folder_path)
+            name = file.attrs["opacity_name"]
+            opacity_data = np.array(file["/opacity"])
+            field_data = np.array(file["/field"])
+        except:
+            print('File not found, returning fallback opacity.')
+            name, field_data, opacity_data = self.create_fallback_opacity()
         return name, field_data, opacity_data
 
     def get_h5_file_to_write(self, file_name, folder_path):
@@ -351,3 +365,11 @@ class ColormapHandler():
         file_path = os.path.join(
             folder_path, file_name.replace(' ', '_').lower() )
         return file_path
+
+    def create_fallback_opacity(self):
+        name = "linear positive"
+        n_points = 11
+        field_values = np.linspace(0, 255, n_points)
+        opacity_values = np.linspace(0, 1, n_points)
+        opacity_values[-1] = opacity_values[-1] - 1e-3
+        return name, field_values, opacity_values
