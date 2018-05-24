@@ -22,7 +22,7 @@ import numpy as np
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-class Volume_3d():
+class Volume3D():
     def __init__(self, field3D):
         self.actorType = "Volume"
         self.name = field3D.GetName()
@@ -192,13 +192,13 @@ class Visualizer3Dvtk():
                     # do not add volume if already in list
                     if (volume.GetFieldName() == fieldName):
                         return False
-                new_volume = Volume_3d(self.dataContainer.GetDomainField(fieldName))
+                new_volume = Volume3D(self.dataContainer.GetDomainField(fieldName))
             else:
                 for volume in self.volumeList:
                     # do not add volume if already in list
                     if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
                         return False
-                new_volume = Volume_3d(self.dataContainer.GetSpeciesField(speciesName, fieldName))
+                new_volume = Volume3D(self.dataContainer.GetSpeciesField(speciesName, fieldName))
             # add volume to list
             self.volumeList.append(new_volume)
             return True
@@ -280,4 +280,3 @@ class Visualizer3Dvtk():
         writer.SetFileName(path + ".png")
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
-
