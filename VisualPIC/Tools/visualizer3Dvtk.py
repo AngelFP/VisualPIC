@@ -76,10 +76,10 @@ class Volume3D():
     def SetOpacityValue(self, index, valueX, valueY):
         self.opacity.SetNodeValue(index, [valueX, valueY, 0.5, 0.0])
 
-    def SetOpacityValues(self, values):
+    def SetOpacityValues(self, field_values, opacity_values):
         self.opacity.RemoveAllPoints()
-        for point in values:
-            self.opacity.AddPoint(point[0], point[1])
+        for i in np.arange(len(field_values)):
+            self.opacity.AddPoint(field_values[i], opacity_values[i])
             #self.SetOpacityValue(i, point[0], point[1])
 
     def SetCMapRangeFromCurrentTimeStep(self, timeStep):
@@ -92,13 +92,15 @@ class Volume3D():
         self.customCMapRange = True
 
     def GetOpacityValues(self):
-        values = list()
+        fld_values = list()
+        op_values = list()
         size = self.opacity.GetSize()
         for i in range(size):
             val = [1,1,1,1]
             self.opacity.GetNodeValue(i, val)
-            values.append([val[0], val[1]])
-        return values
+            fld_values.append(val[0])
+            op_values.append(val[1])
+        return np.array(fld_values), np.array(op_values)
 
     def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         if self.field.GetFieldDimension() == "3D":

@@ -61,8 +61,8 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.colorsWidgetLayout.addWidget(self.colorsCanvas)
         self.colorsCanvas.draw()
         
-        points = self.volume.GetOpacityValues()
-        self.opacityFigure.AddPoints(points)
+        x, y = self.volume.GetOpacityValues()
+        self.opacityFigure.AddPoints(x, y)
 
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
@@ -92,7 +92,8 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         #End of temporary code
 
     def UpdateVolumeProperties(self):
-        self.volume.SetOpacityValues(self.opacityFigure.GetPoints())
+        fld_val, op_val = self.opacityFigure.GetPoints()
+        self.volume.SetOpacityValues(fld_val, op_val)
         self.mainWindow.UpdateRender()
 
     def NormalizationButton_Clicked(self):

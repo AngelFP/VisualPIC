@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from matplotlib.lines import Line2D
 from matplotlib.figure import Figure
+import numpy as np
 
 
 class FigureWithPoints(Figure):
@@ -14,18 +15,20 @@ class FigureWithPoints(Figure):
         self.axes[0].set_xlim(0,255)
         self.axes[0].set_ylim(0,1)
 
-    def AddPoints(self, points):
-        for point in points:
-            dPoint = DraggablePoint(self, point[0], point[1])
+    def AddPoints(self, x, y):
+        for i in np.arange(len(x)):
+            dPoint = DraggablePoint(self, x[i], y[i])
             self.listOfPoints.append(dPoint)
             self.axes[0].add_patch(dPoint)
             dPoint.addLinesAndConnect()
 
     def GetPoints(self):
-        points = list()
+        x = list()
+        y = list()
         for dPoint in self.listOfPoints:
-            points.append([dPoint.x, dPoint.y])
-        return points
+            x.append(dPoint.x)
+            y.append(dPoint.y)
+        return np.array(x), np.array(y)
 
 
 class DraggablePoint(Ellipse):
