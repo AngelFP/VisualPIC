@@ -22,7 +22,7 @@ import numpy as np
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-class VolumeVTK():
+class Volume_3d():
     def __init__(self, field3D):
         self.actorType = "Volume"
         self.name = field3D.GetName()
@@ -30,6 +30,7 @@ class VolumeVTK():
         self.field = field3D
         self.opacity = vtk.vtkPiecewiseFunction()
         self.color = vtk.vtkColorTransferFunction()
+        self.vtk_volume = vtk.vtkVolume()
         self.customCMapRange = False
         self._SetDefaultStyle()
 
@@ -135,27 +136,14 @@ class VolumeVTK():
             spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
             spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
         return spacing
-        #axesx = self.field.GetAxisDataInOriginalUnits("x", timeStep)
-        #axesy = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        #if self.field.GetFieldDimension() == "3D":
-        #    axesz = self.field.GetAxisDataInOriginalUnits("z", timeStep)
-        #    spacing["x"] = np.abs(axesx[1]-axesx[0])
-        #    spacing["y"] = np.abs(axesy[1]-axesy[0])
-        #    spacing["z"] = np.abs(axesz[1]-axesz[0])
-        #if self.field.GetFieldDimension() == "2D":
-        #    axesz = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        #    spacing["x"] = np.abs(axesx[-1]-axesx[0])/longEl
-        #    spacing["y"] = np.abs(axesy[-1]-axesy[0])/transvEl*fraction
-        #    spacing["z"] = np.abs(axesz[-1]-axesz[0])/transvEl*fraction
-        #return spacing
+
 
 class Visualizer3Dvtk():
     def __init__(self, dataContainer):
         self.dataContainer = dataContainer
         self._GetAvailable3DFields()
         self.volumeList = list()
-        self.volume = None
-        self.volumeMapper = None
+        self.volume = vtk.vtkVolume()
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -201,13 +189,13 @@ class Visualizer3Dvtk():
             for volume in self.volumeList:
                 if (volume.GetFieldName() == fieldName):
                     return False
-            self.volumeList.append(VolumeVTK(self.dataContainer.GetDomainField(fieldName)))
+            self.volumeList.append(Volume_3d(self.dataContainer.GetDomainField(fieldName)))
             return True
         else:
             for volume in self.volumeList:
                 if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
                     return False
-            self.volumeList.append(VolumeVTK(self.dataContainer.GetSpeciesField(speciesName, fieldName)))
+            self.volumeList.append(Volume_3d(self.dataContainer.GetSpeciesField(speciesName, fieldName)))
             return True
 
     def RemoveVolumeFromName(self, fieldName, speciesName):
@@ -224,8 +212,7 @@ class Visualizer3Dvtk():
             if (volume.name == fieldName) and (volume.speciesName == speciesName):
                 return volume
 
-    def CreateVolume(self, timeStep):
-        firstTime = False
+    def create_volume(self, timeStep):
         # Get data
         npdatauchar = list()
         volumeprop = vtk.vtkVolumeProperty()
@@ -256,38 +243,23 @@ class Visualizer3Dvtk():
         dataImport.SetDataSpacing(axesSpacing["x"],axesSpacing["y"],axesSpacing["z"])
         dataImport.SetDataOrigin(axes["x"][0]*norm_factor,axes["y"][0]*norm_factor,axes["z"][0]*norm_factor) # data origin is changed by the normalization
         dataImport.Update()
-        # Set the mapper
-        if self.volumeMapper == None:
-            self.volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        self.volumeMapper.SetAutoAdjustSampleDistances(1)
-        self.volumeMapper.SetInputConnection(dataImport.GetOutputPort())
-        self.volumeMapper.Update()
-        # Create volume
-        if self.volume == None:
-            self.volume = vtk.vtkVolume()
-            firstTime = True
-            self.volume.SetMapper(self.volumeMapper)
-            self.volume.SetProperty(volumeprop)
+        # Create the mapper
+        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
+        volumeMapper.SetAutoAdjustSampleDistances(1)
+        volumeMapper.SetInputConnection(dataImport.GetOutputPort())
+        volumeMapper.Update()
+        # Add to volume
+        self.volume.SetMapper(volumeMapper)
+        self.volume.SetProperty(volumeprop)
         # Add to render
-        if firstTime:
-            self.renderer.AddVolume(self.volume)
-        else:
-            self.volume.Modified()
-        if firstTime:
-            self.renderer.ResetCamera()
-            self.renderer.GetRenderWindow().Render()
-        else:
-            #currentCameraPosition = np.array(self.renderer.GetActiveCamera().GetPosition())
-            #newDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
-            #newCameraPosition = newDataOrigin - self.pastDataOrigin + currentCameraPosition
-            self.renderer.ResetCamera()
-            #self.renderer.GetActiveCamera().SetPosition(newCameraPosition[0],newCameraPosition[1],newCameraPosition[2])
-            self.vtkWidget.GetRenderWindow().Render()
-        #self.pastDataOrigin = np.array((axes["x"][0],axes["y"][0],axes["z"][0]))
+        self.renderer.AddVolume(self.volume)
+        self.renderer.ResetCamera()
+        self.renderer.GetRenderWindow().Render()
         self.interactor.Initialize()
 
     def MakeRender(self, timeStep):
-        self.CreateVolume(timeStep)
+        self.create_volume(timeStep)
+        #self.CreateVolume(timeStep)
 
     def UpdateRender(self):
         self.interactor.Render()
