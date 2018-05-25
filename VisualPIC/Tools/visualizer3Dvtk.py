@@ -379,7 +379,7 @@ class ColormapHandler():
     cmap_instance = None
 
     def __init__(self, *args, **kwargs):
-        if ColormapHandler.cmap_instance == None:
+        if ColormapHandler.cmap_instance is None:
             ColormapHandler.cmap_instance = ColormapHandler.__ColormapHandler()
 
     def __getattr__(self, name):
@@ -395,13 +395,13 @@ class Opacity():
         return super().__init__(*args, **kwargs)
 
     def get_name(self):
-        if self.name == None:
+        if self.name is None:
             file = self.get_file()
             self.name = file.attrs["opacity_name"]
         return self.name
 
     def get_opacity(self):
-        if self.op_data == None:
+        if self.op_data is None:
             file = self.get_file()
             self.op_data = np.array(file["/opacity"])
             self.fld_data = np.array(file["/field"])

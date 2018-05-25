@@ -59,7 +59,7 @@ class DataContainer:
 
     def SetSimulationParameters(self, parameters):
         # If there is no unitConverter or the simulation code has changed, create a new unitConverter.
-        if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
+        if (self.unitConverter is None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
             self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(parameters)
             DataElement.SetUnitConverter(self.unitConverter)
         # otherwise, update the current one.

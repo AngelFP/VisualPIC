@@ -95,7 +95,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.instantPlots_layout.addWidget(self.instantPlotsToolbar)
 
     def CreateSelectorSubplotObject(self):
-        #if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
+        #if self.selectorSubplot is None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
         speciesName = str(self.speciesSelector_comboBox.currentText())
         dataSets = {}
         xAxis = str(self.xAxis_comboBox.currentText())
