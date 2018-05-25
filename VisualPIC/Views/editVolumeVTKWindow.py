@@ -28,6 +28,7 @@ from matplotlib.backends.backend_qt5agg import (
 
 from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
 from VisualPIC.DataPlotting.vtkColorMaps import VTKColorMapCreator
+from VisualPIC.Views.SaveOpacityDialog import SaveOpacityDialog
 
 
 if getattr(sys, 'frozen', False):
@@ -71,6 +72,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
         self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
+        self.save_opacity_pushButton.clicked.connect(self.save_opacity)
 
     def FillUI(self):
         self.isUpdatingUI = True
@@ -98,6 +100,10 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             else:
                 fld_val, op_val = self.volume.get_opacity_values()
             self.opacityFigure.set_points(0, fld_val, op_val)
+
+    def save_opacity(self):
+        op_dialog = SaveOpacityDialog()
+        op_dialog.exec_()
 
     def greenColor(self):
         self.volume.SetGreenColor()

@@ -30,7 +30,7 @@ else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
 guipath = os.path.join( bundle_dir, 'SaveOpacityDialog.ui' )
-Ui_SaveOpacityDialog, SaveOpacityDialog = loadUiType(guipath)
+Ui_SaveOpacityDialog, QSaveOpacityDialog = loadUiType(guipath)
 
 
 class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
