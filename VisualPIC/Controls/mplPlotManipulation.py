@@ -18,11 +18,21 @@ class FigureWithPoints(Figure):
             ax.set_xlim(0,255)
             ax.set_ylim(0,1)
 
-    def AddPoints(self, naxis, x, y):
+    def set_points(self, naxis, x, y):
+        self.remove_points(naxis)
+        self.add_points(naxis, x, y)
+        self.canvas.draw_idle()
+
+    def add_points(self, naxis, x, y):
         for i in np.arange(len(x)):
             dPoint = DraggablePoint(self.axes[naxis], x[i], y[i])
             self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
+
+    def remove_points(self, naxis):
+        for point in reversed(self.axes[naxis].patches):
+            point.remove()
+        self.axes[naxis].clear()
 
     def remove_all_points(self):
         for ax in self.axes:
