@@ -184,20 +184,20 @@ class Volume3D():
 
     def _set_default_style(self):
         default_op = "linear positive"
-        self.set_opacity(default_op)
+        self.set_opacity_from_presets(default_op)
         
         self.vtk_color.AddRGBPoint(0.0,0, 0, 1)
         self.vtk_color.AddRGBPoint(100, 1.000,0, 0)
         self.vtk_color.AddRGBPoint(255, 0, 1.0, 0)
 
-    def set_opacity(self, op_name):
+    def set_opacity_from_presets(self, op_name):
         if self.cmap_handler.opacity_exists(op_name):
-            self.opacity = self.cmap_handler.get_opacity(op_name)
+            opacity = self.cmap_handler.get_opacity(op_name)
         else:
             avail_ops = self.cmap_handler.get_available_opacities()
-            self.opacity = self.cmap_handler.get_opacity(avail_ops[0])
-        fld_val, op_val = self.opacity.get_opacity()
-        self.SetOpacityValues(fld_val, op_val)
+            opacity = self.cmap_handler.get_opacity(avail_ops[0])
+        fld_val, op_val = opacity.get_opacity()
+        self.set_opacity(fld_val, op_val)
 
     def GetFieldName(self):
         return self.field.GetName()
@@ -213,7 +213,7 @@ class Volume3D():
         self.vtk_color.RemoveAllPoints()
         self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
 
-    def SetOpacityValues(self, field_values, opacity_values):
+    def set_opacity(self, field_values, opacity_values):
         self.vtk_opacity.RemoveAllPoints()
         for i in np.arange(len(field_values)):
             self.vtk_opacity.AddPoint(field_values[i], opacity_values[i])
