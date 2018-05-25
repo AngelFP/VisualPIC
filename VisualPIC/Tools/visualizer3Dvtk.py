@@ -114,8 +114,8 @@ class Visualizer3Dvtk():
         volumeprop.SetInterpolationTypeToLinear()
         for i, volume in enumerate(self.volumeList):
             npdatauchar.append(volume.GetData(timeStep, 200, 300, 0.5)) # limit on elements only applies for 2d case
-            volumeprop.SetColor(i,volume.color)
-            volumeprop.SetScalarOpacity(i,volume.opacity)
+            volumeprop.SetColor(i,volume.vtk_color)
+            volumeprop.SetScalarOpacity(i,volume.vtk_opacity)
             volumeprop.ShadeOff(i)
         npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)

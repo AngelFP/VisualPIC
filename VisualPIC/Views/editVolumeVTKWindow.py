@@ -102,7 +102,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
 
     def UpdateVolumeProperties(self):
         fld_val, op_val = self.opacityFigure.GetPoints(0)
-        self.volume.SetOpacityValues(fld_val, op_val)
+        self.volume.set_opacity(fld_val, op_val)
         self.mainWindow.UpdateRender()
 
     def NormalizationButton_Clicked(self):
