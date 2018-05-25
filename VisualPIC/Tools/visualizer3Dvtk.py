@@ -227,7 +227,7 @@ class Volume3D():
         self.minRange = min
         self.customCMapRange = True
 
-    def GetOpacityValues(self):
+    def get_opacity_values(self):
         fld_values = list()
         op_values = list()
         size = self.vtk_opacity.GetSize()
