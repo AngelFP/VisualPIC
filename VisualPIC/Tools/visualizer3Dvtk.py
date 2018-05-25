@@ -175,8 +175,8 @@ class Volume3D():
         self.name = field3D.GetName()
         self.speciesName = field3D.GetSpeciesName()
         self.field = field3D
-        self.opacity = vtk.vtkPiecewiseFunction()
-        self.color = vtk.vtkColorTransferFunction()
+        self.vtk_opacity = vtk.vtkPiecewiseFunction()
+        self.vtk_color = vtk.vtkColorTransferFunction()
         self.vtk_volume = vtk.vtkVolume()
         self.cmap_handler = ColormapHandler()
         self.customCMapRange = False
@@ -185,9 +185,9 @@ class Volume3D():
     def _SetDefaultStyle(self):
         self._set_default_opacity()
         
-        self.color.AddRGBPoint(0.0,0, 0, 1)
-        self.color.AddRGBPoint(100, 1.000,0, 0)
-        self.color.AddRGBPoint(255, 0, 1.0, 0)
+        self.vtk_color.AddRGBPoint(0.0,0, 0, 1)
+        self.vtk_color.AddRGBPoint(100, 1.000,0, 0)
+        self.vtk_color.AddRGBPoint(255, 0, 1.0, 0)
 
     def _set_default_opacity(self):
         default_op = "linear positive"
@@ -209,20 +209,20 @@ class Volume3D():
 
     def SetColorPoints(self, points):
         # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
-        self.color.RemoveAllPoints()
-        self.color.FillFromDataPointer(int(len(points)/4), points)
+        self.vtk_color.RemoveAllPoints()
+        self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
         
     def SetOpacityPoints(self, points):
-        self.opacity.RemoveAllPoints()
-        self.opacity.FillFromDataPointer(int(len(points)/2), points)
+        self.vtk_opacity.RemoveAllPoints()
+        self.vtk_opacity.FillFromDataPointer(int(len(points)/2), points)
 
     def SetOpacityValue(self, index, valueX, valueY):
-        self.opacity.SetNodeValue(index, [valueX, valueY, 0.5, 0.0])
+        self.vtk_opacity.SetNodeValue(index, [valueX, valueY, 0.5, 0.0])
 
     def SetOpacityValues(self, field_values, opacity_values):
-        self.opacity.RemoveAllPoints()
+        self.vtk_opacity.RemoveAllPoints()
         for i in np.arange(len(field_values)):
-            self.opacity.AddPoint(field_values[i], opacity_values[i])
+            self.vtk_opacity.AddPoint(field_values[i], opacity_values[i])
             #self.SetOpacityValue(i, point[0], point[1])
 
     def SetCMapRangeFromCurrentTimeStep(self, timeStep):
@@ -237,10 +237,10 @@ class Volume3D():
     def GetOpacityValues(self):
         fld_values = list()
         op_values = list()
-        size = self.opacity.GetSize()
+        size = self.vtk_opacity.GetSize()
         for i in range(size):
             val = [1,1,1,1]
-            self.opacity.GetNodeValue(i, val)
+            self.vtk_opacity.GetNodeValue(i, val)
             fld_values.append(val[0])
             op_values.append(val[1])
         return np.array(fld_values), np.array(op_values)
