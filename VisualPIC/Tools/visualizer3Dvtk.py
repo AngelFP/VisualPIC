@@ -39,17 +39,6 @@ class Volume3D():
         self._SetDefaultStyle()
 
     def _SetDefaultStyle(self):
-        #self.opacity.AddPoint(0, 0)
-        #self.opacity.AddPoint(255/10, 0.1)
-        #self.opacity.AddPoint(255/10*2, 0.2)
-        #self.opacity.AddPoint(255/10*3, 0.3)
-        #self.opacity.AddPoint(255/10*4, 0.4)
-        #self.opacity.AddPoint(255/10*5, 0.5)
-        #self.opacity.AddPoint(255/10*6, 0.6)
-        #self.opacity.AddPoint(255/10*7, 0.7)
-        #self.opacity.AddPoint(255/10*8, 0.8)
-        #self.opacity.AddPoint(255/10*9, 0.9)
-        #self.opacity.AddPoint(255, 0.999) # an opacity of 1 doesnt look good sometimes
         self._set_default_opacity()
         
         self.color.AddRGBPoint(0.0,0, 0, 1)
