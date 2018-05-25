@@ -25,124 +25,6 @@ from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from pkg_resources import resource_listdir, resource_filename
 
 
-class Volume3D():
-    def __init__(self, field3D):
-        self.actorType = "Volume"
-        self.name = field3D.GetName()
-        self.speciesName = field3D.GetSpeciesName()
-        self.field = field3D
-        self.opacity = vtk.vtkPiecewiseFunction()
-        self.color = vtk.vtkColorTransferFunction()
-        self.vtk_volume = vtk.vtkVolume()
-        self.cmap_handler = ColormapHandler()
-        self.customCMapRange = False
-        self._SetDefaultStyle()
-
-    def _SetDefaultStyle(self):
-        self._set_default_opacity()
-        
-        self.color.AddRGBPoint(0.0,0, 0, 1)
-        self.color.AddRGBPoint(100, 1.000,0, 0)
-        self.color.AddRGBPoint(255, 0, 1.0, 0)
-
-    def _set_default_opacity(self):
-        default_op = "linear positive"
-        if self.cmap_handler.opacity_exists(default_op):
-            fld_val, op_val = self.cmap_handler.get_opacity_data(default_op)
-        else:
-            avail_ops = self.cmap_handler.get_available_opacities()
-            fld_val, op_val = self.cmap_handler.get_opacity_data(avail_ops[0])
-        self.SetOpacityValues(fld_val, op_val)
-
-    def GetFieldName(self):
-        return self.field.GetName()
-
-    def GetSpeciesName(self):
-        return self.field.GetSpeciesName()
-
-    def GetTimeSteps(self):
-        return self.field.GetTimeSteps()
-
-    def SetColorPoints(self, points):
-        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
-        self.color.RemoveAllPoints()
-        self.color.FillFromDataPointer(int(len(points)/4), points)
-        
-    def SetOpacityPoints(self, points):
-        self.opacity.RemoveAllPoints()
-        self.opacity.FillFromDataPointer(int(len(points)/2), points)
-
-    def SetOpacityValue(self, index, valueX, valueY):
-        self.opacity.SetNodeValue(index, [valueX, valueY, 0.5, 0.0])
-
-    def SetOpacityValues(self, field_values, opacity_values):
-        self.opacity.RemoveAllPoints()
-        for i in np.arange(len(field_values)):
-            self.opacity.AddPoint(field_values[i], opacity_values[i])
-            #self.SetOpacityValue(i, point[0], point[1])
-
-    def SetCMapRangeFromCurrentTimeStep(self, timeStep):
-        fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
-        self.SetCMapRange(np.amin(fieldData), np.amax(fieldData))
-
-    def SetCMapRange(self, min, max):
-        self.maxRange = max
-        self.minRange = min
-        self.customCMapRange = True
-
-    def GetOpacityValues(self):
-        fld_values = list()
-        op_values = list()
-        size = self.opacity.GetSize()
-        for i in range(size):
-            val = [1,1,1,1]
-            self.opacity.GetNodeValue(i, val)
-            fld_values.append(val[0])
-            op_values.append(val[1])
-        return np.array(fld_values), np.array(op_values)
-
-    def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
-        if self.field.GetFieldDimension() == "3D":
-            fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
-        if self.field.GetFieldDimension() == "2D":
-            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction)
-        if self.customCMapRange:
-            maxvalue = self.maxRange
-            minvalue = self.minRange
-        else:
-            maxvalue = np.amax(fieldData)
-            minvalue = np.amin(fieldData)
-        fieldData = np.round(255 * (fieldData-minvalue)/(maxvalue-minvalue))
-        fieldData[fieldData < 0] = 0
-        fieldData[fieldData > 255] = 255
-        # Change data from float to unsigned char
-        npdatauchar = np.array(fieldData, dtype=np.uint8)
-        return npdatauchar
-
-    def GetAxes(self, timeStep):
-        axes = {}
-        if self.field.GetFieldDimension() == "3D":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", timeStep)
-        if self.field.GetFieldDimension() == "2D":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axes["y"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
-        return axes
-
-    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None, fraction = 1):
-        spacing = {}
-        axes = self.GetAxes(timeStep)
-        if self.field.GetFieldDimension() == "3D":
-            spacing["x"] = np.abs(axes["x"][1]-axes["x"][0])
-            spacing["y"] = np.abs(axes["y"][1]-axes["y"][0])
-            spacing["z"] = np.abs(axes["z"][1]-axes["z"][0])
-        if self.field.GetFieldDimension() == "2D":
-            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/longEl
-            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
-            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
-        return spacing
-
-
 class Visualizer3Dvtk():
     def __init__(self, dataContainer):
         self.dataContainer = dataContainer
@@ -285,6 +167,124 @@ class Visualizer3Dvtk():
         writer.SetFileName(path + ".png")
         writer.SetInputData(w2if.GetOutput())
         writer.Write()
+
+
+class Volume3D():
+    def __init__(self, field3D):
+        self.actorType = "Volume"
+        self.name = field3D.GetName()
+        self.speciesName = field3D.GetSpeciesName()
+        self.field = field3D
+        self.opacity = vtk.vtkPiecewiseFunction()
+        self.color = vtk.vtkColorTransferFunction()
+        self.vtk_volume = vtk.vtkVolume()
+        self.cmap_handler = ColormapHandler()
+        self.customCMapRange = False
+        self._SetDefaultStyle()
+
+    def _SetDefaultStyle(self):
+        self._set_default_opacity()
+        
+        self.color.AddRGBPoint(0.0,0, 0, 1)
+        self.color.AddRGBPoint(100, 1.000,0, 0)
+        self.color.AddRGBPoint(255, 0, 1.0, 0)
+
+    def _set_default_opacity(self):
+        default_op = "linear positive"
+        if self.cmap_handler.opacity_exists(default_op):
+            fld_val, op_val = self.cmap_handler.get_opacity_data(default_op)
+        else:
+            avail_ops = self.cmap_handler.get_available_opacities()
+            fld_val, op_val = self.cmap_handler.get_opacity_data(avail_ops[0])
+        self.SetOpacityValues(fld_val, op_val)
+
+    def GetFieldName(self):
+        return self.field.GetName()
+
+    def GetSpeciesName(self):
+        return self.field.GetSpeciesName()
+
+    def GetTimeSteps(self):
+        return self.field.GetTimeSteps()
+
+    def SetColorPoints(self, points):
+        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
+        self.color.RemoveAllPoints()
+        self.color.FillFromDataPointer(int(len(points)/4), points)
+        
+    def SetOpacityPoints(self, points):
+        self.opacity.RemoveAllPoints()
+        self.opacity.FillFromDataPointer(int(len(points)/2), points)
+
+    def SetOpacityValue(self, index, valueX, valueY):
+        self.opacity.SetNodeValue(index, [valueX, valueY, 0.5, 0.0])
+
+    def SetOpacityValues(self, field_values, opacity_values):
+        self.opacity.RemoveAllPoints()
+        for i in np.arange(len(field_values)):
+            self.opacity.AddPoint(field_values[i], opacity_values[i])
+            #self.SetOpacityValue(i, point[0], point[1])
+
+    def SetCMapRangeFromCurrentTimeStep(self, timeStep):
+        fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
+        self.SetCMapRange(np.amin(fieldData), np.amax(fieldData))
+
+    def SetCMapRange(self, min, max):
+        self.maxRange = max
+        self.minRange = min
+        self.customCMapRange = True
+
+    def GetOpacityValues(self):
+        fld_values = list()
+        op_values = list()
+        size = self.opacity.GetSize()
+        for i in range(size):
+            val = [1,1,1,1]
+            self.opacity.GetNodeValue(i, val)
+            fld_values.append(val[0])
+            op_values.append(val[1])
+        return np.array(fld_values), np.array(op_values)
+
+    def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
+        if self.field.GetFieldDimension() == "3D":
+            fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
+        if self.field.GetFieldDimension() == "2D":
+            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction)
+        if self.customCMapRange:
+            maxvalue = self.maxRange
+            minvalue = self.minRange
+        else:
+            maxvalue = np.amax(fieldData)
+            minvalue = np.amin(fieldData)
+        fieldData = np.round(255 * (fieldData-minvalue)/(maxvalue-minvalue))
+        fieldData[fieldData < 0] = 0
+        fieldData[fieldData > 255] = 255
+        # Change data from float to unsigned char
+        npdatauchar = np.array(fieldData, dtype=np.uint8)
+        return npdatauchar
+
+    def GetAxes(self, timeStep):
+        axes = {}
+        if self.field.GetFieldDimension() == "3D":
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+        if self.field.GetFieldDimension() == "2D":
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+        axes["y"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
+        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
+        return axes
+
+    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None, fraction = 1):
+        spacing = {}
+        axes = self.GetAxes(timeStep)
+        if self.field.GetFieldDimension() == "3D":
+            spacing["x"] = np.abs(axes["x"][1]-axes["x"][0])
+            spacing["y"] = np.abs(axes["y"][1]-axes["y"][0])
+            spacing["z"] = np.abs(axes["z"][1]-axes["z"][0])
+        if self.field.GetFieldDimension() == "2D":
+            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/longEl
+            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
+            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
+        return spacing
 
 
 class ColormapHandler():
