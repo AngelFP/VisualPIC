@@ -180,22 +180,23 @@ class Volume3D():
         self.vtk_volume = vtk.vtkVolume()
         self.cmap_handler = ColormapHandler()
         self.customCMapRange = False
-        self._SetDefaultStyle()
+        self._set_default_style()
 
-    def _SetDefaultStyle(self):
-        self._set_default_opacity()
+    def _set_default_style(self):
+        default_op = "linear positive"
+        self.set_opacity(default_op)
         
         self.vtk_color.AddRGBPoint(0.0,0, 0, 1)
         self.vtk_color.AddRGBPoint(100, 1.000,0, 0)
         self.vtk_color.AddRGBPoint(255, 0, 1.0, 0)
 
-    def _set_default_opacity(self):
-        default_op = "linear positive"
-        if self.cmap_handler.opacity_exists(default_op):
-            fld_val, op_val = self.cmap_handler.get_opacity_data(default_op)
+    def set_opacity(self, op_name):
+        if self.cmap_handler.opacity_exists(op_name):
+            self.opacity = self.cmap_handler.get_opacity(op_name)
         else:
             avail_ops = self.cmap_handler.get_available_opacities()
-            fld_val, op_val = self.cmap_handler.get_opacity_data(avail_ops[0])
+            self.opacity = self.cmap_handler.get_opacity(avail_ops[0])
+        fld_val, op_val = self.opacity.get_opacity()
         self.SetOpacityValues(fld_val, op_val)
 
     def GetFieldName(self):
@@ -323,6 +324,11 @@ class ColormapHandler():
             for op in self.default_opacities+self.other_opacities:
                 ops.append(op.get_name())
             return ops
+
+        def get_opacity(self, op_name):
+            for op in self.default_opacities+self.other_opacities:
+                if op.get_name() == op_name:
+                    return op
 
         def get_opacity_data(self, op_name):
             for op in self.default_opacities+self.other_opacities:
