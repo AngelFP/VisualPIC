@@ -89,7 +89,6 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         if not self.isUpdatingUI:
             op_name = self.opacity_comboBox.currentText()
             fld_val, op_val = self.cmap_handler.get_opacity_data(op_name)
-            #self.volume.SetOpacityValues(fld_val, op_val)
             self.opacityFigure.set_points(0, fld_val, op_val)
 
     def greenColor(self):
