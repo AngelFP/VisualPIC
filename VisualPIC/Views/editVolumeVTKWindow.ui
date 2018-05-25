@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
+    <width>1057</width>
     <height>480</height>
    </rect>
   </property>
@@ -25,6 +25,35 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <widget class="QLabel" name="label_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Available profiles:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="opacity_comboBox"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Edit current profile:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="opacityWidget" native="true">
          <layout class="QHBoxLayout" name="opacityWidgetLayout"/>
         </widget>
@@ -37,8 +66,46 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
+        <widget class="QLabel" name="label_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Available colormaps:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QComboBox" name="colorMap_comboBox"/>
        </item>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Edit current colormap:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="colorsWidget" native="true">
+         <layout class="QHBoxLayout" name="colorsWidgetLayout"/>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Range</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -71,8 +138,10 @@
         </layout>
        </item>
        <item>
-        <widget class="QWidget" name="colorsWidget" native="true">
-         <layout class="QHBoxLayout" name="colorsWidgetLayout"/>
+        <widget class="QPushButton" name="normalizationButton">
+         <property name="text">
+          <string>Use current time step maximum for normalization</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -81,13 +150,6 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="normalizationButton">
-       <property name="text">
-        <string>Use current time step maximum for normalization</string>
-       </property>
-      </widget>
-     </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">
