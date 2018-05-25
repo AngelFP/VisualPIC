@@ -290,79 +290,81 @@ class ColormapHandler():
             self.max_len = 50
             self.opacity_folder_path = resource_filename(
                 'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+            self.initialize_available_opacities()
             return super().__init__(*args, **kwargs)
 
-        def get_available_opacities(self):
+        def initialize_available_opacities(self):
+            self.default_opacities = list()
+            self.other_opacities = list()
+            folder_opacities = self.get_opacities_in_default_folder()
+            if len(folder_opacities) > 0:
+                self.default_opacities += self.get_opacities_in_default_folder()
+            else:
+                self.default_opacities.append(self.create_fallback_opacity())
+
+        def get_opacities_in_default_folder(self):
             files_in_folder = os.listdir(self.opacity_folder_path)
-            h5_files = list()
-            avail_op = list()
+            folder_opacities = list()
             for file in files_in_folder:
                 if file.endswith('.h5'):
-                    h5_files.append(file)
-            for file in h5_files:
-                avail_op.append(self.read_data_name(file, self.opacity_folder_path))
-            print(avail_op)
+                    file_path = self.create_file_path(file, self.opacity_folder_path)
+                    folder_opacities.append(Opacity(file_path))
+            return folder_opacities
+
+        def add_opacity_from_file(self, file_path):
+            self.other_opacities.append(Opacity(file_path))
+
+        def get_available_opacities(self):
+            ops = list()
+            for op in self.default_opacities+self.other_opacities:
+                ops.append(op.get_name())
+            return ops
+
+        def get_opacity_data(self, op_name):
+            for op in self.default_opacities+self.other_opacities:
+                if op.get_name() == op_name:
+                    return op.get_opacity()
 
         def save_cmap(self, r, g, b):
             pass
 
-        def save_opacity(self, field_values, opacity_values, name, folder_path):
+        def save_opacity(self, name, field_values, opacity_values, folder_path):
             if ( field_values.min()>=0 and field_values.max()<=255
                 and opacity_values.min()>=0 and opacity_values.max()<=1
                 and len(field_values) == len(opacity_values)
                 and len(opacity_values) <= self.max_len ):
-                file = self.get_h5_file_to_write(name, folder_path)
+                file_path = self.create_file_path(name, folder_path)
+                # Create H5 file
+                file = H5File(file_path,  "w")
                 opacity_dataset = file.create_dataset(
                     "opacity", data = opacity_values )
                 field_dataset = file.create_dataset("field", data = field_values)
                 file.attrs["opacity_name"] = name
                 file.close()
+                # Add to available opacities
+                opacity = Opacity(file_path)
+                if os.path.normpath(folder_path) == self.opacity_folder_path:
+                    self.default_opacities.append(opacity)
+                else:
+                    self.other_opacities.append(opacity)
                 return True
             else:
                 return False
 
-        def read_data_name(self, file_name, folder_path=None):
-            if folder_path == None:
-                folder_path = self.opacity_folder_path
-            file = self.get_h5_file_to_read(file_name, folder_path)
-            name = file.attrs["opacity_name"]
-            return name
-
-        def read_opacity(self, file_name, folder_path=None):
-            if folder_path == None:
-                folder_path = self.opacity_folder_path
-            try:
-                file = self.get_h5_file_to_read(file_name, folder_path)
-                name = file.attrs["opacity_name"]
-                opacity_data = np.array(file["/opacity"])
-                field_data = np.array(file["/field"])
-            except:
-                print('File not found, returning fallback opacity.')
-                name, field_data, opacity_data = self.create_fallback_opacity()
-            return name, field_data, opacity_data
-
-        def get_h5_file_to_write(self, file_name, folder_path):
-            file = H5File(self.create_file_path(file_name, folder_path),  "w")
-            return file
-
-        def get_h5_file_to_read(self, file_name, folder_path):
-            file = H5File(self.create_file_path(file_name, folder_path), "r")
-            return file
-
         def create_file_path(self, file_name, folder_path):
             if not file_name.endswith('.h5'):
                 file_name += ".h5"
-            file_path = os.path.join(
-                folder_path, file_name.replace(' ', '_').lower() )
+                file_name = file_name.replace(' ', '_').lower()
+            file_path = os.path.join(folder_path, file_name)
             return file_path
 
         def create_fallback_opacity(self):
-            name = "linear positive"
             n_points = 11
-            field_values = np.linspace(0, 255, n_points)
-            opacity_values = np.linspace(0, 1, n_points)
-            opacity_values[-1] = opacity_values[-1] - 1e-3
-            return name, field_values, opacity_values
+            op = Opacity("")
+            op.name = "linear positive"
+            op.fld_data = np.linspace(0, 255, n_points)
+            op.op_data = np.linspace(0, 0.999, n_points)
+            return op
 
     cmap_instance = None
 
@@ -372,3 +374,29 @@ class ColormapHandler():
 
     def __getattr__(self, name):
         return getattr(self.cmap_instance, name)
+
+
+class Opacity():
+    def __init__(self, file_path, *args, **kwargs):
+        self.file_path = file_path
+        self.name = None
+        self.op_data = None
+        self.fld_data = None
+        return super().__init__(*args, **kwargs)
+
+    def get_name(self):
+        if self.name == None:
+            file = self.get_file()
+            self.name = file.attrs["opacity_name"]
+        return self.name
+
+    def get_opacity(self):
+        if self.op_data == None:
+            file = self.get_file()
+            self.op_data = np.array(file["/opacity"])
+            self.fld_data = np.array(file["/field"])
+        return self.fld_data, self.op_data
+        
+    def get_file(self):
+            file = H5File(self.file_path, "r")
+            return file
