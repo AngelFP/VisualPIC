@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>200</height>
+    <width>433</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,7 +84,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+      <set>QDialogButtonBox::Cancel</set>
      </property>
     </widget>
    </item>

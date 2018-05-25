@@ -21,7 +21,7 @@ import sys
 import os
 
 from PyQt5.uic import loadUiType
-from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox
+from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox, QPushButton
 from VisualPIC.Tools.visualizer3Dvtk import ColormapHandler
 
 
@@ -42,20 +42,22 @@ class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
         self.cmap_handler = ColormapHandler()
         self.fld_val = fld_val
         self.op_val = op_val
-        self.register_ui_events()
         self.setup_ui()
+        self.register_ui_events()
 
     def register_ui_events(self):
-        self.buttonBox.button(QDialogButtonBox.Save).clicked.connect(self.save_to_file)
+        self.save_button.clicked.connect(self.save_to_file)
 
     def setup_ui(self):
         self.location_lineEdit.setText(self.cmap_handler.opacity_folder_path)
+        self.save_button = QPushButton("Save")
+        self.buttonBox.addButton(self.save_button, QDialogButtonBox.ApplyRole)
 
     def save_to_file(self):
         op_name = self.opacity_name_lineEdit.text()
         folder_path = self.location_lineEdit.text()
         if self.cmap_handler.save_opacity(op_name, self.fld_val, self.op_val, folder_path):
-            success_message = QMessageBox(parent=self, text="Profile succesfully saved.")
+            success_message = QMessageBox(text="Profile succesfully saved.")
             success_message.exec_()
 
 
