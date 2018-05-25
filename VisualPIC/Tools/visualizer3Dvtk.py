@@ -47,7 +47,11 @@ class Volume3D():
 
     def _set_default_opacity(self):
         default_op = "linear positive"
-        name, fld_val, op_val = self.cmap_handler.read_opacity(default_op)
+        if self.cmap_handler.opacity_exists(default_op):
+            fld_val, op_val = self.cmap_handler.get_opacity_data(default_op)
+        else:
+            avail_ops = self.cmap_handler.get_available_opacities()
+            fld_val, op_val = self.cmap_handler.get_opacity_data(avail_ops[0])
         self.SetOpacityValues(fld_val, op_val)
 
     def GetFieldName(self):
@@ -325,7 +329,7 @@ class ColormapHandler():
                 if op.get_name() == op_name:
                     return op.get_opacity()
 
-        def opacity_exists(self, name):
+        def opacity_exists(self, op_name):
             for op in self.default_opacities+self.other_opacities:
                 if op.get_name() == op_name:
                     return True
