@@ -45,35 +45,38 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.setupUi(self)
         self.mainWindow = parent
         self.volume = volume
+        self.cmap_handler = volume.cmap_handler
         self.RegisterUIEvents()
         self.CreateCanvasAndFigure()
         self.FillUI()
 
     def CreateCanvasAndFigure(self):
-        self.opacityFigure = FigureWithPoints()
+        self.opacityFigure = FigureWithPoints(1,1)
         self.opacityFigure.patch.set_facecolor("white")
         self.opacityCanvas = FigureCanvas(self.opacityFigure)
         self.opacityWidgetLayout.addWidget(self.opacityCanvas)
         self.opacityCanvas.draw()
-        self.colorsFigure = FigureWithPoints()
+        self.colorsFigure = FigureWithPoints(3,1)
         self.colorsFigure.patch.set_facecolor("white")
         self.colorsCanvas = FigureCanvas(self.colorsFigure)
         self.colorsWidgetLayout.addWidget(self.colorsCanvas)
         self.colorsCanvas.draw()
         
         x, y = self.volume.GetOpacityValues()
-        self.opacityFigure.AddPoints(x, y)
+        self.opacityFigure.AddPoints(0, x, y)
 
     def RegisterUIEvents(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
         self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
         self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
         self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
+        self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
 
     def FillUI(self):
         self.isUpdatingUI = True
         self.colorMap_comboBox.clear()
         self.colorMap_comboBox.addItems(VTKColorMapCreator.GetColorMapListOfNames())
+        self.opacity_comboBox.addItems(self.cmap_handler.get_available_opacities())
         self.isUpdatingUI = False
 
     def SetColorMap(self):
@@ -81,6 +84,13 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.colorMap_comboBox.currentText())
             self.volume.SetColorPoints(cmapPoints)
             self.mainWindow.UpdateRender()
+
+    def set_opacity_from_combobox(self):
+        if not self.isUpdatingUI:
+            #op_name = self.set_opacity_from_combobox.currentText()
+            #fld_val, op_val = self.cmap_handler.get_opacity_data(op_name)
+            #self.volume.SetOpacityValues(fld_val, op_val)
+            self.opacityFigure.remove_points()
 
     def greenColor(self):
         self.volume.SetGreenColor()
@@ -92,7 +102,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         #End of temporary code
 
     def UpdateVolumeProperties(self):
-        fld_val, op_val = self.opacityFigure.GetPoints()
+        fld_val, op_val = self.opacityFigure.GetPoints(0)
         self.volume.SetOpacityValues(fld_val, op_val)
         self.mainWindow.UpdateRender()
 

@@ -8,24 +8,33 @@ import numpy as np
 
 
 class FigureWithPoints(Figure):
-    def __init__(self, figsize = None, dpi = None, facecolor = None, edgecolor = None, linewidth = 0.0, frameon = None, subplotpars = None, tight_layout = None):
-        self.listOfPoints = list()
+    def __init__(self, nrows=1, ncols=1, figsize = None, dpi = None, facecolor = None, edgecolor = None, linewidth = 0.0, frameon = None, subplotpars = None, tight_layout = None):
         super().__init__(figsize, dpi, facecolor, edgecolor, linewidth, frameon, subplotpars, tight_layout)
-        self.add_subplot(111)
-        self.axes[0].set_xlim(0,255)
-        self.axes[0].set_ylim(0,1)
+        for i in np.arange(nrows)+1:
+            for j in np.arange(ncols)+1:
+                n = (i-1)*ncols + j
+                self.add_subplot(nrows, ncols, n)
+        for ax in self.axes:
+            ax.set_xlim(0,255)
+            ax.set_ylim(0,1)
 
-    def AddPoints(self, x, y):
+    def AddPoints(self, naxis, x, y):
         for i in np.arange(len(x)):
-            dPoint = DraggablePoint(self, x[i], y[i])
-            self.listOfPoints.append(dPoint)
-            self.axes[0].add_patch(dPoint)
+            dPoint = DraggablePoint(self.axes[naxis], x[i], y[i])
+            self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
 
-    def GetPoints(self):
+    def remove_all_points(self):
+        for ax in self.axes:
+            for point in reversed(ax.patches):
+                point.remove()
+            ax.clear()
+        self.canvas.draw_idle()
+
+    def GetPoints(self, naxis):
         x = list()
         y = list()
-        for dPoint in self.listOfPoints:
+        for dPoint in self.axes[naxis].patches:
             x.append(dPoint.x)
             y.append(dPoint.y)
         return np.array(x), np.array(y)
@@ -34,22 +43,21 @@ class FigureWithPoints(Figure):
 class DraggablePoint(Ellipse):
 
     lock = None #  only one can be animated at a time
-    def __init__(self, parent, x=0.1, y=0.1, size=2):
+    def __init__(self, parent_axis, x=0.1, y=0.1, size=2):
         super().__init__((x, y), size*3, size/50, fc='r', alpha=0.5, edgecolor='r')
-        self.parent = parent
-        self.axes = parent.axes[0]
+        self.parent_axis = parent_axis
         self.x = x
         self.y = y
         self.background = None
 
     def addLinesAndConnect(self):
-        self.index = self.parent.listOfPoints.index(self)
-        if len(self.parent.listOfPoints) > 1:
-            lineX = [self.parent.listOfPoints[self.index-1].x, self.x]
-            lineY = [self.parent.listOfPoints[self.index-1].y, self.y]
+        self.index = self.parent_axis.patches.index(self)
+        if len(self.parent_axis.patches) > 1:
+            lineX = [self.parent_axis.patches[self.index-1].x, self.x]
+            lineY = [self.parent_axis.patches[self.index-1].y, self.y]
 
             self.line = Line2D(lineX, lineY, color='r', alpha=0.5)
-            self.figure.axes[0].add_line(self.line)
+            self.parent_axis.add_line(self.line)
         self.connect()
 
     def connect(self):
@@ -75,8 +83,8 @@ class DraggablePoint(Ellipse):
         self.set_animated(True)
         if self.index > 0:
             self.line.set_animated(True)
-        if self.index < len(self.parent.listOfPoints)-1:
-            self.parent.listOfPoints[self.index+1].line.set_animated(True)
+        if self.index < len(self.parent_axis.patches)-1:
+            self.parent_axis.patches[self.index+1].line.set_animated(True)
         canvas.draw()
         self.background = canvas.copy_from_bbox(self.axes.bbox)
 
@@ -106,21 +114,21 @@ class DraggablePoint(Ellipse):
         axes.draw_artist(self)
         if self.index > 0:
             axes.draw_artist(self.line)
-        if self.index < len(self.parent.listOfPoints)-1:
-            axes.draw_artist(self.parent.listOfPoints[self.index + 1].line)
+        if self.index < len(self.parent_axis.patches)-1:
+            axes.draw_artist(self.parent_axis.patches[self.index + 1].line)
 
         self.x = self.center[0]
         self.y = self.center[1]
         
         if self.index > 0:
-            lineX = [self.parent.listOfPoints[self.index - 1].x, self.x]
-            lineY = [self.parent.listOfPoints[self.index - 1].y, self.y]
+            lineX = [self.parent_axis.patches[self.index - 1].x, self.x]
+            lineY = [self.parent_axis.patches[self.index - 1].y, self.y]
             self.line.set_data(lineX, lineY)
 
-        if self.index < len(self.parent.listOfPoints)-1:
-            lineX = [self.x, self.parent.listOfPoints[self.index + 1].x]
-            lineY = [self.y, self.parent.listOfPoints[self.index + 1].y]
-            self.parent.listOfPoints[self.index + 1].line.set_data(lineX, lineY)
+        if self.index < len(self.parent_axis.patches)-1:
+            lineX = [self.x, self.parent_axis.patches[self.index + 1].x]
+            lineY = [self.y, self.parent_axis.patches[self.index + 1].y]
+            self.parent_axis.patches[self.index + 1].line.set_data(lineX, lineY)
 
         # blit just the redrawn area
         canvas.blit(axes.bbox)
@@ -139,8 +147,8 @@ class DraggablePoint(Ellipse):
         self.set_animated(False)
         if self.index > 0:
             self.line.set_animated(False)
-        if self.index < len(self.parent.listOfPoints)-1:
-            self.parent.listOfPoints[self.index + 1].line.set_animated(False)
+        if self.index < len(self.parent_axis.patches)-1:
+            self.parent_axis.patches[self.index + 1].line.set_animated(False)
 
         self.background = None
 
