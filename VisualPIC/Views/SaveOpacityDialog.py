@@ -51,6 +51,8 @@ class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
     def setup_ui(self):
         self.location_lineEdit.setText(self.cmap_handler.opacity_folder_path)
         self.save_button = QPushButton("Save")
+        self.close_button = QPushButton("Close")
+        self.buttonBox.addButton(self.close_button, QDialogButtonBox.RejectRole)
         self.buttonBox.addButton(self.save_button, QDialogButtonBox.ApplyRole)
 
     def save_to_file(self):
