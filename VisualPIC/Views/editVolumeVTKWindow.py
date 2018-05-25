@@ -102,7 +102,8 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             self.opacityFigure.set_points(0, fld_val, op_val)
 
     def save_opacity(self):
-        op_dialog = SaveOpacityDialog()
+        fld_val, op_val = self.opacityFigure.GetPoints(0)
+        op_dialog = SaveOpacityDialog(fld_val, op_val)
         op_dialog.exec_()
 
     def greenColor(self):
