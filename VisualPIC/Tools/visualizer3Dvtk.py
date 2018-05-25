@@ -325,6 +325,12 @@ class ColormapHandler():
                 if op.get_name() == op_name:
                     return op.get_opacity()
 
+        def opacity_exists(self, name):
+            for op in self.default_opacities+self.other_opacities:
+                if op.get_name() == op_name:
+                    return True
+            return False
+
         def save_cmap(self, r, g, b):
             pass
 
