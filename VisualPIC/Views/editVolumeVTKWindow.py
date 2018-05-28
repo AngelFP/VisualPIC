@@ -117,12 +117,6 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             self.update_list_of_opacities()
             self.opacity_comboBox.setCurrentIndex(
                 self.opacity_comboBox.count() - 1)
-
-    def SetColorMap(self):
-        if not self.is_updating_ui:
-            cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.cmap_comboBox.currentText())
-            self.volume.SetColorPoints(cmapPoints)
-            self.mainWindow.UpdateRender()
     
     def set_cmap_from_combobox(self):
         if not self.is_updating_ui:
@@ -149,15 +143,6 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         fld_val, op_val = self.opacity_figure.GetPoints(0)
         op_dialog = SaveOpacityDialog(fld_val, op_val)
         op_dialog.exec_()
-
-    def greenColor(self):
-        self.volume.SetGreenColor()
-        self.mainWindow.UpdateRender()
-
-    def blueColor(self):
-        self.volume.SetViridis()
-        self.mainWindow.UpdateRender()
-        #End of temporary code
 
     def UpdateVolumeProperties(self):
         fld_val_op, op_val = self.opacity_figure.GetPoints(0)
