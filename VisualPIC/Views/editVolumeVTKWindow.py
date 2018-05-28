@@ -28,7 +28,6 @@ from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 
 from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
-from VisualPIC.DataPlotting.vtkColorMaps import VTKColorMapCreator
 from VisualPIC.Views.SaveOpacityDialog import SaveOpacityDialog
 
 
