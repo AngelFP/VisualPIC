@@ -223,8 +223,8 @@ class Volume3D():
         else:
             avail_cmaps = self.cmap_handler.get_available_cmaps()
             cmap = self.cmap_handler.get_cmap(avail_cmaps[0])
-        fld_val, r_val, g_val, b_val = cmap.get_colormap()
-        self.set_colormap(fld_val, r_val, g_val, b_val)
+        fld_val, r_val, g_val, b_val = cmap.get_cmap()
+        self.set_cmap(fld_val, r_val, g_val, b_val)
 
     def GetFieldName(self):
         return self.field.GetName()
@@ -240,7 +240,7 @@ class Volume3D():
         self.vtk_color.RemoveAllPoints()
         self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
 
-    def set_colormap(self, fld_val, r_val, g_val, b_val):
+    def set_cmap(self, fld_val, r_val, g_val, b_val):
         self.vtk_color.RemoveAllPoints()
         points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
         self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
@@ -259,7 +259,7 @@ class Volume3D():
         self.minRange = min
         self.customCMapRange = True
 
-    def get_colormap_values(self):
+    def get_cmap_values(self):
         fld_val = list()
         r_val = list()
         g_val = list()
@@ -487,7 +487,7 @@ class ColormapHandler():
         def get_cmap_data(self, cmap_name):
             for cmap in self.default_cmaps+self.other_cmaps:
                 if cmap.get_name() == cmap_name:
-                    return cmap.get_colormap()
+                    return cmap.get_cmap()
 
         def save_cmap(self, name, fld_val, r_val, g_val, b_val, folder_path):
             if (fld_val.min()>=0 and fld_val.max()<=255
@@ -569,7 +569,7 @@ class Colormap():
             self.name = file.attrs["cmap_name"]
         return self.name
 
-    def get_colormap(self):
+    def get_cmap(self):
         if self.fld_data is None:
             file = self.get_file()
             self.r_data = np.array(file["/r"])

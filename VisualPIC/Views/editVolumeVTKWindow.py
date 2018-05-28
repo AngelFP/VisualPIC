@@ -66,7 +66,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         x, y = self.volume.get_opacity_values()
         self.opacity_figure.set_points(0, x, y)
 
-        fld_val, r_val, g_val, b_val = self.volume.get_colormap_values()
+        fld_val, r_val, g_val, b_val = self.volume.get_cmap_values()
         self.cmap_figure.set_points(0, fld_val, r_val)
         self.cmap_figure.set_points(1, fld_val, g_val)
         self.cmap_figure.set_points(2, fld_val, b_val)
@@ -124,7 +124,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
                 fld_val, r_val, g_val, b_val = self.cmap_handler.get_cmap_data(
                     cmap_name)
             else:
-                fld_val, r_val, g_val, b_val = self.volume.get_colormap_values()
+                fld_val, r_val, g_val, b_val = self.volume.get_cmap_values()
             self.cmap_figure.set_points(0, fld_val, r_val)
             self.cmap_figure.set_points(1, fld_val, g_val)
             self.cmap_figure.set_points(2, fld_val, b_val)
@@ -149,7 +149,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         fld_val_cmap, g_val = self.cmap_figure.GetPoints(1)
         fld_val_cmap, b_val = self.cmap_figure.GetPoints(2)
         self.volume.set_opacity(fld_val_op, op_val)
-        self.volume.set_colormap(fld_val_cmap, r_val, g_val, b_val)
+        self.volume.set_cmap(fld_val_cmap, r_val, g_val, b_val)
         self.mainWindow.UpdateRender()
 
     def NormalizationButton_Clicked(self):
