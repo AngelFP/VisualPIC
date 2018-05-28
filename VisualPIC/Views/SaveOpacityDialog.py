@@ -21,7 +21,8 @@ import sys
 import os
 
 from PyQt5.uic import loadUiType
-from PyQt5.QtWidgets import QDialogButtonBox, QMessageBox, QPushButton, QFileDialog
+from PyQt5.QtWidgets import (QDialogButtonBox, QMessageBox, QPushButton,
+                             QFileDialog)
 from VisualPIC.Tools.visualizer3Dvtk import ColormapHandler
 
 
@@ -49,7 +50,8 @@ class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
         self.location_lineEdit.setText(self.cmap_handler.opacity_folder_path)
         self.save_button = QPushButton("Save")
         self.close_button = QPushButton("Close")
-        self.buttonBox.addButton(self.close_button, QDialogButtonBox.RejectRole)
+        self.buttonBox.addButton(self.close_button,
+                                 QDialogButtonBox.RejectRole)
         self.buttonBox.addButton(self.save_button, QDialogButtonBox.ApplyRole)
 
     def register_ui_events(self):
@@ -57,15 +59,15 @@ class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
         self.browse_pushButton.clicked.connect(self.browse_folder)
 
     def browse_folder(self):
-        folder_path = str(QFileDialog.getExistingDirectory(self, "Save file to:", self.location_lineEdit.text()))
+        folder_path = str(QFileDialog.getExistingDirectory(
+            self, "Save file to:", self.location_lineEdit.text()))
         if folder_path != "":
             self.location_lineEdit.setText(folder_path)
 
     def save_to_file(self):
         op_name = self.opacity_name_lineEdit.text()
         folder_path = self.location_lineEdit.text()
-        if self.cmap_handler.save_opacity(op_name, self.fld_val, self.op_val, folder_path):
+        if self.cmap_handler.save_opacity(op_name, self.fld_val,
+                                          self.op_val, folder_path):
             success_message = QMessageBox(text="Profile succesfully saved.")
             success_message.exec_()
-
-
