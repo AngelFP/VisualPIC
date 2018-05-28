@@ -187,21 +187,7 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
             self.frameTime_radioButton.setEnabled(False)
             self.totalTime_radioButton.setEnabled(False)
             self.gifTime_lineEdit.setEnabled(False)
-
-
-    def animation_function(self, step):
-        if self.isFirstRun:
-            self.mainWindow.timeStep_Slider.setValue(step)
-            self.mainWindow.MakePlots()
-            if self.onlySnaps_checkBox.isChecked():
-                movieName = self.fileName_lineEdit.text()
-                framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
-                frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(step).zfill(6)
-                if not os.path.exists(framesDir):
-                    os.makedirs(framesDir)
-                self.mainWindow.figure.savefig(frameNameAndPath)
-            print(step)
-
+            
     def createAnimation(self):
         self.hasAlreadyRun = False
         simulationTimeSteps = self.mainWindow.timeSteps
