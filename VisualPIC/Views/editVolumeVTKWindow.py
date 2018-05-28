@@ -78,7 +78,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_comboBox.currentIndexChanged.connect(self.set_cmap_from_combobox)
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
         self.save_opacity_pushButton.clicked.connect(self.save_opacity)
-        self.import_pushButton.clicked.connect(self.import_opacity_from_file)
+        self.import_opacity_pushButton.clicked.connect(self.import_opacity_from_file)
 
     def fill_ui(self):
         self.update_list_of_colormaps()
