@@ -304,14 +304,26 @@ class Volume3D():
 
 class ColormapHandler():
     """Defines a colormap handler as singleton"""
+    cmap_instance = None
+    
+    def __init__(self, *args, **kwargs):
+        if ColormapHandler.cmap_instance is None:
+            ColormapHandler.cmap_instance = ColormapHandler.__ColormapHandler()
+
+    def __getattr__(self, name):
+        return getattr(self.cmap_instance, name)
+
     class __ColormapHandler():
         def __init__(self, *args, **kwargs):
             self.max_len = 50
             self.opacity_folder_path = resource_filename(
                 'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+            self.cmaps_folder_path = resource_filename(
+                'VisualPIC.Assets.Visualizer3D.Colormaps', '' )
             self.initialize_available_opacities()
             return super().__init__(*args, **kwargs)
 
+        """Opacities"""
         def initialize_available_opacities(self):
             self.default_opacities = list()
             self.other_opacities = list()
@@ -332,14 +344,25 @@ class ColormapHandler():
                     folder_opacities.append(Opacity(file_path))
             return folder_opacities
 
-        def add_opacity_from_file(self, file_path):
-            self.other_opacities.append(Opacity(file_path))
+        def create_fallback_opacity(self):
+            n_points = 11
+            op = Opacity("")
+            op.name = "linear positive"
+            op.fld_data = np.linspace(0, 255, n_points)
+            op.op_data = np.linspace(0, 0.999, n_points)
+            return op
 
         def get_available_opacities(self):
             ops = list()
             for op in self.default_opacities+self.other_opacities:
                 ops.append(op.get_name())
             return ops
+        
+        def opacity_exists(self, op_name):
+            for op in self.default_opacities+self.other_opacities:
+                if op.get_name() == op_name:
+                    return True
+            return False
 
         def get_opacity(self, op_name):
             for op in self.default_opacities+self.other_opacities:
@@ -351,21 +374,12 @@ class ColormapHandler():
                 if op.get_name() == op_name:
                     return op.get_opacity()
 
-        def opacity_exists(self, op_name):
-            for op in self.default_opacities+self.other_opacities:
-                if op.get_name() == op_name:
-                    return True
-            return False
-
-        def save_cmap(self, r, g, b):
-            pass
-
         def save_opacity(self, name, field_values, opacity_values,
                          folder_path):
-            if ( field_values.min()>=0 and field_values.max()<=255
+            if (field_values.min()>=0 and field_values.max()<=255
                 and opacity_values.min()>=0 and opacity_values.max()<=1
                 and len(field_values) == len(opacity_values)
-                and len(opacity_values) <= self.max_len ):
+                and len(opacity_values) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
@@ -386,29 +400,101 @@ class ColormapHandler():
             else:
                 return False
 
+        def add_opacity_from_file(self, file_path):
+            self.other_opacities.append(Opacity(file_path))
+        
+        
+        """Colormaps"""
+        def initialize_available_cmaps(self):
+            self.default_cmaps = list()
+            self.other_cmaps = list()
+            folder_cmaps = self.get_cmaps_in_default_folder()
+            if len(folder_cmaps) > 0:
+                self.default_cmaps += (
+                    self.get_cmaps_in_default_folder())
+            else:
+                self.default_cmaps.append(self.create_fallback_cmap())
+
+        def get_cmaps_in_default_folder(self):
+            files_in_folder = os.listdir(self.cmaps_folder_path)
+            folder_cmaps = list()
+            for file in files_in_folder:
+                if file.endswith('.h5'):
+                    file_path = self.create_file_path(file, 
+                                                      self.cmaps_folder_path)
+                    folder_cmaps.append(Opacity(file_path))
+            return folder_cmaps
+
+        def create_fallback_cmap(self):
+            n_points = 11
+            cmap = Colormap("")
+            cmap.name = "default"
+            cmap.fld_data = np.linspace(0, 255, n_points)
+            r_1 = np.linspace(0, 1, (n_points+1)/2)
+            r_2 = np.linspace(1, 0, (n_points+1)/2)
+            cmap.r_data = np.append(np.delete(r_1, -1), r_2)
+            cmap.g_data = np.linspace(0, 1, n_points)
+            cmap.b_data = np.linspace(1, 0, n_points)
+            return cmap
+
+        def get_available_cmaps(self):
+            cmaps = list()
+            for cmap in self.default_cmaps+self.other_cmaps:
+                cmaps.append(cmap.get_name())
+            return cmaps
+        
+        def cmap_exists(self, cmap_name):
+            for cmap in self.default_cmaps+self.other_cmaps:
+                if cmap.get_name() == cmap_name:
+                    return True
+            return False
+
+        def get_cmap(self, cmap_name):
+            for cmap in self.default_cmaps+self.other_cmaps:
+                if cmap.get_name() == cmap_name:
+                    return cmap
+
+        def get_cmap_data(self, cmap_name):
+            for cmap in self.default_cmaps+self.other_cmaps:
+                if cmap.get_name() == cmap_name:
+                    return cmap.get_cmap()
+
+        def save_cmap(self, name, fld_val, r_val, g_val, b_val, folder_path):
+            if (fld_val.min()>=0 and fld_val.max()<=255
+                and r_val.min()>=0 and r_val.max()<=255
+                and g_val.min()>=0 and g_val.max()<=255
+                and b_val.min()>=0 and b_val.max()<=255
+                and len(fld_val) == len(r_val) == len(g_val) == len(b_val)
+                and len(fld_val) <= self.max_len):
+                file_path = self.create_file_path(name, folder_path)
+                # Create H5 file
+                file = H5File(file_path,  "w")
+                r_dataset = file.create_dataset("r", data = r_val)
+                g_dataset = file.create_dataset("g", data = g_val)
+                b_dataset = file.create_dataset("b", data = b_val)
+                fld_dataset = file.create_dataset("field", data = fld_val)
+                file.attrs["cmap_name"] = name
+                file.close()
+                # Add to available colormaps
+                cmap = Colormap(file_path)
+                if (os.path.normpath(folder_path) == self.cmaps_folder_path):
+                    self.default_cmaps.append(cmap)
+                else:
+                    self.other_cmaps.append(cmap)
+                return True
+            else:
+                return False
+        
+        def add_cmap_from_file(self, file_path):
+            self.other_cmaps.append(Colormap(file_path))
+
+        """Common"""
         def create_file_path(self, file_name, folder_path):
             if not file_name.endswith('.h5'):
                 file_name += ".h5"
                 file_name = file_name.replace(' ', '_').lower()
             file_path = os.path.join(folder_path, file_name)
             return file_path
-
-        def create_fallback_opacity(self):
-            n_points = 11
-            op = Opacity("")
-            op.name = "linear positive"
-            op.fld_data = np.linspace(0, 255, n_points)
-            op.op_data = np.linspace(0, 0.999, n_points)
-            return op
-
-    cmap_instance = None
-
-    def __init__(self, *args, **kwargs):
-        if ColormapHandler.cmap_instance is None:
-            ColormapHandler.cmap_instance = ColormapHandler.__ColormapHandler()
-
-    def __getattr__(self, name):
-        return getattr(self.cmap_instance, name)
 
 
 class Opacity():
