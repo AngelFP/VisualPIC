@@ -204,10 +204,9 @@ class Volume3D():
     def _set_default_style(self):
         default_op = "linear positive"
         self.set_opacity_from_presets(default_op)
-        
-        self.vtk_color.AddRGBPoint(0.0,0, 0, 1)
-        self.vtk_color.AddRGBPoint(100, 1.000,0, 0)
-        self.vtk_color.AddRGBPoint(255, 0, 1.0, 0)
+
+        default_cmap = "default"
+        self.set_cmap_from_presets(default_op)
 
     def set_opacity_from_presets(self, op_name):
         if self.cmap_handler.opacity_exists(op_name):
@@ -217,6 +216,15 @@ class Volume3D():
             opacity = self.cmap_handler.get_opacity(avail_ops[0])
         fld_val, op_val = opacity.get_opacity()
         self.set_opacity(fld_val, op_val)
+
+    def set_cmap_from_presets(self, cmap_name):
+        if self.cmap_handler.cmap_exists(cmap_name):
+            cmap = self.cmap_handler.get_cmap(cmap_name)
+        else:
+            avail_cmaps = self.cmap_handler.get_available_cmaps()
+            cmap = self.cmap_handler.get_cmap(avail_cmaps[0])
+        fld_val, r_val, g_val, b_val = cmap.get_colormap()
+        self.set_colormap(fld_val, r_val, g_val, b_val)
 
     def GetFieldName(self):
         return self.field.GetName()
