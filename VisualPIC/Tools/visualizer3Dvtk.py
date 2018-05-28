@@ -47,7 +47,8 @@ class Visualizer3Dvtk():
     def GetListOfAvailable3DFields(self):
         namesList = list()
         for field in self.availableFields:
-            namesList.append({"fieldName":field.GetName(), "speciesName":field.GetSpeciesName()})
+            namesList.append({"fieldName":field.GetName(),
+                              "speciesName":field.GetSpeciesName()})
         return namesList
 
     def GetTimeSteps(self):
@@ -79,13 +80,16 @@ class Visualizer3Dvtk():
                     # do not add volume if already in list
                     if (volume.GetFieldName() == fieldName):
                         return False
-                new_volume = Volume3D(self.dataContainer.GetDomainField(fieldName))
+                new_volume = Volume3D(
+                    self.dataContainer.GetDomainField(fieldName))
             else:
                 for volume in self.volumeList:
                     # do not add volume if already in list
-                    if (volume.GetFieldName() == fieldName) and (volume.GetSpeciesName() == speciesName):
+                    if ((volume.GetFieldName() == fieldName
+                        and volume.GetSpeciesName() == speciesName)):
                         return False
-                new_volume = Volume3D(self.dataContainer.GetSpeciesField(speciesName, fieldName))
+                new_volume = Volume3D(
+                    self.dataContainer.GetSpeciesField(speciesName, fieldName))
             # add volume to list
             self.volumeList.append(new_volume)
             return True
@@ -94,7 +98,8 @@ class Visualizer3Dvtk():
 
     def RemoveVolumeFromName(self, fieldName, speciesName):
         for volumeField in self.volumeList:
-            if (volumeField.GetFieldName() == fieldName) and (volumeField.GetSpeciesName() == speciesName):
+            if ((volumeField.GetFieldName() == fieldName)
+                and (volumeField.GetSpeciesName() == speciesName)):
                 self.volumeList.remove(volumeField)
                 return
 
@@ -103,7 +108,8 @@ class Visualizer3Dvtk():
 
     def GetVolumeField(self, fieldName, speciesName):
         for volume in self.volumeList:
-            if (volume.name == fieldName) and (volume.speciesName == speciesName):
+            if ((volume.name == fieldName)
+                and (volume.speciesName == speciesName)):
                 return volume
 
     def create_volume(self, timeStep):
@@ -113,16 +119,20 @@ class Visualizer3Dvtk():
         volumeprop.IndependentComponentsOn()
         volumeprop.SetInterpolationTypeToLinear()
         for i, volume in enumerate(self.volumeList):
-            npdatauchar.append(volume.GetData(timeStep, 200, 300, 0.5)) # limit on elements only applies for 2d case
+            npdatauchar.append(volume.GetData(timeStep, 200, 300, 0.5))
             volumeprop.SetColor(i,volume.vtk_color)
             volumeprop.SetScalarOpacity(i,volume.vtk_opacity)
             volumeprop.ShadeOff(i)
-        npdatamulti = np.concatenate([aux[...,np.newaxis] for aux in npdatauchar], axis=3)
+        npdatamulti = np.concatenate([aux[...,np.newaxis]
+                                      for aux in npdatauchar], axis=3)
         axes = self.volumeList[0].GetAxes(timeStep)
-        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 300, 0.5) # limit on elements only applies for 2d case
+        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 300,
+                                                        0.5)
         # Normalize spacing. Too small values lead to ghost volumes.
         max_sp = max(axesSpacing["x"], axesSpacing["y"], axesSpacing["z"])
-        max_cell_size = 0.1 # too big cells turn opaque, too small become transparent
+        # Too big cells turn opaque, too small become transparent. 
+        # max_cell_size normalizes the cell size
+        max_cell_size = 0.1 
         norm_factor = max_cell_size/max_sp
         axesSpacing["x"] = axesSpacing["x"]*norm_factor
         axesSpacing["y"] = axesSpacing["y"]*norm_factor
@@ -132,10 +142,19 @@ class Visualizer3Dvtk():
         dataImport.SetImportVoidPointer(npdatamulti)
         dataImport.SetDataScalarTypeToUnsignedChar()
         dataImport.SetNumberOfScalarComponents(len(self.volumeList))
-        dataImport.SetDataExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
-        dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1, 0, npdatamulti.shape[1]-1, 0, npdatamulti.shape[0]-1)
-        dataImport.SetDataSpacing(axesSpacing["x"],axesSpacing["y"],axesSpacing["z"])
-        dataImport.SetDataOrigin(axes["x"][0]*norm_factor,axes["y"][0]*norm_factor,axes["z"][0]*norm_factor) # data origin is changed by the normalization
+        dataImport.SetDataExtent(0, npdatamulti.shape[2]-1,
+                                 0, npdatamulti.shape[1]-1,
+                                 0, npdatamulti.shape[0]-1)
+        dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1,
+                                  0, npdatamulti.shape[1]-1,
+                                  0, npdatamulti.shape[0]-1)
+        dataImport.SetDataSpacing(axesSpacing["x"],
+                                  axesSpacing["y"],
+                                  axesSpacing["z"])
+        # data origin is also changed by the normalization
+        dataImport.SetDataOrigin(axes["x"][0]*norm_factor,
+                                 axes["y"][0]*norm_factor,
+                                 axes["z"][0]*norm_factor)
         dataImport.Update()
         # Create the mapper
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
@@ -242,7 +261,8 @@ class Volume3D():
         if self.field.GetFieldDimension() == "3D":
             fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
         if self.field.GetFieldDimension() == "2D":
-            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(timeStep, transvEl, longEl, fraction)
+            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
+                timeStep, transvEl, longEl, fraction)
         if self.customCMapRange:
             maxvalue = self.maxRange
             minvalue = self.minRange
@@ -266,7 +286,9 @@ class Volume3D():
         axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
         return axes
 
-    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None, fraction = 1):
+    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None,
+                       fraction = 1):
+        # TODO: implement number of elements and fraction in 3D
         spacing = {}
         axes = self.GetAxes(timeStep)
         if self.field.GetFieldDimension() == "3D":
@@ -295,7 +317,8 @@ class ColormapHandler():
             self.other_opacities = list()
             folder_opacities = self.get_opacities_in_default_folder()
             if len(folder_opacities) > 0:
-                self.default_opacities += self.get_opacities_in_default_folder()
+                self.default_opacities += (
+                    self.get_opacities_in_default_folder())
             else:
                 self.default_opacities.append(self.create_fallback_opacity())
 
@@ -304,7 +327,8 @@ class ColormapHandler():
             folder_opacities = list()
             for file in files_in_folder:
                 if file.endswith('.h5'):
-                    file_path = self.create_file_path(file, self.opacity_folder_path)
+                    file_path = self.create_file_path(file, 
+                                                      self.opacity_folder_path)
                     folder_opacities.append(Opacity(file_path))
             return folder_opacities
 
@@ -336,7 +360,8 @@ class ColormapHandler():
         def save_cmap(self, r, g, b):
             pass
 
-        def save_opacity(self, name, field_values, opacity_values, folder_path):
+        def save_opacity(self, name, field_values, opacity_values,
+                         folder_path):
             if ( field_values.min()>=0 and field_values.max()<=255
                 and opacity_values.min()>=0 and opacity_values.max()<=1
                 and len(field_values) == len(opacity_values)
@@ -346,12 +371,14 @@ class ColormapHandler():
                 file = H5File(file_path,  "w")
                 opacity_dataset = file.create_dataset(
                     "opacity", data = opacity_values )
-                field_dataset = file.create_dataset("field", data = field_values)
+                field_dataset = file.create_dataset("field",
+                                                    data = field_values)
                 file.attrs["opacity_name"] = name
                 file.close()
                 # Add to available opacities
                 opacity = Opacity(file_path)
-                if os.path.normpath(folder_path) == self.opacity_folder_path:
+                if (os.path.normpath(folder_path) 
+                    == self.opacity_folder_path):
                     self.default_opacities.append(opacity)
                 else:
                     self.other_opacities.append(opacity)
