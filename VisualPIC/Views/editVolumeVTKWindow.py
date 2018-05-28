@@ -19,9 +19,10 @@
 
 import sys
 import os
+from pathlib import Path
 
 from PyQt5.uic import loadUiType
-from PyQt5.QtWidgets import QDialogButtonBox
+from PyQt5.QtWidgets import QDialogButtonBox, QFileDialog
 import matplotlib.patches as patches
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
@@ -49,7 +50,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_handler = volume.cmap_handler
         self.RegisterUIEvents()
         self.CreateCanvasAndFigure()
-        self.FillUI()
+        self.fill_ui()
 
     def CreateCanvasAndFigure(self):
         self.opacityFigure = FigureWithPoints(1,1)
@@ -73,13 +74,34 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
         self.save_opacity_pushButton.clicked.connect(self.save_opacity)
+        self.import_pushButton.clicked.connect(self.import_from_file)
 
-    def FillUI(self):
+    def fill_ui(self):
+        self.update_list_of_colormaps()
+        self.update_list_of_opacities()
+
+    def update_list_of_colormaps(self):
         self.isUpdatingUI = True
         self.colorMap_comboBox.clear()
         self.colorMap_comboBox.addItems(VTKColorMapCreator.GetColorMapListOfNames())
+        self.isUpdatingUI = False
+
+    def update_list_of_opacities(self):
+        self.isUpdatingUI = True
+        self.opacity_comboBox.clear()
         self.opacity_comboBox.addItems(self.get_opacity_list())
         self.isUpdatingUI = False
+
+    def import_from_file(self):
+        home_path = str(Path.home())
+        file_path = QFileDialog.getOpenFileName(
+            self, "Select file to open:", home_path, "Data files (*.h5)")
+        file_path = file_path[0]
+        if file_path != "":
+            self.cmap_handler.add_opacity_from_file(file_path)
+            self.update_list_of_opacities()
+            self.opacity_comboBox.setCurrentIndex(
+                self.opacity_comboBox.count() - 1)
 
     def get_opacity_list(self):
         op_list = self.cmap_handler.get_available_opacities()
