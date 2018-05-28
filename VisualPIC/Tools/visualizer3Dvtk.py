@@ -444,7 +444,7 @@ class ColormapHandler():
                 if file.endswith('.h5'):
                     file_path = self.create_file_path(file, 
                                                       self.cmaps_folder_path)
-                    folder_cmaps.append(Opacity(file_path))
+                    folder_cmaps.append(Colormap(file_path))
             return folder_cmaps
 
         def create_fallback_cmap(self):
@@ -558,7 +558,7 @@ class Colormap():
     def get_name(self):
         if self.name is None:
             file = self.get_file()
-            self.name = file.attrs["colormap_name"]
+            self.name = file.attrs["cmap_name"]
         return self.name
 
     def get_colormap(self):
