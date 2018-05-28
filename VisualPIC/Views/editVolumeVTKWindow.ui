@@ -140,7 +140,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="colorMap_comboBox"/>
+        <widget class="QComboBox" name="cmap_comboBox"/>
        </item>
        <item>
         <widget class="QLabel" name="label_6">
