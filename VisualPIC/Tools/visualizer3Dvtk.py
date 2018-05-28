@@ -435,3 +435,33 @@ class Opacity():
     def get_file(self):
             file = H5File(self.file_path, "r")
             return file
+
+
+class Colormap():
+    def __init__(self, file_path, *args, **kwargs):
+        self.file_path = file_path
+        self.name = None
+        self.r_data = None
+        self.g_data = None
+        self.b_data = None
+        self.fld_data = None
+        return super().__init__(*args, **kwargs)
+
+    def get_name(self):
+        if self.name is None:
+            file = self.get_file()
+            self.name = file.attrs["colormap_name"]
+        return self.name
+
+    def get_colormap(self):
+        if self.fld_data is None:
+            file = self.get_file()
+            self.r_data = np.array(file["/r"])
+            self.g_data = np.array(file["/g"])
+            self.b_data = np.array(file["/b"])
+            self.fld_data = np.array(file["/field"])
+        return self.fld_data, self.r_data, self.g_data, self.b_data
+        
+    def get_file(self):
+            file = H5File(self.file_path, "r")
+            return file
