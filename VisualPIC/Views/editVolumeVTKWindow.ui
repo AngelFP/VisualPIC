@@ -86,6 +86,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="import_pushButton">
+           <property name="text">
+            <string>Import from file</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
