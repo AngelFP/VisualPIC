@@ -48,51 +48,66 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.mainWindow = parent
         self.volume = volume
         self.cmap_handler = volume.cmap_handler
-        self.RegisterUIEvents()
-        self.CreateCanvasAndFigure()
+        self.register_ui_events()
+        self.create_canvas_and_figure()
         self.fill_ui()
 
-    def CreateCanvasAndFigure(self):
-        self.opacityFigure = FigureWithPoints(1,1)
-        self.opacityFigure.patch.set_facecolor("white")
-        self.opacityCanvas = FigureCanvas(self.opacityFigure)
-        self.opacityWidgetLayout.addWidget(self.opacityCanvas)
-        self.opacityCanvas.draw()
-        self.colorsFigure = FigureWithPoints(3,1)
-        self.colorsFigure.patch.set_facecolor("white")
-        self.colorsCanvas = FigureCanvas(self.colorsFigure)
-        self.colorsWidgetLayout.addWidget(self.colorsCanvas)
-        self.colorsCanvas.draw()
+    def create_canvas_and_figure(self):
+        self.opacity_figure = FigureWithPoints(1,1)
+        self.opacity_figure.patch.set_facecolor("white")
+        self.opacity_canvas = FigureCanvas(self.opacity_figure)
+        self.opacityWidgetLayout.addWidget(self.opacity_canvas)
+        self.opacity_canvas.draw()
+        self.cmap_figure = FigureWithPoints(3,1)
+        self.cmap_figure.patch.set_facecolor("white")
+        self.cmap_canvas = FigureCanvas(self.cmap_figure)
+        self.colorsWidgetLayout.addWidget(self.cmap_canvas)
+        self.cmap_canvas.draw()
         
         x, y = self.volume.get_opacity_values()
-        self.opacityFigure.set_points(0, x, y)
+        self.opacity_figure.set_points(0, x, y)
 
-    def RegisterUIEvents(self):
+        fld_val, r_val, g_val, b_val = self.volume.get_colormap_values()
+        self.cmap_figure.set_points(0, fld_val, r_val)
+        self.cmap_figure.set_points(1, fld_val, g_val)
+        self.cmap_figure.set_points(2, fld_val, b_val)
+
+    def register_ui_events(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
         self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
         self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
-        self.colorMap_comboBox.currentIndexChanged.connect(self.SetColorMap)
+        self.cmap_comboBox.currentIndexChanged.connect(self.set_cmap_from_combobox)
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
         self.save_opacity_pushButton.clicked.connect(self.save_opacity)
-        self.import_pushButton.clicked.connect(self.import_from_file)
+        self.import_pushButton.clicked.connect(self.import_opacity_from_file)
 
     def fill_ui(self):
         self.update_list_of_colormaps()
         self.update_list_of_opacities()
 
     def update_list_of_colormaps(self):
-        self.isUpdatingUI = True
-        self.colorMap_comboBox.clear()
-        self.colorMap_comboBox.addItems(VTKColorMapCreator.GetColorMapListOfNames())
-        self.isUpdatingUI = False
+        self.is_updating_ui = True
+        self.cmap_comboBox.clear()
+        self.cmap_comboBox.addItems(self.get_cmap_list())
+        self.is_updating_ui = False
+
+    def get_cmap_list(self):
+        op_list = self.cmap_handler.get_available_cmaps()
+        op_list.insert(0, "Current colormap")
+        return op_list
 
     def update_list_of_opacities(self):
-        self.isUpdatingUI = True
+        self.is_updating_ui = True
         self.opacity_comboBox.clear()
         self.opacity_comboBox.addItems(self.get_opacity_list())
-        self.isUpdatingUI = False
+        self.is_updating_ui = False
 
-    def import_from_file(self):
+    def get_opacity_list(self):
+        op_list = self.cmap_handler.get_available_opacities()
+        op_list.insert(0, "Current opacity")
+        return op_list
+
+    def import_opacity_from_file(self):
         home_path = str(Path.home())
         file_path = QFileDialog.getOpenFileName(
             self, "Select file to open:", home_path, "Data files (*.h5)")
@@ -103,28 +118,35 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             self.opacity_comboBox.setCurrentIndex(
                 self.opacity_comboBox.count() - 1)
 
-    def get_opacity_list(self):
-        op_list = self.cmap_handler.get_available_opacities()
-        op_list.insert(0, "Current opacity")
-        return op_list
-
     def SetColorMap(self):
-        if not self.isUpdatingUI:
-            cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.colorMap_comboBox.currentText())
+        if not self.is_updating_ui:
+            cmapPoints = VTKColorMapCreator.GetColorMapPoints(self.cmap_comboBox.currentText())
             self.volume.SetColorPoints(cmapPoints)
             self.mainWindow.UpdateRender()
+    
+    def set_cmap_from_combobox(self):
+        if not self.is_updating_ui:
+            cmap_name = self.cmap_comboBox.currentText()
+            if cmap_name != "Current colormap":
+                fld_val, r_val, g_val, b_val = self.cmap_handler.get_cmap_data(
+                    cmap_name)
+            else:
+                fld_val, r_val, g_val, b_val = self.volume.get_colormap_values()
+            self.cmap_figure.set_points(0, fld_val, r_val)
+            self.cmap_figure.set_points(1, fld_val, g_val)
+            self.cmap_figure.set_points(2, fld_val, b_val)
 
     def set_opacity_from_combobox(self):
-        if not self.isUpdatingUI:
+        if not self.is_updating_ui:
             op_name = self.opacity_comboBox.currentText()
             if op_name != "Current opacity":
                 fld_val, op_val = self.cmap_handler.get_opacity_data(op_name)
             else:
                 fld_val, op_val = self.volume.get_opacity_values()
-            self.opacityFigure.set_points(0, fld_val, op_val)
+            self.opacity_figure.set_points(0, fld_val, op_val)
 
     def save_opacity(self):
-        fld_val, op_val = self.opacityFigure.GetPoints(0)
+        fld_val, op_val = self.opacity_figure.GetPoints(0)
         op_dialog = SaveOpacityDialog(fld_val, op_val)
         op_dialog.exec_()
 
@@ -138,8 +160,12 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         #End of temporary code
 
     def UpdateVolumeProperties(self):
-        fld_val, op_val = self.opacityFigure.GetPoints(0)
-        self.volume.set_opacity(fld_val, op_val)
+        fld_val_op, op_val = self.opacity_figure.GetPoints(0)
+        fld_val_cmap, r_val = self.cmap_figure.GetPoints(0)
+        fld_val_cmap, g_val = self.cmap_figure.GetPoints(1)
+        fld_val_cmap, b_val = self.cmap_figure.GetPoints(2)
+        self.volume.set_opacity(fld_val_op, op_val)
+        self.volume.set_colormap(fld_val_cmap, r_val, g_val, b_val)
         self.mainWindow.UpdateRender()
 
     def NormalizationButton_Clicked(self):

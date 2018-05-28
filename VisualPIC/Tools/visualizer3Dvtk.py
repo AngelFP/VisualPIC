@@ -232,6 +232,11 @@ class Volume3D():
         self.vtk_color.RemoveAllPoints()
         self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
 
+    def set_colormap(self, fld_val, r_val, g_val, b_val):
+        self.vtk_color.RemoveAllPoints()
+        points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
+        self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
+
     def set_opacity(self, field_values, opacity_values):
         self.vtk_opacity.RemoveAllPoints()
         for i in np.arange(len(field_values)):
@@ -245,6 +250,22 @@ class Volume3D():
         self.maxRange = max
         self.minRange = min
         self.customCMapRange = True
+
+    def get_colormap_values(self):
+        fld_val = list()
+        r_val = list()
+        g_val = list()
+        b_val = list()
+        size = self.vtk_color.GetSize()
+        for i in range(size):
+            val = [1,1,1,1,1,1]
+            self.vtk_color.GetNodeValue(i, val)
+            fld_val.append(val[0])
+            r_val.append(val[1])
+            g_val.append(val[2])
+            b_val.append(val[3])
+        return (np.array(fld_val), np.array(r_val), np.array(g_val),
+                np.array(b_val))
 
     def get_opacity_values(self):
         fld_values = list()
@@ -321,6 +342,7 @@ class ColormapHandler():
             self.cmaps_folder_path = resource_filename(
                 'VisualPIC.Assets.Visualizer3D.Colormaps', '' )
             self.initialize_available_opacities()
+            self.initialize_available_cmaps()
             return super().__init__(*args, **kwargs)
 
         """Opacities"""
@@ -457,7 +479,7 @@ class ColormapHandler():
         def get_cmap_data(self, cmap_name):
             for cmap in self.default_cmaps+self.other_cmaps:
                 if cmap.get_name() == cmap_name:
-                    return cmap.get_cmap()
+                    return cmap.get_colormap()
 
         def save_cmap(self, name, fld_val, r_val, g_val, b_val, folder_path):
             if (fld_val.min()>=0 and fld_val.max()<=255
