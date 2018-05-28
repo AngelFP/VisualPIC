@@ -229,6 +229,15 @@ class Volume3D():
     def GetFieldName(self):
         return self.field.GetName()
 
+    def get_field_histogram(self, time_step, bins = 256):
+        fld_data = self.GetData(time_step)
+        hist, hist_edges = np.histogram(fld_data, bins=bins)
+        hist = np.log(hist)
+        return hist/hist.max(), hist_edges
+
+    def get_field_units(self):
+        return self.field.GetDataISUnits()
+
     def GetSpeciesName(self):
         return self.field.GetSpeciesName()
 

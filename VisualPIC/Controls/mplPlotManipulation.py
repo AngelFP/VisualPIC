@@ -8,15 +8,34 @@ import numpy as np
 
 
 class FigureWithPoints(Figure):
-    def __init__(self, nrows=1, ncols=1, figsize = None, dpi = None, facecolor = None, edgecolor = None, linewidth = 0.0, frameon = None, subplotpars = None, tight_layout = None):
-        super().__init__(figsize, dpi, facecolor, edgecolor, linewidth, frameon, subplotpars, tight_layout)
+    def __init__(self, nrows=1, ncols=1, figsize = None, dpi = None,
+                 facecolor = None, edgecolor = None, linewidth = 0.0,
+                 frameon = None, subplotpars = None, tight_layout = None,
+                 xlabels = None, ylabels = None,
+                 share_x_axis = False, share_y_axis = False,
+                 hist = None, hist_edges = None, patch_color = 'r'):
+        self.patch_color = patch_color
+        super().__init__(figsize, dpi, facecolor, edgecolor, linewidth,
+                         frameon, subplotpars, tight_layout)
+        self.create_axes(nrows, ncols, xlabels, ylabels, share_x_axis,
+                         share_y_axis, hist, hist_edges)
+
+    def create_axes(self, nrows, ncols, xlabels, ylabels, share_x_axis,
+                    share_y_axis, hist, hist_edges):
         for i in np.arange(nrows)+1:
             for j in np.arange(ncols)+1:
                 n = (i-1)*ncols + j
-                self.add_subplot(nrows, ncols, n)
-        for ax in self.axes:
-            ax.set_xlim(0,255)
-            ax.set_ylim(0,1)
+                ax = self.add_subplot(nrows, ncols, n)
+                ax.set_xlim(0,255)
+                ax.set_ylim(0,1)
+                if (share_y_axis 
+                    and n not in np.arange(0, ncols*nrows, ncols)+1):
+                    ax.tick_params(axis='y', which='both', labelleft='off')
+                if (share_x_axis 
+                    and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
+                    ax.tick_params(axis='x', which='both', labelbottom='off')
+                if hist is not None:
+                    ax.bar(hist_edges[:-1], hist, width=1, facecolor="#dbdbdb")
 
     def set_points(self, naxis, x, y):
         self.remove_points(naxis)
@@ -25,20 +44,26 @@ class FigureWithPoints(Figure):
 
     def add_points(self, naxis, x, y):
         for i in np.arange(len(x)):
-            dPoint = DraggablePoint(self.axes[naxis], x[i], y[i], 0.05)
+            dPoint = DraggablePoint(self.axes[naxis], x[i], y[i], 0.05, color=self.patch_color)
             self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
 
     def remove_points(self, naxis):
         for point in reversed(self.axes[naxis].patches):
-            point.remove()
-        self.axes[naxis].clear()
+            if type(point) is DraggablePoint:
+                point.remove()
+        for line in reversed(self.axes[naxis].lines):
+            line.remove()
+        #self.axes[naxis].clear()
 
     def remove_all_points(self):
         for ax in self.axes:
             for point in reversed(ax.patches):
-                point.remove()
-            ax.clear()
+                if type(point) is DraggablePoint:
+                    point.remove()
+            for line in reversed(ax.lines):
+                line.remove()
+            #ax.clear()
         self.canvas.draw_idle()
 
     def GetPoints(self, naxis):
@@ -53,14 +78,14 @@ class FigureWithPoints(Figure):
 class DraggablePoint(Ellipse):
 
     lock = None #  only one can be animated at a time
-    def __init__(self, parent_axes, x=0.1, y=0.1, size_y=2):
+    def __init__(self, parent_axes, x=0.1, y=0.1, size_y=2, color='r'):
         self.parent_axes = parent_axes
         self.x = x
         self.y = y
         self.background = None
         size_x = self.determine_proportional_x_size(size_y)
         size_x, size_y = self.get_scaled_size(size_x, size_y)
-        super().__init__((x, y), size_x, size_y, fc='r', alpha=0.5, edgecolor='r')
+        super().__init__((x, y), size_x, size_y, fc=color, alpha=0.5, edgecolor=color)
 
     def determine_proportional_x_size(self, y_size):
         x_min, x_max = self.parent_axes.get_xlim()
@@ -82,7 +107,7 @@ class DraggablePoint(Ellipse):
 
     def addLinesAndConnect(self):
         self.index = self.parent_axes.patches.index(self)
-        if len(self.parent_axes.patches) > 1:
+        if any(isinstance(p, DraggablePoint) for p in self.parent_axes.patches[:self.index]):
             lineX = [self.parent_axes.patches[self.index-1].x, self.x]
             lineY = [self.parent_axes.patches[self.index-1].y, self.y]
 
