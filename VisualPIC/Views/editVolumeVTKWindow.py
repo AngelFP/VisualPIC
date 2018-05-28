@@ -29,6 +29,7 @@ from matplotlib.backends.backend_qt5agg import (
 
 from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
 from VisualPIC.Views.SaveOpacityDialog import SaveOpacityDialog
+from VisualPIC.Views.SaveColormapDialog import SaveColormapDialog
 
 
 if getattr(sys, 'frozen', False):
@@ -79,12 +80,14 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
         self.save_opacity_pushButton.clicked.connect(self.save_opacity)
         self.import_opacity_pushButton.clicked.connect(self.import_opacity_from_file)
+        self.save_cmap_pushButton.clicked.connect(self.save_cmap)
+        self.import_cmap_pushButton.clicked.connect(self.import_cmap_from_file)
 
     def fill_ui(self):
-        self.update_list_of_colormaps()
+        self.update_list_of_cmaps()
         self.update_list_of_opacities()
 
-    def update_list_of_colormaps(self):
+    def update_list_of_cmaps(self):
         self.is_updating_ui = True
         self.cmap_comboBox.clear()
         self.cmap_comboBox.addItems(self.get_cmap_list())
@@ -116,6 +119,17 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             self.update_list_of_opacities()
             self.opacity_comboBox.setCurrentIndex(
                 self.opacity_comboBox.count() - 1)
+
+    def import_cmap_from_file(self):
+        home_path = str(Path.home())
+        file_path = QFileDialog.getOpenFileName(
+            self, "Select file to open:", home_path, "Data files (*.h5)")
+        file_path = file_path[0]
+        if file_path != "":
+            self.cmap_handler.add_cmap_from_file(file_path)
+            self.update_list_of_cmaps()
+            self.cmap_comboBox.setCurrentIndex(
+                self.cmap_comboBox.count() - 1)
     
     def set_cmap_from_combobox(self):
         if not self.is_updating_ui:
@@ -142,6 +156,13 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         fld_val, op_val = self.opacity_figure.GetPoints(0)
         op_dialog = SaveOpacityDialog(fld_val, op_val)
         op_dialog.exec_()
+
+    def save_cmap(self):
+        fld_val, r_val = self.cmap_figure.GetPoints(0)
+        fld_val, g_val = self.cmap_figure.GetPoints(1)
+        fld_val, b_val = self.cmap_figure.GetPoints(2)
+        cmap_dialog = SaveColormapDialog(fld_val, r_val, g_val, b_val)
+        cmap_dialog.exec_()
 
     def UpdateVolumeProperties(self):
         fld_val_op, op_val = self.opacity_figure.GetPoints(0)
