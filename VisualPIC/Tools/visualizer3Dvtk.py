@@ -206,8 +206,8 @@ class Volume3D():
         default_op = "linear positive"
         self.set_opacity_from_presets(default_op)
 
-        default_cmap = "default"
-        self.set_cmap_from_presets(default_op)
+        default_cmap = "brg"
+        self.set_cmap_from_presets(default_cmap)
 
     def set_opacity_from_presets(self, op_name):
         if self.cmap_handler.opacity_exists(op_name):
@@ -238,7 +238,7 @@ class Volume3D():
 
     def get_field_range(self, time_step, nels):
         self.load_field_data(time_step)
-        return np.linspace(self.maxRange, self.minRange, nels)
+        return np.linspace(self.minRange, self.maxRange, nels)
 
     def get_field_units(self):
         return self.field.GetDataISUnits()
