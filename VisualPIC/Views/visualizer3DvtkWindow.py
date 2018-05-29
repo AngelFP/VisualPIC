@@ -69,6 +69,15 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
         self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
+        self.black_bg_radioButton.toggled.connect(self.change_background)
+        self.white_bg_radioButton.toggled.connect(self.change_background)
+
+    def change_background(self):
+        if self.black_bg_radioButton.isChecked():
+            self.visualizer3Dvtk.set_renderer_background(0, 0, 0)
+        elif self.white_bg_radioButton.isChecked():
+            self.visualizer3Dvtk.set_renderer_background(1, 1, 1)
+        self.UpdateRender()
 
     def create_time_step_callbacks(self):
         self.bind_time_step_to(self.timeStep_Slider.setValue)

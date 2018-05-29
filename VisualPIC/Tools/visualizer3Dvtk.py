@@ -72,6 +72,9 @@ class Visualizer3Dvtk():
         self.vtkCamera = self.renderer.GetActiveCamera()
         return self.vtkWidget
 
+    def set_renderer_background(self, r, g, b):
+        self.renderer.SetBackground(r,g,b)
+
     def AddVolumeField(self, fieldName, speciesName):
         # maximum volume number is 4, only add if this limit is not reached
         if len(self.volumeList) < 4:
