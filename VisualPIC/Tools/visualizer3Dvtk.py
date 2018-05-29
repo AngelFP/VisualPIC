@@ -199,6 +199,7 @@ class Volume3D():
         self.vtk_volume = vtk.vtkVolume()
         self.cmap_handler = ColormapHandler()
         self.customCMapRange = False
+        self.current_time_step = -1
         self._set_default_style()
 
     def _set_default_style(self):
@@ -234,6 +235,10 @@ class Volume3D():
         hist, hist_edges = np.histogram(fld_data, bins=bins)
         hist = np.log(hist)
         return hist/hist.max(), hist_edges
+
+    def get_field_range(self, time_step, nels):
+        self.load_field_data(time_step)
+        return np.linspace(self.maxRange, self.minRange, nels)
 
     def get_field_units(self):
         return self.field.GetDataISUnits()
@@ -296,23 +301,31 @@ class Volume3D():
         return np.array(fld_values), np.array(op_values)
 
     def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
-        if self.field.GetFieldDimension() == "3D":
-            fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
-        if self.field.GetFieldDimension() == "2D":
-            fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
-                timeStep, transvEl, longEl, fraction)
-        if self.customCMapRange:
-            maxvalue = self.maxRange
-            minvalue = self.minRange
-        else:
-            maxvalue = np.amax(fieldData)
-            minvalue = np.amin(fieldData)
-        fieldData = np.round(255 * (fieldData-minvalue)/(maxvalue-minvalue))
-        fieldData[fieldData < 0] = 0
-        fieldData[fieldData > 255] = 255
+        self.load_field_data(timeStep, transvEl, longEl, fraction)
+        if not self.customCMapRange:
+            self.maxRange = np.amax(self.fieldData)
+            self.minRange = np.amin(self.fieldData)
+        maxvalue = self.maxRange
+        minvalue = self.minRange
+        norm_data = np.round(255 * (self.fieldData-minvalue)/(maxvalue-minvalue))
+        norm_data[norm_data < 0] = 0
+        norm_data[norm_data > 255] = 255
         # Change data from float to unsigned char
-        npdatauchar = np.array(fieldData, dtype=np.uint8)
+        npdatauchar = np.array(norm_data, dtype=np.uint8)
         return npdatauchar
+
+    def load_field_data(self, time_step, transvEl = None, longEl = None,
+                        fraction = 1):
+        if not self.is_data_loaded(time_step):
+            if self.field.GetFieldDimension() == "3D":
+                self.fieldData = self.field.GetAllFieldDataInOriginalUnits(time_step)
+            if self.field.GetFieldDimension() == "2D":
+                self.fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
+                    time_step, transvEl, longEl, fraction)
+            self.current_time_step = time_step
+
+    def is_data_loaded(self, time_step):
+        return self.current_time_step == time_step
 
     def GetAxes(self, timeStep):
         axes = {}

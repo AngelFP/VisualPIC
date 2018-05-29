@@ -64,17 +64,14 @@ class FigureWithPoints(Figure):
                     point.remove()
             for line in reversed(self.axes[naxis].lines):
                 line.remove()
-        #self.axes[naxis].clear()
 
-    #def remove_all_points(self):
-    #    for ax in self.axes:
-    #        for point in reversed(ax.patches):
-    #            if type(point) is DraggablePoint:
-    #                point.remove()
-    #        for line in reversed(ax.lines):
-    #            line.remove()
-    #        #ax.clear()
-    #    self.canvas.draw_idle()
+    def set_axes_labels(self, naxes, axis, label_pos, labels):
+        if axis == "x":
+            self.axes[naxes].set_xticks(label_pos)
+            self.axes[naxes].set_xticklabels(labels)
+        elif axis == "y":
+            self.axes[naxes].set_yticks(label_pos)
+            self.axes[naxes].set_yticklabels(labels)
 
     def GetPoints(self, naxis):
         x = list()

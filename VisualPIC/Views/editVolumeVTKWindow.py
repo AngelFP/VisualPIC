@@ -21,6 +21,7 @@ import sys
 import os
 from pathlib import Path
 
+import numpy as np
 from PyQt5.uic import loadUiType
 from PyQt5.QtWidgets import QDialogButtonBox, QFileDialog
 import matplotlib.patches as patches
@@ -78,6 +79,18 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure.set_points(0, fld_val, r_val)
         self.cmap_figure.set_points(1, fld_val, g_val)
         self.cmap_figure.set_points(2, fld_val, b_val)
+
+        self.set_axes_range()
+
+    def set_axes_range(self):
+        time_step = self.mainWindow.GetCurrentTimeStep()
+        nels = 5
+        label_pos = np.linspace(0, 255, nels)
+        labels_array = self.volume.get_field_range(time_step, 5)
+        labels_list = labels_array.tolist()
+        labels = [format(label, '.2e') for label in labels_list]
+        self.opacity_figure.set_axes_labels(0, "x", label_pos, labels)
+        self.cmap_figure.set_axes_labels(2, "x", label_pos, labels)
 
     def register_ui_events(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
