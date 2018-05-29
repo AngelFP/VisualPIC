@@ -50,8 +50,12 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.visualizer3Dvtk = Visualizer3Dvtk(dataContainer)
         self.RegisterUIEvents()
         self.CreateVTKWidget()
-        self.timeSteps = np.zeros(1)
+        self.current_time_step = -1
+        self.time_steps = np.zeros(1)
+        self.time_step_change_observers = list()
+        self.updating_ui = False
         self.FillUIWithData()
+        self.create_time_step_callbacks()
         
     def CreateVTKWidget(self):
         self.vtkWidget = self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget)
@@ -66,6 +70,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
         self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
 
+    def create_time_step_callbacks(self):
+        self.bind_time_step_to(self.timeStep_Slider.setValue)
 
     def ScreenshotButton_Clicked(self):
         AnimationWindow = CreateVTKAnimationWindow(self)
@@ -96,37 +102,23 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     UI event handlers
     """
     def TimeStepSlider_Released(self):
-        if self.timeStep_Slider.value() in self.timeSteps:
-            self.MakeRender()
-        else:
-            val = self.timeStep_Slider.value()
-            closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
-            closestLower = self.timeSteps[np.where(self.timeSteps < val)[0][-1]]
-            if abs(val-closestHigher) < abs(val-closestLower):
-                self.timeStep_Slider.setValue(closestHigher)
-            else:
-                self.timeStep_Slider.setValue(closestLower)
-            self.MakeRender()
+        self.set_time_step(self.timeStep_Slider.value())
             
     def TimeStepSlider_ValueChanged(self):
         self.timeStep_LineEdit.setText(str(self.timeStep_Slider.value()))
         
     def NextButton_Clicked(self):
-        currentTimeStep = self.timeStep_Slider.value()
-        currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
-        if currentIndex < len(self.timeSteps)-1:
-            self.timeStep_Slider.setValue(self.timeSteps[currentIndex + 1])
-        self.MakeRender()
+        current_index = np.where(self.time_steps == self.current_time_step)[0][0]
+        if current_index < len(self.time_steps)-1:
+            self.set_time_step(self.time_steps[current_index + 1])
         
     def PrevButton_Clicked(self):
-        currentTimeStep = self.timeStep_Slider.value()
-        currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
-        if currentIndex > 0:
-            self.timeStep_Slider.setValue(self.timeSteps[currentIndex - 1])
-        self.MakeRender()
+        current_index = np.where(self.time_steps == self.current_time_step)[0][0]
+        if current_index > 0:
+            self.set_time_step(self.time_steps[current_index - 1])
 
     def RenderButton_Clicked(self):
-        self.MakeRender()
+        self.make_render()
         	
     def AddToRenderButton_Clicked(self):
         model = self.availableFields_listView.model()
@@ -147,6 +139,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
                     self.fieldsToRender_listWidget.addItem(wid2)
                     self.fieldsToRender_listWidget.setItemWidget(wid2, wid)
         self.SetTimeSteps()
+        if self.current_time_step == -1:
+            self.set_time_step(self.time_steps[0], False)
 
     """
     Called from UI event handlers
@@ -155,9 +149,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.fieldsToRender_listWidget.clear()
         self.volumeList[:] = []
         
-    def MakeRender(self):
-        timeStep = self.timeStep_Slider.value()
-        self.visualizer3Dvtk.MakeRender(timeStep)
+    def make_render(self):
+        self.visualizer3Dvtk.MakeRender(self.current_time_step)
 
     def RemoveField(self, item):
         self.visualizer3Dvtk.RemoveVolume(item.volume)
@@ -167,9 +160,9 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.SetTimeSteps()
 
     def SetTimeSteps(self):
-        self.timeSteps = self.visualizer3Dvtk.GetTimeSteps()
-        minTime = min(self.timeSteps)
-        maxTime = max(self.timeSteps)
+        self.time_steps = self.visualizer3Dvtk.GetTimeSteps()
+        minTime = min(self.time_steps)
+        maxTime = max(self.time_steps)
         self.timeStep_Slider.setMinimum(minTime)
         self.timeStep_Slider.setMaximum(maxTime)
 
@@ -181,3 +174,25 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
 
     def SaveScreenshot(self, path):
         self.visualizer3Dvtk.SaveScreenshot(path)
+
+    def set_time_step(self, time_step, make_render = True):
+        if time_step in self.time_steps:
+            self.current_time_step = time_step
+        else:
+            closest_higher = self.time_steps[
+                np.where(self.time_steps > time_step)[0][0]]
+            closest_lower = self.time_steps[
+                np.where(self.time_steps < time_step)[0][-1]]
+            if abs(time_step-closest_higher) < abs(time_step-closest_lower):
+                self.current_time_step = closest_higher
+            else:
+                self.current_time_step = closest_lower
+        self.updating_ui = True
+        for callback in self.time_step_change_observers:
+            callback(self.current_time_step)
+        self.updating_ui = False
+        if make_render:
+            self.make_render()
+
+    def bind_time_step_to(self, callback):
+        self.time_step_change_observers.append(callback)
