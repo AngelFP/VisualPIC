@@ -54,6 +54,10 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.register_time_step_events()
         self.fill_ui()
 
+    def closeEvent(self, *args, **kwargs):
+        self.unregister_time_step_events()
+        super(EditVolumeVTKWindow, self).closeEvent(*args, **kwargs)
+
     def create_canvas_and_figure(self):
         time_step = self.mainWindow.get_current_time_step()
         hist, hist_edges = self.volume.get_field_histogram(time_step)
@@ -104,6 +108,11 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.mainWindow.bind_time_step_to(self.set_histograms)
         self.mainWindow.bind_time_step_to(self.set_axes_range)
         self.mainWindow.bind_time_step_to(self.set_range_in_line_edits)
+
+    def unregister_time_step_events(self):
+        self.mainWindow.unbind_time_step_to(self.set_histograms)
+        self.mainWindow.unbind_time_step_to(self.set_axes_range)
+        self.mainWindow.unbind_time_step_to(self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
         hist, hist_edges = self.volume.get_field_histogram(time_step)

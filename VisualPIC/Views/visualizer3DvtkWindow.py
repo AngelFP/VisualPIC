@@ -196,3 +196,6 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
 
     def bind_time_step_to(self, callback):
         self.time_step_change_observers.append(callback)
+
+    def unbind_time_step_to(self, callback):
+        self.time_step_change_observers.remove(callback)
