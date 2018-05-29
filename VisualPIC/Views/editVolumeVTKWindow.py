@@ -89,6 +89,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure.set_points(2, fld_val, b_val)
 
         self.set_axes_range(time_step)
+        self.set_range_in_line_edits(time_step)
 
     def set_axes_range(self, time_step):
         nels = 5
@@ -102,6 +103,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def register_time_step_events(self):
         self.mainWindow.bind_time_step_to(self.set_histograms)
         self.mainWindow.bind_time_step_to(self.set_axes_range)
+        self.mainWindow.bind_time_step_to(self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
         hist, hist_edges = self.volume.get_field_histogram(time_step)
@@ -112,7 +114,6 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
 
     def register_ui_events(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
-        self.normalizationButton.clicked.connect(self.NormalizationButton_Clicked)
         self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
         self.cmap_comboBox.currentIndexChanged.connect(self.set_cmap_from_combobox)
         self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
@@ -130,6 +131,12 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_comboBox.clear()
         self.cmap_comboBox.addItems(self.get_cmap_list())
         self.is_updating_ui = False
+
+    def set_range_in_line_edits(self, time_step):
+        labels_array = self.volume.get_field_range(time_step, 2)
+        labels_list = labels_array.tolist()
+        self.min_lineEdit.setText(format(labels_list[0], '.2e'))
+        self.max_lineEdit.setText(format(labels_list[1], '.2e'))
 
     def get_cmap_list(self):
         op_list = self.cmap_handler.get_available_cmaps()
@@ -210,12 +217,12 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.volume.set_opacity(fld_val_op, op_val)
         self.volume.set_cmap(fld_val_cmap, r_val, g_val, b_val)
         self.mainWindow.UpdateRender()
-
-    def NormalizationButton_Clicked(self):
-        timeStep = self.mainWindow.get_current_time_step()
-        self.volume.SetCMapRangeFromCurrentTimeStep(timeStep)
-
+        
     def CustomNormalizationButton_Clicked(self):
-        min = float(self.min_lineEdit.text())
-        max = float(self.max_lineEdit.text())
-        self.volume.SetCMapRange(min, max)
+        min_val = float(self.min_lineEdit.text())
+        max_val = float(self.max_lineEdit.text())
+        self.set_field_range(min_val, max_val)
+
+    def set_field_range(self, min_val, max_val):
+        self.volume.SetCMapRange(min_val, max_val)
+        self.mainWindow.make_render()

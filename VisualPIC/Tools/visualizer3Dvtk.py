@@ -199,6 +199,7 @@ class Volume3D():
         self.vtk_volume = vtk.vtkVolume()
         self.cmap_handler = ColormapHandler()
         self.customCMapRange = False
+        self.cmap_range_has_changed = False
         self.current_time_step = -1
         self._set_default_style()
 
@@ -264,14 +265,11 @@ class Volume3D():
         for i in np.arange(len(field_values)):
             self.vtk_opacity.AddPoint(field_values[i], opacity_values[i])
 
-    def SetCMapRangeFromCurrentTimeStep(self, timeStep):
-        fieldData = self.field.GetAllFieldDataInOriginalUnits(timeStep)
-        self.SetCMapRange(np.amin(fieldData), np.amax(fieldData))
-
     def SetCMapRange(self, min, max):
         self.maxRange = max
         self.minRange = min
         self.customCMapRange = True
+        self.cmap_range_has_changed = True
 
     def get_cmap_values(self):
         fld_val = list()
@@ -322,10 +320,13 @@ class Volume3D():
             if not self.customCMapRange:
                 self.maxRange = np.amax(self.fieldData)
                 self.minRange = np.amin(self.fieldData)
+            else:
+                self.cmap_range_has_changed = False
             self.current_time_step = time_step
 
     def is_data_loaded(self, time_step):
-        return self.current_time_step == time_step
+        return (self.current_time_step == time_step
+                and not self.cmap_range_has_changed)
 
     def GetAxes(self, timeStep):
         axes = {}

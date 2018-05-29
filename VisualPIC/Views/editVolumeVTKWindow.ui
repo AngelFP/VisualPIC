@@ -235,18 +235,24 @@
          <item>
           <widget class="QPushButton" name="norm_pushButton">
            <property name="text">
-            <string>PushButton</string>
+            <string>Set range</string>
            </property>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="normalizationButton">
-         <property name="text">
-          <string>Use current time step maximum for normalization</string>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
