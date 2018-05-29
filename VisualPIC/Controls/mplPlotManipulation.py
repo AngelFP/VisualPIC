@@ -95,6 +95,7 @@ class FigureWithPoints(Figure):
         elif axis == "y":
             self.axes[naxes].set_yticks(label_pos)
             self.axes[naxes].set_yticklabels(labels)
+        self.canvas.draw()
 
     def GetPoints(self, naxis):
         x = list()

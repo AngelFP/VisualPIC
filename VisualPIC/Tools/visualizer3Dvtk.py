@@ -302,9 +302,6 @@ class Volume3D():
 
     def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
         self.load_field_data(timeStep, transvEl, longEl, fraction)
-        if not self.customCMapRange:
-            self.maxRange = np.amax(self.fieldData)
-            self.minRange = np.amin(self.fieldData)
         maxvalue = self.maxRange
         minvalue = self.minRange
         norm_data = np.round(255 * (self.fieldData-minvalue)/(maxvalue-minvalue))
@@ -322,6 +319,9 @@ class Volume3D():
             if self.field.GetFieldDimension() == "2D":
                 self.fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
                     time_step, transvEl, longEl, fraction)
+            if not self.customCMapRange:
+                self.maxRange = np.amax(self.fieldData)
+                self.minRange = np.amin(self.fieldData)
             self.current_time_step = time_step
 
     def is_data_loaded(self, time_step):
