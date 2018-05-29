@@ -32,9 +32,21 @@ class FigureWithPoints(Figure):
                 if (share_y_axis 
                     and n not in np.arange(0, ncols*nrows, ncols)+1):
                     ax.tick_params(axis='y', which='both', labelleft='off')
+                elif share_y_axis:
+                    if ylabels is not None:
+                        ax.set_ylabel(ylabels[(n-1)/ncols])
+                else:
+                    if ylabels is not None:
+                        ax.set_ylabel(ylabels[n-1])
                 if (share_x_axis 
                     and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
                     ax.tick_params(axis='x', which='both', labelbottom='off')
+                elif share_x_axis:
+                    if xlabels is not None:
+                        ax.set_xlabel(xlabels[n-1-ncols*nrows+ncols])
+                else:
+                    if xlabels is not None:
+                        ax.set_xlabel(xlabels[n-1])
                 if hist is not None:
                     hist_width = 256/len(hist)
                     ax.bar(hist_edges[:-1], hist, width=hist_width,

@@ -56,9 +56,14 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def create_canvas_and_figure(self):
         time_step = self.mainWindow.GetCurrentTimeStep()
         hist, hist_edges = self.volume.get_field_histogram(time_step)
+        fld_name = self.volume.GetFieldName()
+        fld_units = self.volume.get_field_units()
+        xlabel = fld_name + " [$" + fld_units + "$]"
         self.opacity_figure = FigureWithPoints(1, 1, hist=hist,
                                                hist_edges=hist_edges,
-                                               patch_color='tab:blue')
+                                               patch_color='tab:blue',
+                                               xlabels=[xlabel],
+                                               ylabels=["Opacity"])
         self.opacity_figure.patch.set_facecolor("white")
         self.opacity_canvas = FigureCanvas(self.opacity_figure)
         self.opacityWidgetLayout.addWidget(self.opacity_canvas)
@@ -66,7 +71,9 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure = FigureWithPoints(3, 1, hist=hist,
                                             hist_edges=hist_edges,
                                             share_x_axis=True,
-                                            patch_color=['r', 'g', 'b'])
+                                            patch_color=['r', 'g', 'b'],
+                                            xlabels=[xlabel],
+                                            ylabels=["Red", "Green", "Blue"])
         self.cmap_figure.patch.set_facecolor("white")
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
