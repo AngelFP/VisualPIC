@@ -37,7 +37,8 @@ class FigureWithPoints(Figure):
                     ax.tick_params(axis='x', which='both', labelbottom='off')
                 if hist is not None:
                     hist_width = 256/len(hist)
-                    ax.bar(hist_edges[:-1], hist, width=hist_width, facecolor="#dbdbdb")
+                    ax.bar(hist_edges[:-1], hist, width=hist_width,
+                           facecolor="#dbdbdb", align="edge")
 
     def set_points(self, naxis, x, y):
         self.remove_points(naxis)
@@ -46,8 +47,12 @@ class FigureWithPoints(Figure):
 
     def add_points(self, naxis, x, y):
         self.drag_points[naxis] = list()
+        if isinstance(self.patch_color, list):
+            p_color = self.patch_color[naxis]
+        else:
+            p_color = self.patch_color
         for i in np.arange(len(x)):
-            dPoint = DraggablePoint(self, naxis, x[i], y[i], 0.05, color=self.patch_color)
+            dPoint = DraggablePoint(self, naxis, x[i], y[i], 0.05, color=p_color)
             self.drag_points[naxis].append(dPoint)
             self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
@@ -88,10 +93,12 @@ class DraggablePoint(Ellipse):
         self.naxes = naxes
         self.x = x
         self.y = y
+        self.color = color
         self.background = None
         size_x = self.determine_proportional_x_size(size_y)
         size_x, size_y = self.get_scaled_size(size_x, size_y)
-        super().__init__((x, y), size_x, size_y, fc=color, alpha=0.5, edgecolor=color)
+        super().__init__((x, y), size_x, size_y, fc=self.color, alpha=0.5,
+                         edgecolor=self.color)
 
     def determine_proportional_x_size(self, y_size):
         x_min, x_max = self.parent_figure.axes[self.naxes].get_xlim()
@@ -117,7 +124,7 @@ class DraggablePoint(Ellipse):
             lineX = [self.parent_figure.drag_points[self.naxes][self.index-1].x, self.x]
             lineY = [self.parent_figure.drag_points[self.naxes][self.index-1].y, self.y]
 
-            self.line = Line2D(lineX, lineY, color='r', alpha=0.5)
+            self.line = Line2D(lineX, lineY, color=self.color, alpha=0.5)
             self.parent_figure.axes[self.naxes].add_line(self.line)
         self.connect()
 

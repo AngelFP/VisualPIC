@@ -56,13 +56,16 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         time_step = self.mainWindow.GetCurrentTimeStep()
         hist, hist_edges = self.volume.get_field_histogram(time_step)
         self.opacity_figure = FigureWithPoints(1, 1, hist=hist,
-                                               hist_edges=hist_edges)
+                                               hist_edges=hist_edges,
+                                               patch_color='tab:blue')
         self.opacity_figure.patch.set_facecolor("white")
         self.opacity_canvas = FigureCanvas(self.opacity_figure)
         self.opacityWidgetLayout.addWidget(self.opacity_canvas)
         self.opacity_canvas.draw()
         self.cmap_figure = FigureWithPoints(3, 1, hist=hist,
-                                            hist_edges=hist_edges)
+                                            hist_edges=hist_edges,
+                                            share_x_axis=True,
+                                            patch_color=['r', 'g', 'b'])
         self.cmap_figure.patch.set_facecolor("white")
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
