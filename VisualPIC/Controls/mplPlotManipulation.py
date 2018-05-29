@@ -15,6 +15,7 @@ class FigureWithPoints(Figure):
                  share_x_axis = False, share_y_axis = False,
                  hist = None, hist_edges = None, patch_color = 'r'):
         self.patch_color = patch_color
+        self.drag_points = {}
         super().__init__(figsize, dpi, facecolor, edgecolor, linewidth,
                          frameon, subplotpars, tight_layout)
         self.create_axes(nrows, ncols, xlabels, ylabels, share_x_axis,
@@ -35,7 +36,8 @@ class FigureWithPoints(Figure):
                     and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
                     ax.tick_params(axis='x', which='both', labelbottom='off')
                 if hist is not None:
-                    ax.bar(hist_edges[:-1], hist, width=1, facecolor="#dbdbdb")
+                    hist_width = 256/len(hist)
+                    ax.bar(hist_edges[:-1], hist, width=hist_width, facecolor="#dbdbdb")
 
     def set_points(self, naxis, x, y):
         self.remove_points(naxis)
@@ -43,43 +45,47 @@ class FigureWithPoints(Figure):
         self.canvas.draw_idle()
 
     def add_points(self, naxis, x, y):
+        self.drag_points[naxis] = list()
         for i in np.arange(len(x)):
-            dPoint = DraggablePoint(self.axes[naxis], x[i], y[i], 0.05, color=self.patch_color)
+            dPoint = DraggablePoint(self, naxis, x[i], y[i], 0.05, color=self.patch_color)
+            self.drag_points[naxis].append(dPoint)
             self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
 
     def remove_points(self, naxis):
-        for point in reversed(self.axes[naxis].patches):
-            if type(point) is DraggablePoint:
-                point.remove()
-        for line in reversed(self.axes[naxis].lines):
-            line.remove()
-        #self.axes[naxis].clear()
-
-    def remove_all_points(self):
-        for ax in self.axes:
-            for point in reversed(ax.patches):
+        if naxis in self.drag_points:
+            for point in reversed(self.drag_points[naxis]):
                 if type(point) is DraggablePoint:
                     point.remove()
-            for line in reversed(ax.lines):
+            for line in reversed(self.axes[naxis].lines):
                 line.remove()
-            #ax.clear()
-        self.canvas.draw_idle()
+        #self.axes[naxis].clear()
+
+    #def remove_all_points(self):
+    #    for ax in self.axes:
+    #        for point in reversed(ax.patches):
+    #            if type(point) is DraggablePoint:
+    #                point.remove()
+    #        for line in reversed(ax.lines):
+    #            line.remove()
+    #        #ax.clear()
+    #    self.canvas.draw_idle()
 
     def GetPoints(self, naxis):
         x = list()
         y = list()
-        for dPoint in self.axes[naxis].patches:
-            x.append(dPoint.x)
-            y.append(dPoint.y)
+        for dPoint in self.drag_points[naxis]:
+                x.append(dPoint.x)
+                y.append(dPoint.y)
         return np.array(x), np.array(y)
 
 
 class DraggablePoint(Ellipse):
 
     lock = None #  only one can be animated at a time
-    def __init__(self, parent_axes, x=0.1, y=0.1, size_y=2, color='r'):
-        self.parent_axes = parent_axes
+    def __init__(self, parent_figure, naxes, x=0.1, y=0.1, size_y=2, color='r'):
+        self.parent_figure = parent_figure
+        self.naxes = naxes
         self.x = x
         self.y = y
         self.background = None
@@ -88,31 +94,31 @@ class DraggablePoint(Ellipse):
         super().__init__((x, y), size_x, size_y, fc=color, alpha=0.5, edgecolor=color)
 
     def determine_proportional_x_size(self, y_size):
-        x_min, x_max = self.parent_axes.get_xlim()
-        y_min, y_max = self.parent_axes.get_ylim()
+        x_min, x_max = self.parent_figure.axes[self.naxes].get_xlim()
+        y_min, y_max = self.parent_figure.axes[self.naxes].get_ylim()
         ax_width_range = x_max - x_min
         ax_height_range = y_max - y_min
-        ax_width = self.parent_axes.get_window_extent().width
-        ax_height = self.parent_axes.get_window_extent().height
+        ax_width = self.parent_figure.axes[self.naxes].get_window_extent().width
+        ax_height = self.parent_figure.axes[self.naxes].get_window_extent().height
         coef = (ax_width_range/ax_width) * (ax_height/ax_height_range)
         size_x = y_size * coef
         return size_x
 
     def get_scaled_size(self, size_x, size_y):
         standard_height = 800
-        ax_height = self.parent_axes.get_window_extent().height
+        ax_height = self.parent_figure.axes[self.naxes].get_window_extent().height
         coef = ax_height/standard_height
         return size_x/coef, size_y/coef
 
 
     def addLinesAndConnect(self):
-        self.index = self.parent_axes.patches.index(self)
-        if any(isinstance(p, DraggablePoint) for p in self.parent_axes.patches[:self.index]):
-            lineX = [self.parent_axes.patches[self.index-1].x, self.x]
-            lineY = [self.parent_axes.patches[self.index-1].y, self.y]
+        self.index = self.parent_figure.drag_points[self.naxes].index(self)
+        if len(self.parent_figure.drag_points[self.naxes]) > 1:
+            lineX = [self.parent_figure.drag_points[self.naxes][self.index-1].x, self.x]
+            lineY = [self.parent_figure.drag_points[self.naxes][self.index-1].y, self.y]
 
             self.line = Line2D(lineX, lineY, color='r', alpha=0.5)
-            self.parent_axes.add_line(self.line)
+            self.parent_figure.axes[self.naxes].add_line(self.line)
         self.connect()
 
     def connect(self):
@@ -138,8 +144,8 @@ class DraggablePoint(Ellipse):
         self.set_animated(True)
         if self.index > 0:
             self.line.set_animated(True)
-        if self.index < len(self.parent_axes.patches)-1:
-            self.parent_axes.patches[self.index+1].line.set_animated(True)
+        if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
+            self.parent_figure.drag_points[self.naxes][self.index+1].line.set_animated(True)
         canvas.draw()
         self.background = canvas.copy_from_bbox(self.axes.bbox)
 
@@ -169,21 +175,21 @@ class DraggablePoint(Ellipse):
         axes.draw_artist(self)
         if self.index > 0:
             axes.draw_artist(self.line)
-        if self.index < len(self.parent_axes.patches)-1:
-            axes.draw_artist(self.parent_axes.patches[self.index + 1].line)
+        if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
+            axes.draw_artist(self.parent_figure.drag_points[self.naxes][self.index + 1].line)
 
         self.x = self.center[0]
         self.y = self.center[1]
         
         if self.index > 0:
-            lineX = [self.parent_axes.patches[self.index - 1].x, self.x]
-            lineY = [self.parent_axes.patches[self.index - 1].y, self.y]
+            lineX = [self.parent_figure.drag_points[self.naxes][self.index - 1].x, self.x]
+            lineY = [self.parent_figure.drag_points[self.naxes][self.index - 1].y, self.y]
             self.line.set_data(lineX, lineY)
 
-        if self.index < len(self.parent_axes.patches)-1:
-            lineX = [self.x, self.parent_axes.patches[self.index + 1].x]
-            lineY = [self.y, self.parent_axes.patches[self.index + 1].y]
-            self.parent_axes.patches[self.index + 1].line.set_data(lineX, lineY)
+        if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
+            lineX = [self.x, self.parent_figure.drag_points[self.naxes][self.index + 1].x]
+            lineY = [self.y, self.parent_figure.drag_points[self.naxes][self.index + 1].y]
+            self.parent_figure.drag_points[self.naxes][self.index + 1].line.set_data(lineX, lineY)
 
         # blit just the redrawn area
         canvas.blit(axes.bbox)
@@ -202,8 +208,8 @@ class DraggablePoint(Ellipse):
         self.set_animated(False)
         if self.index > 0:
             self.line.set_animated(False)
-        if self.index < len(self.parent_axes.patches)-1:
-            self.parent_axes.patches[self.index + 1].line.set_animated(False)
+        if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
+            self.parent_figure.drag_points[self.naxes][self.index + 1].line.set_animated(False)
 
         self.background = None
 
