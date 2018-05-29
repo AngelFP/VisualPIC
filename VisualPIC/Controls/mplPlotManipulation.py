@@ -16,6 +16,7 @@ class FigureWithPoints(Figure):
                  hist = None, hist_edges = None, patch_color = 'r'):
         self.patch_color = patch_color
         self.drag_points = {}
+        self.histograms = {}
         super().__init__(figsize, dpi, facecolor, edgecolor, linewidth,
                          frameon, subplotpars, tight_layout)
         self.create_axes(nrows, ncols, xlabels, ylabels, share_x_axis,
@@ -48,9 +49,19 @@ class FigureWithPoints(Figure):
                     if xlabels is not None:
                         ax.set_xlabel(xlabels[n-1])
                 if hist is not None:
-                    hist_width = 256/len(hist)
-                    ax.bar(hist_edges[:-1], hist, width=hist_width,
-                           facecolor="#dbdbdb", align="edge")
+                    self.plot_histogram(n-1, hist_edges, hist)
+
+    def plot_histogram(self, naxes, hist_edges, hist):
+        hist_width = 256/len(hist)
+        if naxes not in self.histograms:
+            self.histograms[naxes] = self.axes[naxes].bar(
+                hist_edges[:-1], hist, width=hist_width, facecolor="#dbdbdb",
+                align="edge")
+        else:
+            for i, rect in enumerate(self.histograms[naxes]):
+                rect.set_height(hist[i])
+            if naxes == len(self.histograms)-1:
+                self.canvas.draw()
 
     def set_points(self, naxis, x, y):
         self.remove_points(naxis)

@@ -51,10 +51,11 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_handler = volume.cmap_handler
         self.register_ui_events()
         self.create_canvas_and_figure()
+        self.register_time_step_events()
         self.fill_ui()
 
     def create_canvas_and_figure(self):
-        time_step = self.mainWindow.GetCurrentTimeStep()
+        time_step = self.mainWindow.get_current_time_step()
         hist, hist_edges = self.volume.get_field_histogram(time_step)
         fld_name = self.volume.GetFieldName()
         fld_units = self.volume.get_field_units()
@@ -87,10 +88,9 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure.set_points(1, fld_val, g_val)
         self.cmap_figure.set_points(2, fld_val, b_val)
 
-        self.set_axes_range()
+        self.set_axes_range(time_step)
 
-    def set_axes_range(self):
-        time_step = self.mainWindow.GetCurrentTimeStep()
+    def set_axes_range(self, time_step):
         nels = 5
         label_pos = np.linspace(0, 255, nels)
         labels_array = self.volume.get_field_range(time_step, 5)
@@ -98,6 +98,17 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         labels = [format(label, '.2e') for label in labels_list]
         self.opacity_figure.set_axes_labels(0, "x", label_pos, labels)
         self.cmap_figure.set_axes_labels(2, "x", label_pos, labels)
+
+    def register_time_step_events(self):
+        self.mainWindow.bind_time_step_to(self.set_histograms)
+        self.mainWindow.bind_time_step_to(self.set_axes_range)
+
+    def set_histograms(self, time_step):
+        hist, hist_edges = self.volume.get_field_histogram(time_step)
+        self.opacity_figure.plot_histogram(0, hist_edges, hist)
+        self.cmap_figure.plot_histogram(0, hist_edges, hist)
+        self.cmap_figure.plot_histogram(1, hist_edges, hist)
+        self.cmap_figure.plot_histogram(2, hist_edges, hist)
 
     def register_ui_events(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
@@ -201,7 +212,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.mainWindow.UpdateRender()
 
     def NormalizationButton_Clicked(self):
-        timeStep = self.mainWindow.GetCurrentTimeStep()
+        timeStep = self.mainWindow.get_current_time_step()
         self.volume.SetCMapRangeFromCurrentTimeStep(timeStep)
 
     def CustomNormalizationButton_Clicked(self):
