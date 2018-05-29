@@ -224,5 +224,9 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.set_field_range(min_val, max_val)
 
     def set_field_range(self, min_val, max_val):
+        time_step = self.mainWindow.get_current_time_step()
         self.volume.SetCMapRange(min_val, max_val)
         self.mainWindow.make_render()
+        self.set_axes_range(time_step)
+        self.set_histograms(time_step)
+        self.set_range_in_line_edits(time_step)
