@@ -143,8 +143,8 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
         self.label.setText("First time step:")
         self.label_2.setText("Last time step:")
         self.label_3.setText("Step size:")
-        self.firstStep_lineEdit.setText(str(self.mainWindow.timeSteps[0]))
-        self.lastStep_lineEdit.setText(str(self.mainWindow.timeSteps[-1]))
+        self.firstStep_lineEdit.setText(str(self.mainWindow.time_steps[0]))
+        self.lastStep_lineEdit.setText(str(self.mainWindow.time_steps[-1]))
         self.frequency_lineEdit.setText("1")
         self.onlySnaps_checkBox.setText("Create snapshots.")
         self.makeVideo_checkBox.setText("Create video.")
@@ -190,15 +190,14 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
             
     def createAnimation(self):
         self.hasAlreadyRun = False
-        simulationTimeSteps = self.mainWindow.timeSteps
+        simulationTimeSteps = self.mainWindow.time_steps
         firstTimeStep = int(self.firstStep_lineEdit.text())
         firstIndex = np.where(simulationTimeSteps == firstTimeStep)[0][0]
         lastTimeStep = int(self.lastStep_lineEdit.text())
         lastIndex = np.where(simulationTimeSteps == lastTimeStep)[0][0]
         freq = int(self.frequency_lineEdit.text())
         for i in simulationTimeSteps[firstIndex:lastIndex+1:freq]:
-            self.mainWindow.timeStep_Slider.setValue(i)
-            self.mainWindow.MakeRender()
+            self.mainWindow.set_time_step(i)
             movieName = self.fileName_lineEdit.text()
             framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
             frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(i).zfill(6)
@@ -219,7 +218,7 @@ class InputFilter(QtCore.QObject):
             if event.type() == QtCore.QEvent.FocusOut:
                 # do custom stuff
                 step = int(widget.text())
-                timeSteps = self.mainWindow.timeSteps
+                timeSteps = self.mainWindow.time_steps
                 if step not in timeSteps:
                     higherTimeSteps = np.where(timeSteps > step)[0]
                     if len(higherTimeSteps) == 0:

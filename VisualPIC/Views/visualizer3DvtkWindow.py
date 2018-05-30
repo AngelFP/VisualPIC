@@ -71,6 +71,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
         self.black_bg_radioButton.toggled.connect(self.change_background)
         self.white_bg_radioButton.toggled.connect(self.change_background)
+        self.logo_checkBox.toggled.connect(self.visualizer3Dvtk.set_logo_widget_visibility)
+        self.axes_checkBox.toggled.connect(self.visualizer3Dvtk.set_axes_widget_visibility)
 
     def change_background(self):
         if self.black_bg_radioButton.isChecked():

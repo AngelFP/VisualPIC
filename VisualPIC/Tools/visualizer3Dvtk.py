@@ -63,6 +63,7 @@ class Visualizer3Dvtk():
         return timeSteps
 
     def GetVTKWidget(self, parentWidget):
+        # create widget and references to renderer and interactor
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
         self.renderer = vtk.vtkRenderer()
         self.renderer.SetBackground(0,0,0)
@@ -70,7 +71,62 @@ class Visualizer3Dvtk():
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
         self.vtkCamera = self.renderer.GetActiveCamera()
+        # add widgets
+        self.add_axes_widget()
+        self.add_visualpic_logo()
+        # set default interaction style
+        self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
         return self.vtkWidget
+
+    def add_axes_widget(self):
+        self.vtk_axes = vtk.vtkAxesActor()
+        self.vtk_axes.SetXAxisLabelText("Z")
+        self.vtk_axes.SetZAxisLabelText("X")
+        self.vtk_orientation_marker = vtk.vtkOrientationMarkerWidget()
+        self.vtk_orientation_marker.SetOutlineColor(1, 1, 1)
+        self.vtk_orientation_marker.SetOrientationMarker(self.vtk_axes);
+        self.vtk_orientation_marker.SetInteractor(self.interactor);
+        self.vtk_orientation_marker.SetViewport(0.0, 0.0, 0.2, 0.2);
+        self.vtk_orientation_marker.SetEnabled(1);
+        self.vtk_orientation_marker.InteractiveOff()
+
+    def add_visualpic_logo(self):
+        self.vtk_image_data = vtk.vtkImageData()
+        self.logo_path = resource_filename(
+                'VisualPIC.Icons', 'logo_horizontal.png' )
+        self.vtk_png_reader = vtk.vtkPNGReader()
+        self.vtk_png_reader.SetFileName(self.logo_path)
+        self.vtk_png_reader.Update()
+        self.vtk_image_data = self.vtk_png_reader.GetOutput()
+        self.vtk_logo_representation = vtk.vtkLogoRepresentation()
+        self.vtk_logo_representation.SetImage(self.vtk_image_data)
+        self.vtk_logo_representation.SetPosition(0.79, 0.89)
+        self.vtk_logo_representation.SetPosition2(.2, .1)
+        self.vtk_logo_representation.GetImageProperty().SetOpacity(1)
+        self.vtk_logo_widget = vtk.vtkLogoWidget()
+        self.vtk_logo_widget.SetInteractor(self.interactor)
+        self.vtk_logo_widget.SetRepresentation(self.vtk_logo_representation)
+        self.vtk_logo_widget.On()
+
+    def set_axes_widget_interactive(self, value):
+        if value:
+            self.vtk_orientation_marker.InteractiveOn()
+        else:
+            self.vtk_orientation_marker.InteractiveOff()
+
+    def set_logo_widget_visibility(self, value):
+        if value:
+            self.vtk_logo_widget.On()
+        else:
+            self.vtk_logo_widget.Off()
+        self.UpdateRender()
+
+    def set_axes_widget_visibility(self, value):
+        if value:
+            self.vtk_orientation_marker.SetEnabled(1)
+        else:
+            self.vtk_orientation_marker.SetEnabled(0)
+        self.UpdateRender()
 
     def set_renderer_background(self, r, g, b):
         self.renderer.SetBackground(r,g,b)

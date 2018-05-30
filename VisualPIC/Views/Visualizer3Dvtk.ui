@@ -329,6 +329,26 @@
                    </layout>
                   </item>
                   <item>
+                   <widget class="QCheckBox" name="axes_checkBox">
+                    <property name="text">
+                     <string>Show axes</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="logo_checkBox">
+                    <property name="text">
+                     <string>Show logo</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
