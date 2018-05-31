@@ -17,9 +17,9 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 
 from PyQt5 import QtCore, QtWidgets
-import os
 from PIL import Image
 import numpy as np
 
@@ -27,8 +27,7 @@ import numpy as np
 class CreateVTKAnimationWindow(QtWidgets.QDialog):
     def __init__(self,parent=None):
         super(CreateVTKAnimationWindow, self).__init__(parent)
-        
-        self.mainWindow = parent
+        self.main_window = parent
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label_4 = QtWidgets.QLabel(self)
@@ -127,24 +126,22 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
         self.create_Button = QtWidgets.QPushButton(self)
         self.create_Button.setObjectName("create_Button")
         self.verticalLayout.addWidget(self.create_Button)
-        
-        self._inputFilter = InputFilter(parent)
-        self.isFirstRun = True
-        self.hasAlreadyRun = False
-
-        self.SetUpUI()
-        self.registerUiEvents()
-
         QtCore.QMetaObject.connectSlotsByName(self)
+        # define non-UI properties
+        self.input_filter = InputFilter(parent)
+        self.has_already_run = False
+        # call initial methods
+        self.setup_ui()
+        self.register_ui_events()
 
-    def SetUpUI(self):
+    def setup_ui(self):
         self.setWindowTitle("Create Snapshots and Animation")
         self.label_4.setText("Snapshots:")
         self.label.setText("First time step:")
         self.label_2.setText("Last time step:")
         self.label_3.setText("Step size:")
-        self.firstStep_lineEdit.setText(str(self.mainWindow.time_steps[0]))
-        self.lastStep_lineEdit.setText(str(self.mainWindow.time_steps[-1]))
+        self.firstStep_lineEdit.setText(str(self.main_window.time_steps[0]))
+        self.lastStep_lineEdit.setText(str(self.main_window.time_steps[-1]))
         self.frequency_lineEdit.setText("1")
         self.onlySnaps_checkBox.setText("Create snapshots.")
         self.makeVideo_checkBox.setText("Create video.")
@@ -157,28 +154,30 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
         self.label_8.setText("File name:")
         self.create_Button.setText("Create")
         self.browse_Button.setText("Browse")
-        self.saveTo_lineEdit.setText(self.mainWindow.GetDataFolderLocation() + "/3D_Animation")
+        self.saveTo_lineEdit.setText(
+            self.main_window.get_data_folder_location() + "/3D_Animation")
         self.fileName_lineEdit.setText("movie")
         self.onlySnaps_checkBox.setChecked(True)
         self.makeVideo_checkBox.setChecked(True)
         
-    def registerUiEvents(self):
-        self.firstStep_lineEdit.installEventFilter(self._inputFilter)
-        self.lastStep_lineEdit.installEventFilter(self._inputFilter)
-        self.create_Button.clicked.connect(self.createButton_clicked)
-        self.browse_Button.clicked.connect(self.OpenFolderDialog)
-        #self.onlySnaps_checkBox.toggled.connect(self.onlySnapsCheckBox_StatusChanged)
-        self.makeVideo_checkBox.toggled.connect(self.makeVideoCheckBox_StatusChanged)
+    def register_ui_events(self):
+        self.firstStep_lineEdit.installEventFilter(self.input_filter)
+        self.lastStep_lineEdit.installEventFilter(self.input_filter)
+        self.create_Button.clicked.connect(self.create_button_clicked)
+        self.browse_Button.clicked.connect(self.open_folder_dialog)
+        self.makeVideo_checkBox.toggled.connect(
+            self.make_video_checkbox_status_changed)
 
-    def OpenFolderDialog(self):
-        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Save animation to:", self.saveTo_lineEdit.text()))
-        if folderPath != "":
-            self.saveTo_lineEdit.setText(folderPath)
+    def open_folder_dialog(self):
+        folder_path = str(QtWidgets.QFileDialog.getExistingDirectory(
+            self, "Save animation to:", self.saveTo_lineEdit.text()))
+        if folder_path != "":
+            self.saveTo_lineEdit.setText(folder_path)
 
-    def createButton_clicked(self):
-        self.createAnimation()
+    def create_button_clicked(self):
+        self.create_animation()
     
-    def makeVideoCheckBox_StatusChanged(self):
+    def make_video_checkbox_status_changed(self):
         if self.makeVideo_checkBox.checkState():
             self.frameTime_radioButton.setEnabled(True)
             self.totalTime_radioButton.setEnabled(True)
@@ -188,29 +187,31 @@ class CreateVTKAnimationWindow(QtWidgets.QDialog):
             self.totalTime_radioButton.setEnabled(False)
             self.gifTime_lineEdit.setEnabled(False)
             
-    def createAnimation(self):
-        self.hasAlreadyRun = False
-        simulationTimeSteps = self.mainWindow.time_steps
-        firstTimeStep = int(self.firstStep_lineEdit.text())
-        firstIndex = np.where(simulationTimeSteps == firstTimeStep)[0][0]
-        lastTimeStep = int(self.lastStep_lineEdit.text())
-        lastIndex = np.where(simulationTimeSteps == lastTimeStep)[0][0]
+    def create_animation(self):
+        self.has_already_run = False
+        simulation_time_steps = self.main_window.time_steps
+        first_time_step = int(self.firstStep_lineEdit.text())
+        first_index = np.where(simulation_time_steps == first_time_step)[0][0]
+        last_time_step = int(self.lastStep_lineEdit.text())
+        last_index = np.where(simulation_time_steps == last_time_step)[0][0]
         freq = int(self.frequency_lineEdit.text())
-        for i in simulationTimeSteps[firstIndex:lastIndex+1:freq]:
-            self.mainWindow.set_time_step(i)
-            movieName = self.fileName_lineEdit.text()
-            framesDir = self.saveTo_lineEdit.text() + "/" + movieName + "_frames"
-            frameNameAndPath = framesDir + "/" + movieName + "_frame_" + str(i).zfill(6)
-            if not os.path.exists(framesDir):
-                os.makedirs(framesDir)
-            self.mainWindow.SaveScreenshot(frameNameAndPath)
+        for i in simulation_time_steps[first_index:last_index+1:freq]:
+            self.main_window.set_time_step(i)
+            movie_name = self.fileName_lineEdit.text()
+            frames_folder_path = (self.saveTo_lineEdit.text() + "/"
+                                  + movie_name + "_frames")
+            frame_path = (frames_folder_path + "/" + movie_name
+                          + "_frame_" + str(i).zfill(6))
+            if not os.path.exists(frames_folder_path):
+                os.makedirs(frames_folder_path)
+            self.main_window.save_screenshot(frame_path)
 
 
 class InputFilter(QtCore.QObject):
 
     def __init__(self, mainWindow):
         super(InputFilter,self).__init__()
-        self.mainWindow = mainWindow
+        self.main_window = mainWindow
 
     def eventFilter(self, widget, event):
         # FocusOut event
@@ -218,22 +219,24 @@ class InputFilter(QtCore.QObject):
             if event.type() == QtCore.QEvent.FocusOut:
                 # do custom stuff
                 step = int(widget.text())
-                timeSteps = self.mainWindow.time_steps
-                if step not in timeSteps:
-                    higherTimeSteps = np.where(timeSteps > step)[0]
-                    if len(higherTimeSteps) == 0:
-                        closestHigher = timeSteps[0]
+                time_steps = self.main_window.time_steps
+                if step not in time_steps:
+                    higher_time_steps = np.where(time_steps > step)[0]
+                    if len(higher_time_steps) == 0:
+                        closest_higher = time_steps[0]
                     else:
-                        closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
-                    lowerTimeSteps = np.where(timeSteps < step)[0]
-                    if len(lowerTimeSteps) == 0:
-                        closestLower = timeSteps[-1]
+                        closest_higher = time_steps[
+                            np.where(time_steps > step)[0][0]]
+                    lower_time_steps = np.where(time_steps < step)[0]
+                    if len(lower_time_steps) == 0:
+                        closest_lower = time_steps[-1]
                     else:
-                        closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
-                    if abs(step-closestHigher) < abs(step-closestLower):
-                        widget.setText(str(closestHigher))
+                        closest_lower = time_steps[
+                            np.where(time_steps < step)[0][-1]]
+                    if abs(step-closest_higher) < abs(step-closest_lower):
+                        widget.setText(str(closest_higher))
                     else:
-                        widget.setText(str(closestLower))
+                        widget.setText(str(closest_lower))
         except:
             pass
         # return False so that the widget will also handle the event

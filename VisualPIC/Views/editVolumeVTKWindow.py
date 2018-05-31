@@ -46,7 +46,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
     def __init__(self, volume, parent=None):
         super(EditVolumeVTKWindow, self).__init__()
         self.setupUi(self)
-        self.mainWindow = parent
+        self.main_window = parent
         self.volume = volume
         self.cmap_handler = volume.cmap_handler
         self.register_ui_events()
@@ -59,9 +59,9 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         super(EditVolumeVTKWindow, self).closeEvent(*args, **kwargs)
 
     def create_canvas_and_figure(self):
-        time_step = self.mainWindow.get_current_time_step()
+        time_step = self.main_window.get_current_time_step()
         hist, hist_edges = self.volume.get_field_histogram(time_step)
-        fld_name = self.volume.GetFieldName()
+        fld_name = self.volume.get_field_name()
         fld_units = self.volume.get_field_units()
         xlabel = fld_name + " [$" + fld_units + "$]"
         self.opacity_figure = FigureWithPoints(1, 1, hist=hist,
@@ -83,15 +83,12 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
         self.cmap_canvas.draw()
-        
         x, y = self.volume.get_opacity_values()
         self.opacity_figure.set_points(0, x, y)
-
         fld_val, r_val, g_val, b_val = self.volume.get_cmap_values()
         self.cmap_figure.set_points(0, fld_val, r_val)
         self.cmap_figure.set_points(1, fld_val, g_val)
         self.cmap_figure.set_points(2, fld_val, b_val)
-
         self.set_axes_range(time_step)
         self.set_range_in_line_edits(time_step)
 
@@ -105,14 +102,14 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure.set_axes_labels(2, "x", label_pos, labels)
 
     def register_time_step_events(self):
-        self.mainWindow.bind_time_step_to(self.set_histograms)
-        self.mainWindow.bind_time_step_to(self.set_axes_range)
-        self.mainWindow.bind_time_step_to(self.set_range_in_line_edits)
+        self.main_window.bind_time_step_to(self.set_histograms)
+        self.main_window.bind_time_step_to(self.set_axes_range)
+        self.main_window.bind_time_step_to(self.set_range_in_line_edits)
 
     def unregister_time_step_events(self):
-        self.mainWindow.unbind_time_step_to(self.set_histograms)
-        self.mainWindow.unbind_time_step_to(self.set_axes_range)
-        self.mainWindow.unbind_time_step_to(self.set_range_in_line_edits)
+        self.main_window.unbind_time_step_to(self.set_histograms)
+        self.main_window.unbind_time_step_to(self.set_axes_range)
+        self.main_window.unbind_time_step_to(self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
         hist, hist_edges = self.volume.get_field_histogram(time_step)
@@ -122,12 +119,16 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.cmap_figure.plot_histogram(2, hist_edges, hist)
 
     def register_ui_events(self):
-        self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.UpdateVolumeProperties)
-        self.norm_pushButton.clicked.connect(self.CustomNormalizationButton_Clicked)
-        self.cmap_comboBox.currentIndexChanged.connect(self.set_cmap_from_combobox)
-        self.opacity_comboBox.currentIndexChanged.connect(self.set_opacity_from_combobox)
+        self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(
+            self.update_volume_properties)
+        self.norm_pushButton.clicked.connect(self.range_button_clicked)
+        self.cmap_comboBox.currentIndexChanged.connect(
+            self.set_cmap_from_combobox)
+        self.opacity_comboBox.currentIndexChanged.connect(
+            self.set_opacity_from_combobox)
         self.save_opacity_pushButton.clicked.connect(self.save_opacity)
-        self.import_opacity_pushButton.clicked.connect(self.import_opacity_from_file)
+        self.import_opacity_pushButton.clicked.connect(
+            self.import_opacity_from_file)
         self.save_cmap_pushButton.clicked.connect(self.save_cmap)
         self.import_cmap_pushButton.clicked.connect(self.import_cmap_from_file)
 
@@ -218,24 +219,24 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         cmap_dialog = SaveColormapDialog(fld_val, r_val, g_val, b_val)
         cmap_dialog.exec_()
 
-    def UpdateVolumeProperties(self):
+    def update_volume_properties(self):
         fld_val_op, op_val = self.opacity_figure.GetPoints(0)
         fld_val_cmap, r_val = self.cmap_figure.GetPoints(0)
         fld_val_cmap, g_val = self.cmap_figure.GetPoints(1)
         fld_val_cmap, b_val = self.cmap_figure.GetPoints(2)
         self.volume.set_opacity(fld_val_op, op_val)
         self.volume.set_cmap(fld_val_cmap, r_val, g_val, b_val)
-        self.mainWindow.UpdateRender()
+        self.main_window.update_render()
         
-    def CustomNormalizationButton_Clicked(self):
+    def range_button_clicked(self):
         min_val = float(self.min_lineEdit.text())
         max_val = float(self.max_lineEdit.text())
         self.set_field_range(min_val, max_val)
 
     def set_field_range(self, min_val, max_val):
-        time_step = self.mainWindow.get_current_time_step()
-        self.volume.SetCMapRange(min_val, max_val)
-        self.mainWindow.make_render()
+        time_step = self.main_window.get_current_time_step()
+        self.volume.set_cmap_range(min_val, max_val)
+        self.main_window.make_render()
         self.set_axes_range(time_step)
         self.set_histograms(time_step)
         self.set_range_in_line_edits(time_step)

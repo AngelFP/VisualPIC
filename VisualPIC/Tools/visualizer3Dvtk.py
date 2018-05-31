@@ -18,19 +18,20 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from pkg_resources import resource_listdir, resource_filename
+
 import numpy as np
 from h5py import File as H5File
 import vtk
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from pkg_resources import resource_listdir, resource_filename
 
 
 class Visualizer3Dvtk():
     def __init__(self, dataContainer):
         self.dataContainer = dataContainer
-        self._GetAvailable3DFields()
-        self.volumeList = list()
-        self.volume = vtk.vtkVolume()
+        self.load_available_3d_fields()
+        self.volume_list = list()
+        self.vtk_volume = vtk.vtkVolume()
         self.volume_color_window = 1
         self.volume_color_level = 0.5
         self.render_quality = "Auto"
@@ -44,51 +45,51 @@ class Visualizer3Dvtk():
         self.display_axes = True
         self.axes_interactive = False
 
-    def _GetAvailable3DFields(self):
-        self.availableFields = list()
-        speciesList = self.dataContainer.GetAvailableSpecies()
+    def load_available_3d_fields(self):
+        self.available_fields = list()
+        species_list = self.dataContainer.GetAvailableSpecies()
         domainFields = self.dataContainer.GetAvailableDomainFields()
-        for species in speciesList:
+        for species in species_list:
             for field in species.GetAvailableFields():
                 #if field.GetFieldDimension() == "3D":
-                self.availableFields.append(field)
+                self.available_fields.append(field)
         for field in domainFields:
             #if field.GetFieldDimension() == "3D":
-            self.availableFields.append(field)
+            self.available_fields.append(field)
 
-    def GetListOfAvailable3DFields(self):
-        namesList = list()
-        for field in self.availableFields:
-            namesList.append({"fieldName":field.GetName(),
-                              "speciesName":field.GetSpeciesName()})
-        return namesList
+    def get_list_of_available_3d_fields(self):
+        names_list = list()
+        for field in self.available_fields:
+            names_list.append({"field_name": field.GetName(),
+                               "species_name": field.GetSpeciesName()})
+        return names_list
 
-    def GetTimeSteps(self):
+    def get_time_steps(self):
         i = 0
-        timeSteps = np.array([0])
-        for volume in self.volumeList:
+        time_steps = np.array([0])
+        for volume in self.volume_list:
             if i == 0:
-                timeSteps = volume.GetTimeSteps()
+                time_steps = volume.get_time_steps()
             else :
-                timeSteps = np.intersect1d(timeSteps, volume.GetTimeSteps())
-            i+=1
-        return timeSteps
+                time_steps = np.intersect1d(time_steps, volume.get_time_steps())
+            i += 1
+        return time_steps
 
-    def GetVTKWidget(self, parentWidget):
+    def get_vtk_widget(self, parent_widget):
         # create widget and references to renderer and interactor
-        self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
+        self.vtk_widget = QVTKRenderWindowInteractor(parent_widget)
         self.renderer = vtk.vtkRenderer()
         self.set_renderer_background(self.background_color)
-        self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
-        self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
+        self.vtk_widget.GetRenderWindow().AddRenderer(self.renderer)
+        self.interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
-        self.vtkCamera = self.renderer.GetActiveCamera()
+        self.vtk_camera = self.renderer.GetActiveCamera()
         # add widgets
         self.add_axes_widget()
         self.add_visualpic_logo()
         # set default interaction style
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
-        return self.vtkWidget
+        return self.vtk_widget
 
     def add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
@@ -105,7 +106,7 @@ class Visualizer3Dvtk():
     def add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
         self.logo_path = resource_filename(
-                'VisualPIC.Icons', 'logo_horizontal.png' )
+                'VisualPIC.Icons', 'logo_horizontal.png')
         self.vtk_png_reader = vtk.vtkPNGReader()
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()
@@ -160,110 +161,110 @@ class Visualizer3Dvtk():
         r, g, b = self.background_color_options[option]
         self.renderer.SetBackground(r,g,b)
 
-    def AddVolumeField(self, fieldName, speciesName):
+    def add_volume_field(self, field_name, species_name):
         # maximum volume number is 4, only add if this limit is not reached
-        if len(self.volumeList) < 4:
-            if speciesName == "":
-                for volume in self.volumeList:
+        if len(self.volume_list) < 4:
+            if species_name == "":
+                for volume in self.volume_list:
                     # do not add volume if already in list
-                    if (volume.GetFieldName() == fieldName):
+                    if (volume.get_field_name() == field_name):
                         return False
                 new_volume = Volume3D(
-                    self.dataContainer.GetDomainField(fieldName))
+                    self.dataContainer.GetDomainField(field_name))
             else:
-                for volume in self.volumeList:
+                for volume in self.volume_list:
                     # do not add volume if already in list
-                    if ((volume.GetFieldName() == fieldName
-                        and volume.GetSpeciesName() == speciesName)):
+                    if ((volume.get_field_name() == field_name
+                        and volume.get_species_name() == species_name)):
                         return False
                 new_volume = Volume3D(
-                    self.dataContainer.GetSpeciesField(speciesName, fieldName))
+                    self.dataContainer.GetSpeciesField(species_name, field_name))
             # add volume to list
-            self.volumeList.append(new_volume)
+            self.volume_list.append(new_volume)
             return True
         else:
             return False
 
-    def RemoveVolumeFromName(self, fieldName, speciesName):
-        for volumeField in self.volumeList:
-            if ((volumeField.GetFieldName() == fieldName)
-                and (volumeField.GetSpeciesName() == speciesName)):
-                self.volumeList.remove(volumeField)
+    def remove_volume_from_name(self, field_name, species_name):
+        for volume in self.volume_list:
+            if ((volume.get_field_name() == field_name)
+                and (volume.get_species_name() == species_name)):
+                self.volume_list.remove(volume)
                 return
 
-    def RemoveVolume(self, volume):
-        self.volumeList.remove(volume)
+    def remove_volume(self, volume):
+        self.volume_list.remove(volume)
 
-    def GetVolumeField(self, fieldName, speciesName):
-        for volume in self.volumeList:
-            if ((volume.name == fieldName)
-                and (volume.speciesName == speciesName)):
+    def get_volume_field(self, field_name, species_name):
+        for volume in self.volume_list:
+            if ((volume.name == field_name)
+                and (volume.species_name == species_name)):
                 return volume
 
-    def create_volume(self, timeStep):
+    def create_volume(self, time_step):
         # Get data
         npdatauchar = list()
-        volumeprop = vtk.vtkVolumeProperty()
-        volumeprop.IndependentComponentsOn()
-        volumeprop.SetInterpolationTypeToLinear()
-        for i, volume in enumerate(self.volumeList):
-            npdatauchar.append(volume.GetData(timeStep, 200, 300, 0.5))
-            volumeprop.SetColor(i,volume.vtk_color)
-            volumeprop.SetScalarOpacity(i,volume.vtk_opacity)
-            volumeprop.ShadeOff(i)
+        vtk_volume_prop = vtk.vtkVolumeProperty()
+        vtk_volume_prop.IndependentComponentsOn()
+        vtk_volume_prop.SetInterpolationTypeToLinear()
+        for i, volume in enumerate(self.volume_list):
+            npdatauchar.append(volume.get_data(time_step, 200, 300, 0.5))
+            vtk_volume_prop.SetColor(i,volume.vtk_color)
+            vtk_volume_prop.SetScalarOpacity(i,volume.vtk_opacity)
+            vtk_volume_prop.ShadeOff(i)
         npdatamulti = np.concatenate([aux[...,np.newaxis]
                                       for aux in npdatauchar], axis=3)
-        axes = self.volumeList[0].GetAxes(timeStep)
-        axesSpacing = self.volumeList[0].GetAxesSpacing(timeStep, 200, 300,
-                                                        0.5)
+        axes = self.volume_list[0].get_axes(time_step)
+        axes_spacing = self.volume_list[0].get_axes_spacing(time_step, 200,
+                                                            300, 0.5)
         # Normalize spacing. Too small values lead to ghost volumes.
-        max_sp = max(axesSpacing["x"], axesSpacing["y"], axesSpacing["z"])
+        max_sp = max(axes_spacing["x"], axes_spacing["y"], axes_spacing["z"])
         # Too big cells turn opaque, too small become transparent. 
         # max_cell_size normalizes the cell size
         max_cell_size = 0.1 
         norm_factor = max_cell_size/max_sp
-        axesSpacing["x"] = axesSpacing["x"]*norm_factor
-        axesSpacing["y"] = axesSpacing["y"]*norm_factor
-        axesSpacing["z"] = axesSpacing["z"]*norm_factor
+        axes_spacing["x"] = axes_spacing["x"]*norm_factor
+        axes_spacing["y"] = axes_spacing["y"]*norm_factor
+        axes_spacing["z"] = axes_spacing["z"]*norm_factor
         # Put data in VTK format
-        dataImport = vtk.vtkImageImport()
-        dataImport.SetImportVoidPointer(npdatamulti)
-        dataImport.SetDataScalarTypeToUnsignedChar()
-        dataImport.SetNumberOfScalarComponents(len(self.volumeList))
-        dataImport.SetDataExtent(0, npdatamulti.shape[2]-1,
-                                 0, npdatamulti.shape[1]-1,
-                                 0, npdatamulti.shape[0]-1)
-        dataImport.SetWholeExtent(0, npdatamulti.shape[2]-1,
-                                  0, npdatamulti.shape[1]-1,
-                                  0, npdatamulti.shape[0]-1)
-        dataImport.SetDataSpacing(axesSpacing["x"],
-                                  axesSpacing["y"],
-                                  axesSpacing["z"])
+        vtk_data_import = vtk.vtkImageImport()
+        vtk_data_import.SetImportVoidPointer(npdatamulti)
+        vtk_data_import.SetDataScalarTypeToUnsignedChar()
+        vtk_data_import.SetNumberOfScalarComponents(len(self.volume_list))
+        vtk_data_import.SetDataExtent(0, npdatamulti.shape[2]-1,
+                                      0, npdatamulti.shape[1]-1,
+                                      0, npdatamulti.shape[0]-1)
+        vtk_data_import.SetWholeExtent(0, npdatamulti.shape[2]-1,
+                                       0, npdatamulti.shape[1]-1,
+                                       0, npdatamulti.shape[0]-1)
+        vtk_data_import.SetDataSpacing(axes_spacing["x"],
+                                       axes_spacing["y"],
+                                       axes_spacing["z"])
         # data origin is also changed by the normalization
-        dataImport.SetDataOrigin(axes["x"][0]*norm_factor,
-                                 axes["y"][0]*norm_factor,
-                                 axes["z"][0]*norm_factor)
-        dataImport.Update()
+        vtk_data_import.SetDataOrigin(axes["x"][0]*norm_factor,
+                                      axes["y"][0]*norm_factor,
+                                      axes["z"][0]*norm_factor)
+        vtk_data_import.Update()
         # Create the mapper
-        volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetInputConnection(dataImport.GetOutputPort())
-        volumeMapper.Update()
+        vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
+        vtk_volume_mapper.SetInputConnection(vtk_data_import.GetOutputPort())
+        vtk_volume_mapper.Update()
         # Add to volume
-        self.volume.SetMapper(volumeMapper)
-        self.volume.SetProperty(volumeprop)
+        self.vtk_volume.SetMapper(vtk_volume_mapper)
+        self.vtk_volume.SetProperty(vtk_volume_prop)
         # Set visualization parameters
         self.set_render_quality(self.render_quality)
         self.set_color_level(self.volume_color_level)
         self.set_color_window(self.volume_color_window)
         # Add to render
-        self.renderer.AddVolume(self.volume)
+        self.renderer.AddVolume(self.vtk_volume)
         self.renderer.ResetCamera()
         self.renderer.GetRenderWindow().Render()
         self.interactor.Initialize()
 
     def set_render_quality(self, str_value):
         self.render_quality = str_value
-        mapper = self.volume.GetMapper()
+        mapper = self.vtk_volume.GetMapper()
         if mapper is not None:
             val = self.render_quality_options[str_value]
             if str_value == "Auto":
@@ -280,7 +281,7 @@ class Visualizer3Dvtk():
 
     def set_color_level(self, value):
         self.volume_color_level = value
-        mapper = self.volume.GetMapper()
+        mapper = self.vtk_volume.GetMapper()
         if mapper is not None:
             mapper.SetFinalColorLevel(self.volume_color_level)
 
@@ -289,23 +290,22 @@ class Visualizer3Dvtk():
 
     def set_color_window(self, value):
         self.volume_color_window = value
-        mapper = self.volume.GetMapper()
+        mapper = self.vtk_volume.GetMapper()
         if mapper is not None:
             mapper.SetFinalColorWindow(self.volume_color_window)
 
     def get_color_window(self):
         return self.volume_color_window
 
-    def MakeRender(self, timeStep):
-        self.create_volume(timeStep)
-        #self.CreateVolume(timeStep)
+    def make_render(self, time_step):
+        self.create_volume(time_step)
 
-    def UpdateRender(self):
+    def update_render(self):
         self.interactor.Render()
 
-    def SaveScreenshot(self, path):
+    def save_screenshot(self, path):
         w2if = vtk.vtkWindowToImageFilter()
-        w2if.SetInput(self.vtkWidget.GetRenderWindow())
+        w2if.SetInput(self.vtk_widget.GetRenderWindow())
         w2if.Update()
  
         writer = vtk.vtkPNGWriter()
@@ -316,20 +316,19 @@ class Visualizer3Dvtk():
 
 class Volume3D():
     def __init__(self, field3D):
-        self.actorType = "Volume"
+        self.actor_type = "Volume"
         self.name = field3D.GetName()
-        self.speciesName = field3D.GetSpeciesName()
+        self.species_name = field3D.GetSpeciesName()
         self.field = field3D
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_color = vtk.vtkColorTransferFunction()
-        self.vtk_volume = vtk.vtkVolume()
         self.cmap_handler = ColormapHandler()
-        self.customCMapRange = False
+        self.custom_cmap_range = False
         self.cmap_range_has_changed = False
         self.current_time_step = -1
-        self._set_default_style()
+        self.set_default_style()
 
-    def _set_default_style(self):
+    def set_default_style(self):
         default_op = "linear positive"
         self.set_opacity_from_presets(default_op)
 
@@ -354,34 +353,30 @@ class Volume3D():
         fld_val, r_val, g_val, b_val = cmap.get_cmap()
         self.set_cmap(fld_val, r_val, g_val, b_val)
 
-    def GetFieldName(self):
+    def get_field_name(self):
         return self.field.GetName()
 
-    def get_field_histogram(self, time_step, bins = 64):
-        fld_data = self.GetData(time_step)
+    def get_field_histogram(self, time_step, bins=64):
+        fld_data = self.get_data(time_step)
         hist, hist_edges = np.histogram(fld_data, bins=bins)
         hist = np.log(hist)
         return hist/hist.max(), hist_edges
 
     def get_field_range(self, time_step, nels):
         self.load_field_data(time_step)
-        return np.linspace(self.minRange, self.maxRange, nels)
+        return np.linspace(self.min_range, self.max_range, nels)
 
     def get_field_units(self):
         return self.field.GetDataISUnits()
 
-    def GetSpeciesName(self):
+    def get_species_name(self):
         return self.field.GetSpeciesName()
 
-    def GetTimeSteps(self):
+    def get_time_steps(self):
         return self.field.GetTimeSteps()
 
-    def SetColorPoints(self, points):
-        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
-        self.vtk_color.RemoveAllPoints()
-        self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
-
     def set_cmap(self, fld_val, r_val, g_val, b_val):
+        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
         self.vtk_color.RemoveAllPoints()
         points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
         self.vtk_color.FillFromDataPointer(int(len(points)/4), points)
@@ -391,10 +386,10 @@ class Volume3D():
         for i in np.arange(len(field_values)):
             self.vtk_opacity.AddPoint(field_values[i], opacity_values[i])
 
-    def SetCMapRange(self, min, max):
-        self.maxRange = max
-        self.minRange = min
-        self.customCMapRange = True
+    def set_cmap_range(self, min, max):
+        self.max_range = max
+        self.min_range = min
+        self.custom_cmap_range = True
         self.cmap_range_has_changed = True
 
     def get_cmap_values(self):
@@ -424,28 +419,28 @@ class Volume3D():
             op_values.append(val[1])
         return np.array(fld_values), np.array(op_values)
 
-    def GetData(self, timeStep, transvEl = None, longEl = None, fraction = 1):
-        self.load_field_data(timeStep, transvEl, longEl, fraction)
-        maxvalue = self.maxRange
-        minvalue = self.minRange
-        norm_data = np.round(255 * (self.fieldData-minvalue)/(maxvalue-minvalue))
+    def get_data(self, time_step, transv_el = None, lon_el = None, fraction = 1):
+        self.load_field_data(time_step, transv_el, lon_el, fraction)
+        max_value = self.max_range
+        min_value = self.min_range
+        norm_data = np.round(255 * (self.fieldData-min_value)/(max_value-min_value))
         norm_data[norm_data < 0] = 0
         norm_data[norm_data > 255] = 255
         # Change data from float to unsigned char
         npdatauchar = np.array(norm_data, dtype=np.uint8)
         return npdatauchar
 
-    def load_field_data(self, time_step, transvEl = None, longEl = None,
+    def load_field_data(self, time_step, transv_el = None, lon_el = None,
                         fraction = 1):
         if not self.is_data_loaded(time_step):
             if self.field.GetFieldDimension() == "3D":
                 self.fieldData = self.field.GetAllFieldDataInOriginalUnits(time_step)
             if self.field.GetFieldDimension() == "2D":
                 self.fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
-                    time_step, transvEl, longEl, fraction)
-            if not self.customCMapRange:
-                self.maxRange = np.amax(self.fieldData)
-                self.minRange = np.amin(self.fieldData)
+                    time_step, transv_el, lon_el, fraction)
+            if not self.custom_cmap_range:
+                self.max_range = np.amax(self.fieldData)
+                self.min_range = np.amin(self.fieldData)
             else:
                 self.cmap_range_has_changed = False
             self.current_time_step = time_step
@@ -454,29 +449,29 @@ class Volume3D():
         return (self.current_time_step == time_step
                 and not self.cmap_range_has_changed)
 
-    def GetAxes(self, timeStep):
+    def get_axes(self, time_step):
         axes = {}
         if self.field.GetFieldDimension() == "3D":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", timeStep)
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
         if self.field.GetFieldDimension() == "2D":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axes["y"] = self.field.GetAxisDataInOriginalUnits("y", timeStep)
-        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", timeStep)
+            axes["z"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+        axes["y"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
         return axes
 
-    def GetAxesSpacing(self, timeStep, transvEl = None, longEl = None,
+    def get_axes_spacing(self, time_step, transv_el = None, lon_el = None,
                        fraction = 1):
         # TODO: implement number of elements and fraction in 3D
         spacing = {}
-        axes = self.GetAxes(timeStep)
+        axes = self.get_axes(time_step)
         if self.field.GetFieldDimension() == "3D":
             spacing["x"] = np.abs(axes["x"][1]-axes["x"][0])
             spacing["y"] = np.abs(axes["y"][1]-axes["y"][0])
             spacing["z"] = np.abs(axes["z"][1]-axes["z"][0])
         if self.field.GetFieldDimension() == "2D":
-            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/longEl
-            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
-            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transvEl*fraction
+            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/lon_el
+            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
+            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
         return spacing
 
 
@@ -495,9 +490,9 @@ class ColormapHandler():
         def __init__(self, *args, **kwargs):
             self.max_len = 50
             self.opacity_folder_path = resource_filename(
-                'VisualPIC.Assets.Visualizer3D.Opacities', '' )
+                'VisualPIC.Assets.Visualizer3D.Opacities', '')
             self.cmaps_folder_path = resource_filename(
-                'VisualPIC.Assets.Visualizer3D.Colormaps', '' )
+                'VisualPIC.Assets.Visualizer3D.Colormaps', '')
             self.initialize_available_opacities()
             self.initialize_available_cmaps()
             return super().__init__(*args, **kwargs)
@@ -533,37 +528,37 @@ class ColormapHandler():
 
         def get_available_opacities(self):
             ops = list()
-            for op in self.default_opacities+self.other_opacities:
+            for op in self.default_opacities + self.other_opacities:
                 ops.append(op.get_name())
             return ops
         
         def opacity_exists(self, op_name):
-            for op in self.default_opacities+self.other_opacities:
+            for op in self.default_opacities + self.other_opacities:
                 if op.get_name() == op_name:
                     return True
             return False
 
         def get_opacity(self, op_name):
-            for op in self.default_opacities+self.other_opacities:
+            for op in self.default_opacities + self.other_opacities:
                 if op.get_name() == op_name:
                     return op
 
         def get_opacity_data(self, op_name):
-            for op in self.default_opacities+self.other_opacities:
+            for op in self.default_opacities + self.other_opacities:
                 if op.get_name() == op_name:
                     return op.get_opacity()
 
         def save_opacity(self, name, field_values, opacity_values,
                          folder_path):
-            if (field_values.min()>=0 and field_values.max()<=255
-                and opacity_values.min()>=0 and opacity_values.max()<=1
+            if (field_values.min() >= 0 and field_values.max() <= 255
+                and opacity_values.min() >= 0 and opacity_values.max() <= 1
                 and len(field_values) == len(opacity_values)
                 and len(opacity_values) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
                 opacity_dataset = file.create_dataset(
-                    "opacity", data = opacity_values )
+                    "opacity", data = opacity_values)
                 field_dataset = file.create_dataset("field",
                                                     data = field_values)
                 file.attrs["opacity_name"] = name
@@ -609,8 +604,8 @@ class ColormapHandler():
             cmap = Colormap("")
             cmap.name = "default"
             cmap.fld_data = np.linspace(0, 255, n_points)
-            r_1 = np.linspace(0, 1, (n_points+1)/2)
-            r_2 = np.linspace(1, 0, (n_points+1)/2)
+            r_1 = np.linspace(0, 1, (n_points+1) / 2)
+            r_2 = np.linspace(1, 0, (n_points+1) / 2)
             cmap.r_data = np.append(np.delete(r_1, -1), r_2)
             cmap.g_data = np.linspace(0, 1, n_points)
             cmap.b_data = np.linspace(1, 0, n_points)
@@ -618,40 +613,40 @@ class ColormapHandler():
 
         def get_available_cmaps(self):
             cmaps = list()
-            for cmap in self.default_cmaps+self.other_cmaps:
+            for cmap in self.default_cmaps + self.other_cmaps:
                 cmaps.append(cmap.get_name())
             return cmaps
         
         def cmap_exists(self, cmap_name):
-            for cmap in self.default_cmaps+self.other_cmaps:
+            for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
                     return True
             return False
 
         def get_cmap(self, cmap_name):
-            for cmap in self.default_cmaps+self.other_cmaps:
+            for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
                     return cmap
 
         def get_cmap_data(self, cmap_name):
-            for cmap in self.default_cmaps+self.other_cmaps:
+            for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
                     return cmap.get_cmap()
 
         def save_cmap(self, name, fld_val, r_val, g_val, b_val, folder_path):
-            if (fld_val.min()>=0 and fld_val.max()<=255
-                and r_val.min()>=0 and r_val.max()<=255
-                and g_val.min()>=0 and g_val.max()<=255
-                and b_val.min()>=0 and b_val.max()<=255
+            if (fld_val.min() >= 0 and fld_val.max() <= 255
+                and r_val.min() >= 0 and r_val.max() <= 255
+                and g_val.min() >= 0 and g_val.max() <= 255
+                and b_val.min() >= 0 and b_val.max() <= 255
                 and len(fld_val) == len(r_val) == len(g_val) == len(b_val)
                 and len(fld_val) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
-                r_dataset = file.create_dataset("r", data = r_val)
-                g_dataset = file.create_dataset("g", data = g_val)
-                b_dataset = file.create_dataset("b", data = b_val)
-                fld_dataset = file.create_dataset("field", data = fld_val)
+                r_dataset = file.create_dataset("r", data=r_val)
+                g_dataset = file.create_dataset("g", data=g_val)
+                b_dataset = file.create_dataset("b", data=b_val)
+                fld_dataset = file.create_dataset("field", data=fld_val)
                 file.attrs["cmap_name"] = name
                 file.close()
                 # Add to available colormaps
