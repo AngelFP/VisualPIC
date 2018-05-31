@@ -56,6 +56,14 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.updating_ui = False
         self.FillUIWithData()
         self.create_time_step_callbacks()
+
+    def closeEvent(self, *args, **kwargs):
+        """ This fixes bug described in 
+        (http://vtk.1045678.n5.nabble.com/Multiple-vtkRenderWindows-Error-
+        during-cleanup-wglMakeCurrent-failed-in-Clean-tt5747036.html)
+        """
+        self.vtkWidget.GetRenderWindow().Finalize()
+        super(Visualizer3DvtkWindow, self).closeEvent(*args, **kwargs)
         
     def CreateVTKWidget(self):
         self.vtkWidget = self.visualizer3Dvtk.GetVTKWidget(self.plot_Widget)
