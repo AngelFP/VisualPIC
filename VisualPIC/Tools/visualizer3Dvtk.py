@@ -36,6 +36,13 @@ class Visualizer3Dvtk():
         self.render_quality = "Auto"
         self.render_quality_options = {"Auto": 0, "Low": 0.2, "Medium": 0.05,
                                        "High": 0.02, "Ultra": 0.005}
+        self.background_color_options = {"Black": (0, 0, 0),
+                                         "White": (1, 1, 1),
+                                         "Custom": (-1, -1, -1)}
+        self.background_color = "Black"
+        self.display_logo = True
+        self.display_axes = True
+        self.axes_interactive = False
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -71,7 +78,7 @@ class Visualizer3Dvtk():
         # create widget and references to renderer and interactor
         self.vtkWidget = QVTKRenderWindowInteractor(parentWidget)
         self.renderer = vtk.vtkRenderer()
-        self.renderer.SetBackground(0,0,0)
+        self.set_renderer_background(self.background_color)
         self.vtkWidget.GetRenderWindow().AddRenderer(self.renderer)
         self.interactor = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.interactor.Initialize()
@@ -89,11 +96,11 @@ class Visualizer3Dvtk():
         self.vtk_axes.SetZAxisLabelText("X")
         self.vtk_orientation_marker = vtk.vtkOrientationMarkerWidget()
         self.vtk_orientation_marker.SetOutlineColor(1, 1, 1)
-        self.vtk_orientation_marker.SetOrientationMarker(self.vtk_axes);
-        self.vtk_orientation_marker.SetInteractor(self.interactor);
-        self.vtk_orientation_marker.SetViewport(0.0, 0.0, 0.2, 0.2);
-        self.vtk_orientation_marker.SetEnabled(1);
-        self.vtk_orientation_marker.InteractiveOff()
+        self.vtk_orientation_marker.SetOrientationMarker(self.vtk_axes)
+        self.vtk_orientation_marker.SetInteractor(self.interactor)
+        self.vtk_orientation_marker.SetViewport(0.0, 0.0, 0.2, 0.2)
+        self.set_axes_widget_visibility(self.display_axes)
+        self.set_axes_widget_interactive(self.axes_interactive)
 
     def add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
@@ -111,29 +118,46 @@ class Visualizer3Dvtk():
         self.vtk_logo_widget = vtk.vtkLogoWidget()
         self.vtk_logo_widget.SetInteractor(self.interactor)
         self.vtk_logo_widget.SetRepresentation(self.vtk_logo_representation)
-        self.vtk_logo_widget.On()
+        self.set_logo_widget_visibility(self.display_logo)
 
     def set_axes_widget_interactive(self, value):
-        if value:
-            self.vtk_orientation_marker.InteractiveOn()
-        else:
-            self.vtk_orientation_marker.InteractiveOff()
+        self.axes_interactive = value
+        if self.display_axes:
+            if value:
+                self.vtk_orientation_marker.InteractiveOn()
+            else:
+                self.vtk_orientation_marker.InteractiveOff()
 
     def set_logo_widget_visibility(self, value):
+        self.display_logo = value
         if value:
             self.vtk_logo_widget.On()
         else:
             self.vtk_logo_widget.Off()
-        self.UpdateRender()
+
+    def get_logo_visibility(self):
+        return self.display_logo
 
     def set_axes_widget_visibility(self, value):
+        self.display_axes = value
+        self.vtk_orientation_marker.SetEnabled(value)
         if value:
-            self.vtk_orientation_marker.SetEnabled(1)
-        else:
-            self.vtk_orientation_marker.SetEnabled(0)
-        self.UpdateRender()
+            self.set_axes_widget_interactive(self.axes_interactive)
 
-    def set_renderer_background(self, r, g, b):
+    def get_axes_visibility(self):
+        return self.display_axes
+
+    def get_current_background_color_option(self):
+        return self.background_color
+
+    def get_renderer_background_color_options(self):
+        return [*self.background_color_options]
+
+    def set_renderer_background(self, option, r=None, g=None, b=None):
+        self.background_color = option
+        if option == "Custom":
+            self.background_color_options[option] = (r, g, b)
+        r, g, b = self.background_color_options[option]
         self.renderer.SetBackground(r,g,b)
 
     def AddVolumeField(self, fieldName, speciesName):
@@ -222,17 +246,15 @@ class Visualizer3Dvtk():
         dataImport.Update()
         # Create the mapper
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        #volumeMapper.SetAutoAdjustSampleDistances(0)
-        #volumeMapper.SetSampleDistance(0.05)
-        volumeMapper.SetFinalColorLevel(self.volume_color_level)
-        volumeMapper.SetFinalColorWindow(self.volume_color_window)
         volumeMapper.SetInputConnection(dataImport.GetOutputPort())
         volumeMapper.Update()
         # Add to volume
         self.volume.SetMapper(volumeMapper)
         self.volume.SetProperty(volumeprop)
-        # Set default render quality
+        # Set visualization parameters
         self.set_render_quality(self.render_quality)
+        self.set_color_level(self.volume_color_level)
+        self.set_color_window(self.volume_color_window)
         # Add to render
         self.renderer.AddVolume(self.volume)
         self.renderer.ResetCamera()

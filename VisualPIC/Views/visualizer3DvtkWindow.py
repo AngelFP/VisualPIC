@@ -73,9 +73,19 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
         self.black_bg_radioButton.toggled.connect(self.change_background)
         self.white_bg_radioButton.toggled.connect(self.change_background)
-        self.logo_checkBox.toggled.connect(self.visualizer3Dvtk.set_logo_widget_visibility)
-        self.axes_checkBox.toggled.connect(self.visualizer3Dvtk.set_axes_widget_visibility)
+        self.logo_checkBox.toggled.connect(self.set_logo_visibility)
+        self.axes_checkBox.toggled.connect(self.set_axes_visibility)
         self.quality_comboBox.currentIndexChanged.connect(self.set_render_quality)
+
+    def set_logo_visibility(self, value):
+        if not self.updating_ui:
+            self.visualizer3Dvtk.set_logo_widget_visibility(value)
+            self.UpdateRender()
+
+    def set_axes_visibility(self, value):
+        if not self.updating_ui:
+            self.visualizer3Dvtk.set_axes_widget_visibility(value)
+            self.UpdateRender()
 
     def set_render_quality(self):
         if not self.updating_ui:
@@ -106,11 +116,12 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.UpdateRender()
 
     def change_background(self):
-        if self.black_bg_radioButton.isChecked():
-            self.visualizer3Dvtk.set_renderer_background(0, 0, 0)
-        elif self.white_bg_radioButton.isChecked():
-            self.visualizer3Dvtk.set_renderer_background(1, 1, 1)
-        self.UpdateRender()
+        if not self.updating_ui:
+            if self.black_bg_radioButton.isChecked():
+                self.visualizer3Dvtk.set_renderer_background("Black")
+            elif self.white_bg_radioButton.isChecked():
+                self.visualizer3Dvtk.set_renderer_background("White")
+            self.UpdateRender()
 
     def create_time_step_callbacks(self):
         self.bind_time_step_to(self.timeStep_Slider.setValue)
@@ -125,7 +136,25 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.set_brightness_slider_value()
         self.set_contrast_slider_value()
         self.fill_render_quality_combobox()
+        self.setup_axes_checkbox()
+        self.setup_logo_checkbox()
+        self.setup_background_color_radio_buttons()
         self.updating_ui = False
+
+    def setup_background_color_radio_buttons(self):
+        option = self.visualizer3Dvtk.get_current_background_color_option()
+        if option == "White":
+            self.white_bg_radioButton.setChecked(True)
+        elif option == "Black":
+            self.black_bg_radioButton.setChecked(True)
+
+    def setup_axes_checkbox(self):
+        self.axes_checkBox.setChecked(
+            self.visualizer3Dvtk.get_axes_visibility())
+
+    def setup_logo_checkbox(self):
+        self.logo_checkBox.setChecked(
+            self.visualizer3Dvtk.get_logo_visibility())
 
     def fill_render_quality_combobox(self):
         self.quality_comboBox.addItems(self.visualizer3Dvtk.get_render_quality_options())
