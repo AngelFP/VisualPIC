@@ -33,6 +33,9 @@ class Visualizer3Dvtk():
         self.volume = vtk.vtkVolume()
         self.volume_color_window = 1
         self.volume_color_level = 0.5
+        self.render_quality = "Auto"
+        self.render_quality_options = {"Auto": 0, "Low": 0.2, "Medium": 0.05,
+                                       "High": 0.02, "Ultra": 0.005}
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -219,8 +222,8 @@ class Visualizer3Dvtk():
         dataImport.Update()
         # Create the mapper
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetAutoAdjustSampleDistances(0)
-        volumeMapper.SetSampleDistance(0.05)
+        #volumeMapper.SetAutoAdjustSampleDistances(0)
+        #volumeMapper.SetSampleDistance(0.05)
         volumeMapper.SetFinalColorLevel(self.volume_color_level)
         volumeMapper.SetFinalColorWindow(self.volume_color_window)
         volumeMapper.SetInputConnection(dataImport.GetOutputPort())
@@ -228,11 +231,29 @@ class Visualizer3Dvtk():
         # Add to volume
         self.volume.SetMapper(volumeMapper)
         self.volume.SetProperty(volumeprop)
+        # Set default render quality
+        self.set_render_quality(self.render_quality)
         # Add to render
         self.renderer.AddVolume(self.volume)
         self.renderer.ResetCamera()
         self.renderer.GetRenderWindow().Render()
         self.interactor.Initialize()
+
+    def set_render_quality(self, str_value):
+        mapper = self.volume.GetMapper()
+        val = self.render_quality_options[str_value]
+        self.render_quality = str_value
+        if str_value == "Auto":
+            mapper.SetAutoAdjustSampleDistances(1)
+        else:
+            mapper.SetAutoAdjustSampleDistances(0)
+            mapper.SetSampleDistance(val)
+
+    def get_render_quality_options(self):
+        return [*self.render_quality_options]
+
+    def get_current_render_quality(self):
+        return self.render_quality
 
     def set_color_level(self, value):
         self.volume_color_level = value

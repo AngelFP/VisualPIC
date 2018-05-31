@@ -75,6 +75,13 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.white_bg_radioButton.toggled.connect(self.change_background)
         self.logo_checkBox.toggled.connect(self.visualizer3Dvtk.set_logo_widget_visibility)
         self.axes_checkBox.toggled.connect(self.visualizer3Dvtk.set_axes_widget_visibility)
+        self.quality_comboBox.currentIndexChanged.connect(self.set_render_quality)
+
+    def set_render_quality(self):
+        if not self.updating_ui:
+            str_value = self.quality_comboBox.currentText()
+            self.visualizer3Dvtk.set_render_quality(str_value)
+            self.UpdateRender()
 
     def set_volume_brightness(self):
         slider_value = self.brightness_horizontalSlider.value()
@@ -113,9 +120,17 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         AnimationWindow.exec_()
 
     def FillUIWithData(self):
+        self.updating_ui = True
         self.FillAvailable3DFieldsList()
         self.set_brightness_slider_value()
         self.set_contrast_slider_value()
+        self.fill_render_quality_combobox()
+        self.updating_ui = False
+
+    def fill_render_quality_combobox(self):
+        self.quality_comboBox.addItems(self.visualizer3Dvtk.get_render_quality_options())
+        index = self.quality_comboBox.findText(self.visualizer3Dvtk.get_current_render_quality())
+        self.quality_comboBox.setCurrentIndex(index)
 
     def set_brightness_slider_value(self):
         slider_max = self.brightness_horizontalSlider.maximum()
