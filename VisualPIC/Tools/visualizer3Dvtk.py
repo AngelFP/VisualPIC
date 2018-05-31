@@ -262,14 +262,15 @@ class Visualizer3Dvtk():
         self.interactor.Initialize()
 
     def set_render_quality(self, str_value):
-        mapper = self.volume.GetMapper()
-        val = self.render_quality_options[str_value]
         self.render_quality = str_value
-        if str_value == "Auto":
-            mapper.SetAutoAdjustSampleDistances(1)
-        else:
-            mapper.SetAutoAdjustSampleDistances(0)
-            mapper.SetSampleDistance(val)
+        mapper = self.volume.GetMapper()
+        if mapper is not None:
+            val = self.render_quality_options[str_value]
+            if str_value == "Auto":
+                mapper.SetAutoAdjustSampleDistances(1)
+            else:
+                mapper.SetAutoAdjustSampleDistances(0)
+                mapper.SetSampleDistance(val)
 
     def get_render_quality_options(self):
         return [*self.render_quality_options]
@@ -279,14 +280,18 @@ class Visualizer3Dvtk():
 
     def set_color_level(self, value):
         self.volume_color_level = value
-        self.volume.GetMapper().SetFinalColorLevel(self.volume_color_level)
+        mapper = self.volume.GetMapper()
+        if mapper is not None:
+            mapper.SetFinalColorLevel(self.volume_color_level)
 
     def get_color_level(self):
         return self.volume_color_level
 
     def set_color_window(self, value):
         self.volume_color_window = value
-        self.volume.GetMapper().SetFinalColorWindow(self.volume_color_window)
+        mapper = self.volume.GetMapper()
+        if mapper is not None:
+            mapper.SetFinalColorWindow(self.volume_color_window)
 
     def get_color_window(self):
         return self.volume_color_window
