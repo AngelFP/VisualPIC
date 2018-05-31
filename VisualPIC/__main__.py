@@ -72,7 +72,7 @@ def set_dark_theme(qapp):
                      QColor(127,127,127))
     qapp.setPalette(palette)
  
-if __name__ == '__main__':
+def display_gui():
     # Enable scaling for high DPI displays
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -132,4 +132,6 @@ if __name__ == '__main__':
     mainWindow.show()
     splash.finish(mainWindow)
     sys.exit(app.exec_())
-    
+
+if __name__ == '__main__':
+    display_gui()
