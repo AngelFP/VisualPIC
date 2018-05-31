@@ -68,11 +68,35 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.nextStep_Button.clicked.connect(self.NextButton_Clicked)
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
         self.render_pushButton.clicked.connect(self.RenderButton_Clicked)
+        self.brightness_horizontalSlider.sliderReleased.connect(self.set_volume_brightness)
+        self.contrast_horizontalSlider.sliderReleased.connect(self.set_volume_contrast)
         self.screenshotButton.clicked.connect(self.ScreenshotButton_Clicked)
         self.black_bg_radioButton.toggled.connect(self.change_background)
         self.white_bg_radioButton.toggled.connect(self.change_background)
         self.logo_checkBox.toggled.connect(self.visualizer3Dvtk.set_logo_widget_visibility)
         self.axes_checkBox.toggled.connect(self.visualizer3Dvtk.set_axes_widget_visibility)
+
+    def set_volume_brightness(self):
+        slider_value = self.brightness_horizontalSlider.value()
+        slider_max = self.brightness_horizontalSlider.maximum()
+        slider_min = self.brightness_horizontalSlider.minimum()
+        # rescale value to a range between 0 and 1
+        brightness = (slider_value-slider_min)/(slider_max-slider_min)
+        color_level = (1-brightness)
+        self.visualizer3Dvtk.set_color_level(color_level)
+        self.UpdateRender()
+
+    def set_volume_contrast(self):
+        slider_value = self.contrast_horizontalSlider.value()
+        slider_max = self.contrast_horizontalSlider.maximum()
+        slider_min = self.contrast_horizontalSlider.minimum()
+        # rescale value to a range between 0 and 1
+        contrast = (slider_value-slider_min)/(slider_max-slider_min)
+        if contrast == 1:
+            contrast -= 1e-3
+        color_window = -np.log(contrast)
+        self.visualizer3Dvtk.set_color_window(color_window)
+        self.UpdateRender()
 
     def change_background(self):
         if self.black_bg_radioButton.isChecked():
@@ -90,6 +114,24 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
 
     def FillUIWithData(self):
         self.FillAvailable3DFieldsList()
+        self.set_brightness_slider_value()
+        self.set_contrast_slider_value()
+
+    def set_brightness_slider_value(self):
+        slider_max = self.brightness_horizontalSlider.maximum()
+        slider_min = self.brightness_horizontalSlider.minimum()
+        color_level = self.visualizer3Dvtk.get_color_level()
+        brightness = 1-color_level
+        slider_value = slider_min + brightness*(slider_max-slider_min)
+        self.brightness_horizontalSlider.setValue(slider_value)
+
+    def set_contrast_slider_value(self):
+        slider_max = self.contrast_horizontalSlider.maximum()
+        slider_min = self.contrast_horizontalSlider.minimum()
+        color_window = self.visualizer3Dvtk.get_color_window()
+        contrast = np.exp(-color_window)
+        slider_value = slider_min + contrast*(slider_max-slider_min)
+        self.contrast_horizontalSlider.setValue(slider_value)
 
     def FillAvailable3DFieldsList(self):
         model = QtGui.QStandardItemModel()

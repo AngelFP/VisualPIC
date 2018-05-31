@@ -31,6 +31,8 @@ class Visualizer3Dvtk():
         self._GetAvailable3DFields()
         self.volumeList = list()
         self.volume = vtk.vtkVolume()
+        self.volume_color_window = 1
+        self.volume_color_level = 0.5
 
     def _GetAvailable3DFields(self):
         self.availableFields = list()
@@ -217,7 +219,10 @@ class Visualizer3Dvtk():
         dataImport.Update()
         # Create the mapper
         volumeMapper = vtk.vtkGPUVolumeRayCastMapper()
-        volumeMapper.SetAutoAdjustSampleDistances(1)
+        volumeMapper.SetAutoAdjustSampleDistances(0)
+        volumeMapper.SetSampleDistance(0.05)
+        volumeMapper.SetFinalColorLevel(self.volume_color_level)
+        volumeMapper.SetFinalColorWindow(self.volume_color_window)
         volumeMapper.SetInputConnection(dataImport.GetOutputPort())
         volumeMapper.Update()
         # Add to volume
@@ -228,6 +233,20 @@ class Visualizer3Dvtk():
         self.renderer.ResetCamera()
         self.renderer.GetRenderWindow().Render()
         self.interactor.Initialize()
+
+    def set_color_level(self, value):
+        self.volume_color_level = value
+        self.volume.GetMapper().SetFinalColorLevel(self.volume_color_level)
+
+    def get_color_level(self):
+        return self.volume_color_level
+
+    def set_color_window(self, value):
+        self.volume_color_window = value
+        self.volume.GetMapper().SetFinalColorWindow(self.volume_color_window)
+
+    def get_color_window(self):
+        return self.volume_color_window
 
     def MakeRender(self, timeStep):
         self.create_volume(timeStep)
