@@ -220,8 +220,9 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         return self.current_time_step
 
     def update_colorbars(self, time_step, update_data=True, update_position=True):
-        self.vtk_3d_visualizer.create_colorbars(time_step, update_data, update_position)
-        self.update_render()
+        if self.cbar_checkBox.isChecked():
+            self.vtk_3d_visualizer.create_colorbars(time_step, update_data, update_position)
+            self.update_render()
 
     """
     UI event handlers

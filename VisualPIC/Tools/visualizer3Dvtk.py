@@ -279,7 +279,8 @@ class Visualizer3Dvtk():
         self.set_color_window(self.volume_color_window)
         # Add to render
         self.renderer.AddVolume(self.vtk_volume)
-        #self.renderer.ResetCamera()
+        self.renderer.ResetCamera()
+        self.interactor.Render()
         #self.renderer.GetRenderWindow().Render()
         #self.interactor.Initialize()
 
@@ -383,8 +384,8 @@ class Visualizer3Dvtk():
 
     def make_render(self, time_step):
         self.create_volume(time_step)
-        self.renderer.ResetCamera()
-        self.interactor.Render()
+        #self.renderer.ResetCamera()
+        #self.interactor.Render()
         if self.display_cbars:
             self.create_colorbars(time_step, update_position=self.update_cbars)
             self.interactor.Render()
