@@ -448,6 +448,15 @@ class Volume3D():
         fld_val, r_val, g_val, b_val = cmap.get_cmap()
         self.set_cmap(fld_val, r_val, g_val, b_val)
 
+    def get_optimized_opacity(self, time_step):
+        nel = 11
+        fld_data = self.get_data(time_step)
+        hist, hist_edges = np.histogram(fld_data, bins=nel)
+        hist = np.ma.log(hist).filled(0)
+        fld_val = np.linspace(0, 255, nel)
+        op_val = 1 - hist/hist.max()
+        return fld_val, op_val
+
     def get_field_name(self):
         return self.field.GetName()
 

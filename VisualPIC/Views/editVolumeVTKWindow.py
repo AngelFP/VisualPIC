@@ -122,6 +122,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(
             self.update_volume_properties)
         self.norm_pushButton.clicked.connect(self.range_button_clicked)
+        self.optimize_pushButton.clicked.connect(self.get_optimized_opacity)
         self.cmap_comboBox.currentIndexChanged.connect(
             self.set_cmap_from_combobox)
         self.opacity_comboBox.currentIndexChanged.connect(
@@ -206,6 +207,11 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
             else:
                 fld_val, op_val = self.volume.get_opacity_values()
             self.opacity_figure.set_points(0, fld_val, op_val)
+
+    def get_optimized_opacity(self):
+        time_step = self.main_window.get_current_time_step()
+        fld_val, op_val = self.volume.get_optimized_opacity(time_step)
+        self.opacity_figure.set_points(0, fld_val, op_val)
 
     def save_opacity(self):
         fld_val, op_val = self.opacity_figure.GetPoints(0)
