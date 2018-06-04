@@ -50,7 +50,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.register_ui_events()
         self.create_vtk_widget()
         self.current_time_step = -1
-        self.time_steps = np.zeros(1)
+        self.time_steps = np.array([])
         self.time_step_change_observers = list()
         self.updating_ui = False
         self.fill_ui()
@@ -87,8 +87,14 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.white_bg_radioButton.toggled.connect(self.change_background)
         self.logo_checkBox.toggled.connect(self.set_logo_visibility)
         self.axes_checkBox.toggled.connect(self.set_axes_visibility)
+        self.cbar_checkBox.toggled.connect(self.set_colorbars_visibility)
         self.quality_comboBox.currentIndexChanged.connect(
             self.set_render_quality)
+
+    def set_colorbars_visibility(self, value):
+        if not self.updating_ui:
+            self.vtk_3d_visualizer.set_colorbar_visibility(value)
+            self.update_render()
 
     def set_logo_visibility(self, value):
         if not self.updating_ui:
@@ -152,6 +158,9 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.setup_axes_checkbox()
         self.setup_logo_checkbox()
         self.setup_background_color_radio_buttons()
+        self.timeStep_Slider.setEnabled(False)
+        self.nextStep_Button.setEnabled(False)
+        self.prevStep_Button.setEnabled(False)
         self.updating_ui = False
 
     def setup_background_color_radio_buttons(self):
@@ -210,6 +219,10 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def get_current_time_step(self):
         return self.current_time_step
 
+    def update_colorbars(self, time_step, update_data=True, update_position=True):
+        self.vtk_3d_visualizer.create_colorbars(time_step, update_data, update_position)
+        self.update_render()
+
     """
     UI event handlers
     """
@@ -220,16 +233,18 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.timeStep_LineEdit.setText(str(self.timeStep_Slider.value()))
         
     def next_button_clicked(self):
-        current_index = np.where(
-            self.time_steps == self.current_time_step)[0][0]
-        if current_index < len(self.time_steps)-1:
-            self.set_time_step(self.time_steps[current_index + 1])
+        if len(self.time_steps) > 0:
+            current_index = np.where(
+                self.time_steps == self.current_time_step)[0][0]
+            if current_index < len(self.time_steps)-1:
+                self.set_time_step(self.time_steps[current_index + 1])
         
     def prev_button_clicked(self):
-        current_index = np.where(
-            self.time_steps == self.current_time_step)[0][0]
-        if current_index > 0:
-            self.set_time_step(self.time_steps[current_index - 1])
+        if len(self.time_steps) > 0:
+            current_index = np.where(
+                self.time_steps == self.current_time_step)[0][0]
+            if current_index > 0:
+                self.set_time_step(self.time_steps[current_index - 1])
 
     def render_button_clicked(self):
         self.make_render()
@@ -270,14 +285,25 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             item_i = self.fieldsToRender_listWidget.item(i)
             if item == self.fieldsToRender_listWidget.itemWidget(item_i):
                 self.fieldsToRender_listWidget.takeItem(i)
+        self.update_colorbars(self.current_time_step, update_data=False, update_position=True)
         self.set_time_steps()
 
     def set_time_steps(self):
         self.time_steps = self.vtk_3d_visualizer.get_time_steps()
-        minTime = min(self.time_steps)
-        maxTime = max(self.time_steps)
-        self.timeStep_Slider.setMinimum(minTime)
-        self.timeStep_Slider.setMaximum(maxTime)
+        if len(self.time_steps) > 0:
+            self.timeStep_Slider.setEnabled(True)
+            self.nextStep_Button.setEnabled(True)
+            self.prevStep_Button.setEnabled(True)
+            min_time = min(self.time_steps)
+            max_time = max(self.time_steps)
+            self.timeStep_Slider.setMinimum(min_time)
+            self.timeStep_Slider.setMaximum(max_time)
+        else:
+            self.timeStep_Slider.setEnabled(False)
+            self.nextStep_Button.setEnabled(False)
+            self.prevStep_Button.setEnabled(False)
+
+        
 
     """
     Others

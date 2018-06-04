@@ -44,6 +44,10 @@ class Visualizer3Dvtk():
         self.display_logo = True
         self.display_axes = True
         self.axes_interactive = False
+        self.display_cbars = False
+        self.scalar_bar_widgets_list = list()
+        self.update_cbars = True
+        self.current_time_step = -1
 
     def load_available_3d_fields(self):
         self.available_fields = list()
@@ -66,7 +70,7 @@ class Visualizer3Dvtk():
 
     def get_time_steps(self):
         i = 0
-        time_steps = np.array([0])
+        time_steps = np.array([])
         for volume in self.volume_list:
             if i == 0:
                 time_steps = volume.get_time_steps()
@@ -99,27 +103,35 @@ class Visualizer3Dvtk():
         self.vtk_orientation_marker.SetOutlineColor(1, 1, 1)
         self.vtk_orientation_marker.SetOrientationMarker(self.vtk_axes)
         self.vtk_orientation_marker.SetInteractor(self.interactor)
-        self.vtk_orientation_marker.SetViewport(0.0, 0.0, 0.2, 0.2)
+        self.vtk_orientation_marker.SetViewport(0, 0, 0.2, 0.2)
         self.set_axes_widget_visibility(self.display_axes)
         self.set_axes_widget_interactive(self.axes_interactive)
 
     def add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
         self.logo_path = resource_filename(
-                'VisualPIC.Icons', 'logo_horizontal.png')
+                'VisualPIC.Icons', 'logo_horizontal_text_only_no_transp.png')
         self.vtk_png_reader = vtk.vtkPNGReader()
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()
         self.vtk_image_data = self.vtk_png_reader.GetOutput()
         self.vtk_logo_representation = vtk.vtkLogoRepresentation()
         self.vtk_logo_representation.SetImage(self.vtk_image_data)
-        self.vtk_logo_representation.SetPosition(0.79, 0.89)
+        self.vtk_logo_representation.SetPosition(0.79, 0.01)
         self.vtk_logo_representation.SetPosition2(.2, .1)
         self.vtk_logo_representation.GetImageProperty().SetOpacity(1)
         self.vtk_logo_widget = vtk.vtkLogoWidget()
         self.vtk_logo_widget.SetInteractor(self.interactor)
         self.vtk_logo_widget.SetRepresentation(self.vtk_logo_representation)
+        self.vtk_logo_widget.GetBorderRepresentation().SetShowBorderToOff()
         self.set_logo_widget_visibility(self.display_logo)
+
+    def set_colorbar_visibility(self, value):
+        self.display_cbars = value
+        if self.current_time_step != -1:
+            self.create_colorbars(self.current_time_step)
+        if not value:
+            self.remove_colorbars()
 
     def set_axes_widget_interactive(self, value):
         self.axes_interactive = value
@@ -181,6 +193,7 @@ class Visualizer3Dvtk():
                     self.dataContainer.GetSpeciesField(species_name, field_name))
             # add volume to list
             self.volume_list.append(new_volume)
+            self.update_cbars = True
             return True
         else:
             return False
@@ -189,11 +202,19 @@ class Visualizer3Dvtk():
         for volume in self.volume_list:
             if ((volume.get_field_name() == field_name)
                 and (volume.get_species_name() == species_name)):
+                i = self.volume_list.index(volume)
                 self.volume_list.remove(volume)
+                if i < len(self.scalar_bar_widgets_list):
+                    self.scalar_bar_widgets_list.pop(i)
+                self.update_cbars = True
                 return
 
     def remove_volume(self, volume):
+        i = self.volume_list.index(volume)
         self.volume_list.remove(volume)
+        if i < len(self.scalar_bar_widgets_list):
+            self.scalar_bar_widgets_list.pop(i)
+        self.update_cbars = True
 
     def get_volume_field(self, field_name, species_name):
         for volume in self.volume_list:
@@ -258,9 +279,72 @@ class Visualizer3Dvtk():
         self.set_color_window(self.volume_color_window)
         # Add to render
         self.renderer.AddVolume(self.vtk_volume)
-        self.renderer.ResetCamera()
-        self.renderer.GetRenderWindow().Render()
-        self.interactor.Initialize()
+        #self.renderer.ResetCamera()
+        #self.renderer.GetRenderWindow().Render()
+        #self.interactor.Initialize()
+
+    def create_colorbars(self, time_step, update_data=True, update_position=True):
+        n_vol = len(self.volume_list)
+        if n_vol > 0:
+            min_x = 0.05
+            max_x = 0.95
+            min_y = 0.9
+            max_y = 0.95
+            pos1 = (min_x, min_y)
+            pos2 = (max_x-min_x, max_y-min_y)
+            sep = 0.025
+            tot_height = max_y - min_y
+            tot_width = max_x - min_x
+            max_an = 10
+            min_an = 3
+            # test colorbar
+            n_bar = len(self.scalar_bar_widgets_list)
+            an = int(min_an + (max_an-min_an)/(2*n_vol))
+            for i in np.arange(n_vol):
+                if update_data:
+                    # Get lookup table and set annotations
+                    lut = self.volume_list[i].get_color_transfer_function()
+                    lut.ResetAnnotations()
+                    fld_n, fld_r = self.volume_list[i].get_norm_and_real_field_range(time_step, an)
+                    m = np.max(np.abs(fld_r)) # get order of magnitude
+                    ord = int(np.log10(m))
+                    fld_r = fld_r/10**ord
+                    for j in np.arange(an):
+                        lut.SetAnnotation(fld_n[j], format(fld_r[j], '.2f'))
+                    # Create colorbars
+                    if i > n_bar-1:
+                        scalar_bar = vtk.vtkScalarBarActor()
+                        scalar_bar.SetOrientationToHorizontal()
+                        scalar_bar.SetLookupTable(lut)
+                        scalar_bar.SetTitle(self.volume_list[i].get_field_name()+ " ["
+                                            + "10^" + str(ord) + " "
+                                            + self.volume_list[i].get_field_units()
+                                            + "]")
+                        scalar_bar.SetTextPositionToPrecedeScalarBar()
+                        scalar_bar.DrawTickLabelsOff()
+                        scalar_bar.AnnotationTextScalingOn()
+                        scalar_bar.GetAnnotationTextProperty().SetFontSize(8) 
+                        scalar_bar_widget = vtk.vtkScalarBarWidget()
+                        scalar_bar_widget.SetInteractor(self.interactor)
+                        scalar_bar_widget.SetScalarBarActor(scalar_bar)
+                        scalar_bar_widget.On()
+                        self.scalar_bar_widgets_list.append(scalar_bar_widget)
+                # Resize and position colorbars
+                if update_position:
+                    wid_w = (tot_width - (n_vol-1)*sep) / n_vol
+                    y_1 = min_y
+                    x_1 = min_x + i*(wid_w+sep)
+                    y_2 = tot_height
+                    x_2 = wid_w
+                    self.scalar_bar_widgets_list[i].GetRepresentation().SetOrientation(0)
+                    self.scalar_bar_widgets_list[i].GetRepresentation().GetPositionCoordinate().SetValue(x_1, y_1)
+                    self.scalar_bar_widgets_list[i].GetRepresentation().GetPosition2Coordinate().SetValue(x_2, y_2)
+            self.update_cbars = False
+            #self.update_render()
+
+    def remove_colorbars(self):
+        for cbar in self.scalar_bar_widgets_list:
+            self.scalar_bar_widgets_list.remove(cbar)
 
     def set_render_quality(self, str_value):
         self.render_quality = str_value
@@ -299,6 +383,12 @@ class Visualizer3Dvtk():
 
     def make_render(self, time_step):
         self.create_volume(time_step)
+        self.renderer.ResetCamera()
+        self.interactor.Render()
+        if self.display_cbars:
+            self.create_colorbars(time_step, update_position=self.update_cbars)
+            self.interactor.Render()
+        self.current_time_step = time_step
 
     def update_render(self):
         self.interactor.Render()
@@ -365,6 +455,11 @@ class Volume3D():
     def get_field_range(self, time_step, nels):
         self.load_field_data(time_step)
         return np.linspace(self.min_range, self.max_range, nels)
+
+    def get_norm_and_real_field_range(self, time_step, nels):
+        self.load_field_data(time_step)
+        return (np.linspace(0, 255, nels),
+                np.linspace(self.min_range, self.max_range, nels))
 
     def get_field_units(self):
         return self.field.GetDataISUnits()
@@ -473,6 +568,9 @@ class Volume3D():
             spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
             spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
         return spacing
+
+    def get_color_transfer_function(self):
+        return self.vtk_color
 
 
 class ColormapHandler():
