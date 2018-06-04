@@ -454,7 +454,7 @@ class Volume3D():
     def get_field_histogram(self, time_step, bins=64):
         fld_data = self.get_data(time_step)
         hist, hist_edges = np.histogram(fld_data, bins=bins)
-        hist = np.log(hist)
+        hist = np.ma.log(hist).filled(0)
         return hist/hist.max(), hist_edges
 
     def get_field_range(self, time_step, nels):

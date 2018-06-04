@@ -60,6 +60,7 @@ class FigureWithPoints(Figure):
         else:
             for i, rect in enumerate(self.histograms[naxes]):
                 rect.set_height(hist[i])
+                rect.set_x(hist_edges[i])
             if naxes == len(self.histograms)-1:
                 self.canvas.draw()
 
