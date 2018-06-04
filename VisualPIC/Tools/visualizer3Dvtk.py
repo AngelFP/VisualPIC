@@ -312,13 +312,17 @@ class Visualizer3Dvtk():
                     fld_r = fld_r/10**ord
                     for j in np.arange(an):
                         lut.SetAnnotation(fld_n[j], format(fld_r[j], '.2f'))
+                    if ord != 0:
+                        order_str = "10^" + str(ord) + " "
+                    else:
+                        order_str = ""
                     # Create colorbars
                     if i > n_bar-1:
                         scalar_bar = vtk.vtkScalarBarActor()
                         scalar_bar.SetOrientationToHorizontal()
                         scalar_bar.SetLookupTable(lut)
                         scalar_bar.SetTitle(self.volume_list[i].get_field_name()+ " ["
-                                            + "10^" + str(ord) + " "
+                                            + order_str
                                             + self.volume_list[i].get_field_units()
                                             + "]")
                         scalar_bar.SetTextPositionToPrecedeScalarBar()
@@ -344,7 +348,7 @@ class Visualizer3Dvtk():
             #self.update_render()
 
     def remove_colorbars(self):
-        for cbar in self.scalar_bar_widgets_list:
+        for cbar in reversed(self.scalar_bar_widgets_list):
             self.scalar_bar_widgets_list.remove(cbar)
 
     def set_render_quality(self, str_value):
