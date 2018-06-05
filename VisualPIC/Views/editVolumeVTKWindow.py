@@ -69,7 +69,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
                                                patch_color='tab:blue',
                                                xlabels=[xlabel],
                                                ylabels=["Opacity"])
-        self.opacity_figure.patch.set_facecolor("white")
+        #self.opacity_figure.patch.set_facecolor("white")
         self.opacity_canvas = FigureCanvas(self.opacity_figure)
         self.opacityWidgetLayout.addWidget(self.opacity_canvas)
         self.opacity_canvas.draw()
@@ -79,7 +79,7 @@ class EditVolumeVTKWindow(QEditVolumeVTKWindow, Ui_EditVolumeVTKWindow):
                                             patch_color=['r', 'g', 'b'],
                                             xlabels=[xlabel],
                                             ylabels=["Red", "Green", "Blue"])
-        self.cmap_figure.patch.set_facecolor("white")
+        #self.cmap_figure.patch.set_facecolor("white")
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
         self.cmap_canvas.draw()
