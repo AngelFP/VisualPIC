@@ -56,7 +56,7 @@ $RECYCLE.BIN/
 /Custom_matplotlib_backends
 
 # Other
-/Compile/Windows/dist
+/Compile
 /Logo/logo_horizontal_transp.xcf
 /VisualPIC/use_lib.py
 /VisualPIC/__main__.spec
