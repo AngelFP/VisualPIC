@@ -78,7 +78,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # Choose theme
-    dark_theme = True
+    dark_theme = False
 
     # Set dark theme if selected
     if dark_theme:
