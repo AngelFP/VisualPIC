@@ -110,7 +110,7 @@ class Visualizer3Dvtk():
     def add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
         self.logo_path = resource_filename(
-                'VisualPIC.Icons', 'logo_horizontal_text_only_no_transp.png')
+                'VisualPIC.Icons', 'logo_horiz_transp.png')
         self.vtk_png_reader = vtk.vtkPNGReader()
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()
