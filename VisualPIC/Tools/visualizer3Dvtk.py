@@ -23,7 +23,7 @@ from pkg_resources import resource_filename
 import numpy as np
 from h5py import File as H5File
 import vtk
-from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from VisualPIC.Controls.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 
 class Visualizer3Dvtk():
