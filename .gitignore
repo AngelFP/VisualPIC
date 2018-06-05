@@ -52,8 +52,8 @@ $RECYCLE.BIN/
 /Scripts/
 
 # Folders with custom files
-/Custom VTK Files
-/Custom Matplotlib Backends
+/Custom_vtk_files
+/Custom_matplotlib_backends
 
 # Other
 /Compile/Windows/dist
@@ -89,3 +89,4 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
