@@ -17,7 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
-# todo: add coloring beam histogram and particles by using their enery.
+# todo: add coloring beam histogram and particles by using their energy.
 
 import os
 import inspect
