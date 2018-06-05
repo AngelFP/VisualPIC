@@ -55,6 +55,9 @@ $RECYCLE.BIN/
 /Custom_vtk_files
 /Custom_matplotlib_backends
 
+# Windows exe compile folder
+/Compile
+
 # Other
 /Logo/logo_horizontal_transp.xcf
 /VisualPIC/use_lib.py
