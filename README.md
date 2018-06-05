@@ -35,20 +35,20 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * PyQt5.
 * H5Py.
 * Pillow.
-* OpenPMD-viewer.
+* openPMD-viewer.
 
 ### Windows Installation
 * Install Python 3.5.2. Download [here](https://www.python.org/downloads/release/python-352/).
 * Dowload the numpy+MKL wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy).
-  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
+  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
 * Dowload the SciPy wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy).
-  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
+  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
 * Install PyQt5: `pip install pyqt5`.
 * Install matplotlib: `pip install matplotlib`.
 * Install Pillow: `pip install pillow`.
 * Install H5Py: `pip install h5py`.
 * Install VTK: `pip install vtk`.
-* For compatibility with codes using openPMD, install OpenPMD-viewer: `pip install openPMD-viewer`
+* For compatibility with codes using openPMD, install openPMD-viewer: `pip install openPMD-viewer`
 
 * Download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
 * After this, you should be able to run VisualPIC just by running the `__main__.py` file in the VisualPIC folder.
