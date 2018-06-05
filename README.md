@@ -24,7 +24,7 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 
 ## Installation
 ### Required software
-* Python 3.5 or higher. Choose the 64-bit version, otherwise you will be very limited in memory.
+* Python 3.5 or higher.
 * Qt 5.7 (will be installed with PyQt5).
 * FFmpeg.
 
@@ -38,7 +38,7 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * openPMD-viewer.
 
 ### Windows Installation
-* Install Python 3.5.2. Download [here](https://www.python.org/downloads/release/python-352/).
+* Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version, otherwise you will be very limited in memory.
 * Dowload the numpy+MKL wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy).
   * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
 * Dowload the SciPy wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy).
