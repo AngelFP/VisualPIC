@@ -25,7 +25,7 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 ## Installation
 ### Required software
 * Python 3.5 or higher.
-* Qt 5.7 (will be installed with PyQt5).
+* Qt 5.7 or higher (will be installed with PyQt5).
 * FFmpeg.
 
 ### Required Python packages
