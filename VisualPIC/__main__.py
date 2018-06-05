@@ -61,7 +61,7 @@ def set_dark_theme(qapp):
     palette.setColor(QPalette.ButtonText,Qt.white)
     palette.setColor(QPalette.Disabled,QPalette.ButtonText,QColor(127,127,127))
     palette.setColor(QPalette.BrightText,Qt.red)
-    palette.setColor(QPalette.Light,QColor(127,127,127))
+    palette.setColor(QPalette.Light,QColor(80,80,80))
     palette.setColor(QPalette.Link,QColor(42,130,218))
     palette.setColor(QPalette.Highlight,QColor(42,130,218))
     palette.setColor(QPalette.Disabled,QPalette.Highlight,QColor(80,80,80))
