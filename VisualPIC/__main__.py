@@ -25,7 +25,7 @@ import ctypes
 import platform
 import sys
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QLabel, QVBoxLayout, QProgressBar
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QPalette, QColor
 from PyQt5.QtCore import QSize
 from PyQt5.Qt import Qt, QStyleFactory, QFont
 
@@ -42,8 +42,32 @@ if platform.system() == 'Windows':
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ctypes.windll.user32.SetProcessDPIAware() 
     #shcore = ctypes.windll.LoadLibrary("Shcore.dll") 
-    #shcore.SetProcessDpiAwareness(0) 
+    #shcore.SetProcessDpiAwareness(0)
 
+def set_dark_theme(qapp):
+    palette = QPalette()
+    palette.setColor(QPalette.Window,QColor(53,53,53))
+    palette.setColor(QPalette.WindowText,Qt.white)
+    palette.setColor(QPalette.Disabled,QPalette.WindowText,QColor(127,127,127))
+    palette.setColor(QPalette.Base,QColor(80,80,80))
+    palette.setColor(QPalette.AlternateBase,QColor(66,66,66))
+    palette.setColor(QPalette.ToolTipBase,Qt.white)
+    palette.setColor(QPalette.ToolTipText,QColor(53,53,53))
+    palette.setColor(QPalette.Text,Qt.white)
+    palette.setColor(QPalette.Disabled,QPalette.Text,QColor(127,127,127))
+    palette.setColor(QPalette.Dark,QColor(35,35,35))
+    palette.setColor(QPalette.Shadow,QColor(20,20,20))
+    palette.setColor(QPalette.Button,QColor(53,53,53))
+    palette.setColor(QPalette.ButtonText,Qt.white)
+    palette.setColor(QPalette.Disabled,QPalette.ButtonText,QColor(127,127,127))
+    palette.setColor(QPalette.BrightText,Qt.red)
+    palette.setColor(QPalette.Light,QColor(127,127,127))
+    palette.setColor(QPalette.Link,QColor(42,130,218))
+    palette.setColor(QPalette.Highlight,QColor(42,130,218))
+    palette.setColor(QPalette.Disabled,QPalette.Highlight,QColor(80,80,80))
+    palette.setColor(QPalette.HighlightedText,Qt.white)
+    palette.setColor(QPalette.Disabled,QPalette.HighlightedText,QColor(127,127,127))
+    qapp.setPalette(palette)
  
 if __name__ == '__main__':
     # Enable scaling for high DPI displays
@@ -52,6 +76,13 @@ if __name__ == '__main__':
     QApplication.setStyle(QStyleFactory.create('Fusion'))
     
     app = QApplication(sys.argv)
+
+    # Choose theme
+    dark_theme = True
+
+    # Set dark theme if selected
+    if dark_theme:
+        set_dark_theme(app)
 
     # Splash screen (loading heavy imports)
     screenGeometry = app.desktop().screenGeometry()
@@ -84,6 +115,8 @@ if __name__ == '__main__':
     from matplotlib import rcParams
     splashProgressBar.setValue(60)
     rcParams['figure.dpi'] = 80
+    if dark_theme: 
+        rcParams['figure.facecolor'] = '0.75'
     splashProgressBar.setValue(80)
     from VisualPIC.Views.mainWindow import MainWindow
     splashProgressBar.setValue(100)
