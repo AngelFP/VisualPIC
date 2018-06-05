@@ -18,7 +18,7 @@
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from pkg_resources import resource_listdir, resource_filename
+from pkg_resources import resource_filename
 
 import numpy as np
 from h5py import File as H5File
