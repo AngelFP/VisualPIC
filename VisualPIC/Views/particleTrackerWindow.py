@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -27,8 +27,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
 from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
+    FigureCanvasQTAgg as FigureCanvas)
 
 from VisualPIC.DataHandling.dataContainer import DataContainer
 from VisualPIC.DataPlotting.rawDataSetToPlot import RawDataSetToPlot
@@ -37,6 +36,8 @@ from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.subplotItem import SubplotItem
 from VisualPIC.Tools.particleTracking import ParticleTracker
+from VisualPIC.Controls.customNavigationToolbar import (CustomNavigationToolbar
+                                                        as NavigationToolbar)
 
 
 if getattr(sys, 'frozen', False):
@@ -73,13 +74,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def CreateCanvasAndFigures(self):
         # Graphic selector
         self.selectorFigure = Figure()
-        self.selectorFigure.patch.set_facecolor("white")
+        #self.selectorFigure.patch.set_facecolor("white")
         self.selectorCanvas = FigureCanvas(self.selectorFigure)
         self.selectorPlot_layout.addWidget(self.selectorCanvas)
         self.selectorCanvas.draw()
         # Evolution plots
         self.mainFigure = Figure()
-        self.mainFigure.patch.set_facecolor("white")
+        #self.mainFigure.patch.set_facecolor("white")
         self.mainCanvas = FigureCanvas(self.mainFigure)
         self.mainPlot_layout.addWidget(self.mainCanvas)
         self.mainCanvas.draw()
@@ -87,7 +88,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.mainPlot_layout.addWidget(self.toolbar)
         # Instant plots
         self.instantPlotsFigure = Figure()
-        self.instantPlotsFigure.patch.set_facecolor("white")
+        #self.instantPlotsFigure.patch.set_facecolor("white")
         self.instantPlotsCanvas = FigureCanvas(self.instantPlotsFigure)
         self.instantPlots_layout.addWidget(self.instantPlotsCanvas)
         self.instantPlotsCanvas.draw()
@@ -95,7 +96,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.instantPlots_layout.addWidget(self.instantPlotsToolbar)
 
     def CreateSelectorSubplotObject(self):
-        #if self.selectorSubplot == None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
+        #if self.selectorSubplot is None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
         speciesName = str(self.speciesSelector_comboBox.currentText())
         dataSets = {}
         xAxis = str(self.xAxis_comboBox.currentText())

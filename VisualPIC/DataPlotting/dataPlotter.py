@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -90,7 +90,6 @@ class DataPlotter:
     def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
         num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
         num2DFields = len(subplot.GetFieldsToPlotWithDimension("2D"))
-        ax.hold(False)
         i = 0
         for field in subplot.GetFieldsToPlotWithDimension("2D"):
             plotData = field.GetData(timeStep)
@@ -105,7 +104,6 @@ class DataPlotter:
                 pos1 = ax.get_position()
                 pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
                 ax.set_position(pos2)
-            ax.hold(True)
             # colorBar
             cbWidth = 0.015
             cbHeight = (pos2[3]-(num2DFields-1)*self.cbSpacing)/num2DFields
@@ -128,14 +126,12 @@ class DataPlotter:
             axPos = ax.get_position()
             newAxPos = [axPos.x0, axPos.y0 ,  axPos.width-0.07, axPos.height]
             ax.set_position(newAxPos)
+            axis1D = ax.twinx()
+            axis1D.set_position(axPos)
+        elif num1DFields > 0:
+            axis1D = ax
         for field in subplot.GetFieldsToPlotWithDimension("1D"):
             units = field.GetProperty("fieldUnits")
-            if num2DFields > 0:
-                axPos = ax.get_position()
-                axis1D = ax.twinx()
-                axis1D.set_position(axPos)
-            else:
-                axis1D = ax
             plotData = field.GetData(timeStep)
             self.plotTypes["Field"][field.GetProperty("plotType")](axis1D, plotData)  
             if num2DFields > 0:
@@ -150,20 +146,20 @@ class DataPlotter:
         #ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         axisData = subplot.GetDataToPlot()
         plotProperties = subplot.GetCopyAllPlotProperties()
+        axisProperties = subplot.GetCopyAllAxesProperties()
         plotData = {}
         # Load data
         for dataSetName, values in axisData.items():
             plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
         cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
         # make plot
-        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, cMap)
+        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, axisProperties, cMap)
         # colorBar
         if subplot.GetPlotProperty("General", "DisplayColorbar") == True:
             # change plot size to make room for the colorBar
             pos1 = ax.get_position()
             pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
             ax.set_position(pos2)
-            # ax.hold(True)
             cbWidth = 0.015
             cbHeight = pos2[3]
             cbX = pos2[0] + pos2[2] + 0.02
@@ -184,7 +180,6 @@ class DataPlotter:
         ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
 
     def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        ax.hold(False)
         allPaticlesData = subplot.GetDataToPlot() # list of dictionaries (with keys "particle", "x", "y" and "z")
         for particleData in allPaticlesData:
             plotData = {}
@@ -194,7 +189,6 @@ class DataPlotter:
                 plotData["z"] = particleData["z"].GetDataSetPlotData()
             # make plot
             im = self.plotTypes["RawEvolution"][subplot.GetAxesDimension()](ax, plotData, particleData["plotStyle"])
-            ax.hold(True)
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
         ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
@@ -234,7 +228,7 @@ class DataPlotter:
     Raw (non-evolving) data plot types
     """  
     #todo: change cMap argument for a plotSettings argument.
-    def MakeArrowPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeArrowPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         pxValues = plotData["Px"]
@@ -261,20 +255,40 @@ class DataPlotter:
             pivot='mid',                                           
             cmap=cMap)
 
-    def MakeHistogramPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeHistogramPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         weightValues = plotData["weight"]
         histogramProperties = plotProperties["Histogram"]
         histBins = [histogramProperties["Bins"]["XBins"], histogramProperties["Bins"]["YBins"]]
-        if histogramProperties["UseChargeWeighting"]:
-            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues)
+        if axisProperties["x"]["AutoAxisLimits"]:
+            x_lims = [min(xValues), max(xValues)]
         else:
-            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins)
+            x_lims = [axisProperties["x"]["AxisLimits"]["Min"], axisProperties["x"]["AxisLimits"]["Max"]]
+        if axisProperties["y"]["AutoAxisLimits"]:
+            y_lims = [min(yValues), max(yValues)]
+        else:
+            y_lims = [axisProperties["y"]["AxisLimits"]["Min"], axisProperties["y"]["AxisLimits"]["Max"]]
+        hist_range = [x_lims, y_lims]
+        if histogramProperties["UseChargeWeighting"]:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues, range=hist_range)
+        else:
+            H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
         extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
         return ax.imshow(H.transpose(), extent=extent, cmap=cMap, aspect='auto', origin='lower')
+        #if histogramProperties["UseChargeWeighting"]:
+        #    H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, weights = weightValues, range=hist_range)
+        #    H_count, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
+        #    H = H/H_count
+        #    H = H.transpose()
+        #    s = H.shape
+        #    H = H - H[int(s[0]/2),:]
+        #else:
+        #    H, xedges, yedges = np.histogram2d(xValues, yValues, bins = histBins, range=hist_range)
+        #extent = xedges[0], xedges[-1], yedges[0], yedges[-1]
+        #return ax.imshow(H, extent=extent, cmap=cMap, aspect='auto', origin='lower')
         
-    def MakeScatterPlot(self, ax, plotData, plotProperties, cMap):
+    def MakeScatterPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         scatterProperties = plotProperties["Scatter"]
@@ -284,7 +298,7 @@ class DataPlotter:
         else:
             return ax.scatter(xValues, yValues, cmap=cMap, linewidths=0)
         
-    def Make3DScatterPlot(self, ax, plotData, plotProperties, cMap):
+    def Make3DScatterPlot(self, ax, plotData, plotProperties, axisProperties, cMap):
         xValues = plotData["x"]
         yValues = plotData["y"]
         zValues = plotData["z"]

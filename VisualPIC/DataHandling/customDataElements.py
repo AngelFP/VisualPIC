@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -237,12 +237,17 @@ class LaserIntensityField(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+        if self.GetFieldDimension() == '3D':
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
         w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
         n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        if self.GetFieldDimension() == '2D':
+            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        elif self.GetFieldDimension() == '3D':
+            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0*n/2*E2
         return Intensity
 
@@ -259,12 +264,17 @@ class NormalizedVectorPotential(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+        if self.GetFieldDimension() == '3D':
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
         w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
         w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
         n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        if self.GetFieldDimension() == '2D':
+            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        elif self.GetFieldDimension() == '3D':
+            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0*n/2*E2
         a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
@@ -285,7 +295,11 @@ class TransverseWakefieldSlope(CustomField):
         TranvsWF = Ey - self.c*Bx
         y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
-        slope = np.gradient(TranvsWF, dy, axis=0)
+        
+        if self.GetFieldDimension() == '2D':
+            slope = np.gradient(TranvsWF, dy, axis=0)
+        elif self.GetFieldDimension() == '3D':
+            slope = np.gradient(TranvsWF, dy, axis=1)
         return slope
 
 
@@ -305,6 +319,22 @@ class BxSlope(CustomField):
         slope = np.gradient(Bx, dy, axis=0)
         return slope
 
+class EzSlope(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D":["Ez"],
+                     "3D":["Ez"]}
+    necessaryParameters = []
+    units = "V/m^2"
+    ISUnits = True
+    standardName = "Ez Slope"
+
+    def CalculateField(self, timeStep):
+        Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
+        z = self.data["Ez"].GetAxisInISUnits("x", timeStep)
+        dz = abs(z[1]-z[0]) # distance between data points in z direction
+        slope = np.gradient(Ez, dz, axis=2)
+        return slope
+
 
 class CustomFieldCreator:
     customFields = [
@@ -312,7 +342,8 @@ class CustomFieldCreator:
         TransverseWakefieldSlope,
         LaserIntensityField,
         NormalizedVectorPotential,
-        BxSlope
+        BxSlope,
+        EzSlope
         ]
     @classmethod
     def GetCustomFields(cls, dataContainer):
@@ -450,6 +481,29 @@ class BeamComovingCoordinate(CustomRawDataSet):
         xi_b = z - min(z)
         return xi_b
 
+
+class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
+    # List of necessary data sets and simulation parameters.
+    necessaryData = {"2D":["Pz", "Py", "z", "Charge"],
+                     "3D":["Pz", "Py", "Pz", "z", "Charge"]}
+    necessaryParameters = []
+    units = "."
+    ISUnits = True
+    standardName = "UncEneSp"
+
+    def GetDataInOriginalUnits(self, timeStep):
+        Pz = self.data["Pz"].GetDataInOriginalUnits(timeStep)
+        Py = self.data["Py"].GetDataInOriginalUnits(timeStep)
+        z = self.data["z"].GetDataInOriginalUnits(timeStep)
+        q = self.data["Charge"].GetDataInOriginalUnits(timeStep)
+        gamma = np.sqrt(Pz**2 + Py**2)
+        mean_gamma = np.average(gamma, weights=np.abs(q))
+        rel_gamma_spread = (gamma-mean_gamma)/mean_gamma
+        dz = z - np.average(z, weights=q)
+        p = np.polyfit(dz, rel_gamma_spread, 1, w=q)
+        slope = p[0]
+        unc_gamma_spread = rel_gamma_spread - slope*dz
+        return unc_gamma_spread
     
 class CustomRawDataSetCreator:
     customDataSets = [
@@ -458,7 +512,8 @@ class CustomRawDataSetCreator:
         deltaZPrimeDataSet,
         forwardMomentumVariationDataSet,
         SpeedOfLightCoordinate,
-        BeamComovingCoordinate
+        BeamComovingCoordinate,
+        UncorrelatedEnergyVariationDataSet
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):

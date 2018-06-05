@@ -36,9 +36,32 @@ $RECYCLE.BIN/
 *.pyproj
 *.user
 *.TMP
+/UpgradeLog.htm
+/.vs/
+
+# PowerPoint files
+*.pptx
+
+# Releases folder
+/Releases
 
 # ArgoUML files
 *.zargo~
+
+# Scripts folder
+/Scripts/
+
+# Folders with custom files
+/Custom_vtk_files
+/Custom_matplotlib_backends
+
+# Windows exe compile folder
+/Compile
+
+# Other
+/Logo/logo_horizontal_transp.xcf
+/VisualPIC/use_lib.py
+/VisualPIC/__main__.spec
 
 # =========================
 # Operating System Files
@@ -68,7 +91,3 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-/VisualPIC/use_lib.py
-/VisualPIC/__main__.spec
-/Compile/Windows/dist
-/Logo/logo_horizontal_transp.xcf

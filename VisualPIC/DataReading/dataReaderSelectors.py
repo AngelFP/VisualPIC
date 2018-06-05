@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -20,11 +20,10 @@
 from VisualPIC.DataReading.rawDataReaders import *
 from VisualPIC.DataReading.fieldReaders import *
 
-
 class RawDataReaderSelector:
-    dataReaders = {"Osiris": OsirisRawDataReader
-                   #"HiPACE": HiPACERawDataReader,
-                   #"PIConGPU": PIConGPURawDataReader
+    dataReaders = {"Osiris": OsirisRawDataReader,
+                   "HiPACE": HiPACERawDataReader,
+                   "openPMD": OpenPMDRawDataReader
                    }
     @classmethod
     def GetReader(cls, simulationCode, location, speciesName, dataName, internalName, firstTimeStep):
@@ -32,9 +31,9 @@ class RawDataReaderSelector:
 
 
 class FieldReaderSelector:
-    dataReaders = {"Osiris": OsirisFieldReader
-                   #"HiPACE": HiPACEFieldReader,
-                   #"PIConGPU": PIConGPUFieldReader
+    dataReaders = {"Osiris": OsirisFieldReader,
+                   "HiPACE": HiPACEFieldReader,
+                   "openPMD": OpenPMDFieldReader
                    }
     @classmethod
     def GetReader(cls, simulationCode, location, speciesName, dataName, firstTimeStep):

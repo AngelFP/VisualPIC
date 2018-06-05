@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -59,7 +59,7 @@ class DataContainer:
 
     def SetSimulationParameters(self, parameters):
         # If there is no unitConverter or the simulation code has changed, create a new unitConverter.
-        if (self.unitConverter == None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
+        if (self.unitConverter is None) or (self._simulationParams["SimulationCode"] != parameters["SimulationCode"]):
             self.unitConverter = unitConverters.UnitConverterSelector.GetUnitConverter(parameters)
             DataElement.SetUnitConverter(self.unitConverter)
         # otherwise, update the current one.
@@ -93,6 +93,16 @@ class DataContainer:
             for field in species.GetAvailableFields():
                 if field.GetFieldDimension() == "3D":
                     return "3D"
+        return "2D"
+
+    def GetSimulationCellSize(self):
+        for field in self._availableDomainFields:
+            return field.GetSimulationCellSize()
+        for species in self._availableSpecies:
+            for field in species.GetAvailableFields():
+                return field.GetSimulationCellSize()
+            for dataset in species.GetAvailableRawDataSets():
+                return dataset.GetSimulationCellSize()
         return "2D"
          
     def RemoveSelectedSpecies(self, speciesName):

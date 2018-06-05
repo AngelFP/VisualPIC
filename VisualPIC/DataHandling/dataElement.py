@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -46,6 +46,12 @@ class DataElement(object):
 
     def GetFirstTimeStep(self):
         return self.timeSteps[0]
+
+    def GetSimulationCellSizeInOriginalUnits(self):
+        return self.dataReader.grid_size/self.dataReader.grid_resolution
+
+    def GetSimulationCellSizeInISUnits(self):
+        return self._unitConverter.GetCellSizeInISUnits(self)
 
     """
     Possible units

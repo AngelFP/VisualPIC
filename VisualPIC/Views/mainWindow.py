@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2017 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -25,8 +25,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
+    FigureCanvasQTAgg as FigureCanvas)
 
 from VisualPIC.Views.createAnimationWindow import CreateAnimationWindow
 from VisualPIC.Views.simulationParametersWindow import SimulationParametersWindow
@@ -40,6 +39,8 @@ from VisualPIC.DataPlotting.subplot import *
 from VisualPIC.DataPlotting.colorMapsCollection import ColorMapsCollection
 from VisualPIC.DataPlotting.dataPlotter import DataPlotter
 from VisualPIC.Controls.subplotItem import SubplotItem
+from VisualPIC.Controls.customNavigationToolbar import (CustomNavigationToolbar
+                                                        as NavigationToolbar)
 
 
 if getattr(sys, 'frozen', False):
@@ -75,7 +76,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def CreateCanvasAndFigure(self):
         self.figure = Figure()
-        self.figure.patch.set_facecolor("white")
+        #self.figure.patch.set_facecolor("white")
         self.canvas = FigureCanvas(self.figure)
         self.plotWidget_layout.addWidget(self.canvas)
         self.canvas.draw()
@@ -169,9 +170,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def AdaptUIToSimulationParams(self):
         simulationParams = self.dataContainer.GetSimulationParameters()
-        isLaser = simulationParams["isLaser"]
-        if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
-            self.addLaser_checkBox.setVisible(isLaser)
+        if 'isLaser' in simulationParams:
+            isLaser = simulationParams["isLaser"]
+            if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
+                self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
