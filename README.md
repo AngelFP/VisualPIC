@@ -51,7 +51,16 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * For compatibility with codes using openPMD, install openPMD-viewer: `pip install openPMD-viewer`
 
 * Download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
-* After this, you should be able to run VisualPIC just by running the `__main__.py` file in the VisualPIC folder.
+* Finally, install visualPIC by cloning this repository and by typing:
+```
+python setup.py install
+```
+
+After this, you should be able to run VisualPIC, simply by typing
+```
+visualPIC
+```
+from the command line. (You do not need to be inside any specific folder for this.)
 
 
 ## Collaborating
