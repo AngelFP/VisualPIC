@@ -34,12 +34,12 @@ try:
     # Check if VisualPIC is installed
     import VisualPIC
 except:
-    # If not, add VisualPIC folder to python path, so that folders can be
+    # If not, add VisualPIC folder to path, so that folders can be
     # called as modules
-    currentdir = os.path.dirname(
+    current_dir = os.path.dirname(
         os.path.abspath(inspect.getfile(inspect.currentframe())))
-    parentdir = os.path.dirname(currentdir)
-    os.sys.path.insert(0,parentdir) 
+    parent_dir = os.path.dirname(current_dir)
+    os.sys.path.insert(0,parent_dir) 
 
 
 # Needed to change taskbar icon on Windows
