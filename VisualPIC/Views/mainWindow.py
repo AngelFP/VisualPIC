@@ -20,6 +20,8 @@
 
 import os
 import sys
+from pkg_resources import resource_filename
+
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
@@ -58,6 +60,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.set_ui_icons()
         self.dataContainer = DataContainer()
         self.colorMapsCollection = ColorMapsCollection()
         self.dataPlotter = DataPlotter(self.colorMapsCollection)
@@ -73,6 +76,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """ Backups for removed UI items for each simulation code """
         self.removedNormalizationTab = None
         self.timeSteps = np.zeros(1)
+
+    def set_ui_icons(self):
+        window_icon_path = resource_filename(
+            'VisualPIC.Icons', 'logo.png')
+        prev_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-left-128.png')
+        next_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-right-128.png')
+        self.setWindowIcon(QtGui.QIcon(window_icon_path))
+        self.prevStep_Button.setIcon(QtGui.QIcon(prev_button_icon_path))
+        self.nextStep_Button.setIcon(QtGui.QIcon(next_button_icon_path))
         
     def CreateCanvasAndFigure(self):
         self.figure = Figure()

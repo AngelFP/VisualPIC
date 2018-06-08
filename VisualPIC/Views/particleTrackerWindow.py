@@ -20,9 +20,11 @@
 
 import os
 import sys
+from pkg_resources import resource_filename
+
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QIcon
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
@@ -54,6 +56,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def __init__(self, dataContainer, colormapsCollection, dataPlotter):
         super(ParticleTrackerWindow, self).__init__()
         self.setupUi(self)
+        self.set_ui_icons()
         self.particleTracker = ParticleTracker(dataContainer)
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
@@ -70,6 +73,21 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.CreateCanvasAndFigures()
         self.FillInitialUI();
         self.RegisterUIEvents();
+
+    def set_ui_icons(self):
+        window_icon_path = resource_filename(
+            'VisualPIC.Icons', 'logo.png')
+        prev_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-left-128.png')
+        next_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-right-128.png')
+        rect_sel_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'SelectionRectangle.png')
+        self.setWindowIcon(QIcon(window_icon_path))
+        self.prevStep_Button.setIcon(QIcon(prev_button_icon_path))
+        self.nextStep_Button.setIcon(QIcon(next_button_icon_path))
+        self.rectangleSelection_Button.setIcon(
+            QIcon(rect_sel_button_icon_path))
 
     def CreateCanvasAndFigures(self):
         # Graphic selector

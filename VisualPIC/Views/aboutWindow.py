@@ -19,8 +19,10 @@
 
 import sys
 import os
+from pkg_resources import resource_filename
 
 from PyQt5.uic import loadUiType
+from PyQt5.QtGui import QPixmap
 
 
 if getattr(sys, 'frozen', False):
@@ -37,3 +39,10 @@ class AboutWindow(QAboutWindow, Ui_AboutWindow):
     def __init__(self, parent=None):
         super(AboutWindow, self).__init__(parent)
         self.setupUi(self)
+        self.set_ui_icons()
+
+    def set_ui_icons(self):
+        logo_path = resource_filename(
+                'VisualPIC.Icons', 'logo_horiz_transp.png')
+        pixmap = QPixmap(logo_path)
+        self.label.setPixmap(pixmap)

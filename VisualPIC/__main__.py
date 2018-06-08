@@ -24,6 +24,8 @@ import inspect
 import ctypes
 import platform
 import sys
+from pkg_resources import resource_filename
+
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QLabel, QVBoxLayout, QProgressBar
 from PyQt5.QtGui import QPixmap, QPalette, QColor
 from PyQt5.QtCore import QSize
@@ -95,7 +97,9 @@ def display_gui():
 
     # Splash screen (loading heavy imports)
     screenGeometry = app.desktop().screenGeometry()
-    splashPic = QPixmap("Icons/logo_horiz_transp.png")
+    logo_path = resource_filename(
+                'VisualPIC.Icons', 'logo_horiz_transp.png')
+    splashPic = QPixmap(logo_path)
     splashWidth = 450
     splashHeight = 150
     splashLabel = QLabel()

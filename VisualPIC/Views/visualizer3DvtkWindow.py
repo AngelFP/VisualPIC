@@ -19,6 +19,7 @@
 
 import os
 import sys
+from pkg_resources import resource_filename
 
 from PyQt5.uic import loadUiType
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -46,6 +47,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def __init__(self, dataContainer):
         super(Visualizer3DvtkWindow, self).__init__()
         self.setupUi(self)
+        self.set_ui_icons()
         self.vtk_3d_visualizer = Visualizer3Dvtk(dataContainer)
         self.register_ui_events()
         self.create_vtk_widget()
@@ -55,6 +57,17 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         self.updating_ui = False
         self.fill_ui()
         self.create_time_step_callbacks()
+
+    def set_ui_icons(self):
+        window_icon_path = resource_filename(
+            'VisualPIC.Icons', 'logo.png')
+        prev_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-left-128.png')
+        next_button_icon_path = resource_filename(
+            'VisualPIC.Icons', 'icon-ios7-arrow-right-128.png')
+        self.setWindowIcon(QtGui.QIcon(window_icon_path))
+        self.prevStep_Button.setIcon(QtGui.QIcon(prev_button_icon_path))
+        self.nextStep_Button.setIcon(QtGui.QIcon(next_button_icon_path))
 
     def closeEvent(self, *args, **kwargs):
         """ This fixes bug described in 
