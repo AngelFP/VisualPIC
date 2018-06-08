@@ -37,9 +37,7 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * Pillow.
 * openPMD-viewer.
 
-### Installation
-
-#### The easy way
+### Installating the easy way
 * If you dont have it already, install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
 * Open a terminal and simply type `pip install visualpic`.
 * (Optional) Additionally, if you need to read data using the openPMD standard, install openPMD-Viewer by typing `pip install openPMD-viewer`.
@@ -51,7 +49,7 @@ visualpic
 ```
 from the command line. (You do not need to be inside any specific folder for this.)
 
-#### The manual way
+### Installating the manual way
 * Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
 * Install all required dependencies: `pip install numpy, scipy, pyqt5, matplotlib, pillow, h5py, vtk`
 * (Optional) For compatibility with codes using openPMD, install openPMD-viewer: `pip install openPMD-viewer`
