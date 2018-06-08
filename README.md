@@ -76,4 +76,4 @@ For more details about this and on how to add compatibility for more simulation 
 ## Citing VisualPIC
 If you use VisualPIC to produce plots or figures for any scientific work, please provide a reference to the following publication:
 
-A. Ferran Pousa et al., “VisualPIC: A New Data Visualizer and Post-Processor for Particle-in-Cell Codes”, presented at IPAC’17, Copenhagen, Denmark, May 2017, paper TUPIK007.
+A. Ferran Pousa et al., *VisualPIC: A New Data Visualizer and Post-Processor for Particle-in-Cell Codes*, presented at IPAC’17, Copenhagen, Denmark, May 2017, paper TUPIK007.
