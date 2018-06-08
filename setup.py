@@ -1,6 +1,8 @@
 import sys
 from setuptools import setup, find_packages
 
+import VisualPIC
+
 def read_requirements():
     with open('requirements.txt') as f:
         return [line.strip() for line in f.readlines()]
@@ -8,6 +10,7 @@ def read_requirements():
 # Main setup command
 setup(name='VisualPIC',
       description='Data visualizer for PIC codes',
+      version=VisualPIC.__version__,
       url='https://github.com/AngelFP/VisualPIC',
       maintainer='Angel Ferran Pousa',
       license='GPL',
