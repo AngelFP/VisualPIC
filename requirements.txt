@@ -4,6 +4,4 @@ pyqt5
 pillow
 h5py
 matplotlib
-pyvtk
 vtk
-openPMD-viewer
