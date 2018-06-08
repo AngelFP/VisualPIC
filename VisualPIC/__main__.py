@@ -30,15 +30,21 @@ from PyQt5.QtCore import QSize
 from PyQt5.Qt import Qt, QStyleFactory, QFont
 
 
-# Add VisualPIC folder to python path, so that folders can be called as modules
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-os.sys.path.insert(0,parentdir) 
+try:
+    # Check if VisualPIC is installed
+    import VisualPIC
+except:
+    # If not, add VisualPIC folder to python path, so that folders can be
+    # called as modules
+    currentdir = os.path.dirname(
+        os.path.abspath(inspect.getfile(inspect.currentframe())))
+    parentdir = os.path.dirname(currentdir)
+    os.sys.path.insert(0,parentdir) 
 
 
 # Needed to change taskbar icon on Windows
 if platform.system() == 'Windows':
-    myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+    myappid = 'visualpic' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ctypes.windll.user32.SetProcessDPIAware() 
     #shcore = ctypes.windll.LoadLibrary("Shcore.dll") 
