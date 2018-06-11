@@ -303,7 +303,7 @@ class FolderDataReader:
             for field in ts.avail_fields:
                 # Vector field
                 if ts.fields_metadata[field]['type'] == 'vector':
-                    available_coord = ['x', 'y', 'z']
+                    available_coord = ts.fields_metadata[field]['axis_labels']
                     # Register each coordinate of the vector
                     for coord in available_coord:
                         fieldName = field + '/' + coord
