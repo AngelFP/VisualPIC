@@ -5,3 +5,4 @@ pillow
 h5py
 matplotlib
 vtk
+openpmd-viewer
