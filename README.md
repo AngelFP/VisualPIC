@@ -37,33 +37,19 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * Pillow.
 * openPMD-viewer.
 
-### Installating the easy way
+### Installing the easy way
 * If you dont have it already, install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
 * Open a terminal and simply type `pip install visualpic`.
-* (Optional) Additionally, if you need to read data using the openPMD standard, install openPMD-Viewer by typing `pip install openPMD-viewer`.
 * (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
+* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
 
-After this, you should be able to run VisualPIC by simply typing
-```
-visualpic
-```
-from the command line. (You do not need to be inside any specific folder for this.)
-
-### Installating the manual way
+### Installing the manual way
 * Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
-* Install all required dependencies: `pip install numpy, scipy, pyqt5, matplotlib, pillow, h5py, vtk`
-* (Optional) For compatibility with codes using openPMD, install openPMD-viewer: `pip install openPMD-viewer`
+* Install all required dependencies: `pip install numpy, scipy, pyqt5, matplotlib, pillow, h5py, vtk`.
 * (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
-* Finally, install VisualPIC by cloning this repository and by typing:
-```
-python setup.py install
-```
-
-After this, you should be able to run VisualPIC by simply typing
-```
-visualpic
-```
-from the command line. (You do not need to be inside any specific folder for this.)
+* Clone this repository to your computer with `git clone https://github.com/AngelFP/VisualPIC.git`.
+* Finally, switch to the cloned directory with `cd VisualPIC` and install VisualPIC by typing `python setup.py install`
+* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
 
 
 ## Collaborating
