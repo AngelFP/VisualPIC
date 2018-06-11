@@ -370,9 +370,10 @@ class OpenPMDFieldReader(FieldReaderBase):
             self.fieldDimension = "3D"
         elif geometry == '2dcartesian':
             self.fieldDimension = "2D"
-        else:
+        elif geometry == 'thetaMode':
             self.fieldDimension = "thetaMode"
-            #raise ValueError("Unsupported geometry: %s" %geometry)
+        else:
+            raise ValueError("Unsupported geometry: %s" %geometry)
 
     def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
