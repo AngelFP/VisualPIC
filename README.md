@@ -37,21 +37,19 @@ The main capabilities of the program include 2D and 3D visualization of fields a
 * Pillow.
 * openPMD-viewer.
 
-### Windows Installation
-* Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version, otherwise you will be very limited in memory.
-* Dowload the numpy+MKL wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy).
-  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
-* Dowload the SciPy wheels from [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy).
-  * Then, on cmd, go to the folder where you downloaded the file and run `pip install 'name-of-file'`
-* Install PyQt5: `pip install pyqt5`.
-* Install matplotlib: `pip install matplotlib`.
-* Install Pillow: `pip install pillow`.
-* Install H5Py: `pip install h5py`.
-* Install VTK: `pip install vtk`.
-* For compatibility with codes using openPMD, install openPMD-viewer: `pip install openPMD-viewer`
+### Installing the easy way
+* If you dont have it already, install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
+* Open a terminal and simply type `pip install visualpic`.
+* (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
+* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
 
-* Download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
-* After this, you should be able to run VisualPIC just by running the `__main__.py` file in the VisualPIC folder.
+### Installing the manual way
+* Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
+* Install all required dependencies: `pip install numpy, scipy, pyqt5, matplotlib, pillow, h5py, vtk`.
+* (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
+* Clone this repository to your computer with `git clone https://github.com/AngelFP/VisualPIC.git`.
+* Finally, switch to the cloned directory with `cd VisualPIC` and install VisualPIC by typing `python setup.py install`
+* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
 
 
 ## Collaborating
@@ -67,4 +65,4 @@ For more details about this and on how to add compatibility for more simulation 
 ## Citing VisualPIC
 If you use VisualPIC to produce plots or figures for any scientific work, please provide a reference to the following publication:
 
-A. Ferran Pousa et al., “VisualPIC: A New Data Visualizer and Post-Processor for Particle-in-Cell Codes”, presented at IPAC’17, Copenhagen, Denmark, May 2017, paper TUPIK007.
+A. Ferran Pousa et al., *VisualPIC: A New Data Visualizer and Post-Processor for Particle-in-Cell Codes*, presented at IPAC’17, Copenhagen, Denmark, May 2017, paper TUPIK007.

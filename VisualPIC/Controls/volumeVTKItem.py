@@ -17,6 +17,8 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+from pkg_resources import resource_filename
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from VisualPIC.Views.editVolumeVTKWindow import EditVolumeVTKWindow
@@ -53,7 +55,9 @@ class VolumeVTKItem(QtWidgets.QWidget):
         self.editButton.setMaximumSize(QtCore.QSize(24, 16777215))
         self.editButton.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8("Icons/editIcon.png")),
+        edit_icon_path = resource_filename(
+                'VisualPIC.Icons', 'editIcon.png')
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(edit_icon_path)),
                        QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.editButton.setIcon(icon)
         self.editButton.setObjectName(_fromUtf8("editButton"))
@@ -62,7 +66,9 @@ class VolumeVTKItem(QtWidgets.QWidget):
         self.deleteButton.setMaximumSize(QtCore.QSize(24, 16777215))
         self.deleteButton.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(_fromUtf8("Icons/deleteIcon.png")),
+        delete_icon_path = resource_filename(
+                'VisualPIC.Icons', 'deleteIcon.png')
+        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(delete_icon_path)),
                         QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.deleteButton.setIcon(icon1)
         self.deleteButton.setObjectName(_fromUtf8("deleteButton"))

@@ -58,9 +58,6 @@
      <property name="text">
       <string/>
      </property>
-     <property name="pixmap">
-      <pixmap>Icons/logo_horiz_transp.png</pixmap>
-     </property>
      <property name="scaledContents">
       <bool>true</bool>
      </property>
@@ -87,22 +84,19 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Branch: dev (GitHub repository: &quot;&lt;a href=&quot;https://github.com/AngelFP/VisualPIC&quot;&gt;https://github.com/AngelFP/VisualPIC&lt;/a&gt;&quot;)</string>
-     </property>
-     <property name="textFormat">
-      <enum>Qt::RichText</enum>
-     </property>
-     <property name="openExternalLinks">
-      <bool>true</bool>
-     </property>
+    <widget class="QLabel" name="version_label">
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_3">
+      <property name="textFormat">
+        <enum>Qt::RichText</enum>
+      </property>
+      <property name="openExternalLinks">
+        <bool>true</bool>
+      </property>
      <property name="text">
-      <string>Last updated: 05/06/2018</string>
+      <string>GitHub repository: &lt;a href=https://github.com/AngelFP/VisualPIC&gt;https://github.com/AngelFP/VisualPIC&lt;/a&gt;</string>
      </property>
     </widget>
    </item>

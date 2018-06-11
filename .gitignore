@@ -91,3 +91,6 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/build/lib/VisualPIC
+/dist
+/visualPIC.egg-info

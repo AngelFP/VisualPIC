@@ -24,21 +24,29 @@ import inspect
 import ctypes
 import platform
 import sys
+from pkg_resources import resource_filename
+
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QLabel, QVBoxLayout, QProgressBar
 from PyQt5.QtGui import QPixmap, QPalette, QColor
 from PyQt5.QtCore import QSize
 from PyQt5.Qt import Qt, QStyleFactory, QFont
 
 
-# Add VisualPIC folder to python path, so that folders can be called as modules
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-os.sys.path.insert(0,parentdir) 
+try:
+    # Check if VisualPIC is installed
+    import VisualPIC
+except:
+    # If not, add VisualPIC folder to path, so that folders can be
+    # called as modules
+    current_dir = os.path.dirname(
+        os.path.abspath(inspect.getfile(inspect.currentframe())))
+    parent_dir = os.path.dirname(current_dir)
+    os.sys.path.insert(0,parent_dir) 
 
 
 # Needed to change taskbar icon on Windows
 if platform.system() == 'Windows':
-    myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+    myappid = 'visualpic' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ctypes.windll.user32.SetProcessDPIAware() 
     #shcore = ctypes.windll.LoadLibrary("Shcore.dll") 
@@ -72,7 +80,7 @@ def set_dark_theme(qapp):
                      QColor(127,127,127))
     qapp.setPalette(palette)
  
-if __name__ == '__main__':
+def display_gui():
     # Enable scaling for high DPI displays
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -89,7 +97,9 @@ if __name__ == '__main__':
 
     # Splash screen (loading heavy imports)
     screenGeometry = app.desktop().screenGeometry()
-    splashPic = QPixmap("Icons/logo_horiz_transp.png")
+    logo_path = resource_filename(
+                'VisualPIC.Icons', 'logo_horiz_transp.png')
+    splashPic = QPixmap(logo_path)
     splashWidth = 450
     splashHeight = 150
     splashLabel = QLabel()
@@ -132,4 +142,6 @@ if __name__ == '__main__':
     mainWindow.show()
     splash.finish(mainWindow)
     sys.exit(app.exec_())
-    
+
+if __name__ == '__main__':
+    display_gui()

@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>VisualPIC</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>Icons/logo.png</normaloff>Icons/logo.png</iconset>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">
     <bool>true</bool>
@@ -79,20 +75,12 @@
           <property name="text">
            <string/>
           </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>Icons/icon-ios7-arrow-left-128.png</normaloff>Icons/icon-ios7-arrow-left-128.png</iconset>
-          </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="nextStep_Button">
           <property name="text">
            <string/>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>Icons/icon-ios7-arrow-right-128.png</normaloff>Icons/icon-ios7-arrow-right-128.png</iconset>
           </property>
          </widget>
         </item>

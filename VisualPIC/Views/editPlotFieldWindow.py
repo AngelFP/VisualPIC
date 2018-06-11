@@ -19,9 +19,10 @@
 
 import sys
 import os
+from pkg_resources import resource_filename
 
 from PyQt5.uic import loadUiType
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QIcon
 from PyQt5.QtWidgets import QApplication
 
 from VisualPIC.DataPlotting.fieldToPlot import FieldToPlot
@@ -42,6 +43,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
     def __init__(self, subplot, plotterMethod, parent=None):
         super(EditPlotWindow, self).__init__()
         self.setupUi(self)
+        self.set_ui_icons()
         self.plotterMethod = plotterMethod
         self.mainWindow = parent
         self.subplot = subplot
@@ -53,6 +55,11 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.GetAxisProperties()
         self.GetColorbarProperties()
         self.GetTitleProperties()
+
+    def set_ui_icons(self):
+        window_icon_path = resource_filename(
+            'VisualPIC.Icons', 'logo.png')
+        self.setWindowIcon(QIcon(window_icon_path))
 
     def RegisterUIEvents(self):
         # Fields tab
