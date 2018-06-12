@@ -548,7 +548,7 @@ class Volume3D():
     def load_field_data(self, time_step, transv_el = None, lon_el = None,
                         fraction = 1):
         if not self.is_data_loaded(time_step):
-            if self.field.GetFieldDimension() == "3D":
+            if self.field.GetFieldDimension() == "3D" or self.field.GetFieldDimension() == "thetaMode":
                 self.fieldData = self.field.GetAllFieldDataInOriginalUnits(time_step)
             if self.field.GetFieldDimension() == "2D":
                 self.fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
@@ -566,12 +566,17 @@ class Volume3D():
 
     def get_axes(self, time_step):
         axes = {}
-        if self.field.GetFieldDimension() == "3D":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
-        if self.field.GetFieldDimension() == "2D":
+        if self.field.GetFieldDimension() == "thetaMode":
             axes["z"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
-        axes["y"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
-        axes["x"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
+            axes["y"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+            axes["x"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
+        else:
+            if self.field.GetFieldDimension() == "3D":
+                axes["z"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
+            if self.field.GetFieldDimension() == "2D":
+                axes["z"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+            axes["y"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+            axes["x"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
         return axes
 
     def get_axes_spacing(self, time_step, transv_el = None, lon_el = None,

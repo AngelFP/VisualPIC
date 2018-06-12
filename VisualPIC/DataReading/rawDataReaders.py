@@ -182,6 +182,12 @@ class OpenPMDRawDataReader(RawDataReaderBase):
     def _ReadData(self, timeStep):
         data, = self.openpmd_ts.get_particle( [self.internalName],
                     species=self.speciesName, iteration=timeStep )
+        # VisualPIC needs the total charge and mass per particle, therefore,
+        #in openPMD this quantities have to be multiplied by the particle weight
+        if self.internalName == 'charge' or self.internalName == 'mass':
+            w, = self.openpmd_ts.get_particle( ['w'],
+                    species=self.speciesName, iteration=timeStep )
+            data = data*w
         self.currentTime = self._ReadTime(timeStep)
         return data
 

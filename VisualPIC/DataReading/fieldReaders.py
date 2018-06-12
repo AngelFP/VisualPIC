@@ -391,6 +391,12 @@ class OpenPMDFieldReader(FieldReaderBase):
             elementsY = self.matrixShape[-2]
             selectedY = round(elementsY*(float(slicePositionY)/100))
             sliceData = np.array(fieldData[selectedY])
+        elif self.fieldDimension == "thetaMode":
+            fieldData, _ = self.openpmd_ts.get_field(
+                                *field_and_coord, iteration=timeStep )
+            elementsX = self.matrixShape[-2]*2
+            selectedRow = round(elementsX*(float(slicePositionX)/100))
+            sliceData = np.array(fieldData[selectedRow])
         return sliceData
 
     def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
