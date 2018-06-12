@@ -129,3 +129,6 @@ class FieldToPlot:
                 return self.__Get2DField(timeStep)
             elif self.__dataToPlotDimension == "1D":
                 return self.__Get1DSlice(timeStep, 50)
+        elif self.__fieldDimension == "thetaMode":
+            if self.__dataToPlotDimension == "2D":
+                return self.__Get2DSlice("z", 50, timeStep)

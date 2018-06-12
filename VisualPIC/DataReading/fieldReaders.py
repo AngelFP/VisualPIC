@@ -421,10 +421,14 @@ class OpenPMDFieldReader(FieldReaderBase):
                                     iteration=timeStep, slicing=None )
         # Construct the `axisData` from the object `field_meta_data`
         axisData = {}
-        axisData["x"] = getattr( field_meta_data, "z" )
-        axisData["y"] = getattr( field_meta_data, "x" )
-        if self.fieldDimension == "3D":
-            axisData["z"] = getattr( field_meta_data, "y" )
+        if self.fieldDimension == "thetaMode":
+            axisData["x"] = getattr( field_meta_data, "z" )
+            axisData["y"] = getattr( field_meta_data, "r" )
+        else:
+            axisData["x"] = getattr( field_meta_data, "z" )
+            axisData["y"] = getattr( field_meta_data, "x" )
+            if self.fieldDimension == "3D":
+                axisData["z"] = getattr( field_meta_data, "y" )
         return axisData
 
     def _ReadTime(self, timeStep):
