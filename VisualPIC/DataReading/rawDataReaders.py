@@ -23,13 +23,7 @@ from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
-
-# Try to import openPMD-viewer (required for openPMD data)
-try:
-    from opmd_viewer import OpenPMDTimeSeries
-    openpmd_installed = True
-except ImportError:
-    openpmd_installed = False
+from VisualPIC.DataReading.openPMDTimeSeriesSingleton import OpenPMDTimeSeriesSingleton, openpmd_installed
 
 
 class RawDataReaderBase(DataReader):
@@ -175,7 +169,7 @@ class OpenPMDRawDataReader(RawDataReaderBase):
                 "pip install openPMD-viewer")
         # Store an openPMD timeseries object
         # (Its API is used in order to conveniently extract data from the file)
-        self.openpmd_ts = OpenPMDTimeSeries( location, check_all_files=False )
+        self.openpmd_ts = OpenPMDTimeSeriesSingleton( location, check_all_files=False )
         # Initialize the instance
         RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
 

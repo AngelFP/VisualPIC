@@ -28,8 +28,9 @@ Base Class for Custom Fields and Raw Data Sets
 """
 class CustomDataElement(DataElement):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":[],
-                     "3D":[]}
+    necessaryData = {"2D": [],
+                     "3D": [],
+                     "thetaMode": []}
     necessaryParameters = []
     units = ""
     ISUnits = True
@@ -76,7 +77,11 @@ Custom Fields
 class CustomField(CustomDataElement):
     @classmethod
     def meetsRequirements(cls, dataContainer):
-        return ((set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+        if dataContainer.GetSimulationDimension() in cls.necessaryData:
+            return ((set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()]))
+                    and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+        else:
+            return False
 
     def _SetBaseData(self):
         dimension = self.dataContainer.GetSimulationDimension()
@@ -154,7 +159,7 @@ class CustomField(CustomDataElement):
     """
     def Get1DSlice(self, timeStep, units, slicePositionX, slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() == '2D':
+        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
             elementsX = fieldData.shape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = fieldData[selectedRow]
@@ -168,9 +173,12 @@ class CustomField(CustomDataElement):
 
     def Get2DSlice(self, sliceAxis, slicePosition, timeStep, units):
         fieldData = self.CalculateField(timeStep)
-        elementsX3 = fieldData.shape[-3]
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
+        if self.GetFieldDimension() == "thetaMode":
+            sliceData = fieldData
+        else:
+            elementsX3 = fieldData.shape[-3]
+            selectedRow = round(elementsX3*(float(slicePosition)/100))
+            sliceData = fieldData[selectedRow]
         return self._unitConverter.GetDataInUnits(self, units, sliceData)
 
     def GetAllFieldData(self, timeStep, units):
@@ -211,8 +219,8 @@ class CustomField(CustomDataElement):
 
 class TransverseWakefield(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Ey", "Bx"],
-                     "3D":["Ey", "Bx"]}
+    necessaryData = {"2D": ["Ey", "Bx"],
+                     "3D": ["Ey", "Bx"]}
     necessaryParameters = []
     units = "V/m"
     ISUnits = True
@@ -227,63 +235,64 @@ class TransverseWakefield(CustomField):
 
 class LaserIntensityField(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Ey", "Ez"],
-                     "3D":["Ex", "Ey", "Ez"]}
-    necessaryParameters = ["n_p", "lambda_l"]
+    necessaryData = {"2D": ["Ey", "Ez"],
+                     "3D": ["Ex", "Ey", "Ez"],
+                     "thetaMode": ["Er", "Ez"]}
+    necessaryParameters = []
     units = "W/m^2"
     ISUnits = True
     standardName = "Laser Intensity"
 
     def CalculateField(self, timeStep):
-        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-        Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
-        if self.GetFieldDimension() == '3D':
-            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-        n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
-        w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
-        lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
-        w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
-        n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        if self.GetFieldDimension() == '2D':
-            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
-        elif self.GetFieldDimension() == '3D':
-            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
-        Intensity = self.c*self.eps_0*n/2*E2
+        if self.GetFieldDimension() == 'thetaMode':
+            Er = self.data["Er"].GetAllFieldDataISUnits(timeStep)
+            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+            E2 = np.square(Ez) + np.square(Er)
+        else:
+            Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+            if self.GetFieldDimension() == '3D':
+                Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
+            if self.GetFieldDimension() == '2D':
+                E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
         return Intensity
 
 
 class NormalizedVectorPotential(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Ey", "Ez"],
-                     "3D":["Ex", "Ey", "Ez"]}
+    necessaryData = {"2D": ["Ey", "Ez"],
+                     "3D": ["Ex", "Ey", "Ez"],
+                     "thetaMode": ["Er", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
     units = "m_e*c^2/e"
     ISUnits = True
     standardName = "Normalized Vector Potential"
 
     def CalculateField(self, timeStep):
-        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-        Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
-        if self.GetFieldDimension() == '3D':
-            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-        n_p = self.dataContainer.GetSimulationParameter("n_p") * 1e24
-        w_p = math.sqrt(n_p * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
+        if self.GetFieldDimension() == 'thetaMode':
+            Er = self.data["Er"].GetAllFieldDataISUnits(timeStep)
+            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+            E2 = np.square(Ez) + np.square(Er)
+        else:
+            Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+            if self.GetFieldDimension() == '3D':
+                Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
+            if self.GetFieldDimension() == '2D':
+                E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+        Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
-        w_l = 2 * math.pi * self.c / lambda_l # laser angular frequency (rad/sec)
-        n = math.sqrt(1-(w_p/w_l)**2) # index of refraction
-        if self.GetFieldDimension() == '2D':
-            E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
-        elif self.GetFieldDimension() == '3D':
-            E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
-        Intensity = self.c*self.eps_0*n/2*E2
         a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
 
 
 class TransverseWakefieldSlope(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Ey", "Bx"],
-                     "3D":["Ey", "Bx"]}
+    necessaryData = {"2D": ["Ey", "Bx"],
+                     "3D": ["Ey", "Bx"]}
     necessaryParameters = []
     units = "V/m^2"
     ISUnits = True
@@ -305,8 +314,8 @@ class TransverseWakefieldSlope(CustomField):
 
 class BxSlope(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Bx"],
-                     "3D":["Bx"]}
+    necessaryData = {"2D": ["Bx"],
+                     "3D": ["Bx"]}
     necessaryParameters = []
     units = "T/m"
     ISUnits = True
@@ -319,10 +328,11 @@ class BxSlope(CustomField):
         slope = np.gradient(Bx, dy, axis=0)
         return slope
 
+
 class EzSlope(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D":["Ez"],
-                     "3D":["Ez"]}
+    necessaryData = {"2D": ["Ez"],
+                     "3D": ["Ez"]}
     necessaryParameters = []
     units = "V/m^2"
     ISUnits = True
@@ -360,7 +370,11 @@ Custom Raw Data Sets
 class CustomRawDataSet(CustomDataElement):
     @classmethod
     def meetsRequirements(cls, dataContainer, speciesName):
-        return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()])) and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+        if dataContainer.GetSimulationDimension() in cls.necessaryData:
+            return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()]))
+                    and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+        else:
+            return False
 
     def _SetBaseData(self):
         dimension = self.dataContainer.GetSimulationDimension()
@@ -389,8 +403,8 @@ class CustomRawDataSet(CustomDataElement):
 
 class xPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["Px", "Pz"],
-                     "3D":["Px", "Pz"]}
+    necessaryData = {"2D": ["Px", "Pz"],
+                     "3D": ["Px", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
@@ -405,8 +419,8 @@ class xPrimeDataSet(CustomRawDataSet):
 
 class yPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["Py", "Pz"],
-                     "3D":["Py", "Pz"]}
+    necessaryData = {"2D": ["Py", "Pz"],
+                     "3D": ["Py", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
@@ -421,8 +435,8 @@ class yPrimeDataSet(CustomRawDataSet):
 
 class deltaZPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["z", "Charge"],
-                     "3D":["z", "Charge"]}
+    necessaryData = {"2D": ["z", "Charge"],
+                     "3D": ["z", "Charge"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -438,8 +452,8 @@ class deltaZPrimeDataSet(CustomRawDataSet):
 
 class forwardMomentumVariationDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["Pz"],
-                     "3D":["Pz"]}
+    necessaryData = {"2D": ["Pz"],
+                     "3D": ["Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
@@ -454,8 +468,8 @@ class forwardMomentumVariationDataSet(CustomRawDataSet):
 
 class SpeedOfLightCoordinate(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["z"],
-                     "3D":["z"]}
+    necessaryData = {"2D": ["z"],
+                     "3D": ["z"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -467,10 +481,11 @@ class SpeedOfLightCoordinate(CustomRawDataSet):
         xi = z - 299792458*t
         return xi
 
+
 class BeamComovingCoordinate(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["z"],
-                     "3D":["z"]}
+    necessaryData = {"2D": ["z"],
+                     "3D": ["z"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -484,8 +499,8 @@ class BeamComovingCoordinate(CustomRawDataSet):
 
 class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D":["Pz", "Py", "z", "Charge"],
-                     "3D":["Pz", "Py", "Pz", "z", "Charge"]}
+    necessaryData = {"2D": ["Pz", "Py", "z", "Charge"],
+                     "3D": ["Pz", "Py", "Pz", "z", "Charge"]}
     necessaryParameters = []
     units = "."
     ISUnits = True
@@ -504,6 +519,7 @@ class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
         slope = p[0]
         unc_gamma_spread = rel_gamma_spread - slope*dz
         return unc_gamma_spread
+ 
     
 class CustomRawDataSetCreator:
     customDataSets = [

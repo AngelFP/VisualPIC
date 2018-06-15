@@ -23,17 +23,12 @@ from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
-
-# Try to import openPMD-viewer (required for openPMD data)
-try:
-    from opmd_viewer import OpenPMDTimeSeries
+from VisualPIC.DataReading.openPMDTimeSeriesSingleton import OpenPMDTimeSeriesSingleton, openpmd_installed
+if openpmd_installed:
     from opmd_viewer.openpmd_timeseries.data_reader.utilities \
         import get_shape as openpmd_get_shape
     from opmd_viewer.openpmd_timeseries.data_reader.field_reader \
         import find_dataset as openpmd_find_dataset
-    openpmd_installed = True
-except ImportError:
-    openpmd_installed = False
 
 
 class FieldReaderBase(DataReader):
@@ -41,12 +36,9 @@ class FieldReaderBase(DataReader):
     __metaclass__  = abc.ABCMeta
     def __init__(self, location, speciesName, dataName, firstTimeStep):
         DataReader.__init__(self, location, speciesName, dataName)
-        self.internalName = ""
-        self.fieldDimension = ""
-        self.firstTimeStep = firstTimeStep
-        self.matrixShape = []
         self.axisUnits = {}
         self.axisData = {}
+        self.firstTimeStep = firstTimeStep
         self.currentTimeStep = {"Slice-1D":-1, "Slice-2D":-1, "AllData":-1}
         self.data = {"Slice-1D":[], "Slice-2D":[], "AllData":[]}
         self.currentSliceAxis = {"Slice-1D":-1, "Slice-2D":-1}
@@ -342,7 +334,7 @@ class OpenPMDFieldReader(FieldReaderBase):
                 "pip install openPMD-viewer")
         # Store an openPMD timeseries object
         # (Its API is used in order to conveniently extract data from the file)
-        self.openpmd_ts = OpenPMDTimeSeries( location, check_all_files=False )
+        self.openpmd_ts = OpenPMDTimeSeriesSingleton( location, check_all_files=False )
         self.openpmd_dataName = dataName
         # Initialize the instance
         FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
@@ -352,11 +344,16 @@ class OpenPMDFieldReader(FieldReaderBase):
         self._ReadInternalName(file_content)
         self._DetermineFieldDimension(file_content)
         self._GetMatrixShape(file_content)
-        self._ReadSimulationProperties(file_content)
         file_content.close()
 
     def _GetMatrixShape(self, file_content):
-        _, dataset = openpmd_find_dataset( file_content, self.internalName )
+        name_in_file = self.internalName
+        if '/' in self.internalName:
+            field = self.internalName.split("/")[0]
+            coord = self.internalName.split("/")[1]
+            if self.fieldDimension == "thetaMode" and coord in ['x', 'y']:
+                name_in_file = field + '/r'
+        _, dataset = openpmd_find_dataset( file_content, name_in_file )
         self.matrixShape = openpmd_get_shape( dataset )
 
     def _ReadInternalName(self, file_content):
@@ -452,12 +449,6 @@ class OpenPMDFieldReader(FieldReaderBase):
         self.timeUnits = "t"
         self.dataUnits = "arb.u." # TODO find the exact unit; needs navigation in file
         file_content.close()
-
-    def _ReadSimulationProperties(self, file_content):
-        # TODO: add the proper resolution
-        self.grid_resolution = None
-        self.grid_size = None
-        self.grid_units = "m"
 
     def _OpenFile(self, timeStep):
         # The line below sets the attribute `_current_i` of openpmd_ts

@@ -25,13 +25,7 @@ import numpy as np
 from VisualPIC.DataHandling.species import Species
 from VisualPIC.DataHandling.folderDataElements import FolderField, FolderRawDataSet
 from VisualPIC.DataHandling.rawDataTags import RawDataTags
-
-# Try to import openPMD-viewer (required for openPMD data)
-try:
-    from opmd_viewer import OpenPMDTimeSeries
-    openpmd_installed = True
-except ImportError:
-    openpmd_installed = False
+from VisualPIC.DataReading.openPMDTimeSeriesSingleton import OpenPMDTimeSeriesSingleton, openpmd_installed
 
 class FolderDataReader:
     """Scans the simulation folder and creates all the necessary species, fields and rawDataSet objects"""
@@ -295,7 +289,7 @@ class FolderDataReader:
             raise RunTimeError("You need to install openPMD-viewer, e.g. with:\n"
                 "pip install openPMD-viewer")
         # Scan the folder using openPMD-viewer
-        ts = OpenPMDTimeSeries( self._dataLocation, check_all_files=False )
+        ts = OpenPMDTimeSeriesSingleton( self._dataLocation, check_all_files=False, reset=True )
 
         # TODO: Change hasNonISUnits to False once unit reading is implemented
         # Register the available fields
@@ -304,6 +298,8 @@ class FolderDataReader:
                 # Vector field
                 if ts.fields_metadata[field]['type'] == 'vector':
                     available_coord = ts.fields_metadata[field]['axis_labels']
+                    if ts.fields_metadata[field]['geometry'] == 'thetaMode':
+                        available_coord += ['x', 'y']
                     # Register each coordinate of the vector
                     for coord in available_coord:
                         fieldName = field + '/' + coord
@@ -339,7 +335,7 @@ class FolderDataReader:
                                 species, species_quantity, hasNonISUnits = True) )
 
     def GetTimeStepsInOpenPMDLocation(self, location):
-        ts = OpenPMDTimeSeries( location, check_all_files=False )
+        ts = OpenPMDTimeSeriesSingleton( location, check_all_files=False )
         return ts.iterations
 
     def GiveStandardNameForOpenPMDQuantity(self, openpmdName):
@@ -349,12 +345,16 @@ class FolderDataReader:
             return "Ey"
         elif "E/x" in openpmdName:
             return "Ex"
+        elif "E/r" in openpmdName:
+            return "Er"
         elif "B/z" in openpmdName:
             return "Bz"
         elif "B/y" in openpmdName:
             return "By"
         elif "B/x" in openpmdName:
             return "Bx"
+        elif "B/r" in openpmdName:
+            return "Br"
         elif "rho" in openpmdName:
             return "Charge density"
         elif openpmdName == "uz":
