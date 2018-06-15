@@ -85,15 +85,11 @@ class DataContainer:
                 self._selectedSpecies.append(species)
 
     def GetSimulationDimension(self):
-        # If any field is in 3D, it will return 3D. 2D otherwise.
         for field in self._availableDomainFields:
-            if field.GetFieldDimension() == "3D":
-                return "3D"
+            return field.GetFieldDimension()
         for species in self._availableSpecies:
             for field in species.GetAvailableFields():
-                if field.GetFieldDimension() == "3D":
-                    return "3D"
-        return "2D"
+                return field.GetFieldDimension()
 
     def GetSimulationCellSize(self):
         for field in self._availableDomainFields:
