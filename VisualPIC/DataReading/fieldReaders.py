@@ -341,27 +341,29 @@ class OpenPMDFieldReader(FieldReaderBase):
 
     def _ReadBasicData(self):
         file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadInternalName(file_content)
-        self._DetermineFieldDimension(file_content)
+        self._determine_field_dimension()
+        self._determine_internal_name()
         self._GetMatrixShape(file_content)
         file_content.close()
 
     def _GetMatrixShape(self, file_content):
-        name_in_file = self.internalName
-        if '/' in self.internalName:
-            field = self.internalName.split("/")[0]
-            coord = self.internalName.split("/")[1]
-            if self.fieldDimension == "thetaMode" and coord in ['x', 'y']:
-                name_in_file = field + '/r'
-        _, dataset = openpmd_find_dataset( file_content, name_in_file )
+        _, dataset = openpmd_find_dataset( file_content, self.internalName )
         self.matrixShape = openpmd_get_shape( dataset )
 
-    def _ReadInternalName(self, file_content):
+    def _determine_internal_name(self):
         self.internalName = self.openpmd_dataName
+        # If field is vectorial, get component
+        if '/' in self.openpmd_dataName:
+            field = self.openpmd_dataName.split("/")[0]
+            coord = self.openpmd_dataName.split("/")[1]
+            # If component is carterian and geometry is thetaMode,
+            # change internal name to radial component
+            if self.fieldDimension == "thetaMode" and coord in ['x', 'y']:
+                self.internalName = field + '/r'
 
-    def _DetermineFieldDimension(self, file_content):
+    def _determine_field_dimension(self):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        fieldname = self.internalName.split("/")[0]
+        fieldname = self.openpmd_dataName.split("/")[0]
         geometry = self.openpmd_ts.fields_metadata[fieldname]['geometry']
         if geometry == '3dcartesian':
             self.fieldDimension = "3D"
@@ -374,7 +376,7 @@ class OpenPMDFieldReader(FieldReaderBase):
 
     def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.internalName.split("/")
+        field_and_coord = self.openpmd_dataName.split("/")
         if self.fieldDimension == '2D':
             fieldData, _ = self.openpmd_ts.get_field(
                                 *field_and_coord, iteration=timeStep )
@@ -398,7 +400,7 @@ class OpenPMDFieldReader(FieldReaderBase):
 
     def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.internalName.split("/")
+        field_and_coord = self.openpmd_dataName.split("/")
         # Convert the `slicePosition` from a 0-to-100 number to -1 to 1
         slicing = -1. + 2*slicePosition/100.
         # Extract the slice
@@ -409,14 +411,14 @@ class OpenPMDFieldReader(FieldReaderBase):
 
     def _ReadAllFieldData(self, timeStep):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.internalName.split("/")
+        field_and_coord = self.openpmd_dataName.split("/")
         fieldData, _ = self.openpmd_ts.get_field(
                         *field_and_coord, iteration=timeStep, slicing=None )
         return fieldData
 
     def _ReadAxisData(self, timeStep):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.internalName.split("/")
+        field_and_coord = self.openpmd_dataName.split("/")
         # Note: the code below has very bad performance because
         # it automatically reads the field data, just to extract the metadata
         # TODO: improve in the future
