@@ -217,20 +217,38 @@ class CustomField(CustomDataElement):
         raise NotImplementedError
 
 
-class TransverseWakefield(CustomField):
+class TransverseWakefieldY(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ey", "Bx"],
-                     "3D": ["Ey", "Bx"]}
+                     "3D": ["Ey", "Bx"],
+                     "thetaMode": ["Ey", "Bx"]}
     necessaryParameters = []
     units = "V/m"
     ISUnits = True
-    standardName = "Transverse Wakefield"
+    standardName = "Wy"
 
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
-        TranvsWF = Ey - self.c*Bx
-        return TranvsWF
+        Wy = Ey + self.c*Bx
+        return Wy
+
+
+class TransverseWakefieldX(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D": ["Ex", "By"],
+                     "3D": ["Ex", "By"],
+                     "thetaMode": ["Ex", "By"]}
+    necessaryParameters = []
+    units = "V/m"
+    ISUnits = True
+    standardName = "Wx"
+
+    def CalculateField(self, timeStep):
+        Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+        By = self.data["By"].GetAllFieldDataISUnits(timeStep)
+        Wx = Ex - self.c*By
+        return Wx
 
 
 class LaserIntensityField(CustomField):
@@ -292,7 +310,8 @@ class NormalizedVectorPotential(CustomField):
 class TransverseWakefieldSlope(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ey", "Bx"],
-                     "3D": ["Ey", "Bx"]}
+                     "3D": ["Ey", "Bx"],
+                     "thetaMode": ["Ey", "Bx"]}
     necessaryParameters = []
     units = "V/m^2"
     ISUnits = True
@@ -305,7 +324,7 @@ class TransverseWakefieldSlope(CustomField):
         y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         
-        if self.GetFieldDimension() == '2D':
+        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
             slope = np.gradient(TranvsWF, dy, axis=0)
         elif self.GetFieldDimension() == '3D':
             slope = np.gradient(TranvsWF, dy, axis=1)
@@ -348,7 +367,8 @@ class EzSlope(CustomField):
 
 class CustomFieldCreator:
     customFields = [
-        TransverseWakefield,
+        TransverseWakefieldX,
+        TransverseWakefieldY,
         TransverseWakefieldSlope,
         LaserIntensityField,
         NormalizedVectorPotential,
