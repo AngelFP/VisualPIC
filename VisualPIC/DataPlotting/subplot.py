@@ -214,10 +214,10 @@ class FieldSubplot(Subplot):
     def LoadDefaultAxesValues(self):
         super().LoadDefaultAxesValues()
         self.SetAxisProperty("x", "DefaultLabelText", "z")
-        self.SetAxisProperty("y", "DefaultLabelText", "y")
+        self.SetAxisProperty("y", "DefaultLabelText", "x")
         #self.SetAxisProperty("z", "DefaultLabelText", "x")
-        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["x"])
-        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["y"])
+        self.SetAxisProperty("x", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
+        self.SetAxisProperty("y", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["x"])
         #self.SetAxisProperty("z", "DefaultUnits", self.dataToPlot[0].GetProperty("axesUnits")["z"])
 
     def _SetTimeSteps(self):

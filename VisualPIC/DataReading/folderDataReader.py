@@ -150,29 +150,29 @@ class FolderDataReader:
         if "e1" in osirisName:
             return "Ez"
         elif "e2" in osirisName:
-            return "Ey"
-        elif "e3" in osirisName:
             return "Ex"
+        elif "e3" in osirisName:
+            return "Ey"
         elif "b1" in osirisName:
             return "Bz"
         elif "b2" in osirisName:
-            return "By"
-        elif "b3" in osirisName:
             return "Bx"
+        elif "b3" in osirisName:
+            return "By"
         elif "charge" in osirisName:
             return "Charge density"
         elif osirisName == "x1":
             return "z"
         elif osirisName == "x2":
-            return "y"
-        elif osirisName == "x3":
             return "x"
+        elif osirisName == "x3":
+            return "y"
         elif osirisName == "p1":
             return "Pz"
         elif osirisName == "p2":
-            return "Py"
-        elif osirisName == "p3":
             return "Px"
+        elif osirisName == "p3":
+            return "Py"
         elif osirisName == "q":
             return "Charge"
         elif osirisName == "ene":
@@ -264,15 +264,15 @@ class FolderDataReader:
         elif original_name == "x1":
             return "z"
         elif original_name == "x2":
-            return "y"
-        elif original_name == "x3":
             return "x"
+        elif original_name == "x3":
+            return "y"
         elif original_name == "p1":
             return "Pz"
         elif original_name == "p2":
-            return "Py"
-        elif original_name == "p3":
             return "Px"
+        elif original_name == "p3":
+            return "Py"
         elif original_name == "q":
             return "Charge"
         elif original_name == "ene":

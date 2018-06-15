@@ -107,14 +107,18 @@ class FieldToPlot:
         # slicePosition has to be a double between 0 and 100
         #this gives the position in the transverse axis as a 
         fieldSlice = self.__field.Get1DSlice(timeStep, self.GetProperty("fieldUnits"), slicePositionX, slicePositionY) # Y data
-        return self.__GetAxisData("x", timeStep), fieldSlice
+        return self.__GetAxisData("z", timeStep), fieldSlice
 
     def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
         fieldSlice = self.__field.Get2DSlice(sliceAxis, slicePosition, timeStep, self.GetProperty("fieldUnits"))
-        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),fieldSlice
+        if self.__fieldDimension == "thetaMode":
+            transv_axis = "r"
+        else:
+            transv_axis = "x"
+        return self.__GetAxisData("z", timeStep),self.__GetAxisData(transv_axis, timeStep),fieldSlice
 
     def __Get2DField(self, timeStep):
-        return self.__GetAxisData("x", timeStep),self.__GetAxisData("y", timeStep),self.__field.GetAllFieldData(timeStep, self.GetProperty("fieldUnits"))
+        return self.__GetAxisData("z", timeStep),self.__GetAxisData("x", timeStep),self.__field.GetAllFieldData(timeStep, self.GetProperty("fieldUnits"))
     
     def GetData(self, timeStep):
         if self.__fieldDimension == "3D":

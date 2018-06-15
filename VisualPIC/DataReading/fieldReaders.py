@@ -184,14 +184,14 @@ class OsirisFieldReader(FieldReaderBase):
 
     def _ReadAxisData(self, timeStep):
         file_content = self._OpenFile(timeStep)
-        elementsX = self.matrixShape[-1] # number of elements in the longitudinal z direction
-        elementsY = self.matrixShape[-2] # number of elements in the transverse y direction
+        elementsZ = self.matrixShape[-1] # number of elements in the longitudinal z direction
+        elementsX = self.matrixShape[-2] # number of elements in the transverse x direction
         axisData = {}
-        axisData["x"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsX)
-        axisData["y"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsY)
+        axisData["z"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsZ)
+        axisData["x"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsX)
         if self.fieldDimension == "3D":
-            elementsZ = self.matrixShape[-3] # number of elements in the transverse x direction
-            axisData["z"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsZ)
+            elementsY = self.matrixShape[-3] # number of elements in the transverse y direction
+            axisData["y"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsY)
         file_content.close()
         return axisData
 
@@ -202,8 +202,8 @@ class OsirisFieldReader(FieldReaderBase):
 
     def _ReadUnits(self):
         file_content = self._OpenFile(self.firstTimeStep)
-        self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.axisUnits["y"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.axisUnits["z"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
         self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
@@ -279,14 +279,14 @@ class HiPACEFieldReader(FieldReaderBase):
 
     def _ReadAxisData(self, timeStep):
         file_content = self._OpenFile(timeStep)
-        elementsX = self.matrixShape[-1] # number of elements in the longitudinal z direction
-        elementsY = self.matrixShape[-2] # number of elements in the transverse y direction
+        elementsZ = self.matrixShape[-1] # number of elements in the longitudinal z direction
+        elementsX = self.matrixShape[-2] # number of elements in the transverse y direction
         axisData = {}
-        axisData["x"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsX)
-        axisData["y"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsY)
+        axisData["z"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsZ)
+        axisData["x"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsX)
         if self.fieldDimension == "3D":
-            elementsZ = self.matrixShape[-3] # number of elements in the transverse x direction
-            axisData["z"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsZ)
+            elementsY = self.matrixShape[-3] # number of elements in the transverse x direction
+            axisData["y"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsY)
         file_content.close()
         return axisData
 
@@ -427,13 +427,13 @@ class OpenPMDFieldReader(FieldReaderBase):
         # Construct the `axisData` from the object `field_meta_data`
         axisData = {}
         if self.fieldDimension == "thetaMode":
-            axisData["x"] = getattr( field_meta_data, "z" )
-            axisData["y"] = getattr( field_meta_data, "r" )
+            axisData["z"] = getattr( field_meta_data, "z" )
+            axisData["r"] = getattr( field_meta_data, "r" )
         else:
-            axisData["x"] = getattr( field_meta_data, "z" )
-            axisData["y"] = getattr( field_meta_data, "x" )
+            axisData["z"] = getattr( field_meta_data, "z" )
+            axisData["x"] = getattr( field_meta_data, "x" )
             if self.fieldDimension == "3D":
-                axisData["z"] = getattr( field_meta_data, "y" )
+                axisData["y"] = getattr( field_meta_data, "y" )
         return axisData
 
     def _ReadTime(self, timeStep):
@@ -448,6 +448,7 @@ class OpenPMDFieldReader(FieldReaderBase):
         self.axisUnits["x"] = "m"
         self.axisUnits["y"] = "m"
         self.axisUnits["z"] = "m"
+        self.axisUnits["r"] = "m"
         self.timeUnits = "t"
         self.dataUnits = "arb.u." # TODO find the exact unit; needs navigation in file
         file_content.close()
