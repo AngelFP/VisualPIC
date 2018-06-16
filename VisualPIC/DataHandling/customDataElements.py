@@ -217,23 +217,6 @@ class CustomField(CustomDataElement):
         raise NotImplementedError
 
 
-class TransverseWakefieldY(CustomField):
-    # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ey", "Bx"],
-                     "3D": ["Ey", "Bx"],
-                     "thetaMode": ["Ey", "Bx"]}
-    necessaryParameters = []
-    units = "V/m"
-    ISUnits = True
-    standardName = "Wy"
-
-    def CalculateField(self, timeStep):
-        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-        Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
-        Wy = Ey + self.c*Bx
-        return Wy
-
-
 class TransverseWakefieldX(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ex", "By"],
@@ -251,9 +234,26 @@ class TransverseWakefieldX(CustomField):
         return Wx
 
 
+class TransverseWakefieldY(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D": ["Ey", "Bx"],
+                     "3D": ["Ey", "Bx"],
+                     "thetaMode": ["Ey", "Bx"]}
+    necessaryParameters = []
+    units = "V/m"
+    ISUnits = True
+    standardName = "Wy"
+
+    def CalculateField(self, timeStep):
+        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+        Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
+        Wy = Ey + self.c*Bx
+        return Wy
+
+
 class LaserIntensityField(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ey", "Ez"],
+    necessaryData = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
     necessaryParameters = []
@@ -267,13 +267,13 @@ class LaserIntensityField(CustomField):
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             E2 = np.square(Ez) + np.square(Er)
         else:
-            Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             if self.GetFieldDimension() == '3D':
-                Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+                Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
                 E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
             if self.GetFieldDimension() == '2D':
-                E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+                E2 = np.square(Ez) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
         return Intensity
 
@@ -294,20 +294,47 @@ class NormalizedVectorPotential(CustomField):
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             E2 = np.square(Ez) + np.square(Er)
         else:
-            Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             if self.GetFieldDimension() == '3D':
-                Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+                Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
                 E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
             if self.GetFieldDimension() == '2D':
-                E2 = np.square(Ez) + np.square(Ey) # square of electric field modulus
+                E2 = np.square(Ez) + np.square(Ex) # square of electric field modulus
         Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
         a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
         return a
 
 
-class TransverseWakefieldSlope(CustomField):
+class TransverseWakefieldSlopeX(CustomField):
+    # List of necessary fields and simulation parameters.
+    necessaryData = {"2D": ["Ex", "By"],
+                     "3D": ["Ex", "By"],
+                     "thetaMode": ["Ex", "By"]}
+    necessaryParameters = []
+    units = "V/m^2"
+    ISUnits = True
+    standardName = "dx Wx"
+
+    def CalculateField(self, timeStep):
+        Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
+        By = self.data["By"].GetAllFieldDataISUnits(timeStep)
+        Wx = Ex - self.c*By
+        if self.GetFieldDimension() == 'thetaMode':
+            x = self.data["Ex"].GetAxisInISUnits("r", timeStep)
+        else:
+            x = self.data["Ex"].GetAxisInISUnits("x", timeStep)
+        dx = abs(x[1]-x[0]) # distance between data points in y direction
+        
+        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+            slope = np.gradient(Wx, dx, axis=0)
+        elif self.GetFieldDimension() == '3D':
+            slope = np.gradient(Wx, dx, axis=1)
+        return slope
+
+
+class TransverseWakefieldSlopeY(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ey", "Bx"],
                      "3D": ["Ey", "Bx"],
@@ -315,51 +342,38 @@ class TransverseWakefieldSlope(CustomField):
     necessaryParameters = []
     units = "V/m^2"
     ISUnits = True
-    standardName = "Transverse Wakefield Slope"
+    standardName = "dy Wy"
 
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits( timeStep)
         Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
-        TranvsWF = Ey - self.c*Bx
-        y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
+        Wy = Ey + self.c*Bx
+        if self.GetFieldDimension() == 'thetaMode':
+            y = self.data["Ey"].GetAxisInISUnits("r", timeStep)
+        else:
+            y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         
         if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
-            slope = np.gradient(TranvsWF, dy, axis=0)
+            slope = np.gradient(Wy, dy, axis=0)
         elif self.GetFieldDimension() == '3D':
-            slope = np.gradient(TranvsWF, dy, axis=1)
-        return slope
-
-
-class BxSlope(CustomField):
-    # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Bx"],
-                     "3D": ["Bx"]}
-    necessaryParameters = []
-    units = "T/m"
-    ISUnits = True
-    standardName = "Bx Slope"
-
-    def CalculateField(self, timeStep):
-        Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
-        y = self.data["Bx"].GetAxisInISUnits("y", timeStep)
-        dy = abs(y[1]-y[0]) # distance between data points in y direction
-        slope = np.gradient(Bx, dy, axis=0)
+            slope = np.gradient(Wy, dy, axis=1)
         return slope
 
 
 class EzSlope(CustomField):
     # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ez"],
-                     "3D": ["Ez"]}
+                     "3D": ["Ez"],
+                     "thetaMode": ["Ez"]}
     necessaryParameters = []
     units = "V/m^2"
     ISUnits = True
-    standardName = "Ez Slope"
+    standardName = "dz Ez"
 
     def CalculateField(self, timeStep):
         Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
-        z = self.data["Ez"].GetAxisInISUnits("x", timeStep)
+        z = self.data["Ez"].GetAxisInISUnits("z", timeStep)
         dz = abs(z[1]-z[0]) # distance between data points in z direction
         slope = np.gradient(Ez, dz, axis=2)
         return slope
@@ -369,10 +383,10 @@ class CustomFieldCreator:
     customFields = [
         TransverseWakefieldX,
         TransverseWakefieldY,
-        TransverseWakefieldSlope,
+        TransverseWakefieldSlopeX,
+        TransverseWakefieldSlopeY,
         LaserIntensityField,
         NormalizedVectorPotential,
-        BxSlope,
         EzSlope
         ]
     @classmethod
