@@ -318,6 +318,11 @@ class OpenPMDUnitConverter(GeneralUnitConverter):
         self._SetNormalizationFactor(None)
 
     def ConvertToISUnits(self, dataElement, data):
+        data_name = dataElement.GetName()
+        if data_name in ["x", "y", "z"]:
+            return data * 1e-6
+        elif data_name in ["Px", "Py", "Pz"]:
+            return data * self.m_e * self.c # kg*m/s
         return data
 
     def GetTimeInISUnits(self, dataElement, timeStep):
