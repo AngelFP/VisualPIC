@@ -194,7 +194,16 @@ class OpenPMDRawDataReader(RawDataReaderBase):
     def _ReadUnits(self):
         # OpenPMD data always provide conversion to SI units
         # TODO: Get the units from file
-        self.dataUnits = "arb.u." 
+        if self.internalName in ["x", "y", "z"]:
+            self.dataUnits = "μm" 
+        elif self.internalName in ["ux", "uy", "uz"]:
+            self.dataUnits = "m_e c" 
+        elif self.internalName == 'charge':
+            self.dataUnits = "C"
+        elif self.internalName == 'mass':
+            self.dataUnits = "kg"
+        else:
+            self.dataUnits = "arb.u." 
         self.timeUnits = "s"
 
     def _OpenFile(self, timeStep):
