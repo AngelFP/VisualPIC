@@ -375,7 +375,10 @@ class EzSlope(CustomField):
         Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
         z = self.data["Ez"].GetAxisInISUnits("z", timeStep)
         dz = abs(z[1]-z[0]) # distance between data points in z direction
-        slope = np.gradient(Ez, dz, axis=2)
+        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+            slope = np.gradient(Ez, dz, axis=1)
+        elif self.GetFieldDimension() == '3D':
+            slope = np.gradient(Ez, dz, axis=2)
         return slope
 
 
