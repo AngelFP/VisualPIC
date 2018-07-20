@@ -280,7 +280,7 @@ class LaserIntensityField(CustomField):
 
 class NormalizedVectorPotential(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ey", "Ez"],
+    necessaryData = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
