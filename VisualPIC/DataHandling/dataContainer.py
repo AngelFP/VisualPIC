@@ -139,6 +139,13 @@ class DataContainer:
             if species.HasRawDataTags():
                 speciesList.append(species)
         return speciesList
+
+    def GetNamesOfSpeciesWithTrackingData(self):
+        speciesList = list()
+        for species in self._availableSpecies:
+            if species.HasRawDataTags():
+                speciesList.append(species.GetName())
+        return speciesList
         
     def GetAvailableSpeciesNames(self):
         namesList = list()
@@ -177,6 +184,11 @@ class DataContainer:
         for species in self._availableSpecies:
             if species.GetName() == speciesName:
                 return species.GetRawDataSet(dataSetName)
+
+    def GetSpeciesTrackingTags(self, speciesName, time_step):
+        for species in self._availableSpecies:
+            if species.GetName() == speciesName:
+                return species.GetRawDataTags(time_step)
                 
     def GetFolderPath(self):
         return self._folderDataReader.GetDataLocation()
