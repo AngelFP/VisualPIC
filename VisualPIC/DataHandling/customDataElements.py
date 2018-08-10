@@ -19,6 +19,7 @@
 
 import numpy as np
 from scipy import interpolate as ip
+from scipy.constants import c, e, m_e, epsilon_0
 import math
 from VisualPIC.DataHandling.dataElement import DataElement
 
@@ -37,17 +38,12 @@ class CustomDataElement(DataElement):
     standardName = ""
 
     def __init__(self, dataContainer, speciesName = ''):
-        self.c = 299792458 #m/s
-        self.e = 1.60217733 * 10**(-19) #C
-        self.m_e = 9.1093897 * 10**(-31) #kg
-        self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
         self.dataContainer = dataContainer
         self.dataStandardName = self.standardName
         self.speciesName = speciesName
         self.hasNonISUnits = not self.ISUnits
         self.set_base_data()
         self._SetTimeSteps()
-        
 
     def _SetTimeSteps(self):
         i = 0
@@ -264,7 +260,7 @@ class TransverseWakefieldX(CustomField):
     def CalculateField(self, timeStep):
         Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         By = self.data["By"].GetAllFieldDataISUnits(timeStep)
-        Wx = Ex - self.c*By
+        Wx = Ex - c*By
         return Wx
 
 
@@ -281,7 +277,7 @@ class TransverseWakefieldY(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
         Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
-        Wy = Ey + self.c*Bx
+        Wy = Ey + c*Bx
         return Wy
 
 
@@ -310,7 +306,7 @@ class LaserIntensityField(CustomField):
             if self.GetFieldDimension() == '2D':
                 E2 = np.square(Ez) + np.square(Ex)
         # Assume index of refraction equal to 1
-        intensity = self.c*self.eps_0/2*E2 
+        intensity = c*epsilon_0/2*E2 
         return intensity
 
 
@@ -337,7 +333,7 @@ class NormalizedVectorPotential(CustomField):
             if self.GetFieldDimension() == '2D':
                 E2 = np.square(Ez) + np.square(Ex)
         # Assume index of refraction equal to 1
-        intensity = self.c*self.eps_0/2*E2 
+        intensity = c*epsilon_0/2*E2 
         # laser wavelength (m)
         lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9
         # normalized vector potential
@@ -358,7 +354,7 @@ class TransverseWakefieldSlopeX(CustomField):
     def CalculateField(self, timeStep):
         Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
         By = self.data["By"].GetAllFieldDataISUnits(timeStep)
-        Wx = Ex - self.c*By
+        Wx = Ex - c*By
         if self.GetFieldDimension() == 'thetaMode':
             x = self.data["Ex"].GetAxisInISUnits("r", timeStep)
         else:
@@ -385,7 +381,7 @@ class TransverseWakefieldSlopeY(CustomField):
     def CalculateField(self, timeStep):
         Ey = self.data["Ey"].GetAllFieldDataISUnits( timeStep)
         Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
-        Wy = Ey + self.c*Bx
+        Wy = Ey + c*Bx
         if self.GetFieldDimension() == 'thetaMode':
             y = self.data["Ey"].GetAxisInISUnits("r", timeStep)
         else:
