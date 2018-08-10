@@ -397,6 +397,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.FillSpeciesRawData(self.rawFieldSpecies_comboBox.currentText())
     
     def FillSpeciesRawData(self, speciesName):
+        self.xRaw_comboBox.clear()
+        self.yRaw_comboBox.clear()
+        self.zRaw_comboBox.clear()
         for species in self.dataContainer.GetSpeciesWithRawData():
             if speciesName == species.GetName():
                 self.xRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
