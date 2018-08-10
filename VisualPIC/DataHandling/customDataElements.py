@@ -45,7 +45,7 @@ class CustomDataElement(DataElement):
         self.dataStandardName = self.standardName
         self.speciesName = speciesName
         self.hasNonISUnits = not self.ISUnits
-        self._SetBaseData()
+        self.set_base_data()
         self._SetTimeSteps()
         
 
@@ -59,7 +59,7 @@ class CustomDataElement(DataElement):
                                            DataElement.GetTimeSteps())
         self.timeSteps = timeSteps
 
-    def _SetBaseData(self):
+    def set_base_data(self):
         raise NotImplementedError
 
     def GetDataOriginalUnits(self):
@@ -90,11 +90,12 @@ class CustomField(CustomDataElement):
         else:
             return False
 
-    def _SetBaseData(self):
+    def set_base_data(self):
         dimension = self.dataContainer.GetSimulationDimension()
         self.data = {}
-        for FieldName in self.necessaryData[dimension]:
-            self.data[FieldName] = self.dataContainer.GetDomainField(FieldName)
+        for field_name in self.necessaryData[dimension]:
+            self.data[field_name] = self.dataContainer.GetDomainField(
+                field_name)
 
     def GetFieldDimension(self):
         return list(self.data.items())[0][1].GetFieldDimension()
@@ -103,7 +104,8 @@ class CustomField(CustomDataElement):
         return self._unitConverter.GetPossibleAxisUnits(self)
 
     def GetAxisDataInOriginalUnits(self, axis, timeStep):
-        return list(self.data.items())[0][1].GetAxisDataInOriginalUnits(axis, timeStep)
+        return list(self.data.items())[0][1].GetAxisDataInOriginalUnits(
+            axis, timeStep)
         
     def GetAxisOriginalUnits(self):
         return list(self.data.items())[0][1].GetAxisOriginalUnits()
@@ -111,7 +113,8 @@ class CustomField(CustomDataElement):
     """
     Get data in original units
     """
-    def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX, slicePositionY = None):
+    def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX,
+                                  slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
         if self.GetFieldDimension() == '2D':
             elementsX = fieldData.shape[-2]
@@ -135,38 +138,61 @@ class CustomField(CustomDataElement):
     def GetAllFieldDataInOriginalUnits(self, timeStep):
         return self.CalculateField(timeStep)
 
-    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl, fraction):
+    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl,
+                                             fraction):
         """
-            fraction: used to define the range of data we want to visualize in the transverse direction.
-                - fraction = 1 -> get all the data
-                - fraction = 0.5 -> get only from x=0 to x=x_max/2
+        fraction: used to define the range of data we want to visualize in the 
+        transverse direction.
+            - fraction = 1 -> get all the data
+            - fraction = 0.5 -> get only from x=0 to x=x_max*0.5
         """
         field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
         nx = field2D.shape[0]
-        field2D = field2D[int(nx/2):int(nx/2+nx/2*fraction)] # we get only half
+        # we get only half of the field data
+        field2D = field2D[int(nx/2):int(nx/2+nx/2*fraction)]
         cilShape = field2D.shape
-        Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] # cyl. coordinates of original data
+        # cyl. coordinates of original data
+        Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] 
         Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])
         Rin = np.reshape(Rin, Rin.shape[0]*Rin.shape[1])
         field2D = np.reshape(field2D, field2D.shape[0]*field2D.shape[1])
         transvSpacing = cilShape[0]*2/transvEl
         lonSpacing = cilShape[1]/longEl
         field3D = np.zeros((transvEl, transvEl, longEl))
-        X, Y, Z = np.mgrid[0:cilShape[0]:transvSpacing,0:cilShape[0]:transvSpacing,0:cilShape[1]:lonSpacing] # cart. coordinates of 3D field
+        # cart. coordinates of 3D field
+        X, Y, Z = np.mgrid[0:cilShape[0]:transvSpacing,
+                           0:cilShape[0]:transvSpacing,
+                           0:cilShape[1]:lonSpacing] 
         Rout = np.sqrt(X**2 + Y**2)
-        # Fill the field sector by sector (only the first has to be calculated. The rest are simlpy mirrored)
-        field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1] = ip.griddata(np.column_stack((Rin,Zin)), field2D, (Rout, Z), method='nearest', fill_value = 0) # top right section when looking back from z to the x-y plane.
-        field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1] = np.flip(field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1], 0)
-        field3D[0:int(transvEl/2),0:int(transvEl/2)] = np.flip(field3D[0:int(transvEl/2),int(transvEl/2):transvEl+1], 1)
-        field3D[int(transvEl/2):transvEl+1,0:int(transvEl/2)] = np.flip(field3D[int(transvEl/2):transvEl+1,int(transvEl/2):transvEl+1], 1)
+        # Fill the field sector by sector
+        # (only the first has to be calculated. The rest are simlpy mirrored)
+        # Start with top right section (when looking back from z to the
+        # x-y plane).
+        field3D[int(transvEl/2):transvEl + 1, int(transvEl/2):transvEl + 1] = (
+            ip.griddata(np.column_stack((Rin,Zin)),
+                        field2D,
+                        (Rout, Z),
+                        method='nearest',
+                        fill_value = 0))
+        # Now perform the mirroring
+        field3D[0:int(transvEl/2), int(transvEl/2):transvEl + 1] = (
+            np.flip(field3D[int(transvEl/2):transvEl + 1,
+                            int(transvEl/2):transvEl + 1],0))
+        field3D[0:int(transvEl/2), 0:int(transvEl/2)] = (
+            np.flip(field3D[0:int(transvEl/2),
+                            int(transvEl/2):transvEl + 1], 1))
+        field3D[int(transvEl/2):transvEl + 1, 0:int(transvEl/2)] = (
+            np.flip(field3D[int(transvEl/2):transvEl + 1,
+                            int(transvEl/2):transvEl+1], 1))
         return field3D
     
     """
     Get data in any units
     """
-    def Get1DSlice(self, timeStep, units, slicePositionX, slicePositionY = None):
+    def Get1DSlice(self, timeStep, units, slicePositionX,
+                   slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+        if self.GetFieldDimension() in ['2D', 'thetaMode']:
             elementsX = fieldData.shape[-2]
             selectedRow = round(elementsX*(float(slicePositionX)/100))
             sliceData = fieldData[selectedRow]
@@ -195,7 +221,8 @@ class CustomField(CustomDataElement):
     """
     Get data in IS units
     """
-    def Get1DSliceISUnits(self, timeStep, slicePositionX, slicePositionY = None):
+    def Get1DSliceISUnits(self, timeStep, slicePositionX,
+                          slicePositionY = None):
         fieldData = self.CalculateField(timeStep)
         if self.GetFieldDimension() == '2D':
             elementsX = fieldData.shape[-2]
@@ -259,14 +286,15 @@ class TransverseWakefieldY(CustomField):
 
 
 class LaserIntensityField(CustomField):
-    # List of necessary fields and simulation parameters.
+    # TODO: Implement correcly in 2D 
+    # (information about polarization plane is required).
     necessaryData = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
     necessaryParameters = []
     units = "W/m^2"
     ISUnits = True
-    standardName = "Laser Intensity"
+    standardName = "I"
 
     def CalculateField(self, timeStep):
         if self.GetFieldDimension() == 'thetaMode':
@@ -278,22 +306,22 @@ class LaserIntensityField(CustomField):
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             if self.GetFieldDimension() == '3D':
                 Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
+                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex)
             if self.GetFieldDimension() == '2D':
-                E2 = np.square(Ez) + np.square(Ex) # square of electric field modulus
-        Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
-        return Intensity
+                E2 = np.square(Ez) + np.square(Ex)
+        # Assume index of refraction equal to 1
+        intensity = self.c*self.eps_0/2*E2 
+        return intensity
 
 
 class NormalizedVectorPotential(CustomField):
-    # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
     necessaryParameters = ["n_p", "lambda_l"]
     units = "m_e*c^2/e"
     ISUnits = True
-    standardName = "Normalized Vector Potential"
+    standardName = "a"
 
     def CalculateField(self, timeStep):
         if self.GetFieldDimension() == 'thetaMode':
@@ -305,12 +333,15 @@ class NormalizedVectorPotential(CustomField):
             Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
             if self.GetFieldDimension() == '3D':
                 Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex) # square of electric field modulus
+                E2 = np.square(Ez) + np.square(Ey) + np.square(Ex)
             if self.GetFieldDimension() == '2D':
-                E2 = np.square(Ez) + np.square(Ex) # square of electric field modulus
-        Intensity = self.c*self.eps_0/2*E2 # assumes index of refraction equal to 1
-        lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9 # laser wavelength (m)
-        a = np.sqrt(7.3e-11 * lambda_l**2 * Intensity) # normalized vector potential
+                E2 = np.square(Ez) + np.square(Ex)
+        # Assume index of refraction equal to 1
+        intensity = self.c*self.eps_0/2*E2 
+        # laser wavelength (m)
+        lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9
+        # normalized vector potential
+        a = np.sqrt(7.3e-11 * lambda_l**2 * intensity) 
         return a
 
 
@@ -334,7 +365,7 @@ class TransverseWakefieldSlopeX(CustomField):
             x = self.data["Ex"].GetAxisInISUnits("x", timeStep)
         dx = abs(x[1]-x[0]) # distance between data points in y direction
         
-        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+        if self.GetFieldDimension() in ['2D', 'thetaMode']:
             slope = np.gradient(Wx, dx, axis=0)
         elif self.GetFieldDimension() == '3D':
             slope = np.gradient(Wx, dx, axis=1)
@@ -361,7 +392,7 @@ class TransverseWakefieldSlopeY(CustomField):
             y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         
-        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+        if self.GetFieldDimension() in ['2D', 'thetaMode']:
             slope = np.gradient(Wy, dy, axis=0)
         elif self.GetFieldDimension() == '3D':
             slope = np.gradient(Wy, dy, axis=1)
@@ -369,7 +400,6 @@ class TransverseWakefieldSlopeY(CustomField):
 
 
 class EzSlope(CustomField):
-    # List of necessary fields and simulation parameters.
     necessaryData = {"2D": ["Ez"],
                      "3D": ["Ez"],
                      "thetaMode": ["Ez"]}
@@ -382,7 +412,8 @@ class EzSlope(CustomField):
         Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
         z = self.data["Ez"].GetAxisInISUnits("z", timeStep)
         dz = abs(z[1]-z[0]) # distance between data points in z direction
-        if self.GetFieldDimension() == '2D' or self.GetFieldDimension() == 'thetaMode':
+        if (self.GetFieldDimension() == '2D'
+            or self.GetFieldDimension() == 'thetaMode'):
             slope = np.gradient(Ez, dz, axis=1)
         elif self.GetFieldDimension() == '3D':
             slope = np.gradient(Ez, dz, axis=2)
@@ -428,11 +459,12 @@ class CustomRawDataSet(CustomDataElement):
         else:
             return False
 
-    def _SetBaseData(self):
+    def set_base_data(self):
         dimension = self.dataContainer.GetSimulationDimension()
         self.data = {}
-        for DataSetName in self.necessaryData[dimension]:
-            self.data[DataSetName] = self.dataContainer.GetSpecies(self.speciesName).GetRawDataSet(DataSetName)
+        for data_name in self.necessaryData[dimension]:
+            self.data[data_name] = self.dataContainer.GetSpecies(
+                self.speciesName).GetRawDataSet(data_name)
 
     """
     Get data in original units (to be implemented in each subclass)
@@ -444,13 +476,15 @@ class CustomRawDataSet(CustomDataElement):
     Get data in any units
     """
     def GetDataInUnits(self, units, timeStep):
-        return self._unitConverter.GetDataInUnits(self, units, self.GetDataInOriginalUnits(timeStep))
+        return self._unitConverter.GetDataInUnits(
+            self, units, self.GetDataInOriginalUnits(timeStep))
 
     """
     Get data in IS units
     """
     def GetDataInISUnits(self, timeStep):
-        return self._unitConverter.GetDataInISUnits(self, self.GetDataInOriginalUnits(timeStep))
+        return self._unitConverter.GetDataInISUnits(
+            self, self.GetDataInOriginalUnits(timeStep))
 
 
 class xPrimeDataSet(CustomRawDataSet):
