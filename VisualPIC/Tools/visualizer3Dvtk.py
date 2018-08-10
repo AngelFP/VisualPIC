@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+#Copyright 2016-2018 Angel Ferran Pousa, Alberto Martinez de la Ossa, DESY
 #
 #This file is part of VisualPIC.
 #
