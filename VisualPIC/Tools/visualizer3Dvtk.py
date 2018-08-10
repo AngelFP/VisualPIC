@@ -23,7 +23,8 @@ from pkg_resources import resource_filename
 import numpy as np
 from h5py import File as H5File
 import vtk
-from VisualPIC.Controls.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from VisualPIC.Controls.qt4.QVTKRenderWindowInteractor import (
+    QVTKRenderWindowInteractor)
 
 
 class Visualizer3Dvtk():
@@ -75,7 +76,8 @@ class Visualizer3Dvtk():
             if i == 0:
                 time_steps = volume.get_time_steps()
             else :
-                time_steps = np.intersect1d(time_steps, volume.get_time_steps())
+                time_steps = np.intersect1d(time_steps,
+                                            volume.get_time_steps())
             i += 1
         return time_steps
 
@@ -196,7 +198,8 @@ class Visualizer3Dvtk():
                         and volume.get_species_name() == species_name)):
                         return False
                 new_volume = Volume3D(
-                    self.dataContainer.GetSpeciesField(species_name, field_name))
+                    self.dataContainer.GetSpeciesField(species_name,
+                                                       field_name))
             # add volume to list
             self.volume_list.append(new_volume)
             self.update_cbars = True
@@ -290,7 +293,8 @@ class Visualizer3Dvtk():
         #self.renderer.GetRenderWindow().Render()
         #self.interactor.Initialize()
 
-    def create_colorbars(self, time_step, update_data=True, update_position=True):
+    def create_colorbars(self, time_step, update_data=True,
+                         update_position=True):
         n_vol = len(self.volume_list)
         if n_vol > 0:
             min_x = 0.05
@@ -312,7 +316,9 @@ class Visualizer3Dvtk():
                     # Get lookup table and set annotations
                     lut = self.volume_list[i].get_color_transfer_function()
                     lut.ResetAnnotations()
-                    fld_n, fld_r = self.volume_list[i].get_norm_and_real_field_range(time_step, an)
+                    fld_n, fld_r = (
+                        self.volume_list[i].get_norm_and_real_field_range(
+                            time_step, an))
                     m = np.max(np.abs(fld_r)) # get order of magnitude
                     ord = int(np.log10(m))
                     fld_r = fld_r/10**ord
@@ -327,10 +333,10 @@ class Visualizer3Dvtk():
                         scalar_bar = vtk.vtkScalarBarActor()
                         scalar_bar.SetOrientationToHorizontal()
                         scalar_bar.SetLookupTable(lut)
-                        scalar_bar.SetTitle(self.volume_list[i].get_field_name()+ " ["
-                                            + order_str
-                                            + self.volume_list[i].get_field_units()
-                                            + "]")
+                        scalar_bar.SetTitle(
+                            self.volume_list[i].get_field_name()+ " ["
+                            + order_str + self.volume_list[i].get_field_units()
+                            + "]")
                         scalar_bar.SetTextPositionToPrecedeScalarBar()
                         scalar_bar.DrawTickLabelsOff()
                         scalar_bar.AnnotationTextScalingOn()
@@ -347,9 +353,10 @@ class Visualizer3Dvtk():
                     x_1 = min_x + i*(wid_w+sep)
                     y_2 = tot_height
                     x_2 = wid_w
-                    self.scalar_bar_widgets_list[i].GetRepresentation().SetOrientation(0)
-                    self.scalar_bar_widgets_list[i].GetRepresentation().GetPositionCoordinate().SetValue(x_1, y_1)
-                    self.scalar_bar_widgets_list[i].GetRepresentation().GetPosition2Coordinate().SetValue(x_2, y_2)
+                    rep = self.scalar_bar_widgets_list[i].GetRepresentation()
+                    rep.SetOrientation(0)
+                    rep.GetPositionCoordinate().SetValue(x_1, y_1)
+                    rep.GetPosition2Coordinate().SetValue(x_2, y_2)
             self.update_cbars = False
             #self.update_render()
 
@@ -534,11 +541,13 @@ class Volume3D():
             op_values.append(val[1])
         return np.array(fld_values), np.array(op_values)
 
-    def get_data(self, time_step, transv_el = None, lon_el = None, fraction = 1):
+    def get_data(self, time_step, transv_el = None, lon_el = None,
+                 fraction = 1):
         self.load_field_data(time_step, transv_el, lon_el, fraction)
         max_value = self.max_range
         min_value = self.min_range
-        norm_data = np.round(255 * (self.fieldData-min_value)/(max_value-min_value))
+        norm_data = np.round(
+            255 * (self.fieldData-min_value)/(max_value-min_value))
         norm_data[norm_data < 0] = 0
         norm_data[norm_data > 255] = 255
         # Change data from float to unsigned char
@@ -548,11 +557,13 @@ class Volume3D():
     def load_field_data(self, time_step, transv_el = None, lon_el = None,
                         fraction = 1):
         if not self.is_data_loaded(time_step):
-            if self.field.GetFieldDimension() == "3D" or self.field.GetFieldDimension() == "thetaMode":
-                self.fieldData = self.field.GetAllFieldDataInOriginalUnits(time_step)
+            if self.field.GetFieldDimension() in ["3D", "thetaMode"]:
+                self.fieldData = self.field.GetAllFieldDataInOriginalUnits(
+                    time_step)
             if self.field.GetFieldDimension() == "2D":
-                self.fieldData = self.field.Get3DFieldFrom2DSliceInOriginalUnits(
-                    time_step, transv_el, lon_el, fraction)
+                self.fieldData = (
+                    self.field.Get3DFieldFrom2DSliceInOriginalUnits(
+                        time_step, transv_el, lon_el, fraction))
             if not self.custom_cmap_range:
                 self.max_range = np.amax(self.fieldData)
                 self.min_range = np.amin(self.fieldData)
@@ -572,9 +583,11 @@ class Volume3D():
             axes["x"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
         else:
             if self.field.GetFieldDimension() == "3D":
-                axes["z"] = self.field.GetAxisDataInOriginalUnits("y", time_step)
+                axes["z"] = self.field.GetAxisDataInOriginalUnits("y",
+                                                                  time_step)
             if self.field.GetFieldDimension() == "2D":
-                axes["z"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
+                axes["z"] = self.field.GetAxisDataInOriginalUnits("x",
+                                                                  time_step)
             axes["y"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
             axes["x"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
         return axes
@@ -585,13 +598,15 @@ class Volume3D():
         spacing = {}
         axes = self.get_axes(time_step)
         if self.field.GetFieldDimension() == "3D":
-            spacing["x"] = np.abs(axes["x"][1]-axes["x"][0])
-            spacing["y"] = np.abs(axes["y"][1]-axes["y"][0])
-            spacing["z"] = np.abs(axes["z"][1]-axes["z"][0])
+            spacing["x"] = np.abs(axes["x"][1] - axes["x"][0])
+            spacing["y"] = np.abs(axes["y"][1] - axes["y"][0])
+            spacing["z"] = np.abs(axes["z"][1] - axes["z"][0])
         if self.field.GetFieldDimension() == "2D":
-            spacing["x"] = np.abs(axes["x"][-1]-axes["x"][0])/lon_el
-            spacing["y"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
-            spacing["z"] = np.abs(axes["y"][-1]-axes["y"][0])/transv_el*fraction
+            spacing["x"] = np.abs(axes["x"][-1] - axes["x"][0]) / lon_el
+            spacing["y"] = np.abs(axes["y"][-1] - axes["y"][0]) / (transv_el
+                                                                   *fraction)
+            spacing["z"] = np.abs(axes["y"][-1] - axes["y"][0]) / (transv_el
+                                                                   *fraction)
         return spacing
 
     def get_color_transfer_function(self):
