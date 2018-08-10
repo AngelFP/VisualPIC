@@ -566,7 +566,7 @@ class SpeedOfLightCoordinate(CustomRawDataSet):
     def GetDataInOriginalUnits(self, timeStep):
         z = self.data["z"].GetDataInISUnits(timeStep)
         t = self.data["z"].GetTimeInUnits("s", timeStep)
-        xi = z - 299792458*t
+        xi = z - c*t
         return xi
 
 
