@@ -490,11 +490,12 @@ class CustomRawDataSet(CustomDataElement):
 class xPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D": ["Px", "Pz"],
-                     "3D": ["Px", "Pz"]}
+                     "3D": ["Px", "Pz"],
+                     "thetaMode": ["Px", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
-    standardName = "xP"
+    standardName = "x'"
 
     def GetDataInOriginalUnits(self, timeStep):
         Px = self.data["Px"].GetDataInISUnits( timeStep)
@@ -506,11 +507,12 @@ class xPrimeDataSet(CustomRawDataSet):
 class yPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D": ["Py", "Pz"],
-                     "3D": ["Py", "Pz"]}
+                     "3D": ["Py", "Pz"],
+                     "thetaMode": ["Py", "Pz"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
-    standardName = "yP"
+    standardName = "y'"
 
     def GetDataInOriginalUnits(self, timeStep):
         Py = self.data["Py"].GetDataInISUnits( timeStep)
@@ -522,7 +524,8 @@ class yPrimeDataSet(CustomRawDataSet):
 class deltaZPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D": ["z", "Charge"],
-                     "3D": ["z", "Charge"]}
+                     "3D": ["z", "Charge"],
+                     "thetaMode": ["z", "Charge"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -538,24 +541,27 @@ class deltaZPrimeDataSet(CustomRawDataSet):
 
 class forwardMomentumVariationDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["Pz"],
-                     "3D": ["Pz"]}
+    necessaryData = {"2D": ["Pz", "Charge"],
+                     "3D": ["Pz", "Charge"],
+                     "thetaMode": ["Pz", "Charge"]}
     necessaryParameters = []
     units = "rad"
     ISUnits = True
     standardName = "ΔPz/Pz"
 
     def GetDataInOriginalUnits(self, timeStep):
-        Pz = self.data["Pz"].GetDataInISUnits( timeStep)
-        meanPz = np.average(Pz)
-        dPz = np.divide(Pz-meanPz, meanPz)
+        Pz = self.data["Pz"].GetDataInISUnits(timeStep)
+        q = self.data["Charge"].GetDataInISUnits(timeStep)
+        meanPz = np.average(Pz, weights=q)
+        dPz = np.divide(Pz - meanPz, meanPz)
         return dPz
 
 
 class SpeedOfLightCoordinate(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
     necessaryData = {"2D": ["z"],
-                     "3D": ["z"]}
+                     "3D": ["z"],
+                     "thetaMode": ["z"]}
     necessaryParameters = []
     units = "m"
     ISUnits = True
@@ -568,43 +574,45 @@ class SpeedOfLightCoordinate(CustomRawDataSet):
         return xi
 
 
-class BeamComovingCoordinate(CustomRawDataSet):
-    # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["z"],
-                     "3D": ["z"]}
-    necessaryParameters = []
-    units = "m"
-    ISUnits = True
-    standardName = "xi_beam"
+#class BeamComovingCoordinate(CustomRawDataSet):
+#    # List of necessary data sets and simulation parameters.
+#    necessaryData = {"2D": ["z"],
+#                     "3D": ["z"],
+#                     "thetaMode": ["z"]}
+#    necessaryParameters = []
+#    units = "m"
+#    ISUnits = True
+#    standardName = "xi_beam"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        z = self.data["z"].GetDataInISUnits(timeStep)
-        xi_b = z - min(z)
-        return xi_b
+#    def GetDataInOriginalUnits(self, timeStep):
+#        z = self.data["z"].GetDataInISUnits(timeStep)
+#        xi_b = z - min(z)
+#        return xi_b
 
 
-class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
-    # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["Pz", "Py", "z", "Charge"],
-                     "3D": ["Pz", "Py", "Pz", "z", "Charge"]}
-    necessaryParameters = []
-    units = "."
-    ISUnits = True
-    standardName = "UncEneSp"
+#class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
+#    # List of necessary data sets and simulation parameters.
+#    necessaryData = {"2D": ["Pz", "Py", "z", "Charge"],
+#                     "3D": ["Pz", "Py", "Pz", "z", "Charge"],
+#                     "thetaMode": ["Pz", "Py", "Pz", "z", "Charge"]}
+#    necessaryParameters = []
+#    units = "."
+#    ISUnits = True
+#    standardName = "UncEneSp"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Pz = self.data["Pz"].GetDataInOriginalUnits(timeStep)
-        Py = self.data["Py"].GetDataInOriginalUnits(timeStep)
-        z = self.data["z"].GetDataInOriginalUnits(timeStep)
-        q = self.data["Charge"].GetDataInOriginalUnits(timeStep)
-        gamma = np.sqrt(Pz**2 + Py**2)
-        mean_gamma = np.average(gamma, weights=np.abs(q))
-        rel_gamma_spread = (gamma-mean_gamma)/mean_gamma
-        dz = z - np.average(z, weights=q)
-        p = np.polyfit(dz, rel_gamma_spread, 1, w=q)
-        slope = p[0]
-        unc_gamma_spread = rel_gamma_spread - slope*dz
-        return unc_gamma_spread
+#    def GetDataInOriginalUnits(self, timeStep):
+#        Pz = self.data["Pz"].GetDataInOriginalUnits(timeStep)
+#        Py = self.data["Py"].GetDataInOriginalUnits(timeStep)
+#        z = self.data["z"].GetDataInOriginalUnits(timeStep)
+#        q = self.data["Charge"].GetDataInOriginalUnits(timeStep)
+#        gamma = np.sqrt(Pz**2 + Py**2)
+#        mean_gamma = np.average(gamma, weights=np.abs(q))
+#        rel_gamma_spread = (gamma-mean_gamma)/mean_gamma
+#        dz = z - np.average(z, weights=q)
+#        p = np.polyfit(dz, rel_gamma_spread, 1, w=q)
+#        slope = p[0]
+#        unc_gamma_spread = rel_gamma_spread - slope*dz
+#        return unc_gamma_spread
  
     
 class CustomRawDataSetCreator:
@@ -614,8 +622,6 @@ class CustomRawDataSetCreator:
         deltaZPrimeDataSet,
         forwardMomentumVariationDataSet,
         SpeedOfLightCoordinate,
-        BeamComovingCoordinate,
-        UncorrelatedEnergyVariationDataSet
         ]
     @classmethod
     def GetCustomDataSets(cls, dataContainer, speciesName):
