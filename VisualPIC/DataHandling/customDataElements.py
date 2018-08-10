@@ -55,7 +55,8 @@ class CustomDataElement(DataElement):
             if i == 0:
                 timeSteps = DataElement.GetTimeSteps()
             else:
-                timeSteps = np.intersect1d(timeSteps, DataElement.GetTimeSteps())
+                timeSteps = np.intersect1d(timeSteps,
+                                           DataElement.GetTimeSteps())
         self.timeSteps = timeSteps
 
     def _SetBaseData(self):
@@ -76,10 +77,16 @@ Custom Fields
 """
 class CustomField(CustomDataElement):
     @classmethod
-    def meetsRequirements(cls, dataContainer):
+    def meets_requirements(cls, dataContainer):
+        "Checks whether the required data and parameters are available"
         if dataContainer.GetSimulationDimension() in cls.necessaryData:
-            return ((set(dataContainer.GetAvailableDomainFieldsNames()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()]))
-                    and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+            data_requirements_met = set(
+                dataContainer.GetAvailableDomainFieldsNames()).issuperset(
+                    cls.necessaryData[dataContainer.GetSimulationDimension()])
+            parameter_requirements_met = set(
+                dataContainer.GetNamesOfAvailableParameters()).issuperset(
+                    cls.necessaryParameters)
+            return data_requirements_met and parameter_requirements_met
         else:
             return False
 
@@ -396,7 +403,7 @@ class CustomFieldCreator:
     def GetCustomFields(cls, dataContainer):
         fieldList = list()
         for Field in cls.customFields:
-            if Field.meetsRequirements(dataContainer):
+            if Field.meets_requirements(dataContainer):
                 fieldList.append(Field(dataContainer))
         return fieldList
 
@@ -406,10 +413,18 @@ Custom Raw Data Sets
 """
 class CustomRawDataSet(CustomDataElement):
     @classmethod
-    def meetsRequirements(cls, dataContainer, speciesName):
+    def meets_requirements(cls, dataContainer, speciesName):
+        "Checks whether the required data and parameters are available"
         if dataContainer.GetSimulationDimension() in cls.necessaryData:
-            return ((set(dataContainer.GetSpecies(speciesName).GetRawDataSetsNamesList()).issuperset(cls.necessaryData[dataContainer.GetSimulationDimension()]))
-                    and (set(dataContainer.GetNamesOfAvailableParameters()).issuperset(cls.necessaryParameters)))
+            data_requirements_met = set(
+                dataContainer.GetSpecies(
+                    speciesName).GetRawDataSetsNamesList()).issuperset(
+                        cls.necessaryData[
+                            dataContainer.GetSimulationDimension()])
+            parameter_requirements_met = set(
+                dataContainer.GetNamesOfAvailableParameters()).issuperset(
+                    cls.necessaryParameters)
+            return data_requirements_met and parameter_requirements_met
         else:
             return False
 
@@ -572,6 +587,6 @@ class CustomRawDataSetCreator:
     def GetCustomDataSets(cls, dataContainer, speciesName):
         dataSetList = list()
         for dataSet in cls.customDataSets:
-            if dataSet.meetsRequirements(dataContainer, speciesName):
+            if dataSet.meets_requirements(dataContainer, speciesName):
                 dataSetList.append(dataSet(dataContainer, speciesName))
         return dataSetList
