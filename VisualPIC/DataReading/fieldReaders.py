@@ -449,7 +449,7 @@ class OpenPMDFieldReader(FieldReaderBase):
         self.axisUnits["y"] = "m"
         self.axisUnits["z"] = "m"
         self.axisUnits["r"] = "m"
-        self.timeUnits = "t"
+        self.timeUnits = "s"
         self.dataUnits = "arb.u." # TODO find the exact unit; needs navigation in file
         file_content.close()
 
