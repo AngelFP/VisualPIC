@@ -655,14 +655,14 @@ class EditFieldPlotWindow(EditPlotWindow):
             super(EditFieldPlotWindow, self).SetXAxisUnits()
             units = self.xUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
-                fieldProperties["axesUnits"]["x"] = units
+                fieldProperties["axesUnits"]["z"] = units
 
     def SetYAxisUnits(self):
         if not self.updatingUiData:
             super(EditFieldPlotWindow, self).SetYAxisUnits()
             units = self.yUnits_comboBox.currentText()
             for fieldProperties in self.fieldPropertiesList:
-                fieldProperties["axesUnits"]["y"] = units
+                fieldProperties["axesUnits"]["x"] = units
 
     def SaveChanges(self):
         i = 0
