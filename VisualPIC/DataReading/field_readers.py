@@ -1,12 +1,17 @@
 from h5py import File as H5F
 import numpy as np
+from opmd_viewer.openpmd_timeseries.data_reader.params_reader import (
+    read_openPMD_params)
+from opmd_viewer.openpmd_timeseries.data_reader.field_reader import (
+    get_grid_parameters)
 
 class FieldReader():
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
     def read_field(self, file_path, field_path, slice_i=None, slice_j=None,
-                   slice_dir_i='z', slice_dir_j='x', m=0, theta=0):
+                   slice_dir_i='z', slice_dir_j='x', transv_ax='r', m=0,
+                   theta=0):
         fld_metadata = self.read_field_metadata(file_path, field_path)
         geom = fld_metadata['field']['geometry']
         if geom == "1D":
@@ -35,11 +40,12 @@ class FieldReader():
                            slice_j=None, slice_dir_i='z', slice_dir_j='x'):
         raise NotImplementedError
 
-    def read_field_2d_cyl(self, file_path, field_path, slice_i=None,
-                          slice_dir_i='z'):
+    def read_field_2d_cyl(self, file_path, field_path, transv_ax='r', 
+                          slice_i=None, slice_dir_i='z'):
         raise NotImplementedError
 
-    def read_field_theta(self, file_path, field_path, m=0, theta=0):
+    def read_field_theta(self, file_path, field_path, m=0, theta=0,
+                         transv_ax='r'):
         raise NotImplementedError
 
     def read_field_metadata(self, file_path, field_path):
@@ -154,3 +160,41 @@ class OsirisFieldReader(FieldReader):
         time_data["units"] = str(file.attrs["TIME UNITS"][0])[2:-1].replace(
             "\\\\","\\")
         return time_data
+
+
+class OpenPMDFieldReader(FieldReader):
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def read_field_metadata(self, file_path, field_path):
+        file = H5F(file_path, 'r')
+        field, coord = field_path.split('/')
+        md = {}
+        t, params = read_openPMD_params(file_path)
+        md['time'] = {}
+        md['time']['value'] = t
+        md['time']['units'] = 's'
+        field_geometry = params['fields_metadata'][field]['geometry']
+        field_units = self.determine_field_units(field)
+        md['field'] = {}
+        md['field']['units'] = field_units
+        md['field']['geometry'] = field_geometry
+        ax_el, ax_lims = get_grid_parameters(file, [field],
+                                             params['fields_metadata'])
+        axes = ax_el.keys()
+        md['axis'] = {}
+        for axis in axes:
+            md['axis'][axis] = {}
+            md['axis'][axis]['units'] = 'm'
+            md['axis'][axis]['array'] = np.linspace(ax_lims[axis][0], 
+                                                    ax_lims[axis][1],
+                                                    ax_el[axis])
+        return md
+
+    def determine_field_units(self, field):
+        if field == 'E':
+            return 'V/m'
+        if field == 'B':
+            return 'T'
+        if field == 'rho':
+            return 'C/m^3'
