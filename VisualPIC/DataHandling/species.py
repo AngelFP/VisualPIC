@@ -21,99 +21,99 @@
 class Species:
     def __init__(self, name):
         self.name = name
-        self.availableFields = list()
-        self.customFields = list()
-        self.rawDataSets = list()
-        self.rawDataTags = None # it will be a RawDataTags instance
-        self.hasFields = False
-        self.hasRawData = False
-        self.hasRawDataTags = False
+        self.available_fields = list()
+        self.custom_fields = list()
+        self.raw_datasets = list()
+        self.tags = None # it will be a RawDataTags instance
+        self.has_fields = False
+        self.species_with_raw_data = False
+        self.species_with_tags = False
         
-    def AddAvailableField(self,field):
-        self.hasFields = True
-        if field not in self.availableFields:
-            self.availableFields.append(field)
+    def add_available_field(self,field):
+        self.has_fields = True
+        if field not in self.available_fields:
+            self.available_fields.append(field)
         
-    def AddCustomField(self, field):
-        self.customFields.append(field)
+    def add_custom_field(self, field):
+        self.custom_fields.append(field)
             
-    def AddRawDataSet(self, dataSet):
-        self.hasRawData = True
-        self.rawDataSets.append(dataSet)
+    def add_raw_dataset(self, dataset):
+        self.species_with_raw_data = True
+        self.raw_datasets.append(dataset)
 
-    def AddRawDataTags(self, tags):
-        self.hasRawDataTags = True
-        self.rawDataTags = tags
+    def add_raw_data_tags(self, tags):
+        self.species_with_tags = True
+        self.tags = tags
 
-    def HasFields(self):
-        return self.hasFields
+    def has_fields(self):
+        return self.has_fields
         
-    def HasRawData(self):
-        return self.hasRawData
+    def has_raw_data(self):
+        return self.species_with_raw_data
 
-    def HasRawDataTags(self):
-        return self.hasRawDataTags
+    def has_tags(self):
+        return self.species_with_tags
             
-    def GetFieldPlotData(self, fieldName, timeStep):
-        for field in self.availableFields:
-            if field.GetName() == fieldName:
-                return field.GetPlotData(timeStep)
+    def get_field_plot_data(self, field_name, time_step):
+        for field in self.available_fields:
+            if field.get_name() == field_name:
+                return field.get_plot_data(time_step)
         
-        for field in self.customFields:
-            if field.GetName() == fieldName:
-                return field.GetPlotData(timeStep)
+        for field in self.custom_fields:
+            if field.get_name() == field_name:
+                return field.get_plot_data(time_step)
     
-    def GetRawDataSetPlotData(self, dataSetName, timeStep):
-        for dataSet in self.rawDataSets:
-            if dataSet.GetName() == dataSetName:
-                return dataSet.GetPlotData(timeStep)
+    def get_raw_dataset_plot_data(self, dataset_name, time_step):
+        for dataset in self.raw_datasets:
+            if dataset.get_name() == dataset_name:
+                return dataset.get_plot_data(time_step)
 
-    def GetRawDataTags(self, timeStep):
-        return self.rawDataTags.GetTags(timeStep)
+    def get_tags(self, time_step):
+        return self.tags.GetTags(time_step)
 
-    def GetRawDataTimeSteps(self):
+    def get_raw_data_time_steps(self):
         """ Assumes all RawDataSets have the same number of time steps)"""
-        return self.rawDataSets[0].GetTimeSteps()
+        return self.raw_datasets[0].get_time_steps()
             
-    def GetAvailableFieldNamesList(self):
-        fieldNames = list()
-        for field in self.availableFields:
-            fieldNames.append(field.GetName())
-        return fieldNames
+    def get_available_field_names_list(self):
+        field_names = list()
+        for field in self.available_fields:
+            field_names.append(field.get_name())
+        return field_names
 
-    def GetAvailableFields(self):
-        return self.availableFields
+    def get_available_fields(self):
+        return self.available_fields
         
-    def GetCustomFieldNamesList(self):
-        fieldNames = list()
-        for field in self.customFields:
-            fieldNames.append(field.GetName())
-        return fieldNames
+    def get_custom_field_names_list(self):
+        field_names = list()
+        for field in self.custom_fields:
+            field_names.append(field.get_name())
+        return field_names
         
-    def GetRawDataSetsNamesList(self):
-        dataSetNames = list()
-        for dataSet in self.rawDataSets:
-            dataSetNames.append(dataSet.GetName())
-        
-        return dataSetNames
+    def get_raw_dataset_names_list(self):
+        dataset_names = list()
+        for dataset in self.raw_datasets:
+            dataset_names.append(dataset.get_name())
+        return dataset_names
 
-    def GetAllRawDataSets(self):
-        return self.rawDataSets
+    def get_all_raw_datasets(self):
+        return self.raw_datasets
     
-    def GetName(self):
+    def get_name(self):
         return self.name
     
-    def GetField(self, fieldName):
-        for field in self.availableFields:
-            if field.GetName() == fieldName:
+    def get_field(self, field_name):
+        for field in self.available_fields:
+            if field.get_name() == field_name:
                 return field
                 
-    def GetRawDataSet(self, dataSetName):
-        for dataSet in self.rawDataSets:
-            if dataSet.GetName() == dataSetName:
-                return dataSet
+    def get_raw_dataset(self, dataset_name):
+        for dataset in self.raw_datasets:
+            if dataset.get_name() == dataset_name:
+                return dataset
         
-    def LoadCustomFields(self):
+    def load_custom_fields(self):
         #to do
-        #looks which fields are available and loads the custom fields that can be comuted from those
+        #looks which fields are available and loads the custom fields that
+        #can be computed from those
         raise Exception("notImplemented")

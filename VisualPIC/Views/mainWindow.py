@@ -61,7 +61,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.set_ui_icons()
-        self.dataContainer = DataContainer()
+        self.data_container = DataContainer()
         self.colorMapsCollection = ColorMapsCollection()
         self.dataPlotter = DataPlotter(self.colorMapsCollection)
         self.InitialUIValues()
@@ -75,7 +75,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.domainFieldPlotDimension = "2D"
         """ Backups for removed UI items for each simulation code """
         self.removedNormalizationTab = None
-        self.timeSteps = np.zeros(1)
+        self.time_steps = np.zeros(1)
 
     def set_ui_icons(self):
         window_icon_path = resource_filename(
@@ -108,8 +108,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.browse_Button.clicked.connect(self.BrowseButton_Clicked)
         self.folderLocation_lineEdit.textChanged.connect(self.FolderLocationlineEdit_TextChanged)
         self.loadData_Button.clicked.connect(self.LoadDataButton_Cicked)
-        self.addDomainField_Button.clicked.connect(self.AddDomainFieldButton_Clicked)
-        self.addSpeciesField_Button.clicked.connect(self.AddSpeciesFieldButton_Clicked)
+        self.addDomainField_Button.clicked.connect(self.add_domain_fieldButton_Clicked)
+        self.addSpeciesField_Button.clicked.connect(self.add_speciesFieldButton_Clicked)
         self.av2DDomainFields_comboBox.currentIndexChanged.connect(self.Av2DDomainFieldsComboBox_IndexChanged)
         self.avSpeciesFields_comboBox.currentIndexChanged.connect(self.AvSpeciesFieldsComboBox_IndexChanged)
         self.timeStep_Slider.sliderReleased.connect(self.TimeStepSlider_Released)
@@ -141,18 +141,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.OpenFolderDialog()
         
     def Av2DDomainFieldsComboBox_IndexChanged(self):
-        self.SetSelectedDomainField()
+        self.set_selected_domain_field()
 
     def AvSpeciesFieldsComboBox_IndexChanged(self):
-        self.SetSelectedSpeciesField()
+        self.set_selected_species_field()
 
     def TimeStepSlider_Released(self):
-        if self.timeStep_Slider.value() in self.timeSteps:
+        if self.timeStep_Slider.value() in self.time_steps:
             self.MakePlots()
         else:
             val = self.timeStep_Slider.value()
-            closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
-            closestLower = self.timeSteps[np.where(self.timeSteps < val)[0][-1]]
+            closestHigher = self.time_steps[np.where(self.time_steps > val)[0][0]]
+            closestLower = self.time_steps[np.where(self.time_steps < val)[0][-1]]
             if abs(val-closestHigher) < abs(val-closestLower):
                 self.timeStep_Slider.setValue(closestHigher)
             else:
@@ -166,14 +166,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.SetListOfPlotPositions()
     
     def LoadDataButton_Cicked(self):
-        self.ClearData()
-        self.dataContainer.ClearData()
+        self.clear_data()
+        self.data_container.clear_data()
         self.LoadFolderData()
         self.AdaptUIToSpecificSimulationCode()
         self.AdaptUIToSimulationParams()
 
     def AdaptUIToSpecificSimulationCode(self):
-        simulationCode = self.dataContainer.GetSimulationCodeName()
+        simulationCode = self.data_container.get_simulation_code_name()
         codesWithNormalizedUnits = ["Osiris", "HiPACE"]
         if simulationCode not in codesWithNormalizedUnits:
             self.removedNormalizationTab = self.tabWidget_2.widget(2)
@@ -183,18 +183,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.removedNormalizationTab = None
 
     def AdaptUIToSimulationParams(self):
-        simulationParams = self.dataContainer.GetSimulationParameters()
+        simulationParams = self.data_container.get_simulation_parameters()
         if 'isLaser' in simulationParams:
             isLaser = simulationParams["isLaser"]
-            if ("Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames()) or ("a_mod" in self.dataContainer.GetAvailableDomainFieldsNames()):
+            if ("Normalized Vector Potential" in self.data_container.get_available_domain_fields_names()) or ("a_mod" in self.data_container.get_available_domain_fields_names()):
                 self.addLaser_checkBox.setVisible(isLaser)
         
     def FolderLocationlineEdit_TextChanged(self):
         folderPath = str(self.folderLocation_lineEdit.text())
-        self.dataContainer.SetDataFolderLocation(folderPath)
+        self.data_container.set_data_folder_location(folderPath)
 
     def ActionParticleTracker_Toggled(self):
-        self.particleTracker = ParticleTrackerWindow(self.dataContainer, self.colorMapsCollection, self.dataPlotter)
+        self.particleTracker = ParticleTrackerWindow(self.data_container, self.colorMapsCollection, self.dataPlotter)
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.particleTracker.width()) / 2;
         y = (screenGeometry.height()-self.particleTracker.height()) / 2 -20;
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.particleTracker.show()
 
     def Action3D_Visualizer_Toggled(self):
-        self.visualizer3D = Visualizer3DvtkWindow(self.dataContainer)
+        self.visualizer3D = Visualizer3DvtkWindow(self.data_container)
         screenGeometry = QtWidgets.QApplication.desktop().screenGeometry()
         x = (screenGeometry.width()-self.visualizer3D.width()) / 2;
         y = (screenGeometry.height()-self.visualizer3D.height()) / 2 -20;
@@ -251,61 +251,61 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
     def NextButton_Clicked(self):
         currentTimeStep = self.timeStep_Slider.value()
-        currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
-        if currentIndex < len(self.timeSteps)-1:
-            self.timeStep_Slider.setValue(self.timeSteps[currentIndex + 1])
+        currentIndex = np.where(self.time_steps == currentTimeStep)[0][0]
+        if currentIndex < len(self.time_steps)-1:
+            self.timeStep_Slider.setValue(self.time_steps[currentIndex + 1])
         self.MakePlots()
         
     def PrevButton_Clicked(self):
         currentTimeStep = self.timeStep_Slider.value()
-        currentIndex = np.where(self.timeSteps == currentTimeStep)[0][0]
+        currentIndex = np.where(self.time_steps == currentTimeStep)[0][0]
         if currentIndex > 0:
-            self.timeStep_Slider.setValue(self.timeSteps[currentIndex - 1])
+            self.timeStep_Slider.setValue(self.time_steps[currentIndex - 1])
         self.MakePlots()
         
     def AddRawFieldButton_Clicked(self):
-        speciesName = self.rawFieldSpecies_comboBox.currentText()
+        species_name = self.rawFieldSpecies_comboBox.currentText()
         xDataSetName = self.xRaw_comboBox.currentText()
         yDataSetName = self.yRaw_comboBox.currentText()
         if self.rawPlotType_radioButton_2.isChecked():
             zDataSetName = self.zRaw_comboBox.currentText()
         dataSets = {}
-        for species in self.dataContainer.GetAvailableSpecies():
-            if species.GetName() == speciesName:
-               xDataSet = species.GetRawDataSet(xDataSetName) 
+        for species in self.data_container.get_available_species():
+            if species.get_name() == species_name:
+               xDataSet = species.get_raw_dataset(xDataSetName) 
                dataSets["x"] = RawDataSetToPlot(xDataSet)
-               yDataSet = species.GetRawDataSet(yDataSetName) 
+               yDataSet = species.get_raw_dataset(yDataSetName) 
                dataSets["y"] = RawDataSetToPlot(yDataSet)
-               pxDataSet = species.GetRawDataSet("Pz") 
+               pxDataSet = species.get_raw_dataset("Pz") 
                dataSets["Px"] = RawDataSetToPlot(pxDataSet)
-               pyDataSet = species.GetRawDataSet("Py") 
+               pyDataSet = species.get_raw_dataset("Py") 
                dataSets["Py"] = RawDataSetToPlot(pyDataSet)
                if self.rawPlotType_radioButton_2.isChecked():
-                   zDataSet = species.GetRawDataSet(zDataSetName) 
+                   zDataSet = species.get_raw_dataset(zDataSetName) 
                    dataSets["z"] = RawDataSetToPlot(zDataSet)
-                   pzDataSet = species.GetRawDataSet("Pz") 
+                   pzDataSet = species.get_raw_dataset("Pz") 
                    dataSets["Pz"] = RawDataSetToPlot(pzDataSet)
-               weightingDataSet = species.GetRawDataSet("Charge")
+               weightingDataSet = species.get_raw_dataset("Charge")
                dataSets["weight"] = RawDataSetToPlot(weightingDataSet)
                self.AddRawDataSubplot(dataSets)
 
     def PlotButton_Clicked(self):
         self.MakePlots()
         
-    def AddDomainFieldButton_Clicked(self):
-        self.AddFieldsToPlot(self.dataContainer.GetSelectedDomainField(), self.domainFieldPlotDimension)
+    def add_domain_fieldButton_Clicked(self):
+        self.AddFieldsToPlot(self.data_container.get_selected_domain_field(), self.domainFieldPlotDimension)
         	
-    def AddSpeciesFieldButton_Clicked(self):
-        self.dataContainer.SetSelectedSpeciesFields()
+    def add_speciesFieldButton_Clicked(self):
+        self.data_container.set_selected_species_fields()
         if self.addLaser_checkBox.isVisible() and self.addLaser_checkBox.checkState():
-            fields = self.dataContainer.GetSelectedSpeciesFields()
-            if "Normalized Vector Potential" in self.dataContainer.GetAvailableDomainFieldsNames():
-                fields.append(self.dataContainer.GetDomainField("Normalized Vector Potential"))
-            elif "a_mod" in self.dataContainer.GetAvailableDomainFieldsNames():
-                fields.append(self.dataContainer.GetDomainField("a_mod"))
+            fields = self.data_container.get_selected_species_fields()
+            if "Normalized Vector Potential" in self.data_container.get_available_domain_fields_names():
+                fields.append(self.data_container.get_domain_field("Normalized Vector Potential"))
+            elif "a_mod" in self.data_container.get_available_domain_fields_names():
+                fields.append(self.data_container.get_domain_field("a_mod"))
             self.AddFieldsToPlot(fields, self.speciesFieldPlotDimension)
         else:
-            self.AddFieldsToPlot(self.dataContainer.GetSelectedSpeciesFields(), self.speciesFieldPlotDimension)
+            self.AddFieldsToPlot(self.data_container.get_selected_species_fields(), self.speciesFieldPlotDimension)
 
 
     """
@@ -313,12 +313,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     """
 
     def OpenFolderDialog(self):
-        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.dataContainer.GetFolderPath()))
+        folderPath = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select MS Folder", self.data_container.get_folder_path()))
         if folderPath != "":
             self.SetFolderPath(folderPath)
         
     def SetFolderPath(self, folderPath):
-        self.dataContainer.SetDataFolderLocation(folderPath)
+        self.data_container.set_data_folder_location(folderPath)
         self.folderLocation_lineEdit.setText(folderPath)
 
     def SetListOfPlotPositions(self):
@@ -347,7 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def FillAvailableSpeciesList(self):
         model = QtGui.QStandardItemModel()
         avSpecies = list()
-        avSpecies = self.dataContainer.GetAvailableSpeciesNames()
+        avSpecies = self.data_container.get_available_species_names()
         for species in avSpecies:
             item = QtGui.QStandardItem(species)
             item.setCheckable(True)
@@ -358,13 +358,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def Item_Changed(self,item):
         # If the item is checked, add the species to the list of selected species
         if item.checkState():
-            self.dataContainer.AddSelectedSpecies(item.text())
+            self.data_container.add_selected_species(item.text())
         else:
-            self.dataContainer.RemoveSelectedSpecies(item.text())
+            self.data_container.remove_selected_species(item.text())
         self.avSpeciesFields_comboBox.clear()
-        self.avSpeciesFields_comboBox.addItems(self.dataContainer.GetCommonlyAvailableFields())
+        self.avSpeciesFields_comboBox.addItems(self.data_container.get_commonly_available_fields())
     
-    def ClearData(self):
+    def clear_data(self):
         self.rows_spinBox.setValue(1)
         self.columns_spinBox.setValue(1)
         self.fieldsToPlot_listWidget.clear()
@@ -374,37 +374,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def LoadFolderData(self):
         ParametersWindow = SimulationParametersWindow(self)
         ParametersWindow.exec_()
-        self.dataContainer.LoadData()
+        self.data_container.load_data()
         self.av2DDomainFields_comboBox.clear()
-        self.av2DDomainFields_comboBox.addItems(self.dataContainer.GetAvailableDomainFieldsNames())
+        self.av2DDomainFields_comboBox.addItems(self.data_container.get_available_domain_fields_names())
         self.FillAvailableSpeciesList()
         self.FillRawData()
-        self.SetSelectedDomainField()
-        self.SetSelectedSpeciesField()
+        self.set_selected_domain_field()
+        self.set_selected_species_field()
     
-    def SetSelectedDomainField(self):
-        self.dataContainer.SetSelectedDomainField(self.av2DDomainFields_comboBox.currentText())
+    def set_selected_domain_field(self):
+        self.data_container.set_selected_domain_field(self.av2DDomainFields_comboBox.currentText())
         
-    def SetSelectedSpeciesField(self):
-        self.dataContainer.SetSelectedSpeciesField(self.avSpeciesFields_comboBox.currentText())
+    def set_selected_species_field(self):
+        self.data_container.set_selected_species_field(self.avSpeciesFields_comboBox.currentText())
 
     def FillRawData(self):
         self.rawFieldSpecies_comboBox.clear()
-        speciesNames = list()
-        for species in self.dataContainer.GetSpeciesWithRawData():
-            speciesNames.append(species.GetName())
-        self.rawFieldSpecies_comboBox.addItems(speciesNames)
+        species_names = list()
+        for species in self.data_container.get_species_with_raw_data():
+            species_names.append(species.get_name())
+        self.rawFieldSpecies_comboBox.addItems(species_names)
         self.FillSpeciesRawData(self.rawFieldSpecies_comboBox.currentText())
     
-    def FillSpeciesRawData(self, speciesName):
+    def FillSpeciesRawData(self, species_name):
         self.xRaw_comboBox.clear()
         self.yRaw_comboBox.clear()
         self.zRaw_comboBox.clear()
-        for species in self.dataContainer.GetSpeciesWithRawData():
-            if speciesName == species.GetName():
-                self.xRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
-                self.yRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
-                self.zRaw_comboBox.addItems(species.GetRawDataSetsNamesList())
+        for species in self.data_container.get_species_with_raw_data():
+            if species_name == species.get_name():
+                self.xRaw_comboBox.addItems(species.get_raw_dataset_names_list())
+                self.yRaw_comboBox.addItems(species.get_raw_dataset_names_list())
+                self.zRaw_comboBox.addItems(species.get_raw_dataset_names_list())
         
     def AddFieldsToPlot(self, fields, fieldPlotDimension):
         fldList = list()
@@ -447,8 +447,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def MakePlots(self):
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
-        timeStep = self.timeStep_Slider.value()
-        self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, timeStep)
+        time_step = self.timeStep_Slider.value()
+        self.dataPlotter.MakePlot(self.figure, self.subplotList, rows, columns, time_step)
         self.canvas.draw()
             
     def RemoveSubplot(self, item):
@@ -456,8 +456,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subplotList.remove(item.subplot)
         self.fieldsToPlot_listWidget.takeItem(index)
         for subplot in self.subplotList:
-            if subplot.GetPosition() > index+1:
-                subplot.SetPosition(subplot.GetPosition()-1)
+            if subplot.get_position() > index+1:
+                subplot.set_position(subplot.get_position()-1)
         rows = self.rows_spinBox.value()
         columns = self.columns_spinBox.value()
         if len(self.subplotList) > 0:
@@ -475,11 +475,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         i = 0
         for subplot in self.subplotList:
             if i == 0:
-                self.timeSteps = subplot.GetTimeSteps()
+                self.time_steps = subplot.get_time_steps()
             else :
-                self.timeSteps = np.intersect1d(self.timeSteps, subplot.GetTimeSteps())
+                self.time_steps = np.intersect1d(self.time_steps, subplot.get_time_steps())
             i+=1
-        minTime = min(self.timeSteps)
-        maxTime = max(self.timeSteps)
+        minTime = min(self.time_steps)
+        maxTime = max(self.time_steps)
         self.timeStep_Slider.setMinimum(minTime)
         self.timeStep_Slider.setMaximum(maxTime)

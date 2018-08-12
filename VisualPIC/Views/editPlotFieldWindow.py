@@ -140,27 +140,27 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.addSlice_button.clicked.connect(self.AddSliceButton_Clicked)
 
     def SetVisibleTabs(self):
-        if self.subplot.GetAxesDimension() == "2D":
+        if self.subplot.get_axes_dimension() == "2D":
             self.tabWidget_2.removeTab(2)
 
     def GetAxisProperties(self):
-        if self.subplot.GetAxesDimension() == "3D":
+        if self.subplot.get_axes_dimension() == "3D":
             self.axisProperties = {
-                "x":self.subplot.GetCopyAllAxisProperties("x"),
-                "y":self.subplot.GetCopyAllAxisProperties("y"),
-                "z":self.subplot.GetCopyAllAxisProperties("z")
+                "x":self.subplot.get_copy_all_axis_properties("x"),
+                "y":self.subplot.get_copy_all_axis_properties("y"),
+                "z":self.subplot.get_copy_all_axis_properties("z")
                 }
         else:
             self.axisProperties = {
-                "x":self.subplot.GetCopyAllAxisProperties("x"),
-                "y":self.subplot.GetCopyAllAxisProperties("y")
+                "x":self.subplot.get_copy_all_axis_properties("x"),
+                "y":self.subplot.get_copy_all_axis_properties("y")
                 }
 
     def GetColorbarProperties(self):
-        self.cbProperties = self.subplot.GetCopyAllColorbarProperties()
+        self.cbProperties = self.subplot.get_copy_all_cbar_properties()
 
     def GetTitleProperties(self):
-        self.titleProperties = self.subplot.GetCopyAllTitleProperties()
+        self.titleProperties = self.subplot.get_copy_all_title_properties()
 
     def FillInitialUI(self):
         raise NotImplementedError
@@ -169,7 +169,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.updatingUiData = True
         self.selectedFieldProperties = self.fieldPropertiesList[fieldIndex]
         self.FieldName.setText(self.selectedFieldProperties["name"])
-        self.SpeciesName.setText(self.selectedFieldProperties["speciesName"])
+        self.SpeciesName.setText(self.selectedFieldProperties["species_name"])
         # Units
         self.fieldUnits_comboBox.clear()
         self.fieldUnits_comboBox.addItems(self.selectedFieldProperties["possibleFieldUnits"])
@@ -196,7 +196,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def FillAxesData(self):
         self.updatingUiData = True
-        unitOptions = self.subplot.GetAxesUnitsOptions()
+        unitOptions = self.subplot.get_axes_units_options()
         self.xUnits_comboBox.clear()
         self.xUnits_comboBox.addItems(unitOptions["x"])
         index = self.xUnits_comboBox.findText(self.axisProperties["x"]["Units"])
@@ -219,7 +219,7 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.xAxisMax_lineEdit.setText(str(self.axisProperties["x"]["AxisLimits"]["Max"]))
         self.yAxisMin_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Min"]))
         self.yAxisMax_lineEdit.setText(str(self.axisProperties["y"]["AxisLimits"]["Max"]))
-        if self.subplot.GetAxesDimension() == "3D":
+        if self.subplot.get_axes_dimension() == "3D":
             self.zUnits_comboBox.clear()
             self.zUnits_comboBox.addItems(unitOptions["z"])
             index = self.zUnits_comboBox.findText(self.axisProperties["z"]["Units"])
@@ -247,18 +247,18 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
         self.updatingUiData = False
 
     def Fill1DSlicesData(self):
-        if self.mainWindow.dataContainer.GetAvailableSpeciesNames() != []:
-            self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableSpeciesNames())
-            self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
-        self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableDomainFieldsNames())
+        if self.mainWindow.data_container.get_available_species_names() != []:
+            self.speciesSelectorSlice_comboBox.addItems(self.mainWindow.data_container.get_available_species_names())
+            self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.data_container.get_available_fields_in_species(self.speciesSelectorSlice_comboBox.currentText()))
+        self.domainFieldSelecteorSlice_comboBox.addItems(self.mainWindow.data_container.get_available_domain_fields_names())
 
     def SaveChanges(self):
-        self.subplot.SetAllAxisProperties("x", self.axisProperties["x"])
-        self.subplot.SetAllAxisProperties("y", self.axisProperties["y"])
+        self.subplot.set_all_axis_properties("x", self.axisProperties["x"])
+        self.subplot.set_all_axis_properties("y", self.axisProperties["y"])
         if "z" in self.axisProperties:
-            self.subplot.SetAllAxisProperties("z", self.axisProperties["z"])
-        self.subplot.SetAllColorbarProperties(self.cbProperties)
-        self.subplot.SetAllTitleProperties(self.titleProperties)
+            self.subplot.set_all_axis_properties("z", self.axisProperties["z"])
+        self.subplot.set_all_cbar_properties(self.cbProperties)
+        self.subplot.set_all_title_properties(self.titleProperties)
 
     """
     UI event handlers
@@ -591,19 +591,19 @@ class EditPlotWindow(QEditPlotFieldWindow, Ui_EditPlotFieldWindow):
 
     def SpeciesSelectorSliceComboBox_IndexChanged(self):
         self.speciesFieldSelectorSlice_comboBox.clear()
-        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.dataContainer.GetAvailableFieldsInSpecies(self.speciesSelectorSlice_comboBox.currentText()))
+        self.speciesFieldSelectorSlice_comboBox.addItems(self.mainWindow.data_container.get_available_fields_in_species(self.speciesSelectorSlice_comboBox.currentText()))
 
     def AddSliceButton_Clicked(self):
         if self.speciesFieldsSlice_radioButton.isChecked():
-            speciesName = str(self.speciesSelectorSlice_comboBox.currentText())
+            species_name = str(self.speciesSelectorSlice_comboBox.currentText())
             fieldName = str(self.speciesFieldSelectorSlice_comboBox.currentText())
-            field = self.mainWindow.dataContainer.GetSpeciesField(speciesName, fieldName)
+            field = self.mainWindow.data_container.get_species_field(species_name, fieldName)
         else:
             fieldName = str(self.domainFieldSelecteorSlice_comboBox.currentText())
-            field = self.mainWindow.dataContainer.GetDomainField(fieldName)
+            field = self.mainWindow.data_container.get_domain_field(fieldName)
             
         fieldToPlot = FieldToPlot(field, "1D", self.mainWindow.colorMapsCollection, isPartOfMultiplot = False)
-        self.subplot.AddFieldToPlot(fieldToPlot)
+        self.subplot.add_field_to_plot(fieldToPlot)
         self.fieldPropertiesList.append(fieldToPlot.GetFieldProperties())
         self.FillListView()
         self.FillFieldData(0)
@@ -621,7 +621,7 @@ class EditFieldPlotWindow(EditPlotWindow):
 
     def GetFieldsInfo(self):
         self.fieldPropertiesList = list()
-        for field in self.subplot.GetDataToPlot():
+        for field in self.subplot.get_data_to_plot():
             self.fieldPropertiesList.append(field.GetFieldProperties())
 
     def FillInitialUI(self):
@@ -634,16 +634,16 @@ class EditFieldPlotWindow(EditPlotWindow):
 
     def FillListView(self):
         model = QStandardItemModel()
-        for field in self.subplot.GetDataToPlot():
-            listLabel = field.GetProperty("name")
-            if field.GetProperty("speciesName") != '':
-                listLabel += " / " + field.GetProperty("speciesName")
+        for field in self.subplot.get_data_to_plot():
+            listLabel = field.get_property("name")
+            if field.get_property("species_name") != '':
+                listLabel += " / " + field.get_property("species_name")
             item = QStandardItem(listLabel)
             model.appendRow(item)
         self.field_listView.setModel(model)
 
     def RemoveFieldButton_Clicked(self):
-        self.subplot.RemoveField(self.selectedFieldIndex)
+        self.subplot.remove_field(self.selectedFieldIndex)
         del self.fieldPropertiesList[self.selectedFieldIndex]
         self.FillListView()
         self.FillFieldData(0)
@@ -666,7 +666,7 @@ class EditFieldPlotWindow(EditPlotWindow):
 
     def SaveChanges(self):
         i = 0
-        for field in self.subplot.GetDataToPlot():
+        for field in self.subplot.get_data_to_plot():
             field.SetFieldProperties(self.fieldPropertiesList[i])
             i+=1
         super(EditFieldPlotWindow, self).SaveChanges()
@@ -679,7 +679,7 @@ class EditRawPlotWindow(EditPlotWindow):
         self.FillInitialUI()
 
     def GetPlotProperties(self):
-        self.plotProperties = self.subplot.GetCopyAllPlotProperties()
+        self.plotProperties = self.subplot.get_copy_all_plot_properties()
 
     def SetVisibleTabs(self):
         super(EditRawPlotWindow, self).SetVisibleTabs()
@@ -700,7 +700,7 @@ class EditRawPlotWindow(EditPlotWindow):
         else:
             self.regionToPlot_radioButton_2.setChecked(True)
         self.axisPlotType_comboBox.clear()
-        self.axisPlotType_comboBox.addItems(self.subplot.GetPossiblePlotTypes())
+        self.axisPlotType_comboBox.addItems(self.subplot.get_possible_plot_types())
         index = self.axisPlotType_comboBox.findText(self.plotProperties["General"]["PlotType"]);
         if index != -1:
             self.axisPlotType_comboBox.setCurrentIndex(index)
@@ -708,24 +708,24 @@ class EditRawPlotWindow(EditPlotWindow):
         # Histogram
         self.histogramChargeWeight_checkBox.setChecked(self.plotProperties["Histogram"]["UseChargeWeighting"])
         self.histogramChargeUnits_comboBox.clear()
-        self.histogramChargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
+        self.histogramChargeUnits_comboBox.addItems(self.subplot.get_weighting_units_options())
         index = self.histogramChargeUnits_comboBox.findText(self.plotProperties["Histogram"]["ChargeUnits"]);
         if index != -1:
             self.histogramChargeUnits_comboBox.setCurrentIndex(index)
         self.histogramColorMap_comboBox.clear()
-        self.histogramColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Histogram"))
+        self.histogramColorMap_comboBox.addItems(self.subplot.get_axis_cmap_options("Histogram"))
         index = self.histogramColorMap_comboBox.findText(self.plotProperties["Histogram"]["CMap"]);
         if index != -1:
             self.histogramColorMap_comboBox.setCurrentIndex(index)
         # Scatter
         self.scatterChargeWeight_checkBox.setChecked(self.plotProperties["Scatter"]["UseChargeWeighting"])
         self.scatterChargeUnits_comboBox.clear()
-        self.scatterChargeUnits_comboBox.addItems(self.subplot.GetWeightingUnitsOptions())
+        self.scatterChargeUnits_comboBox.addItems(self.subplot.get_weighting_units_options())
         index = self.scatterChargeUnits_comboBox.findText(self.plotProperties["Scatter"]["ChargeUnits"]);
         if index != -1:
             self.scatterChargeUnits_comboBox.setCurrentIndex(index)
         self.scatterColorMap_comboBox.clear()
-        self.scatterColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Scatter"))
+        self.scatterColorMap_comboBox.addItems(self.subplot.get_axis_cmap_options("Scatter"))
         index = self.scatterColorMap_comboBox.findText(self.plotProperties["Scatter"]["CMap"]);
         if index != -1:
             self.scatterColorMap_comboBox.setCurrentIndex(index)
@@ -735,7 +735,7 @@ class EditRawPlotWindow(EditPlotWindow):
         else:
             self.arrowPlotAll_radioButton.setChecked(True)
         self.arrowMomentumUnits_comboBox.clear()
-        self.arrowMomentumUnits_comboBox.addItems(self.subplot.GetMomentumUnitsOptions())
+        self.arrowMomentumUnits_comboBox.addItems(self.subplot.get_momentum_units_options())
         index = self.arrowMomentumUnits_comboBox.findText(self.plotProperties["Arrows"]["MomentumUnits"]);
         if index != -1:
             self.arrowMomentumUnits_comboBox.setCurrentIndex(index)
@@ -748,7 +748,7 @@ class EditRawPlotWindow(EditPlotWindow):
         else:
             self.arrowColor_radioButton_2.setChecked(True)
         self.arrowColorMap_comboBox.clear()
-        self.arrowColorMap_comboBox.addItems(self.subplot.GetAxisColorMapOptions("Arrows"))
+        self.arrowColorMap_comboBox.addItems(self.subplot.get_axis_cmap_options("Arrows"))
         index = self.arrowColorMap_comboBox.findText(self.plotProperties["Arrows"]["CMap"]);
         if index != -1:
             self.arrowColorMap_comboBox.setCurrentIndex(index)
@@ -757,8 +757,8 @@ class EditRawPlotWindow(EditPlotWindow):
 
     def SaveChanges(self):
         super(EditRawPlotWindow, self).SaveChanges()
-        self.subplot.SetAllPlotProperties(self.plotProperties)
-        dataToPlot = self.subplot.GetDataToPlot()
+        self.subplot.set_all_plot_properties(self.plotProperties)
+        dataToPlot = self.subplot.get_data_to_plot()
         dataToPlot["x"].SetProperty("dataSetUnits", self.axisProperties["x"]["Units"])
         dataToPlot["y"].SetProperty("dataSetUnits", self.axisProperties["y"]["Units"])
         if "z" in dataToPlot:
@@ -783,7 +783,7 @@ class EditRawEvolutionPlotWindow(EditPlotWindow):
 
     def SaveChanges(self):
         super(EditRawEvolutionPlotWindow, self).SaveChanges()
-        dataToPlot = self.subplot.GetDataToPlot()
+        dataToPlot = self.subplot.get_data_to_plot()
         for particleData in dataToPlot:
             particleData["x"].SetProperty("dataSetUnits", self.axisProperties["x"]["Units"])
             particleData["y"].SetProperty("dataSetUnits", self.axisProperties["y"]["Units"])
@@ -798,4 +798,4 @@ class EditPlotWindowSelector:
                    }
     @classmethod
     def GetEditPlotWindow(cls, subplot, plotterMethod, mainWindow):
-        return cls.editWindows[subplot.GetDataType()](subplot, plotterMethod, mainWindow)
+        return cls.editWindows[subplot.get_data_type()](subplot, plotterMethod, mainWindow)

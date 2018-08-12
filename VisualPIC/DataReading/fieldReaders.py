@@ -23,440 +23,485 @@ from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
-from VisualPIC.DataReading.openPMDTimeSeriesSingleton import OpenPMDTimeSeriesSingleton, openpmd_installed
+from VisualPIC.DataReading.openPMDTimeSeriesSingleton import (
+    OpenPMDTimeSeriesSingleton, openpmd_installed)
 if openpmd_installed:
-    from opmd_viewer.openpmd_timeseries.data_reader.utilities \
-        import get_shape as openpmd_get_shape
-    from opmd_viewer.openpmd_timeseries.data_reader.field_reader \
-        import find_dataset as openpmd_find_dataset
+    from opmd_viewer.openpmd_timeseries.data_reader.utilities import (
+        get_shape as openpmd_get_shape)
+    from opmd_viewer.openpmd_timeseries.data_reader.field_reader import (
+        find_dataset as openpmd_find_dataset)
 
 
 class FieldReaderBase(DataReader):
     """Parent class for all FieldReaders"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName, firstTimeStep):
-        DataReader.__init__(self, location, speciesName, dataName)
-        self.axisUnits = {}
-        self.axisData = {}
-        self.firstTimeStep = firstTimeStep
-        self.currentTimeStep = {"Slice-1D":-1, "Slice-2D":-1, "AllData":-1}
-        self.data = {"Slice-1D":[], "Slice-2D":[], "AllData":[]}
-        self.currentSliceAxis = {"Slice-1D":-1, "Slice-2D":-1}
-        self.currentSlicePosition = {"Slice-1D":-1, "Slice-2D":-1}
-        self._ReadBasicData()
+    def __init__(self, location, species_name, data_name, first_time_step):
+        DataReader.__init__(self, location, species_name, data_name)
+        self.axis_units = {}
+        self.axis_data = {}
+        self.first_time_step = first_time_step
+        self.current_time_step = {"Slice-1D": -1,
+                                  "Slice-2D": -1,
+                                  "AllData": -1}
+        self.data = {"Slice-1D": [], "Slice-2D": [], "AllData": []}
+        self.current_slice_axis = {"Slice-1D": -1, "Slice-2D": -1}
+        self.current_slice_position = {"Slice-1D": -1, "Slice-2D": -1}
+        self.read_basic_data()
 
-    def Get1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
-        if (timeStep != self.currentTimeStep["Slice-1D"]) or ((slicePositionX, slicePositionY) != self.currentSlicePosition["Slice-1D"]):
-            self.currentTimeStep["Slice-1D"] = timeStep
-            self.currentSlicePosition["Slice-1D"] = (slicePositionX, slicePositionY)
-            self.data["Slice-1D"] = self._Read1DSlice(timeStep, slicePositionX, slicePositionY)
+    def get_1d_slice(self, time_step, slice_pos_x, slice_pos_y=None):
+        if ((time_step != self.current_time_step["Slice-1D"])
+            or ((slice_pos_x, slice_pos_y) != self.current_slice_position[
+                "Slice-1D"])):
+            self.current_time_step["Slice-1D"] = time_step
+            self.current_slice_position["Slice-1D"] = (slice_pos_x,
+                                                       slice_pos_y)
+            self.data["Slice-1D"] = self.read_1d_slice(time_step, slice_pos_x,
+                                                       slice_pos_y)
         return self.data["Slice-1D"]
 
-    def Get2DSlice(self, sliceAxis, slicePosition, timeStep):
-        if (timeStep != self.currentTimeStep["Slice-2D"]) or (slicePosition != self.currentSlicePosition["Slice-2D"]) or (sliceAxis != self.currentSliceAxis["Slice-2D"]):
-            self.currentTimeStep["Slice-2D"] = timeStep
-            self.currentSlicePosition["Slice-2D"] = slicePosition
-            self.currentSliceAxis["Slice-2D"] = sliceAxis
-            self.data["Slice-2D"] = self._Read2DSlice(sliceAxis, slicePosition, timeStep)
+    def get_2d_slice(self, slice_axis, slice_pos, time_step):
+        if ((time_step != self.current_time_step["Slice-2D"]) 
+            or (slice_pos != self.current_slice_position["Slice-2D"]) 
+            or (slice_axis != self.current_slice_axis["Slice-2D"])):
+            self.current_time_step["Slice-2D"] = time_step
+            self.current_slice_position["Slice-2D"] = slice_pos
+            self.current_slice_axis["Slice-2D"] = slice_axis
+            self.data["Slice-2D"] = self.read_2d_slice(
+                slice_axis, slice_pos, time_step)
         return self.data["Slice-2D"]
 
-    def GetAllFieldData(self, timeStep):
-        if timeStep != self.currentTimeStep["AllData"]:
-            self.currentTimeStep["AllData"] = timeStep
-            self.data["AllData"] = self._ReadAllFieldData(timeStep)
+    def get_all_field_data(self, time_step):
+        if time_step != self.current_time_step["AllData"]:
+            self.current_time_step["AllData"] = time_step
+            self.data["AllData"] = self.read_all_field_data(time_step)
         return self.data["AllData"]
 
-    def GetTime(self, timeStep):
-        self._ReadTime(timeStep)
-        return self.currentTime
+    def get_time(self, time_step):
+        self.read_time(time_step)
+        return self.current_time
 
-    def GetTimeUnits(self):
-        if self.timeUnits == "":
-            self._ReadUnits()
-        return self.timeUnits
+    def get_time_units(self):
+        if self.time_units == "":
+            self.read_units()
+        return self.time_units
 
-    def GetDataUnits(self):
-        if self.dataUnits == "":
-            self._ReadUnits()
-        return self.dataUnits
+    def get_data_units(self):
+        if self.data_units == "":
+            self.read_units()
+        return self.data_units
 
-    def GetAxisData(self, timeStep):
-        self.axisData = self._ReadAxisData(timeStep)
-        return self.axisData
+    def get_axis_data(self, time_step):
+        self.axis_data = self.read_axis_data(time_step)
+        return self.axis_data
 
-    def GetAxisUnits(self):
-        if self.dataUnits == "":
-            self._ReadUnits()
-        return self.axisUnits
+    def get_axis_units(self):
+        if self.data_units == "":
+            self.read_units()
+        return self.axis_units
 
     @abc.abstractmethod
-    def _ReadBasicData(self):
+    def read_basic_data(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _GetMatrixShape(self, file_content):
+    def get_matrix_shape(self, file_content):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _ReadInternalName(self, file_content):
+    def read_internal_name(self, file_content):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _DetermineFieldDimension(self, file_content):
+    def determine_field_geometry(self, file_content):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
+    def read_1d_slice(self, time_step, slice_pos_x, slice_pos_y = None):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
+    def read_2d_slice(self, slice_axis, slice_pos, time_step):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _ReadAllFieldData(self, timeStep):
+    def read_all_field_data(self, time_step):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _ReadAxisData(self, timeStep):
+    def read_axis_data(self, time_step):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _ReadTime(self, timeStep):
+    def read_time(self, time_step):
         raise NotImplementedError
 
 
 class OsirisFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName, firstTimeStep):
-        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
+    def __init__(self, location, species_name, data_name, first_time_step):
+        FieldReaderBase.__init__(self, location, species_name, data_name,
+                                 first_time_step)
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadInternalName(file_content)
-        self._DetermineFieldDimension(file_content)
-        self._GetMatrixShape(file_content)
-        self._ReadSimulationProperties(file_content)
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self.read_internal_name(file_content)
+        self.determine_field_geometry(file_content)
+        self.get_matrix_shape(file_content)
+        self.read_simulation_properties(file_content)
         file_content.close()
 
-    def _GetMatrixShape(self, file_content):
-        self.matrixShape = file_content.get(self.internalName).shape
+    def get_matrix_shape(self, file_content):
+        self.matrix_shape = file_content.get(self.internal_name).shape
 
-    def _ReadInternalName(self, file_content):
-        self.internalName = list(file_content.keys())[1]
+    def read_internal_name(self, file_content):
+        self.internal_name = list(file_content.keys())[1]
 
-    def _DetermineFieldDimension(self, file_content):
+    def determine_field_geometry(self, file_content):
+        # TODO: add support for cylindrical geometry
         if '/AXIS/AXIS3' in file_content:
-            self.fieldDimension = "3D"
+            self.field_geometry = "3D"
         else:
-            self.fieldDimension = "2D"
+            self.field_geometry = "2D"
 
-    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
-        # TODO: add support for 3D fields
-        file_content = self._OpenFile(timeStep)
-        fieldData = file_content[self.internalName]
-        if self.fieldDimension == '2D':
-            elementsX = self.matrixShape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = np.array(fieldData[selectedRow])
-        elif self.fieldDimension == '3D':
-            elementsX = self.matrixShape[-3]
-            elementsY = self.matrixShape[-2]
-            selectedX = round(elementsX*(float(slicePositionX)/100))
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = np.array(fieldData[selectedX, selectedY])
+    def read_1d_slice(self, time_step, slice_pos_x, slice_pos_y=None):
+        file_content = self.open_file(time_step)
+        field_data = file_content[self.internal_name]
+        if self.field_geometry == '2D':
+            elements_x = self.matrix_shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = np.array(field_data[selected_row])
+        elif self.field_geometry == '3D':
+            elements_x = self.matrix_shape[-3]
+            elements_y = self.matrix_shape[-2]
+            selected_x = round(elements_x*(float(slice_pos_x)/100))
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = np.array(field_data[selected_x, selected_y])
         file_content.close()
-        return sliceData
+        return slice_data
 
-    def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
-        file_content = self._OpenFile(timeStep)
-        fieldData = file_content[self.internalName]
-        elementsX3 = self.matrixShape[-3] # number of elements in the transverse direction
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        sliceData = np.array(fieldData[selectedRow])
+    def read_2d_slice(self, slice_axis, slice_pos, time_step):
+        # TODO: add support for selecting slice axis
+        file_content = self.open_file(time_step)
+        field_data = file_content[self.internal_name]
+        # number of elements in thetransverse direction
+        elements_tr = self.matrix_shape[-3] 
+        selected_row = round(elements_tr*(float(slice_pos)/100))
+        slice_data = np.array(field_data[selected_row])
         file_content.close()
-        return sliceData
+        return slice_data
 
-    def _ReadAllFieldData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        fieldData = np.array(file_content[self.internalName])
+    def read_all_field_data(self, time_step):
+        file_content = self.open_file(time_step)
+        field_data = np.array(file_content[self.internal_name])
         file_content.close()
-        return fieldData
+        return field_data
 
-    def _ReadAxisData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        elementsZ = self.matrixShape[-1] # number of elements in the longitudinal z direction
-        elementsX = self.matrixShape[-2] # number of elements in the transverse x direction
-        axisData = {}
-        axisData["z"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsZ)
-        axisData["x"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsX)
-        if self.fieldDimension == "3D":
-            elementsY = self.matrixShape[-3] # number of elements in the transverse y direction
-            axisData["y"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsY)
+    def read_axis_data(self, time_step):
+        file_content = self.open_file(time_step)
+        # number of elements along the longitudinal z direction
+        elements_z = self.matrix_shape[-1]
+        # number of elements along the transverse x direction
+        elements_x = self.matrix_shape[-2] 
+        axis_data = {}
+        axis_data["z"] = np.linspace(file_content.attrs['XMIN'][0],
+                                     file_content.attrs['XMAX'][0],
+                                     elements_z)
+        axis_data["x"] = np.linspace(file_content.attrs['XMIN'][1],
+                                     file_content.attrs['XMAX'][1],
+                                     elements_x)
+        if self.field_geometry == "3D":
+            # number of elements along the transverse y direction
+            elements_y = self.matrix_shape[-3] 
+            axis_data["y"] = np.linspace(file_content.attrs['XMIN'][2],
+                                         file_content.attrs['XMAX'][2],
+                                         elements_y)
         file_content.close()
-        return axisData
+        return axis_data
 
-    def _ReadTime(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        self.currentTime = file_content.attrs["TIME"][0]
+    def read_time(self, time_step):
+        file_content = self.open_file(time_step)
+        self.current_time = file_content.attrs["TIME"][0]
         file_content.close()
 
-    def _ReadUnits(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self.axisUnits["z"] = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.axisUnits["x"] = str(list(file_content['/AXIS/AXIS2'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
+    def read_units(self):
+        file_content = self.open_file(self.first_time_step)
+        self.axis_units["z"] = str(list(file_content['/AXIS/AXIS1'].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.axis_units["x"] = str(list(file_content['/AXIS/AXIS2'].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.data_units = str(list(file_content[self.internal_name].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.time_units = str(file_content.attrs[
+            "TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
-    def _ReadSimulationProperties(self, file_content):
+    def read_simulation_properties(self, file_content):
         self.grid_resolution = np.array(file_content.attrs['NX'])
-        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
-        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.grid_size = (np.array(file_content.attrs['XMAX'])
+                          - np.array(file_content.attrs['XMIN']))
+        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
 
-    def _OpenFile(self, timeStep):
-        fileName = self.dataName + "-"
-        if self.speciesName != "":
-            fileName += self.speciesName + "-"
-        fileName += str(timeStep).zfill(6)
+    def open_file(self, time_step):
+        file_name = self.data_name + "-"
+        if self.species_name != "":
+            file_name += self.species_name + "-"
+        file_name += str(time_step).zfill(6)
         ending = ".h5"
-        file_path = self.location + "/" + fileName + ending
+        file_path = self.location + "/" + file_name + ending
         file_content = H5File(file_path, 'r')
         return file_content
 
 
 class HiPACEFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName, firstTimeStep):
-        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
+    def __init__(self, location, species_name, data_name, first_time_step):
+        FieldReaderBase.__init__(self, location, species_name, data_name,
+                                 first_time_step)
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadInternalName(file_content)
-        self._DetermineFieldDimension(file_content)
-        self._GetMatrixShape(file_content)
-        self._ReadSimulationProperties(file_content)
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self.read_internal_name(file_content)
+        self.determine_field_geometry(file_content)
+        self.get_matrix_shape(file_content)
+        self.read_simulation_properties(file_content)
         file_content.close()
 
-    def _GetMatrixShape(self, file_content):
-        self.matrixShape = file_content.get(self.internalName).shape
+    def get_matrix_shape(self, file_content):
+        self.matrix_shape = file_content.get(self.internal_name).shape
 
-    def _ReadInternalName(self, file_content):
-        self.internalName = list(file_content.keys())[0]
+    def read_internal_name(self, file_content):
+        self.internal_name = list(file_content.keys())[0]
 
-    def _DetermineFieldDimension(self, file_content):
-        self.fieldDimension = "3D"
+    def determine_field_geometry(self, file_content):
+        self.field_geometry = "3D"
 
-    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
+    def read_1d_slice(self, time_step, slice_pos_x, slice_pos_y=None):
         # TODO: add support for 3D fields
-        file_content = self._OpenFile(timeStep)
-        fieldData = file_content[self.internalName]
-        if self.fieldDimension == '2D':
-            elementsX = self.matrixShape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = np.array(fieldData[selectedRow])
-        elif self.fieldDimension == '3D':
-            elementsX = self.matrixShape[-3]
-            elementsY = self.matrixShape[-2]
-            selectedX = round(elementsX*(float(slicePositionX)/100))
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = np.array(fieldData[selectedX, selectedY])
+        file_content = self.open_file(time_step)
+        field_data = file_content[self.internal_name]
+        if self.field_geometry == '2D':
+            elements_x = self.matrix_shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = np.array(field_data[selected_row])
+        elif self.field_geometry == '3D':
+            elements_x = self.matrix_shape[-3]
+            elements_y = self.matrix_shape[-2]
+            selected_x = round(elements_x*(float(slice_pos_x)/100))
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = np.array(field_data[selected_x, selected_y])
         file_content.close()
-        return sliceData
+        return slice_data
 
-    def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
-        file_content = self._OpenFile(timeStep)
-        fieldData = file_content[self.internalName]
-        elementsX3 = self.matrixShape[2] # number of elements in the transverse direction
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        sliceData = np.array(fieldData[:,:,selectedRow]).T
+    def read_2d_slice(self, slice_axis, slice_pos, time_step):
+        file_content = self.open_file(time_step)
+        field_data = file_content[self.internal_name]
+        # number of elements in the transverse direction
+        elements_x3 = self.matrix_shape[2]
+        selected_row = round(elements_x3*(float(slice_pos)/100))
+        slice_data = np.array(field_data[:,:,selected_row]).T
         file_content.close()
-        return sliceData
+        return slice_data
 
-    def _ReadAllFieldData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        fieldData = np.array(file_content[self.internalName])
+    def read_all_field_data(self, time_step):
+        file_content = self.open_file(time_step)
+        field_data = np.array(file_content[self.internal_name])
         file_content.close()
-        return fieldData
+        return field_data
 
-    def _ReadAxisData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        elementsZ = self.matrixShape[-1] # number of elements in the longitudinal z direction
-        elementsX = self.matrixShape[-2] # number of elements in the transverse y direction
-        axisData = {}
-        axisData["z"] = np.linspace(file_content.attrs['XMIN'][0], file_content.attrs['XMAX'][0], elementsZ)
-        axisData["x"] = np.linspace(file_content.attrs['XMIN'][1], file_content.attrs['XMAX'][1], elementsX)
-        if self.fieldDimension == "3D":
-            elementsY = self.matrixShape[-3] # number of elements in the transverse x direction
-            axisData["y"] = np.linspace(file_content.attrs['XMIN'][2], file_content.attrs['XMAX'][2], elementsY)
+    def read_axis_data(self, time_step):
+        file_content = self.open_file(time_step)
+        # number of elements in the longitudinal z direction
+        elements_z = self.matrix_shape[-1]
+        # number of elements in the transverse y direction
+        elements_x = self.matrix_shape[-2]
+        axis_data = {}
+        axis_data["z"] = np.linspace(file_content.attrs['XMIN'][0],
+                                     file_content.attrs['XMAX'][0],
+                                     elements_z)
+        axis_data["x"] = np.linspace(file_content.attrs['XMIN'][1],
+                                     file_content.attrs['XMAX'][1],
+                                     elements_x)
+        if self.field_geometry == "3D":
+            # number of elements in the transverse x direction
+            elements_y = self.matrix_shape[-3]
+            axis_data["y"] = np.linspace(file_content.attrs['XMIN'][2],
+                                         file_content.attrs['XMAX'][2],
+                                         elements_y)
         file_content.close()
-        return axisData
+        return axis_data
 
-    def _ReadTime(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        self.currentTime = file_content.attrs["TIME"][0]
+    def read_time(self, time_step):
+        file_content = self.open_file(time_step)
+        self.current_time = file_content.attrs["TIME"][0]
         file_content.close()
 
-    def _ReadUnits(self):
+    def read_units(self):
         # No units information is currently stored by HiPACE
-        if self.speciesName != "":
-            self.dataUnits = 'e \omega_p^3/ c^3'
-        elif self.dataName == 'Ez':
-            self.dataUnits = 'm_e c \omega_p e^{-1}'
+        if self.species_name != "":
+            self.data_units = 'e \omega_p^3/ c^3'
+        elif self.data_name == 'Ez':
+            self.data_units = 'm_e c \omega_p e^{-1}'
         else:
-            self.dataUnits = 'unknown'
-        self.timeUnits = '1/ \omega_p'
-        self.axisUnits["x"] = 'c/ \omega_p'
-        self.axisUnits["y"] = 'c/ \omega_p'
-        self.axisUnits["z"] = 'c/ \omega_p'
+            self.data_units = 'unknown'
+        self.time_units = '1/ \omega_p'
+        self.axis_units["x"] = 'c/ \omega_p'
+        self.axis_units["y"] = 'c/ \omega_p'
+        self.axis_units["z"] = 'c/ \omega_p'
 
-    def _ReadSimulationProperties(self, file_content):
+    def read_simulation_properties(self, file_content):
         self.grid_resolution = np.array(file_content.attrs['NX'])
-        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
-        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.grid_size = (np.array(file_content.attrs['XMAX'])
+                          - np.array(file_content.attrs['XMIN']))
+        self.grid_units = str(list(file_content['/AXIS/AXIS1'].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
 
-    def _OpenFile(self, timeStep):
-        if self.speciesName != "":
-            fileName = 'density_' + self.speciesName + '_' + self.dataName
+    def open_file(self, time_step):
+        if self.species_name != "":
+            file_name = 'density_' + self.species_name + '_' + self.data_name
         else:
-            fileName = 'field_' + self.dataName
+            file_name = 'field_' + self.data_name
 
-        fileName += '_' + str(timeStep).zfill(6)
+        file_name += '_' + str(time_step).zfill(6)
         ending = ".h5"
-        file_path = self.location + "/" + fileName + ending
+        file_path = self.location + "/" + file_name + ending
         file_content = H5File(file_path, 'r')
         return file_content
 
 
 class OpenPMDFieldReader(FieldReaderBase):
-    def __init__(self, location, speciesName, dataName, firstTimeStep ):
+    def __init__(self, location, species_name, data_name, first_time_step):
         # First check whether openPMD is installed
         if not openpmd_installed:
-            raise RunTimeError("You need to install openPMD-viewer, e.g. with:\n"
+            raise RunTimeError(
+                "You need to install openPMD-viewer, e.g. with:\n"
                 "pip install openPMD-viewer")
         # Store an openPMD timeseries object
         # (Its API is used in order to conveniently extract data from the file)
-        self.openpmd_ts = OpenPMDTimeSeriesSingleton( location, check_all_files=False )
-        self.openpmd_dataName = dataName
+        self.openpmd_ts = OpenPMDTimeSeriesSingleton(location,
+                                                     check_all_files=False)
+        self.openpmd_data_name = data_name
         # Initialize the instance
-        FieldReaderBase.__init__(self, location, speciesName, dataName, firstTimeStep)
+        FieldReaderBase.__init__(self, location, species_name, data_name,
+                                 first_time_step)
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._determine_field_dimension()
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self._determine_field_geometry()
         self._determine_internal_name()
-        self._GetMatrixShape(file_content)
+        self.get_matrix_shape(file_content)
         file_content.close()
 
-    def _GetMatrixShape(self, file_content):
-        _, dataset = openpmd_find_dataset( file_content, self.internalName )
-        self.matrixShape = openpmd_get_shape( dataset )
+    def get_matrix_shape(self, file_content):
+        _, dataset = openpmd_find_dataset( file_content, self.internal_name )
+        self.matrix_shape = openpmd_get_shape( dataset )
 
     def _determine_internal_name(self):
-        self.internalName = self.openpmd_dataName
+        self.internal_name = self.openpmd_data_name
         # If field is vectorial, get component
-        if '/' in self.openpmd_dataName:
-            field = self.openpmd_dataName.split("/")[0]
-            coord = self.openpmd_dataName.split("/")[1]
+        if '/' in self.openpmd_data_name:
+            field = self.openpmd_data_name.split("/")[0]
+            coord = self.openpmd_data_name.split("/")[1]
             # If component is carterian and geometry is thetaMode,
             # change internal name to radial component
-            if self.fieldDimension == "thetaMode" and coord in ['x', 'y']:
-                self.internalName = field + '/r'
+            if self.field_geometry == "thetaMode" and coord in ['x', 'y']:
+                self.internal_name = field + '/r'
 
-    def _determine_field_dimension(self):
-        # Find the name of the field ; vector fields like E are encoded as "E/x"
-        fieldname = self.openpmd_dataName.split("/")[0]
-        geometry = self.openpmd_ts.fields_metadata[fieldname]['geometry']
+    def _determine_field_geometry(self):
+        # Find the name of the field; vector fields like E are encoded as "E/x"
+        field_name = self.openpmd_data_name.split("/")[0]
+        geometry = self.openpmd_ts.fields_metadata[field_name]['geometry']
         if geometry == '3dcartesian':
-            self.fieldDimension = "3D"
+            self.field_geometry = "3D"
         elif geometry == '2dcartesian':
-            self.fieldDimension = "2D"
+            self.field_geometry = "2D"
         elif geometry == 'thetaMode':
-            self.fieldDimension = "thetaMode"
+            self.field_geometry = "thetaMode"
         else:
             raise ValueError("Unsupported geometry: %s" %geometry)
 
-    def _Read1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
-        # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.openpmd_dataName.split("/")
-        if self.fieldDimension == '2D':
-            fieldData, _ = self.openpmd_ts.get_field(
-                                *field_and_coord, iteration=timeStep )
-            elementsX = self.matrixShape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = np.array(fieldData[selectedRow])
-        elif self.fieldDimension == '3D':
+    def read_1d_slice(self, time_step, slice_pos_x, slice_pos_y=None):
+        # Find the name of the field; vector fields like E are encoded as "E/x"
+        field_and_coord = self.openpmd_data_name.split("/")
+        if self.field_geometry == '2D':
+            field_data, _ = self.openpmd_ts.get_field(
+                                *field_and_coord, iteration=time_step )
+            elements_x = self.matrix_shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = np.array(field_data[selected_row])
+        elif self.field_geometry == '3D':
             # Slice first along X
-            fieldData = self._Read2DSlice( None, slicePositionX, timeStep )
+            field_data = self.read_2d_slice( None, slice_pos_x, time_step )
             # Then slice along Y
-            elementsY = self.matrixShape[-2]
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = np.array(fieldData[selectedY])
-        elif self.fieldDimension == "thetaMode":
-            fieldData, _ = self.openpmd_ts.get_field(
-                                *field_and_coord, iteration=timeStep )
-            elementsX = self.matrixShape[-2]*2
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = np.array(fieldData[selectedRow])
-        return sliceData
+            elements_y = self.matrix_shape[-2]
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = np.array(field_data[selected_y])
+        elif self.field_geometry == "thetaMode":
+            field_data, _ = self.openpmd_ts.get_field(
+                                *field_and_coord, iteration=time_step )
+            elements_x = self.matrix_shape[-2]*2
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = np.array(field_data[selected_row])
+        return slice_data
 
-    def _Read2DSlice(self, sliceAxis, slicePosition, timeStep):
-        # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.openpmd_dataName.split("/")
-        # Convert the `slicePosition` from a 0-to-100 number to -1 to 1
-        slicing = -1. + 2*slicePosition/100.
+    def read_2d_slice(self, slice_axis, slice_pos, time_step):
+        # Find the name of the field; vector fields like E are encoded as "E/x"
+        field_and_coord = self.openpmd_data_name.split("/")
+        # Convert the `slice_pos` from a 0-to-100 number to -1 to 1
+        slicing = -1. + 2*slice_pos/100.
         # Extract the slice
-        sliceData, _ = self.openpmd_ts.get_field(
-                *field_and_coord, iteration=timeStep,
+        slice_data, _ = self.openpmd_ts.get_field(
+                *field_and_coord, iteration=time_step,
                 slicing_dir="x", slicing=slicing )
-        return sliceData
+        return slice_data
 
-    def _ReadAllFieldData(self, timeStep):
-        # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.openpmd_dataName.split("/")
-        fieldData, _ = self.openpmd_ts.get_field(
-                        *field_and_coord, iteration=timeStep, slicing=None )
-        return fieldData
+    def read_all_field_data(self, time_step):
+        # Find the name of the field; vector fields like E are encoded as "E/x"
+        field_and_coord = self.openpmd_data_name.split("/")
+        field_data, _ = self.openpmd_ts.get_field(
+                        *field_and_coord, iteration=time_step, slicing=None )
+        return field_data
 
-    def _ReadAxisData(self, timeStep):
-        # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.openpmd_dataName.split("/")
+    def read_axis_data(self, time_step):
+        # Find the name of the field; vector fields like E are encoded as "E/x"
+        field_and_coord = self.openpmd_data_name.split("/")
         # Note: the code below has very bad performance because
         # it automatically reads the field data, just to extract the metadata
         # TODO: improve in the future
         _, field_meta_data = self.openpmd_ts.get_field( *field_and_coord,
-                                    iteration=timeStep, slicing=None )
-        # Construct the `axisData` from the object `field_meta_data`
-        axisData = {}
-        if self.fieldDimension == "thetaMode":
-            axisData["z"] = getattr( field_meta_data, "z" )
-            axisData["r"] = getattr( field_meta_data, "r" )
+                                    iteration=time_step, slicing=None )
+        # Construct the `axis_data` from the object `field_meta_data`
+        axis_data = {}
+        if self.field_geometry == "thetaMode":
+            axis_data["z"] = getattr( field_meta_data, "z" )
+            axis_data["r"] = getattr( field_meta_data, "r" )
         else:
-            axisData["z"] = getattr( field_meta_data, "z" )
-            axisData["x"] = getattr( field_meta_data, "x" )
-            if self.fieldDimension == "3D":
-                axisData["y"] = getattr( field_meta_data, "y" )
-        return axisData
+            axis_data["z"] = getattr( field_meta_data, "z" )
+            axis_data["x"] = getattr( field_meta_data, "x" )
+            if self.field_geometry == "3D":
+                axis_data["y"] = getattr( field_meta_data, "y" )
+        return axis_data
 
-    def _ReadTime(self, timeStep):
+    def read_time(self, time_step):
         # The line below sets the attribute `_current_i` of openpmd_ts
-        self.openpmd_ts._find_output( None, timeStep )
+        self.openpmd_ts._find_output( None, time_step )
         # This sets the corresponding time
-        self.currentTime = self.openpmd_ts.t[ self.openpmd_ts._current_i ]
+        self.current_time = self.openpmd_ts.t[ self.openpmd_ts._current_i ]
 
-    def _ReadUnits(self):
-        file_content = self._OpenFile(self.firstTimeStep)
+    def read_units(self):
+        # TODO find the exact unit; needs navigation in file
+        file_content = self.open_file(self.first_time_step)
         # OpenPMD data always provide conversion to SI units
-        self.axisUnits["x"] = "m"
-        self.axisUnits["y"] = "m"
-        self.axisUnits["z"] = "m"
-        self.axisUnits["r"] = "m"
-        self.timeUnits = "s"
-        self.dataUnits = "arb.u." # TODO find the exact unit; needs navigation in file
+        self.axis_units["x"] = "m"
+        self.axis_units["y"] = "m"
+        self.axis_units["z"] = "m"
+        self.axis_units["r"] = "m"
+        self.time_units = "s"
+        self.data_units = "arb.u." 
         file_content.close()
 
-    def _OpenFile(self, timeStep):
+    def open_file(self, time_step):
         # The line below sets the attribute `_current_i` of openpmd_ts
-        self.openpmd_ts._find_output( None, timeStep )
+        self.openpmd_ts._find_output( None, time_step )
         # This finds the full path to the corresponding file
-        fileName = self.openpmd_ts.h5_files[ self.openpmd_ts._current_i ]
-        file_content = H5File(fileName, 'r')
+        file_name = self.openpmd_ts.h5_files[ self.openpmd_ts._current_i ]
+        file_content = H5File(file_name, 'r')
         return file_content

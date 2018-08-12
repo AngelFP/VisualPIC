@@ -144,8 +144,8 @@ class CreateAnimationWindow(QtWidgets.QDialog):
         self.label.setText("First time step:")
         self.label_2.setText("Last time step:")
         self.label_3.setText("Step size:")
-        self.firstStep_lineEdit.setText(str(self.mainWindow.timeSteps[0]))
-        self.lastStep_lineEdit.setText(str(self.mainWindow.timeSteps[-1]))
+        self.firstStep_lineEdit.setText(str(self.mainWindow.time_steps[0]))
+        self.lastStep_lineEdit.setText(str(self.mainWindow.time_steps[-1]))
         self.frequency_lineEdit.setText("1")
         self.onlySnaps_checkBox.setText("Create snapshots.")
         self.makeVideo_checkBox.setText("Create video.")
@@ -214,7 +214,7 @@ class CreateAnimationWindow(QtWidgets.QDialog):
 
     def createAnimation(self):
         self.hasAlreadyRun = False
-        simulationTimeSteps = self.mainWindow.timeSteps
+        simulationTimeSteps = self.mainWindow.time_steps
         firstTimeStep = int(self.firstStep_lineEdit.text())
         firstIndex = np.where(simulationTimeSteps == firstTimeStep)[0][0]
         lastTimeStep = int(self.lastStep_lineEdit.text())
@@ -257,18 +257,18 @@ class InputFilter(QtCore.QObject):
             if event.type() == QtCore.QEvent.FocusOut:
                 # do custom stuff
                 step = int(widget.text())
-                timeSteps = self.mainWindow.timeSteps
-                if step not in timeSteps:
-                    higherTimeSteps = np.where(timeSteps > step)[0]
+                time_steps = self.mainWindow.time_steps
+                if step not in time_steps:
+                    higherTimeSteps = np.where(time_steps > step)[0]
                     if len(higherTimeSteps) == 0:
-                        closestHigher = timeSteps[0]
+                        closestHigher = time_steps[0]
                     else:
-                        closestHigher = timeSteps[np.where(timeSteps > step)[0][0]]
-                    lowerTimeSteps = np.where(timeSteps < step)[0]
+                        closestHigher = time_steps[np.where(time_steps > step)[0][0]]
+                    lowerTimeSteps = np.where(time_steps < step)[0]
                     if len(lowerTimeSteps) == 0:
-                        closestLower = timeSteps[-1]
+                        closestLower = time_steps[-1]
                     else:
-                        closestLower = timeSteps[np.where(timeSteps < step)[0][-1]]
+                        closestLower = time_steps[np.where(time_steps < step)[0][-1]]
                     if abs(step-closestHigher) < abs(step-closestLower):
                         widget.setText(str(closestHigher))
                     else:

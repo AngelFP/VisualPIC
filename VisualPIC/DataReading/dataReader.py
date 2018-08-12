@@ -22,21 +22,21 @@ import abc
 
 
 class DataReader(object):
-    """Parent class for all data readers (fieldReaders and rawDataReaders)"""
+    """Parent class for all data readers (FieldReaders and RawDataReaders)"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName, internalName = ""):
+    def __init__(self, location, species_name, data_name, internal_name = ""):
         self.location = location
-        self.speciesName = speciesName
-        self.dataName = dataName
-        self.internalName = internalName
-        self.currentTimeStep = None # time step number
-        self.currentTime = None # simulation time in the current time step
-        self.timeUnits = ""
-        self.dataUnits = ""
+        self.species_name = species_name
+        self.data_name = data_name
+        self.internal_name = internal_name
+        self.current_time_step = None # time step number
+        self.current_time = None # simulation time in the current time step
+        self.time_units = ""
+        self.data_units = ""
         self.data = None
 
     @abc.abstractmethod
-    def _ReadUnits(self):
+    def read_units(self):
         raise NotImplementedError
 
 

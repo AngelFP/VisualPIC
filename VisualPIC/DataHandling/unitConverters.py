@@ -23,323 +23,341 @@ import numpy as np
 
 
 class GeneralUnitConverter(object):
-    def __init__(self, simulationParams):
+    def __init__(self, simulation_params):
+        # TODO: use scipy constants
         self.c = 299792458 #m/s
         self.e = 1.60217733 * 10**(-19) #C
         self.m_e = 9.1093897 * 10**(-31) #kg
         self.eps_0 = 8.854187817 * 10**(-12) #As/(Vm)
-        self.normalizationFactor = None
-        self.SetSimulationParameters(simulationParams)
+        self.normalization_factor = None
+        self.set_simulation_parameters(simulation_params)
 
-    def SetSimulationParameters(self, params):
-        self._simulationParameters = params
+    def set_simulation_parameters(self, params):
+        self.simulation_parameters = params
 
     """
     Possible units
     """
-    def GetPossibleDataUnits(self, dataElement):
-        dataISUnits = self.GetDataISUnits(dataElement)
-        originalUnits = list()
-        allOtherUnits = list()
-        originalUnits.append(dataElement.GetDataOriginalUnits())
-        allOtherUnits = self._GetAllOtherDataUnitsOptions(dataISUnits)
-        allUnits = list(set(list(set(originalUnits).union([dataISUnits]))).union(allOtherUnits))
-        return allUnits
+    def get_possible_data_units(self, data_element):
+        data_si_units = self.get_data_si_units(data_element)
+        original_units = list()
+        all_other_units = list()
+        original_units.append(data_element.get_data_original_units())
+        all_other_units = self.get_all_other_data_units_options(data_si_units)
+        all_units = list(set(list(set(original_units).union([
+            data_si_units]))).union(all_other_units))
+        return all_units
 
-    def _GetAllOtherDataUnitsOptions(self, dataISUnits):
-        if dataISUnits == "V/m":
+    def get_all_other_data_units_options(self, data_si_units):
+        if data_si_units == "V/m":
             return ["V/m", "GV/m", "T"]
-        if dataISUnits == "V/m^2":
+        if data_si_units == "V/m^2":
             return ["V/m^2", "GV/m^2", "T/m", "MT/m"]
-        elif dataISUnits == "T":
+        elif data_si_units == "T":
             return ["T", "V/m"]
-        elif dataISUnits == "C/m^2":
+        elif data_si_units == "C/m^2":
             return ["C/m^2"] #, "n/n_0"]
-        elif dataISUnits == "m":
+        elif data_si_units == "m":
             return ["m", "mm", "μm"]
-        elif dataISUnits == "kg*m/s":
+        elif data_si_units == "kg*m/s":
             return ["kg*m/s", "MeV/c"]
-        elif dataISUnits == "J":
+        elif data_si_units == "J":
             return ["J", "MeV"]
-        elif dataISUnits == "rad":
+        elif data_si_units == "rad":
             return ["rad", "mrad"]
-        elif dataISUnits == "s":
+        elif data_si_units == "s":
             return ["s", "fs"]
         else:
             return list()
 
-    def GetPossibleTimeUnits(self, dataElement):
-        dataISUnits = "s"
-        originalUnits = list()
-        allOtherUnits = list()
-        originalUnits.append(dataElement.GetTimeOriginalUnits())
-        allOtherUnits = self._GetAllOtherTimeUnitsOptions()
-        allUnits = list(set(originalUnits).union(allOtherUnits))
-        return allUnits
+    def get_possible_time_units(self, data_element):
+        data_si_units = "s"
+        original_units = list()
+        all_other_units = list()
+        original_units.append(data_element.get_time_original_units())
+        all_other_units = self.get_all_other_time_units_options()
+        all_units = list(set(original_units).union(all_other_units))
+        return all_units
 
-    def _GetAllOtherTimeUnitsOptions(self):
+    def get_all_other_time_units_options(self):
         return ["s", "fs"]
 
-    def GetPossibleAxisUnits(self, dataElement):
-        originalUnits = list()
-        allOtherUnits = list()
-        allOtherUnits = self._GetAllOtherAxisUnitsOptions()
-        originalUnits.append(dataElement.GetAxisOriginalUnits()["x"])
-        allUnits = list(set(originalUnits).union(allOtherUnits))
-        return allUnits
+    def get_possible_axis_units(self, data_element):
+        original_units = list()
+        all_other_units = list()
+        all_other_units = self.get_all_other_axis_units_options()
+        original_units.append(data_element.get_axis_original_units()["x"])
+        all_units = list(set(original_units).union(all_other_units))
+        return all_units
 
-    def _GetAllOtherAxisUnitsOptions(self):
+    def get_all_other_axis_units_options(self):
         return ["m", "mm", "μm"]
 
     """
     Unit conversion
     """
-    def GetDataInUnits(self, dataElement, units, data):
-        if units == dataElement.GetDataOriginalUnits():
+    def get_data_in_units(self, data_element, units, data):
+        if units == data_element.get_data_original_units():
             return data
-        elif units == self.GetDataISUnits(dataElement):
-            return self.GetDataInISUnits(dataElement, data)
+        elif units == self.get_data_si_units(data_element):
+            return self.get_data_in_si_units(data_element, data)
         else:
-            dataInISUnits = self.GetDataInISUnits(dataElement, data)
-            dataISUnits = self.GetDataISUnits(dataElement)
-            return self._MakeConversion(units, dataISUnits, dataInISUnits)
+            data_in_si_units = self.get_data_in_si_units(data_element, data)
+            data_si_units = self.get_data_si_units(data_element)
+            return self.make_conversion(units, data_si_units, data_in_si_units)
 
-    def GetDataInISUnits(self, dataElement, data):
-        if not dataElement.hasNonISUnits:
+    def get_data_in_si_units(self, data_element, data):
+        if not data_element.has_non_si_units:
             return data
         else:
-            return self.ConvertToISUnits(dataElement, data)
+            return self.convert_to_si_units(data_element, data)
 
-    def _MakeConversion(self, units, dataISUnits, dataInISUnits):
-        if dataISUnits == "V/m":
+    def make_conversion(self, units, data_si_units, data_in_si_units):
+        if data_si_units == "V/m":
             if units == "GV/m":
-                return dataInISUnits * 1e-9
+                return data_in_si_units * 1e-9
             elif units == "T":
-                return dataInISUnits / self.c
-        elif dataISUnits == "V/m^2":
+                return data_in_si_units / self.c
+        elif data_si_units == "V/m^2":
             if units == "GV/m^2":
-                return dataInISUnits * 1e-9
+                return data_in_si_units * 1e-9
             elif units == "T/m":
-                return dataInISUnits / self.c
+                return data_in_si_units / self.c
             elif units == "MT/m":
-                return dataInISUnits / self.c * 1e-6
-        elif dataISUnits == "C/m^2":
+                return data_in_si_units / self.c * 1e-6
+        elif data_si_units == "C/m^2":
             pass
-        elif dataISUnits == "T":
+        elif data_si_units == "T":
             if units == "V/m":
-                return dataInISUnits * self.c
-        elif dataISUnits == "m":
+                return data_in_si_units * self.c
+        elif data_si_units == "m":
             if units == "μm":
-                return dataInISUnits * 1e6
+                return data_in_si_units * 1e6
             elif units == "mm":
-                return dataInISUnits * 1e3
-        elif dataISUnits == "kg*m/s":
+                return data_in_si_units * 1e3
+        elif data_si_units == "kg*m/s":
             if units == "MeV/c":
-                return dataInISUnits / self.e * self.c * 1e-6
-        elif dataISUnits == "J":
+                return data_in_si_units / self.e * self.c * 1e-6
+        elif data_si_units == "J":
             if units == "MeV":
-                return dataInISUnits / self.e * 1e-6
-        elif dataISUnits == "rad":
+                return data_in_si_units / self.e * 1e-6
+        elif data_si_units == "rad":
             if units == "mrad":
-                return dataInISUnits * 1e3
-        elif dataISUnits == "s":
+                return data_in_si_units * 1e3
+        elif data_si_units == "s":
             if units == "fs":
-                return dataInISUnits * 1e15
+                return data_in_si_units * 1e15
 
-    def GetTimeInUnits(self, dataElement, units, timeStep):
-        if dataElement.hasNonISUnits:
-            if units == dataElement.GetTimeOriginalUnits():
-                return dataElement.GetTimeInOriginalUnits(timeStep)
+    def get_time_in_units(self, data_element, units, time_step):
+        if data_element.has_non_si_units:
+            if units == data_element.get_time_original_units():
+                return data_element.get_time_in_original_units(time_step)
         if units == "s":
-            return self.GetTimeInISUnits(dataElement, timeStep)
+            return self.get_time_in_si_units(data_element, time_step)
         else:
-            timeInISUnits = self.GetTimeInISUnits(dataElement, timeStep)
+            timeInISUnits = self.get_time_in_si_units(data_element, time_step)
             if units == "fs":
                 return timeInISUnits * 1e15
 
-    def GetAxisInUnits(self, axis, dataElement, units, timeStep):
-        if units == dataElement.GetAxisOriginalUnits()[axis]:
-                return dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
+    def get_axis_in_units(self, axis, data_element, units, time_step):
+        if units == data_element.get_axis_original_units()[axis]:
+                return data_element.get_axis_data_in_original_units(axis,
+                                                                    time_step)
         if units == "m":
-            return self.GetAxisInISUnits(axis, dataElement, timeStep)
+            return self.get_axis_in_si_units(axis, data_element, time_step)
         else:
-            axisDataInISUnits = self.GetAxisInISUnits(axis, dataElement, timeStep)
+            axisDataInISUnits = self.get_axis_in_si_units(axis, data_element,
+                                                          time_step)
             if units == "μm":
                 return axisDataInISUnits * 1e6
             elif units == "mm":
                 return axisDataInISUnits * 1e3
 
-    def GetDataISUnits(self, dataElement):
+    def get_data_si_units(self, data_element):
         """ Returns the IS units of the data (only the units, not the data!).
             The purpose of this is to identify"""
-        if not dataElement.hasNonISUnits:
-            return dataElement.GetDataOriginalUnits()
+        if not data_element.has_non_si_units:
+            return data_element.get_data_original_units()
         else:
-            dataElementName = dataElement.GetName()
-            if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
+            data_name = data_element.get_name()
+            if data_name == "Ex" or data_name == "Ey" or data_name == "Ez":
                 return "V/m"
-            elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
+            elif data_name == "Bx" or data_name == "By" or data_name == "Bz":
                 return "T"
-            elif dataElementName == "Charge density":
+            elif data_name == "Charge density":
                 return "C/m^2"
-            elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+            elif data_name == "x" or data_name == "y" or data_name == "z":
                 return "m"
-            elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+            elif data_name == "Px" or data_name == "Py" or data_name == "Pz":
                 return "kg*m/s"
-            elif dataElementName == "Energy":
+            elif data_name == "Energy":
                 return "J"
-            elif dataElementName == "Charge":
+            elif data_name == "Charge":
                 return "C"
-            elif dataElementName == "Time":
+            elif data_name == "Time":
                 return "s"
 
     """
     To implement by children classes
     """
-    def SetNormalizationFactor(self, value):
+    def set_normalization_factor(self, value):
         raise NotImplementedError
 
-    def GetAxisInISUnits(self, axis, dataElement, timeStep):
+    def get_axis_in_si_units(self, axis, data_element, time_step):
         raise NotImplementedError
 
-    def GetTimeInISUnits(self, dataElement, timeStep):
+    def get_time_in_si_units(self, data_element, time_step):
         raise NotImplementedError
 
-    def GetGridSizeInISUnits(self, dataElement):
+    def get_grid_size_in_si_units(self, data_element):
         raise NotImplementedError
 
 class OsirisUnitConverter(GeneralUnitConverter):
-    def __init__(self, simulationParams):
-        super(OsirisUnitConverter, self).__init__(simulationParams)
+    def __init__(self, simulation_params):
+        super(OsirisUnitConverter, self).__init__(simulation_params)
 
-    def _SetNormalizationFactor(self, value):
-        """ In OSIRIS the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
-        self.normalizationFactor = value * 1e24
-        self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
-        self.s_d = self.c / self.w_p  #skin depth (m)
-        self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
+    def set_normalization_factor(self, value):
+        """ In OSIRIS the normalization factor is the plasma density and it's
+        given in units of 10^18 cm^-3 """
+        self.normalization_factor = value * 1e24
+        # plasma freq (1/s)
+        self.w_p = math.sqrt(self.normalization_factor * (self.e)**2
+                             / (self.m_e * self.eps_0)) 
+        # skin depth (m)
+        self.s_d = self.c / self.w_p
+        # cold non-relativistic field in V/m
+        self.E0 = self.c * self.m_e * self.w_p / self.e
 
-    def SetSimulationParameters(self, params):
-        super().SetSimulationParameters(params)
-        self._SetNormalizationFactor(params["n_p"])
+    def set_simulation_parameters(self, params):
+        super().set_simulation_parameters(params)
+        self.set_normalization_factor(params["n_p"])
 
-    def ConvertToISUnits(self, dataElement, data):
-        dataElementName = dataElement.GetName()
-        if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
+    def convert_to_si_units(self, data_element, data):
+        data_name = data_element.get_name()
+        if data_name == "Ex" or data_name == "Ey" or data_name == "Ez":
             return data*self.E0 # V/m
-        elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
+        elif data_name == "Bx" or data_name == "By" or data_name == "Bz":
             return data*self.E0/self.c # T
-        elif dataElementName == "Charge density":
+        elif data_name == "Charge density":
             return data * self.e * (self.w_p / self.c)**2 # C/m^2
-        elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+        elif data_name == "x" or data_name == "y" or data_name == "z":
             return data*self.s_d # m
-        elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+        elif data_name == "Px" or data_name == "Py" or data_name == "Pz":
             return data*self.m_e*self.c # kg*m/s
-        elif dataElementName == "Energy":
+        elif data_name == "Energy":
             return data*self.m_e*self.c**2 # J
-        elif dataElementName == "Charge":
-            cell_size = self.GetCellSizeInISUnits(dataElement)
+        elif data_name == "Charge":
+            cell_size = self.get_cell_size_in_si_units(data_element)
             cell_vol = np.prod(cell_size)
-            return data*self.e*cell_vol*self.normalizationFactor # C
-        elif dataElementName == "Time":
+            return data*self.e*cell_vol*self.normalization_factor # C
+        elif data_name == "Time":
             return data/self.w_p # s
 
-    def GetTimeInISUnits(self, dataElement, timeStep):
-        time = dataElement.GetTimeInOriginalUnits(timeStep)
+    def get_time_in_si_units(self, data_element, time_step):
+        time = data_element.get_time_in_original_units(time_step)
         return time / self.w_p
 
-    def GetAxisInISUnits(self, axis, dataElement, timeStep):
-        axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
+    def get_axis_in_si_units(self, axis, data_element, time_step):
+        axisData = data_element.get_axis_data_in_original_units(axis,
+                                                                time_step)
         return axisData* self.c / self.w_p
 
-    def GetCellSizeInISUnits(self, dataElement):
-        original_cell_size = dataElement.GetSimulationCellSizeInOriginalUnits()
-        return original_cell_size * self.c / self.w_p
+    def get_cell_size_in_si_units(self, data_element):
+        orig_size = data_element.get_simulation_cell_size_in_original_units()
+        return orig_size * self.c / self.w_p
 
 
 class HiPACEUnitConverter(GeneralUnitConverter):
-    def __init__(self, simulationParams):
-        super(HiPACEUnitConverter, self).__init__(simulationParams)
+    def __init__(self, simulation_params):
+        super(HiPACEUnitConverter, self).__init__(simulation_params)
 
-    def _SetNormalizationFactor(self, value):
-        """ In HiPACE the normalization factor is the plasma density and it's given in units of 10^18 cm^-3 """
-        self.normalizationFactor = value * 1e24
-        self.w_p = math.sqrt(self.normalizationFactor * (self.e)**2 / (self.m_e * self.eps_0)) #plasma freq (1/s)
-        self.s_d = self.c / self.w_p  #skin depth (m)
-        self.E0 = self.c * self.m_e * self.w_p / self.e # cold non-relativistic field in V/m
+    def set_normalization_factor(self, value):
+        """ In HiPACE the normalization factor is the plasma density and
+        it's given in units of 10^18 cm^-3 """
+        self.normalization_factor = value * 1e24
+        # plasma freq (1/s)
+        self.w_p = math.sqrt(self.normalization_factor * (self.e)**2
+                             / (self.m_e * self.eps_0))
+        # skin depth (m)
+        self.s_d = self.c / self.w_p
+        # cold non-relativistic field in V/m
+        self.E0 = self.c * self.m_e * self.w_p / self.e
 
-    def SetSimulationParameters(self, params):
-        super().SetSimulationParameters(params)
-        self._SetNormalizationFactor(params["n_p"])
+    def set_simulation_parameters(self, params):
+        super().set_simulation_parameters(params)
+        self.set_normalization_factor(params["n_p"])
 
-    def ConvertToISUnits(self, dataElement):
-        dataElementName = dataElement.GetName()
-        if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
+    def convert_to_si_units(self, data_element):
+        data_name = data_element.get_name()
+        if data_name == "Ex" or data_name == "Ey" or data_name == "Ez":
             return data*self.E0 # V/m
-        elif dataElementName == "Bx" or dataElementName == "By" or dataElementName == "Bz":
+        elif data_name == "Bx" or data_name == "By" or data_name == "Bz":
             return data*self.E0/self.c # T
-        elif dataElementName == "Charge density":
+        elif data_name == "Charge density":
             return data * self.e * (self.w_p / self.c)**2 # C/m^2
-        elif dataElementName == "x" or dataElementName == "y" or dataElementName == "z":
+        elif data_name == "x" or data_name == "y" or data_name == "z":
             return data*self.s_d # m
-        elif dataElementName == "Px" or dataElementName == "Py" or dataElementName == "Pz":
+        elif data_name == "Px" or data_name == "Py" or data_name == "Pz":
             return data*self.m_e*self.c # kg*m/s
-        elif dataElementName == "Energy":
+        elif data_name == "Energy":
             return data*self.m_e*self.c**2 # J
-        elif dataElementName == "Charge":
+        elif data_name == "Charge":
             return data*self.e # C
-        elif dataElementName == "Time":
+        elif data_name == "Time":
             return data/self.w_p # s
 
-    def GetTimeInISUnits(self, dataElement, timeStep):
-        time = dataElement.GetTimeInOriginalUnits(timeStep)
+    def get_time_in_si_units(self, data_element, time_step):
+        time = data_element.get_time_in_original_units(time_step)
         return time / self.w_p
     
-    def GetAxisInISUnits(self, axis, dataElement, timeStep):
-        axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
+    def get_axis_in_si_units(self, axis, data_element, time_step):
+        axisData = data_element.get_axis_data_in_original_units(axis,
+                                                                time_step)
         return axisData* self.c / self.w_p
 
-    def GetGridSizeInISUnits(self, dataElement):
-        original_grid_size = dataElement.GetSimulationCellSizeInOriginalUnits()
-        return original_grid_size * self.c / self.w_p
+    def get_grid_size_in_si_units(self, data_element):
+        orig_size = data_element.get_simulation_cell_size_in_original_units()
+        return orig_size * self.c / self.w_p
 
 
 class OpenPMDUnitConverter(GeneralUnitConverter):
-    def __init__(self, simulationParams):
-        super(OpenPMDUnitConverter, self).__init__(simulationParams)
+    def __init__(self, simulation_params):
+        super(OpenPMDUnitConverter, self).__init__(simulation_params)
 
-    def _SetNormalizationFactor(self, value):
+    def set_normalization_factor(self, value):
         # This function is kept for compatibility with VisualPIC
         # but is not needed for openPMD, since the data is returned in SI
         pass
 
-    def SetSimulationParameters(self, params):
-        super().SetSimulationParameters(params)
-        self._SetNormalizationFactor(None)
+    def set_simulation_parameters(self, params):
+        super().set_simulation_parameters(params)
+        self.set_normalization_factor(None)
 
-    def ConvertToISUnits(self, dataElement, data):
-        data_name = dataElement.GetName()
+    def convert_to_si_units(self, data_element, data):
+        data_name = data_element.get_name()
         if data_name in ["x", "y", "z"]:
             return data * 1e-6
         elif data_name in ["Px", "Py", "Pz"]:
             return data * self.m_e * self.c # kg*m/s
         return data
 
-    def GetTimeInISUnits(self, dataElement, timeStep):
-        time = dataElement.GetTimeInOriginalUnits(timeStep)
+    def get_time_in_si_units(self, data_element, time_step):
+        time = data_element.get_time_in_original_units(time_step)
         return time
 
-    def GetAxisInISUnits(self, axis, dataElement, timeStep):
-        axisData = dataElement.GetAxisDataInOriginalUnits(axis, timeStep)
+    def get_axis_in_si_units(self, axis, data_element, time_step):
+        axisData = data_element.get_axis_data_in_original_units(axis,
+                                                                time_step)
         return axisData
 
 
 class UnitConverterSelector:
-    unitConverters = {
+    unit_converters = {
         "Osiris": OsirisUnitConverter,
         "HiPACE": HiPACEUnitConverter,
         "openPMD": OpenPMDUnitConverter
         }
     @classmethod
-    def GetUnitConverter(cls, simulationParams):
-        return cls.unitConverters[simulationParams["SimulationCode"]](simulationParams)
+    def get_unit_converter(cls, simulation_params):
+        return cls.unit_converters[
+            simulation_params["SimulationCode"]](simulation_params)

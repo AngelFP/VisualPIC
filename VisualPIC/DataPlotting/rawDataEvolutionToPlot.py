@@ -22,15 +22,15 @@ class RawDataEvolutionToPlot:
     def __init__(self, dataSet):
         self._dataSet = dataSet
         self._dataProperties = {
-            "name":dataSet.GetName(),
-            "dataSetUnits":dataSet.GetDataOriginalUnits(), 
-            "possibleDataSetUnits":dataSet.GetPossibleDataUnits()
+            "name":dataSet.get_name(),
+            "dataSetUnits":dataSet.get_data_original_units(), 
+            "possibleDataSetUnits":dataSet.get_possible_data_units()
         }
         
     def GetDataSetPlotData(self):
-        return self._dataSet.GetAllDataInUnits(self.GetProperty("dataSetUnits"))
+        return self._dataSet.get_all_data_in_units(self.get_property("dataSetUnits"))
     
-    def GetProperty(self, propertyName):
+    def get_property(self, propertyName):
         return self._dataProperties[propertyName]
 
     def SetProperty(self, propertyName, value):

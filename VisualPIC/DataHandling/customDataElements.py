@@ -21,6 +21,7 @@ import numpy as np
 from scipy import interpolate as ip
 from scipy.constants import c, e, m_e, epsilon_0
 import math
+
 from VisualPIC.DataHandling.dataElement import DataElement
 
 
@@ -29,43 +30,44 @@ Base Class for Custom Fields and Raw Data Sets
 """
 class CustomDataElement(DataElement):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": [],
-                     "3D": [],
-                     "thetaMode": []}
-    necessaryParameters = []
+    necessary_data = {"2D": [],
+                      "3D": [],
+                      "thetaMode": []}
+    necessary_parameters = []
     units = ""
-    ISUnits = True
-    standardName = ""
+    si_units = True
+    standard_name = ""
 
-    def __init__(self, dataContainer, speciesName = ''):
-        self.dataContainer = dataContainer
-        self.dataStandardName = self.standardName
-        self.speciesName = speciesName
-        self.hasNonISUnits = not self.ISUnits
+    def __init__(self, data_container, species_name = ''):
+        self.data_container = data_container
+        self.data_standard_name = self.standard_name
+        self.species_name = species_name
+        self.has_non_si_units = not self.si_units
         self.set_base_data()
-        self._SetTimeSteps()
+        self.set_time_steps()
 
-    def _SetTimeSteps(self):
+    def set_time_steps(self):
         i = 0
-        for DataName, DataElement in self.data.items():
+        for data_name, data_element in self.data.items():
             if i == 0:
-                timeSteps = DataElement.GetTimeSteps()
+                time_steps = data_element.get_time_steps()
             else:
-                timeSteps = np.intersect1d(timeSteps,
-                                           DataElement.GetTimeSteps())
-        self.timeSteps = timeSteps
+                time_steps = np.intersect1d(
+                    time_steps, data_element.get_time_steps())
+        self.time_steps = time_steps
 
     def set_base_data(self):
         raise NotImplementedError
 
-    def GetDataOriginalUnits(self):
+    def get_data_original_units(self):
         return self.units
 
-    def GetTimeInOriginalUnits(self, timeStep):
-        return list(self.data.items())[0][1].GetTimeInOriginalUnits(timeStep)
+    def get_time_in_original_units(self, time_step):
+        return list(self.data.items())[0][1].get_time_in_original_units(
+            time_step)
 
-    def GetTimeOriginalUnits(self):
-        return list(self.data.items())[0][1].GetTimeOriginalUnits()
+    def get_time_original_units(self):
+        return list(self.data.items())[0][1].get_time_original_units()
 
 
 """
@@ -73,92 +75,95 @@ Custom Fields
 """
 class CustomField(CustomDataElement):
     @classmethod
-    def meets_requirements(cls, dataContainer):
+    def meets_requirements(cls, data_container):
         "Checks whether the required data and parameters are available"
-        if dataContainer.GetSimulationDimension() in cls.necessaryData:
+        if data_container.get_simulation_geometry() in cls.necessary_data:
+            # check data requirements
             data_requirements_met = set(
-                dataContainer.GetAvailableDomainFieldsNames()).issuperset(
-                    cls.necessaryData[dataContainer.GetSimulationDimension()])
+                data_container.get_available_domain_fields_names()).issuperset(
+                    cls.necessary_data[
+                        data_container.get_simulation_geometry()])
+            # check parameter requirements
             parameter_requirements_met = set(
-                dataContainer.GetNamesOfAvailableParameters()).issuperset(
-                    cls.necessaryParameters)
+                data_container.get_names_of_available_parameters()).issuperset(
+                    cls.necessary_parameters)
             return data_requirements_met and parameter_requirements_met
         else:
             return False
 
     def set_base_data(self):
-        dimension = self.dataContainer.GetSimulationDimension()
+        geometry = self.data_container.get_simulation_geometry()
         self.data = {}
-        for field_name in self.necessaryData[dimension]:
-            self.data[field_name] = self.dataContainer.GetDomainField(
+        for field_name in self.necessary_data[geometry]:
+            self.data[field_name] = self.data_container.get_domain_field(
                 field_name)
 
-    def GetFieldDimension(self):
-        return list(self.data.items())[0][1].GetFieldDimension()
+    def get_field_geometry(self):
+        return list(self.data.items())[0][1].get_field_geometry()
 
-    def GetPossibleAxisUnits(self):
-        return self._unitConverter.GetPossibleAxisUnits(self)
+    def get_possible_axis_units(self):
+        return self.unit_converter.get_possible_axis_units(self)
 
-    def GetAxisDataInOriginalUnits(self, axis, timeStep):
-        return list(self.data.items())[0][1].GetAxisDataInOriginalUnits(
-            axis, timeStep)
+    def get_axis_data_in_original_units(self, axis, time_step):
+        return list(self.data.items())[0][1].get_axis_data_in_original_units(
+            axis, time_step)
         
-    def GetAxisOriginalUnits(self):
-        return list(self.data.items())[0][1].GetAxisOriginalUnits()
+    def get_axis_original_units(self):
+        return list(self.data.items())[0][1].get_axis_original_units()
 
     """
     Get data in original units
     """
-    def Get1DSliceInOriginalUnits(self, timeStep, slicePositionX,
-                                  slicePositionY = None):
-        fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() == '2D':
-            elementsX = fieldData.shape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = fieldData[selectedRow]
-        elif self.GetFieldDimension() == '3D':
-            elementsX = fieldData.shape[-3]
-            elementsY = fieldData.shape[-2]
-            selectedX = round(elementsX*(float(slicePositionX)/100))
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = fieldData[selectedX, selectedY]
-        return sliceData
+    def get_1d_slice_in_original_units(self, time_step, slice_pos_x,
+                                  slice_pos_y = None):
+        field_data = self.calculate_field(time_step)
+        if self.get_field_geometry() == '2D':
+            elements_x = field_data.shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = field_data[selected_row]
+        elif self.get_field_geometry() == '3D':
+            elements_x = field_data.shape[-3]
+            elements_y = field_data.shape[-2]
+            selected_x = round(elements_x*(float(slice_pos_x)/100))
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = field_data[selected_x, selected_y]
+        return slice_data
 
-    def Get2DSliceInOriginalUnits(self, sliceAxis, slicePosition, timeStep):
-        fieldData = self.CalculateField(timeStep)
-        elementsX3 = fieldData.shape[-3]
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
-        return sliceData
+    def get_2d_slice_in_original_units(self, slice_axis, slice_pos, time_step):
+        field_data = self.calculate_field(time_step)
+        elements_x3 = field_data.shape[-3]
+        selected_row = round(elements_x3*(float(slice_pos)/100))
+        slice_data = field_data[selected_row]
+        return slice_data
 
-    def GetAllFieldDataInOriginalUnits(self, timeStep):
-        return self.CalculateField(timeStep)
+    def get_all_field_data_in_original_units(self, time_step):
+        return self.calculate_field(time_step)
 
-    def Get3DFieldFrom2DSliceInOriginalUnits(self, timeStep, transvEl, longEl,
-                                             fraction):
+    def get_3d_field_from_2d_slice_in_original_units(self, time_step, transvEl,
+                                                     longEl, fraction):
         """
         fraction: used to define the range of data we want to visualize in the 
         transverse direction.
             - fraction = 1 -> get all the data
             - fraction = 0.5 -> get only from x=0 to x=x_max*0.5
         """
-        field2D = self.GetAllFieldDataInOriginalUnits(timeStep)
-        nx = field2D.shape[0]
+        field_2d = self.get_all_field_data_in_original_units(time_step)
+        nx = field_2d.shape[0]
         # we get only half of the field data
-        field2D = field2D[int(nx/2):int(nx/2+nx/2*fraction)]
-        cilShape = field2D.shape
+        field_2d = field_2d[int(nx/2):int(nx/2+nx/2*fraction)]
+        cilShape = field_2d.shape
         # cyl. coordinates of original data
         Rin,Zin = np.mgrid[0:cilShape[0], 0:cilShape[1]] 
         Zin = np.reshape(Zin, Zin.shape[0]*Zin.shape[1])
         Rin = np.reshape(Rin, Rin.shape[0]*Rin.shape[1])
-        field2D = np.reshape(field2D, field2D.shape[0]*field2D.shape[1])
-        transvSpacing = cilShape[0]*2/transvEl
-        lonSpacing = cilShape[1]/longEl
+        field_2d = np.reshape(field_2d, field_2d.shape[0]*field_2d.shape[1])
+        transv_sp = cilShape[0]*2/transvEl
+        lon_sp = cilShape[1]/longEl
         field3D = np.zeros((transvEl, transvEl, longEl))
         # cart. coordinates of 3D field
-        X, Y, Z = np.mgrid[0:cilShape[0]:transvSpacing,
-                           0:cilShape[0]:transvSpacing,
-                           0:cilShape[1]:lonSpacing] 
+        X, Y, Z = np.mgrid[0:cilShape[0]:transv_sp,
+                           0:cilShape[0]:transv_sp,
+                           0:cilShape[1]:lon_sp] 
         Rout = np.sqrt(X**2 + Y**2)
         # Fill the field sector by sector
         # (only the first has to be calculated. The rest are simlpy mirrored)
@@ -166,7 +171,7 @@ class CustomField(CustomDataElement):
         # x-y plane).
         field3D[int(transvEl/2):transvEl + 1, int(transvEl/2):transvEl + 1] = (
             ip.griddata(np.column_stack((Rin,Zin)),
-                        field2D,
+                        field_2d,
                         (Rout, Z),
                         method='nearest',
                         fill_value = 0))
@@ -185,98 +190,98 @@ class CustomField(CustomDataElement):
     """
     Get data in any units
     """
-    def Get1DSlice(self, timeStep, units, slicePositionX,
-                   slicePositionY = None):
-        fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() in ['2D', 'thetaMode']:
-            elementsX = fieldData.shape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = fieldData[selectedRow]
-        elif self.GetFieldDimension() == '3D':
-            elementsX = fieldData.shape[-3]
-            elementsY = fieldData.shape[-2]
-            selectedX = round(elementsX*(float(slicePositionX)/100))
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = fieldData[selectedX, selectedY]
-        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+    def get_1d_slice(self, time_step, units, slice_pos_x,
+                   slice_pos_y = None):
+        field_data = self.calculate_field(time_step)
+        if self.get_field_geometry() in ['2D', 'thetaMode']:
+            elements_x = field_data.shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = field_data[selected_row]
+        elif self.get_field_geometry() == '3D':
+            elements_x = field_data.shape[-3]
+            elements_y = field_data.shape[-2]
+            selected_x = round(elements_x*(float(slice_pos_x)/100))
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = field_data[selected_x, selected_y]
+        return self.unit_converter.get_data_in_units(self, units, slice_data)
 
-    def Get2DSlice(self, sliceAxis, slicePosition, timeStep, units):
-        fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() == "thetaMode":
-            sliceData = fieldData
+    def get_2d_slice(self, slice_axis, slice_pos, time_step, units):
+        field_data = self.calculate_field(time_step)
+        if self.get_field_geometry() == "thetaMode":
+            slice_data = field_data
         else:
-            elementsX3 = fieldData.shape[-3]
-            selectedRow = round(elementsX3*(float(slicePosition)/100))
-            sliceData = fieldData[selectedRow]
-        return self._unitConverter.GetDataInUnits(self, units, sliceData)
+            elements_x3 = field_data.shape[-3]
+            selected_row = round(elements_x3*(float(slice_pos)/100))
+            slice_data = field_data[selected_row]
+        return self.unit_converter.get_data_in_units(self, units, slice_data)
 
-    def GetAllFieldData(self, timeStep, units):
-        fieldData = self.CalculateField(timeStep)
-        return self._unitConverter.GetDataInUnits(self, units, fieldData)
+    def get_all_field_data(self, time_step, units):
+        field_data = self.calculate_field(time_step)
+        return self.unit_converter.get_data_in_units(self, units, field_data)
 
     """
     Get data in IS units
     """
-    def Get1DSliceISUnits(self, timeStep, slicePositionX,
-                          slicePositionY = None):
-        fieldData = self.CalculateField(timeStep)
-        if self.GetFieldDimension() == '2D':
-            elementsX = fieldData.shape[-2]
-            selectedRow = round(elementsX*(float(slicePositionX)/100))
-            sliceData = fieldData[selectedRow]
-        elif self.GetFieldDimension() == '3D':
-            elementsX = fieldData.shape[-3]
-            elementsY = fieldData.shape[-2]
-            selectedX = round(elementsX*(float(slicePositionX)/100))
-            selectedY = round(elementsY*(float(slicePositionY)/100))
-            sliceData = fieldData[selectedX, selectedY]
-        return self._unitConverter.GetDataInISUnits(self, sliceData)
+    def get_1d_slice_si_units(self, time_step, slice_pos_x,
+                          slice_pos_y = None):
+        field_data = self.calculate_field(time_step)
+        if self.get_field_geometry() == '2D':
+            elements_x = field_data.shape[-2]
+            selected_row = round(elements_x*(float(slice_pos_x)/100))
+            slice_data = field_data[selected_row]
+        elif self.get_field_geometry() == '3D':
+            elements_x = field_data.shape[-3]
+            elements_y = field_data.shape[-2]
+            selected_x = round(elements_x*(float(slice_pos_x)/100))
+            selected_y = round(elements_y*(float(slice_pos_y)/100))
+            slice_data = field_data[selected_x, selected_y]
+        return self.unit_converter.get_data_in_si_units(self, slice_data)
 
-    def Get2DSliceISUnits(self, sliceAxis, slicePosition, timeStep):
-        fieldData = self.CalculateField(timeStep)
-        elementsX3 = fieldData.shape[-3]
-        selectedRow = round(elementsX3*(float(slicePosition)/100))
-        sliceData = fieldData[selectedRow]
-        return self._unitConverter.GetDataInISUnits(self, sliceData)
+    def get_2d_slice_si_units(self, slice_axis, slice_pos, time_step):
+        field_data = self.calculate_field(time_step)
+        elements_x3 = field_data.shape[-3]
+        selected_row = round(elements_x3*(float(slice_pos)/100))
+        slice_data = field_data[selected_row]
+        return self.unit_converter.get_data_in_si_units(self, slice_data)
 
-    def GetAllFieldDataISUnits(self, timeStep):
-        fieldData = self.CalculateField(timeStep)
-        return self._unitConverter.GetDataInISUnits(self, fieldData)
+    def get_all_field_data_si_units(self, time_step):
+        field_data = self.calculate_field(time_step)
+        return self.unit_converter.get_data_in_si_units(self, field_data)
 
-    def CalculateField(self, timeStep):
+    def calculate_field(self, time_step):
         raise NotImplementedError
 
 
 class TransverseWakefieldX(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ex", "By"],
+    necessary_data = {"2D": ["Ex", "By"],
                      "3D": ["Ex", "By"],
                      "thetaMode": ["Ex", "By"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "V/m"
-    ISUnits = True
-    standardName = "Wx"
+    si_units = True
+    standard_name = "Wx"
 
-    def CalculateField(self, timeStep):
-        Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-        By = self.data["By"].GetAllFieldDataISUnits(timeStep)
+    def calculate_field(self, time_step):
+        Ex = self.data["Ex"].get_all_field_data_si_units(time_step)
+        By = self.data["By"].get_all_field_data_si_units(time_step)
         Wx = Ex - c*By
         return Wx
 
 
 class TransverseWakefieldY(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ey", "Bx"],
+    necessary_data = {"2D": ["Ey", "Bx"],
                      "3D": ["Ey", "Bx"],
                      "thetaMode": ["Ey", "Bx"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "V/m"
-    ISUnits = True
-    standardName = "Wy"
+    si_units = True
+    standard_name = "Wy"
 
-    def CalculateField(self, timeStep):
-        Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
-        Bx = self.data["Bx"].GetAllFieldDataISUnits(timeStep)
+    def calculate_field(self, time_step):
+        Ey = self.data["Ey"].get_all_field_data_si_units(time_step)
+        Bx = self.data["Bx"].get_all_field_data_si_units(time_step)
         Wy = Ey + c*Bx
         return Wy
 
@@ -284,26 +289,26 @@ class TransverseWakefieldY(CustomField):
 class LaserIntensityField(CustomField):
     # TODO: Implement correcly in 2D 
     # (information about polarization plane is required).
-    necessaryData = {"2D": ["Ex", "Ez"],
+    necessary_data = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "W/m^2"
-    ISUnits = True
-    standardName = "I"
+    si_units = True
+    standard_name = "I"
 
-    def CalculateField(self, timeStep):
-        if self.GetFieldDimension() == 'thetaMode':
-            Er = self.data["Er"].GetAllFieldDataISUnits(timeStep)
-            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+    def calculate_field(self, time_step):
+        if self.get_field_geometry() == 'thetaMode':
+            Er = self.data["Er"].get_all_field_data_si_units(time_step)
+            Ez = self.data["Ez"].get_all_field_data_si_units(time_step)
             E2 = np.square(Ez) + np.square(Er)
         else:
-            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
-            if self.GetFieldDimension() == '3D':
-                Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ex = self.data["Ex"].get_all_field_data_si_units(time_step)
+            Ez = self.data["Ez"].get_all_field_data_si_units(time_step)
+            if self.get_field_geometry() == '3D':
+                Ey = self.data["Ey"].get_all_field_data_si_units(time_step)
                 E2 = np.square(Ez) + np.square(Ey) + np.square(Ex)
-            if self.GetFieldDimension() == '2D':
+            if self.get_field_geometry() == '2D':
                 E2 = np.square(Ez) + np.square(Ex)
         # Assume index of refraction equal to 1
         intensity = c*epsilon_0/2*E2 
@@ -311,113 +316,113 @@ class LaserIntensityField(CustomField):
 
 
 class NormalizedVectorPotential(CustomField):
-    necessaryData = {"2D": ["Ex", "Ez"],
+    necessary_data = {"2D": ["Ex", "Ez"],
                      "3D": ["Ex", "Ey", "Ez"],
                      "thetaMode": ["Er", "Ez"]}
-    necessaryParameters = ["n_p", "lambda_l"]
+    necessary_parameters = ["n_p", "lambda_l"]
     units = "m_e*c^2/e"
-    ISUnits = True
-    standardName = "a"
+    si_units = True
+    standard_name = "a"
 
-    def CalculateField(self, timeStep):
-        if self.GetFieldDimension() == 'thetaMode':
-            Er = self.data["Er"].GetAllFieldDataISUnits(timeStep)
-            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
+    def calculate_field(self, time_step):
+        if self.get_field_geometry() == 'thetaMode':
+            Er = self.data["Er"].get_all_field_data_si_units(time_step)
+            Ez = self.data["Ez"].get_all_field_data_si_units(time_step)
             E2 = np.square(Ez) + np.square(Er)
         else:
-            Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-            Ez = self.data["Ez"].GetAllFieldDataISUnits(timeStep)
-            if self.GetFieldDimension() == '3D':
-                Ey = self.data["Ey"].GetAllFieldDataISUnits(timeStep)
+            Ex = self.data["Ex"].get_all_field_data_si_units(time_step)
+            Ez = self.data["Ez"].get_all_field_data_si_units(time_step)
+            if self.get_field_geometry() == '3D':
+                Ey = self.data["Ey"].get_all_field_data_si_units(time_step)
                 E2 = np.square(Ez) + np.square(Ey) + np.square(Ex)
-            if self.GetFieldDimension() == '2D':
+            if self.get_field_geometry() == '2D':
                 E2 = np.square(Ez) + np.square(Ex)
         # Assume index of refraction equal to 1
         intensity = c*epsilon_0/2*E2 
         # laser wavelength (m)
-        lambda_l = self.dataContainer.GetSimulationParameter("lambda_l") * 1e-9
+        l = self.data_container.get_simulation_parameter("lambda_l") * 1e-9
         # normalized vector potential
-        a = np.sqrt(7.3e-11 * lambda_l**2 * intensity) 
+        a = np.sqrt(7.3e-11 * l**2 * intensity) 
         return a
 
 
 class TransverseWakefieldSlopeX(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ex", "By"],
+    necessary_data = {"2D": ["Ex", "By"],
                      "3D": ["Ex", "By"],
                      "thetaMode": ["Ex", "By"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "V/m^2"
-    ISUnits = True
-    standardName = "dx Wx"
+    si_units = True
+    standard_name = "dx Wx"
 
-    def CalculateField(self, timeStep):
-        Ex = self.data["Ex"].GetAllFieldDataISUnits(timeStep)
-        By = self.data["By"].GetAllFieldDataISUnits(timeStep)
+    def calculate_field(self, time_step):
+        Ex = self.data["Ex"].get_all_field_data_si_units(time_step)
+        By = self.data["By"].get_all_field_data_si_units(time_step)
         Wx = Ex - c*By
-        if self.GetFieldDimension() == 'thetaMode':
-            x = self.data["Ex"].GetAxisInISUnits("r", timeStep)
+        if self.get_field_geometry() == 'thetaMode':
+            x = self.data["Ex"].get_axis_in_si_units("r", time_step)
         else:
-            x = self.data["Ex"].GetAxisInISUnits("x", timeStep)
+            x = self.data["Ex"].get_axis_in_si_units("x", time_step)
         dx = abs(x[1]-x[0]) # distance between data points in y direction
         
-        if self.GetFieldDimension() in ['2D', 'thetaMode']:
+        if self.get_field_geometry() in ['2D', 'thetaMode']:
             slope = np.gradient(Wx, dx, axis=0)
-        elif self.GetFieldDimension() == '3D':
+        elif self.get_field_geometry() == '3D':
             slope = np.gradient(Wx, dx, axis=1)
         return slope
 
 
 class TransverseWakefieldSlopeY(CustomField):
     # List of necessary fields and simulation parameters.
-    necessaryData = {"2D": ["Ey", "Bx"],
+    necessary_data = {"2D": ["Ey", "Bx"],
                      "3D": ["Ey", "Bx"],
                      "thetaMode": ["Ey", "Bx"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "V/m^2"
-    ISUnits = True
-    standardName = "dy Wy"
+    si_units = True
+    standard_name = "dy Wy"
 
-    def CalculateField(self, timeStep):
-        Ey = self.data["Ey"].GetAllFieldDataISUnits( timeStep)
-        Bx = self.data["Bx"].GetAllFieldDataISUnits( timeStep)
+    def calculate_field(self, time_step):
+        Ey = self.data["Ey"].get_all_field_data_si_units( time_step)
+        Bx = self.data["Bx"].get_all_field_data_si_units( time_step)
         Wy = Ey + c*Bx
-        if self.GetFieldDimension() == 'thetaMode':
-            y = self.data["Ey"].GetAxisInISUnits("r", timeStep)
+        if self.get_field_geometry() == 'thetaMode':
+            y = self.data["Ey"].get_axis_in_si_units("r", time_step)
         else:
-            y = self.data["Ey"].GetAxisInISUnits("y", timeStep)
+            y = self.data["Ey"].get_axis_in_si_units("y", time_step)
         dy = abs(y[1]-y[0]) # distance between data points in y direction
         
-        if self.GetFieldDimension() in ['2D', 'thetaMode']:
+        if self.get_field_geometry() in ['2D', 'thetaMode']:
             slope = np.gradient(Wy, dy, axis=0)
-        elif self.GetFieldDimension() == '3D':
+        elif self.get_field_geometry() == '3D':
             slope = np.gradient(Wy, dy, axis=1)
         return slope
 
 
 class EzSlope(CustomField):
-    necessaryData = {"2D": ["Ez"],
+    necessary_data = {"2D": ["Ez"],
                      "3D": ["Ez"],
                      "thetaMode": ["Ez"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "V/m^2"
-    ISUnits = True
-    standardName = "dz Ez"
+    si_units = True
+    standard_name = "dz Ez"
 
-    def CalculateField(self, timeStep):
-        Ez = self.data["Ez"].GetAllFieldDataISUnits( timeStep)
-        z = self.data["Ez"].GetAxisInISUnits("z", timeStep)
+    def calculate_field(self, time_step):
+        Ez = self.data["Ez"].get_all_field_data_si_units( time_step)
+        z = self.data["Ez"].get_axis_in_si_units("z", time_step)
         dz = abs(z[1]-z[0]) # distance between data points in z direction
-        if (self.GetFieldDimension() == '2D'
-            or self.GetFieldDimension() == 'thetaMode'):
+        if (self.get_field_geometry() == '2D'
+            or self.get_field_geometry() == 'thetaMode'):
             slope = np.gradient(Ez, dz, axis=1)
-        elif self.GetFieldDimension() == '3D':
+        elif self.get_field_geometry() == '3D':
             slope = np.gradient(Ez, dz, axis=2)
         return slope
 
 
 class CustomFieldCreator:
-    customFields = [
+    custom_fields = [
         TransverseWakefieldX,
         TransverseWakefieldY,
         TransverseWakefieldSlopeX,
@@ -427,12 +432,12 @@ class CustomFieldCreator:
         EzSlope
         ]
     @classmethod
-    def GetCustomFields(cls, dataContainer):
-        fieldList = list()
-        for Field in cls.customFields:
-            if Field.meets_requirements(dataContainer):
-                fieldList.append(Field(dataContainer))
-        return fieldList
+    def get_custom_fields(cls, data_container):
+        field_list = list()
+        for Field in cls.custom_fields:
+            if Field.meets_requirements(data_container):
+                field_list.append(Field(data_container))
+        return field_list
 
 
 """
@@ -440,114 +445,114 @@ Custom Raw Data Sets
 """
 class CustomRawDataSet(CustomDataElement):
     @classmethod
-    def meets_requirements(cls, dataContainer, speciesName):
+    def meets_requirements(cls, data_container, species_name):
         "Checks whether the required data and parameters are available"
-        if dataContainer.GetSimulationDimension() in cls.necessaryData:
+        if data_container.get_simulation_geometry() in cls.necessary_data:
             data_requirements_met = set(
-                dataContainer.GetSpecies(
-                    speciesName).GetRawDataSetsNamesList()).issuperset(
-                        cls.necessaryData[
-                            dataContainer.GetSimulationDimension()])
+                data_container.get_species(
+                    species_name).get_raw_dataset_names_list()).issuperset(
+                        cls.necessary_data[
+                            data_container.get_simulation_geometry()])
             parameter_requirements_met = set(
-                dataContainer.GetNamesOfAvailableParameters()).issuperset(
-                    cls.necessaryParameters)
+                data_container.get_names_of_available_parameters()).issuperset(
+                    cls.necessary_parameters)
             return data_requirements_met and parameter_requirements_met
         else:
             return False
 
     def set_base_data(self):
-        dimension = self.dataContainer.GetSimulationDimension()
+        geometry = self.data_container.get_simulation_geometry()
         self.data = {}
-        for data_name in self.necessaryData[dimension]:
-            self.data[data_name] = self.dataContainer.GetSpecies(
-                self.speciesName).GetRawDataSet(data_name)
+        for data_name in self.necessary_data[geometry]:
+            self.data[data_name] = self.data_container.get_species(
+                self.species_name).get_raw_dataset(data_name)
 
     """
     Get data in original units (to be implemented in each subclass)
     """
-    def GetDataInOriginalUnits(self, timeStep):
+    def get_data_in_original_units(self, time_step):
         raise NotImplementedError
 
     """
     Get data in any units
     """
-    def GetDataInUnits(self, units, timeStep):
-        return self._unitConverter.GetDataInUnits(
-            self, units, self.GetDataInOriginalUnits(timeStep))
+    def get_data_in_units(self, units, time_step):
+        return self.unit_converter.get_data_in_units(
+            self, units, self.get_data_in_original_units(time_step))
 
     """
     Get data in IS units
     """
-    def GetDataInISUnits(self, timeStep):
-        return self._unitConverter.GetDataInISUnits(
-            self, self.GetDataInOriginalUnits(timeStep))
+    def get_data_in_si_units(self, time_step):
+        return self.unit_converter.get_data_in_si_units(
+            self, self.get_data_in_original_units(time_step))
 
 
-class xPrimeDataSet(CustomRawDataSet):
+class XPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["Px", "Pz"],
+    necessary_data = {"2D": ["Px", "Pz"],
                      "3D": ["Px", "Pz"],
                      "thetaMode": ["Px", "Pz"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "rad"
-    ISUnits = True
-    standardName = "x'"
+    si_units = True
+    standard_name = "x'"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Px = self.data["Px"].GetDataInISUnits( timeStep)
-        Pz = self.data["Pz"].GetDataInISUnits( timeStep)
+    def get_data_in_original_units(self, time_step):
+        Px = self.data["Px"].get_data_in_si_units( time_step)
+        Pz = self.data["Pz"].get_data_in_si_units( time_step)
         xP = np.divide(Px, Pz)
         return xP
 
 
-class yPrimeDataSet(CustomRawDataSet):
+class YPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["Py", "Pz"],
+    necessary_data = {"2D": ["Py", "Pz"],
                      "3D": ["Py", "Pz"],
                      "thetaMode": ["Py", "Pz"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "rad"
-    ISUnits = True
-    standardName = "y'"
+    si_units = True
+    standard_name = "y'"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Py = self.data["Py"].GetDataInISUnits( timeStep)
-        Pz = self.data["Pz"].GetDataInISUnits( timeStep)
+    def get_data_in_original_units(self, time_step):
+        Py = self.data["Py"].get_data_in_si_units(time_step)
+        Pz = self.data["Pz"].get_data_in_si_units(time_step)
         yP = np.divide(Py, Pz)
         return yP
 
 
-class deltaZPrimeDataSet(CustomRawDataSet):
+class DeltaZPrimeDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["z", "Charge"],
+    necessary_data = {"2D": ["z", "Charge"],
                      "3D": ["z", "Charge"],
                      "thetaMode": ["z", "Charge"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "m"
-    ISUnits = True
-    standardName = "Δz"
+    si_units = True
+    standard_name = "Δz"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        z = self.data["z"].GetDataInISUnits( timeStep)
-        q = self.data["Charge"].GetDataInISUnits( timeStep)
+    def get_data_in_original_units(self, time_step):
+        z = self.data["z"].get_data_in_si_units(time_step)
+        q = self.data["Charge"].get_data_in_si_units(time_step)
         meanZ = np.average(z, weights=q)
         dZ = z-meanZ
         return dZ
 
 
-class forwardMomentumVariationDataSet(CustomRawDataSet):
+class ForwardMomentumVariationDataSet(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["Pz", "Charge"],
+    necessary_data = {"2D": ["Pz", "Charge"],
                      "3D": ["Pz", "Charge"],
                      "thetaMode": ["Pz", "Charge"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "rad"
-    ISUnits = True
-    standardName = "ΔPz/Pz"
+    si_units = True
+    standard_name = "ΔPz/Pz"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        Pz = self.data["Pz"].GetDataInISUnits(timeStep)
-        q = self.data["Charge"].GetDataInISUnits(timeStep)
+    def get_data_in_original_units(self, time_step):
+        Pz = self.data["Pz"].get_data_in_si_units(time_step)
+        q = self.data["Charge"].get_data_in_si_units(time_step)
         meanPz = np.average(Pz, weights=q)
         dPz = np.divide(Pz - meanPz, meanPz)
         return dPz
@@ -555,52 +560,52 @@ class forwardMomentumVariationDataSet(CustomRawDataSet):
 
 class SpeedOfLightCoordinate(CustomRawDataSet):
     # List of necessary data sets and simulation parameters.
-    necessaryData = {"2D": ["z"],
+    necessary_data = {"2D": ["z"],
                      "3D": ["z"],
                      "thetaMode": ["z"]}
-    necessaryParameters = []
+    necessary_parameters = []
     units = "m"
-    ISUnits = True
-    standardName = "xi"
+    si_units = True
+    standard_name = "xi"
 
-    def GetDataInOriginalUnits(self, timeStep):
-        z = self.data["z"].GetDataInISUnits(timeStep)
-        t = self.data["z"].GetTimeInUnits("s", timeStep)
+    def get_data_in_original_units(self, time_step):
+        z = self.data["z"].get_data_in_si_units(time_step)
+        t = self.data["z"].get_time_in_units("s", time_step)
         xi = z - c*t
         return xi
 
 
 #class BeamComovingCoordinate(CustomRawDataSet):
 #    # List of necessary data sets and simulation parameters.
-#    necessaryData = {"2D": ["z"],
+#    necessary_data = {"2D": ["z"],
 #                     "3D": ["z"],
 #                     "thetaMode": ["z"]}
-#    necessaryParameters = []
+#    necessary_parameters = []
 #    units = "m"
-#    ISUnits = True
-#    standardName = "xi_beam"
+#    si_units = True
+#    standard_name = "xi_beam"
 
-#    def GetDataInOriginalUnits(self, timeStep):
-#        z = self.data["z"].GetDataInISUnits(timeStep)
+#    def get_data_in_original_units(self, time_step):
+#        z = self.data["z"].get_data_in_si_units(time_step)
 #        xi_b = z - min(z)
 #        return xi_b
 
 
 #class UncorrelatedEnergyVariationDataSet(CustomRawDataSet):
 #    # List of necessary data sets and simulation parameters.
-#    necessaryData = {"2D": ["Pz", "Py", "z", "Charge"],
+#    necessary_data = {"2D": ["Pz", "Py", "z", "Charge"],
 #                     "3D": ["Pz", "Py", "Pz", "z", "Charge"],
 #                     "thetaMode": ["Pz", "Py", "Pz", "z", "Charge"]}
-#    necessaryParameters = []
+#    necessary_parameters = []
 #    units = "."
-#    ISUnits = True
-#    standardName = "UncEneSp"
+#    si_units = True
+#    standard_name = "UncEneSp"
 
-#    def GetDataInOriginalUnits(self, timeStep):
-#        Pz = self.data["Pz"].GetDataInOriginalUnits(timeStep)
-#        Py = self.data["Py"].GetDataInOriginalUnits(timeStep)
-#        z = self.data["z"].GetDataInOriginalUnits(timeStep)
-#        q = self.data["Charge"].GetDataInOriginalUnits(timeStep)
+#    def get_data_in_original_units(self, time_step):
+#        Pz = self.data["Pz"].get_data_in_original_units(time_step)
+#        Py = self.data["Py"].get_data_in_original_units(time_step)
+#        z = self.data["z"].get_data_in_original_units(time_step)
+#        q = self.data["Charge"].get_data_in_original_units(time_step)
 #        gamma = np.sqrt(Pz**2 + Py**2)
 #        mean_gamma = np.average(gamma, weights=np.abs(q))
 #        rel_gamma_spread = (gamma-mean_gamma)/mean_gamma
@@ -612,17 +617,17 @@ class SpeedOfLightCoordinate(CustomRawDataSet):
  
     
 class CustomRawDataSetCreator:
-    customDataSets = [
-        xPrimeDataSet,
-        yPrimeDataSet,
-        deltaZPrimeDataSet,
-        forwardMomentumVariationDataSet,
+    custom_datasets = [
+        XPrimeDataSet,
+        YPrimeDataSet,
+        DeltaZPrimeDataSet,
+        ForwardMomentumVariationDataSet,
         SpeedOfLightCoordinate,
         ]
     @classmethod
-    def GetCustomDataSets(cls, dataContainer, speciesName):
-        dataSetList = list()
-        for dataSet in cls.customDataSets:
-            if dataSet.meets_requirements(dataContainer, speciesName):
-                dataSetList.append(dataSet(dataContainer, speciesName))
-        return dataSetList
+    def get_custom_datasets(cls, data_container, species_name):
+        dataset_list = list()
+        for dataSet in cls.custom_datasets:
+            if dataSet.meets_requirements(data_container, species_name):
+                dataset_list.append(dataSet(data_container, species_name))
+        return dataset_list

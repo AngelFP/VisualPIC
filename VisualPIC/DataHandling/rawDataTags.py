@@ -20,15 +20,18 @@
 from VisualPIC.DataReading.dataReaderSelectors import RawDataReaderSelector
 
 class RawDataTags(object):
-    def __init__(self, simulationCode, name, location, timeSteps, speciesName = "", internalName = ""):
-        self.dataName = name
-        self.dataLocation = location
-        self.speciesName = speciesName
-        self.timeSteps = timeSteps
-        self.dataReader = RawDataReaderSelector.GetReader(simulationCode, location, speciesName, name, internalName, timeSteps[0])
+    def __init__(self, simulation_code, name, location, time_steps,
+                 species_name="", internal_name=""):
+        self.data_name = name
+        self.data_location = location
+        self.species_name = species_name
+        self.time_steps = time_steps
+        self.data_reader = RawDataReaderSelector.get_reader(
+            simulation_code, location, species_name, name, internal_name,
+            time_steps[0])
 
-    def GetTimeSteps(self):
-        return self.timeSteps
+    def get_time_steps(self):
+        return self.time_steps
 
-    def GetTags(self, timeStep):
-        return self.dataReader.GetData(timeStep)
+    def get_tags(self, time_step):
+        return self.data_reader.get_data(time_step)

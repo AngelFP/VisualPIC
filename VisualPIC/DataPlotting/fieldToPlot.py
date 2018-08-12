@@ -25,25 +25,25 @@ class FieldToPlot:
     def __init__(self, field, dataToPlotDimension, colorMapsCollection, isPartOfMultiplot = False):
         self.__field = field
         self.__dataToPlotDimension = dataToPlotDimension # dimension of the data we want to plot
-        self.__fieldDimension = field.GetFieldDimension() # original dimension of the field, as simulated
+        self.__field_geometry = field.get_field_geometry() # original dimension of the field, as simulated
         self.__colorMapsCollection = colorMapsCollection
         self.__isPartOfMultiplot = isPartOfMultiplot
         self.__fieldProperties = {
-            "name":field.GetName(), 
-            "speciesName":field.GetSpeciesName(),
-            "timeSteps":field.GetTimeSteps(), 
-            "fieldUnits":copy.copy(field.GetDataOriginalUnits()), 
-            "originalFieldUnits":field.GetDataOriginalUnits(),
-            "possibleFieldUnits":field.GetPossibleDataUnits(),
-            "axesUnits":copy.copy(field.GetAxisOriginalUnits()), #dictionary
-            "originalAxesUnits":field.GetAxisOriginalUnits(), 
-            "possibleAxisUnits":field.GetPossibleAxisUnits(),
+            "name":field.get_name(), 
+            "species_name":field.get_species_name(),
+            "time_steps":field.get_time_steps(), 
+            "fieldUnits":copy.copy(field.get_data_original_units()), 
+            "originalFieldUnits":field.get_data_original_units(),
+            "possibleFieldUnits":field.get_possible_data_units(),
+            "axesUnits":copy.copy(field.get_axis_original_units()), #dictionary
+            "originalAxesUnits":field.get_axis_original_units(), 
+            "possibleAxisUnits":field.get_possible_axis_units(),
             "autoScale": True,
             "maxVal":1,
             "minVal":0,
             "possibleColorMaps":self.__GetPossibleColorMaps(),
             "cMap":"",
-            "possiblePlotTypes":self.__GetPlotTypeOptions(),
+            "possiblePlotTypes":self.__get_plot_typeOptions(),
             "plotType":""
         }
         self.__SetDefaultProperties()
@@ -58,7 +58,7 @@ class FieldToPlot:
         else:
             return self.__colorMapsCollection.GetSingleColorMapsNamesList()
         
-    def __GetPlotTypeOptions(self):
+    def __get_plot_typeOptions(self):
         if self.__dataToPlotDimension == "2D":
             plotTypeOptions = ["Image", "Surface"]
         elif self.__dataToPlotDimension == "1D":
@@ -67,12 +67,12 @@ class FieldToPlot:
             
     def __SetDefaultColorMap(self):
         if self.__isPartOfMultiplot:
-            if self.__field.GetName() == "Normalized Vector Potential":
+            if self.__field.get_name() == "Normalized Vector Potential":
                 colorMap = "Orange"
             else:
                 colorMap = "Base gray"
         else:
-            fieldISUnits = self.__field.GetDataISUnits()
+            fieldISUnits = self.__field.get_data_si_units()
             if fieldISUnits== "V/m" or fieldISUnits== "T":
                 colorMap = "RdBu"
             elif fieldISUnits== "C/m^2":
@@ -84,10 +84,10 @@ class FieldToPlot:
     def __SetDefaultPlotType(self):
         self.__fieldProperties["plotType"] = self.__fieldProperties["possiblePlotTypes"][0]
     
-    def GetDataToPlotDimension(self):
+    def get_data_to_plot_dimension(self):
         return self.__dataToPlotDimension
         
-    def GetProperty(self, propertyName):
+    def get_property(self, propertyName):
         return self.__fieldProperties[propertyName]
 
     def SetProperty(self, propertyName, value):
@@ -99,42 +99,42 @@ class FieldToPlot:
     def SetFieldProperties(self, props):
         self.__fieldProperties = props
 
-    def __GetAxisData(self, axis, timeStep):
-        return self.__field.GetAxisInUnits( axis, self.GetProperty("axesUnits")[axis], timeStep)
+    def __get_axis_data(self, axis, time_step):
+        return self.__field.get_axis_in_units( axis, self.get_property("axesUnits")[axis], time_step)
             
-    def __Get1DSlice(self, timeStep, slicePositionX, slicePositionY = None):
+    def __get_1d_slice(self, time_step, slice_pos_x, slice_pos_y = None):
         # slice along the longitudinal axis
-        # slicePosition has to be a double between 0 and 100
+        # slice_pos has to be a double between 0 and 100
         #this gives the position in the transverse axis as a 
-        fieldSlice = self.__field.Get1DSlice(timeStep, self.GetProperty("fieldUnits"), slicePositionX, slicePositionY) # Y data
-        return self.__GetAxisData("z", timeStep), fieldSlice
+        fieldSlice = self.__field.get_1d_slice(time_step, self.get_property("fieldUnits"), slice_pos_x, slice_pos_y) # Y data
+        return self.__get_axis_data("z", time_step), fieldSlice
 
-    def __Get2DSlice(self, sliceAxis, slicePosition, timeStep):
-        fieldSlice = self.__field.Get2DSlice(sliceAxis, slicePosition, timeStep, self.GetProperty("fieldUnits"))
-        if self.__fieldDimension == "thetaMode":
+    def __get_2d_slice(self, slice_axis, slice_pos, time_step):
+        fieldSlice = self.__field.get_2d_slice(slice_axis, slice_pos, time_step, self.get_property("fieldUnits"))
+        if self.__field_geometry == "thetaMode":
             transv_axis = "r"
         else:
             transv_axis = "x"
-        return self.__GetAxisData("z", timeStep),self.__GetAxisData(transv_axis, timeStep),fieldSlice
+        return self.__get_axis_data("z", time_step),self.__get_axis_data(transv_axis, time_step),fieldSlice
 
-    def __Get2DField(self, timeStep):
-        return self.__GetAxisData("z", timeStep),self.__GetAxisData("x", timeStep),self.__field.GetAllFieldData(timeStep, self.GetProperty("fieldUnits"))
+    def __Get2DField(self, time_step):
+        return self.__get_axis_data("z", time_step),self.__get_axis_data("x", time_step),self.__field.get_all_field_data(time_step, self.get_property("fieldUnits"))
     
-    def GetData(self, timeStep):
-        if self.__fieldDimension == "3D":
+    def get_data(self, time_step):
+        if self.__field_geometry == "3D":
             if self.__dataToPlotDimension == "2D":
-                return self.__Get2DSlice("z", 50, timeStep)
+                return self.__get_2d_slice("z", 50, time_step)
             elif self.__dataToPlotDimension == "1D":
-                return self.__Get1DSlice(timeStep, 50, 50)
+                return self.__get_1d_slice(time_step, 50, 50)
             else:
                 raise NotImplementedError
-        elif self.__fieldDimension == "2D":
+        elif self.__field_geometry == "2D":
             if self.__dataToPlotDimension == "2D":
-                return self.__Get2DField(timeStep)
+                return self.__Get2DField(time_step)
             elif self.__dataToPlotDimension == "1D":
-                return self.__Get1DSlice(timeStep, 50)
-        elif self.__fieldDimension == "thetaMode":
+                return self.__get_1d_slice(time_step, 50)
+        elif self.__field_geometry == "thetaMode":
             if self.__dataToPlotDimension == "2D":
-                return self.__Get2DSlice("z", 50, timeStep)
+                return self.__get_2d_slice("z", 50, time_step)
             elif self.__dataToPlotDimension == "1D":
-                return self.__Get1DSlice(timeStep, 50, 50)
+                return self.__get_1d_slice(time_step, 50, 50)

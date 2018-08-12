@@ -140,7 +140,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def SetUpUI(self):
-        simParams = self.mainWindow.dataContainer.GetSimulationParameters()
+        simParams = self.mainWindow.data_container.get_simulation_parameters()
 
         # General
         self.setWindowTitle("Simulation Parameters")
@@ -206,7 +206,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
             self.osirisWidget.setVisible(False)
 
     def acceptButton_clicked(self):
-        self.SetSimulationParameters()
+        self.set_simulation_parameters()
 
     def osirisLaserInSimulationCheckBox_StatusChanged(self):
         status = self.osirisLaserInSimulation_checkBox.isChecked()
@@ -218,7 +218,7 @@ class SimulationParametersWindow(QtWidgets.QDialog):
         self.openPMDLaserWavelength_lineEdit.setEnabled(status)
         self.openPMDLabel_2.setEnabled(status)
 
-    def SetSimulationParameters(self):
+    def set_simulation_parameters(self):
         simulationCode = self.simulationCode_comboBox.currentText()
         simParams = dict()
         simParams["SimulationCode"] = simulationCode
@@ -234,5 +234,5 @@ class SimulationParametersWindow(QtWidgets.QDialog):
             if simParams["isLaser"]:
                 simParams["lambda_l"] = float(self.openPMDLaserWavelength_lineEdit.text())
 
-        self.mainWindow.dataContainer.SetSimulationParameters(simParams)
+        self.mainWindow.data_container.set_simulation_parameters(simParams)
         self.close()

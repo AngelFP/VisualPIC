@@ -78,8 +78,8 @@ class SubplotItem(QtWidgets.QWidget):
         self.registerUiEvents()
 
     def setText(self):
-        self.FieldName.setText(self.subplot.GetName())
-        self.SpeciesName.setText(self.subplot.GetPlottedSpeciesName())
+        self.FieldName.setText(self.subplot.get_name())
+        self.SpeciesName.setText(self.subplot.get_plotted_species_name())
 
     def registerUiEvents(self):
         self.editButton.clicked.connect(self.editButton_Clicked)

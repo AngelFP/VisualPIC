@@ -53,11 +53,11 @@ Ui_ParticleTrackerWindow, QParticleTrackerWindow = loadUiType(guipath)
 
 	
 class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
-    def __init__(self, dataContainer, colormapsCollection, dataPlotter):
+    def __init__(self, data_container, colormapsCollection, dataPlotter):
         super(ParticleTrackerWindow, self).__init__()
         self.setupUi(self)
         self.set_ui_icons()
-        self.particleTracker = ParticleTracker(dataContainer)
+        self.particleTracker = ParticleTracker(data_container)
         self.colormapsCollection = colormapsCollection
         self.dataPlotter = dataPlotter
         self.selectorSubplot = None
@@ -114,20 +114,20 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.instantPlots_layout.addWidget(self.instantPlotsToolbar)
 
     def CreateSelectorSubplotObject(self):
-        #if self.selectorSubplot is None or self.selectorSubplot.GetPlottedSpeciesName() != self.speciesSelector_comboBox.currentText():
-        speciesName = str(self.speciesSelector_comboBox.currentText())
+        #if self.selectorSubplot is None or self.selectorSubplot.get_plotted_species_name() != self.speciesSelector_comboBox.currentText():
+        species_name = str(self.speciesSelector_comboBox.currentText())
         dataSets = {}
         xAxis = str(self.xAxis_comboBox.currentText())
         yAxis = str(self.yAxis_comboBox.currentText())
-        dataSets["x"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, xAxis))
-        dataSets["y"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, yAxis))
-        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.GetSpeciesDataSet(speciesName, "Charge"))
+        dataSets["x"] = RawDataSetToPlot(self.particleTracker.get_speciesDataSet(species_name, xAxis))
+        dataSets["y"] = RawDataSetToPlot(self.particleTracker.get_speciesDataSet(species_name, yAxis))
+        dataSets["weight"] = RawDataSetToPlot(self.particleTracker.get_speciesDataSet(species_name, "Charge"))
         self.selectorSubplot = RawDataSubplot(1, self.colormapsCollection, dataSets)
-        self.selectorSubplot.SetPlotType("Scatter")
-        self.selectorSubplot.SetPlotProperty("General", "DisplayColorbar", False)
-        self.selectorSubplot.SetAxisProperty("x", "LabelFontSize", 10)
-        self.selectorSubplot.SetAxisProperty("y", "LabelFontSize", 10)
-        self.selectorSubplot.SetTitleProperty("FontSize", 0)
+        self.selectorSubplot.set_plot_type("Scatter")
+        self.selectorSubplot.set_plot_property("General", "DisplayColorbar", False)
+        self.selectorSubplot.set_axis_property("x", "LabelFontSize", 10)
+        self.selectorSubplot.set_axis_property("y", "LabelFontSize", 10)
+        self.selectorSubplot.set_title_property("FontSize", 0)
 
     def RegisterUIEvents(self):
         self.selectorTimeStep_Slider.valueChanged.connect(self.SelectorTimeStepSlider_ValueChanged)
@@ -158,7 +158,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.prevStep_Button.clicked.connect(self.PrevButton_Clicked)
 
     def FillInitialUI(self):
-        comboBoxItems = self.particleTracker.GetSpeciesNames()
+        comboBoxItems = self.particleTracker.get_species_names()
         if len(comboBoxItems) > 0:
             comboBoxItems.insert(0, "Select Species")
         else:
@@ -185,7 +185,7 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def FillExportDataUI(self):
         self.CreateTrackedParticlesTable()
-        self.exportPath_lineEdit.setText(self.particleTracker.GetDataLocation())
+        self.exportPath_lineEdit.setText(self.particleTracker.get_data_location())
 
     """
     UI Events
@@ -194,10 +194,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.selectorTimeStep_lineEdit.setText(str(self.selectorTimeStep_Slider.value()))
 
     def SelectorTimeStepSlider_Released(self):
-        if self.selectorTimeStep_Slider.value() not in self.timeSteps:
+        if self.selectorTimeStep_Slider.value() not in self.time_steps:
             val = self.selectorTimeStep_Slider.value()
-            closestHigher = self.timeSteps[np.where(self.timeSteps > val)[0][0]]
-            closestLower = self.timeSteps[np.where(self.timeSteps < val)[0][-1]]
+            closestHigher = self.time_steps[np.where(self.time_steps > val)[0][0]]
+            closestLower = self.time_steps[np.where(self.time_steps < val)[0][-1]]
             if abs(val-closestHigher) < abs(val-closestLower):
                 self.selectorTimeStep_Slider.setValue(closestHigher)
             else:
@@ -211,8 +211,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
     def InstantTimeStepSlider_Released(self):
         if self.instantTimeStep_Slider.value() not in self.instantTimeSteps:
             val = self.instantTimeStep_Slider.value()
-            closestHigher = self.timeSteps[np.where(self.instantTimeSteps > val)[0][0]]
-            closestLower = self.timeSteps[np.where(self.instantTimeSteps < val)[0][-1]]
+            closestHigher = self.time_steps[np.where(self.instantTimeSteps > val)[0][0]]
+            closestLower = self.time_steps[np.where(self.instantTimeSteps < val)[0][-1]]
             if abs(val-closestHigher) < abs(val-closestLower):
                 self.instantTimeStep_Slider.setValue(closestHigher)
             else:
@@ -240,8 +240,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
 
     def _SetGraphicSelectorComboBoxes(self):
         self._updatingUI = True
-        speciesName = str(self.speciesSelector_comboBox.currentText())
-        axisList = self.particleTracker.GetSpeciesRawDataSetNames(speciesName)
+        species_name = str(self.speciesSelector_comboBox.currentText())
+        axisList = self.particleTracker.get_species_raw_datasetNames(species_name)
         self.xAxis_comboBox.clear()
         self.yAxis_comboBox.clear()
         self.xAxis_comboBox.addItems(axisList)
@@ -260,10 +260,10 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.toggle_selector.set_active(True)
 
     def FindParticlesButton_Clicked(self):
-        speciesName = str(self.speciesSelector_comboBox.currentText())
-        timeStep = self.selectorTimeStep_Slider.value()
+        species_name = str(self.speciesSelector_comboBox.currentText())
+        time_step = self.selectorTimeStep_Slider.value()
         filters = self.GetSelectedFilters()
-        self.FindParticles(timeStep, speciesName, filters)
+        self.FindParticles(time_step, species_name, filters)
 
     def TrackParticlesButton_Clicked(self):
         self.particleTracker.SetParticlesToTrack(self.GetSelectedParticles())
@@ -390,8 +390,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         if folderPath != "":
             self.exportPath_lineEdit.setText(folderPath)
 
-    def FindParticles(self, timeStep, speciesName, filter):
-        self.particleList = self.particleTracker.FindParticles(timeStep, speciesName, filter)
+    def FindParticles(self, time_step, species_name, filter):
+        self.particleList = self.particleTracker.FindParticles(time_step, species_name, filter)
         self.CreateParticleTable()
 
     def CreateParticleTable(self):
@@ -488,13 +488,13 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.advancedSelector_tableWidget.resizeColumnsToContents()
 
     def _GetMaximumsAndMinimumsOfQuantities(self):
-        speciesName = str(self.speciesSelector_comboBox.currentText())
-        timeStep = self.selectorTimeStep_Slider.value()
-        quantityNamesList = self.particleTracker.GetSpeciesRawDataSetNames(speciesName)
+        species_name = str(self.speciesSelector_comboBox.currentText())
+        time_step = self.selectorTimeStep_Slider.value()
+        quantityNamesList = self.particleTracker.get_species_raw_datasetNames(species_name)
         maxMinList = []
         for quantity in quantityNamesList:
-            dataSet = self.particleTracker.GetSpeciesDataSet(speciesName, quantity)
-            data = dataSet.GetDataInOriginalUnits(timeStep)
+            dataSet = self.particleTracker.get_speciesDataSet(species_name, quantity)
+            data = dataSet.get_data_in_original_units(time_step)
             dataMin = min(data)
             dataMax = max(data)
             maxMinList.append([quantity, dataMin, dataMax])
@@ -528,9 +528,9 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
             self.SetTimeSteps()
 
     def SetTimeSteps(self):
-        self.timeSteps = self.selectorSubplot.GetTimeSteps()
-        minTime = min(self.timeSteps)
-        maxTime = max(self.timeSteps)
+        self.time_steps = self.selectorSubplot.get_time_steps()
+        minTime = min(self.time_steps)
+        maxTime = max(self.time_steps)
         self.selectorTimeStep_Slider.setMinimum(minTime)
         self.selectorTimeStep_Slider.setMaximum(maxTime)
 
@@ -555,8 +555,8 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.evolSubplotList.remove(item.subplot)
         self.subplots_listWidget.takeItem(index)
         for subplot in self.evolSubplotList:
-            if subplot.GetPosition() > index+1:
-                subplot.SetPosition(subplot.GetPosition()-1)
+            if subplot.get_position() > index+1:
+                subplot.set_position(subplot.get_position()-1)
         if len(self.evolSubplotList) > 0:
             if self.increaseEvolRowsColumnsCounter % 2 == 0:
                 if len(self.evolSubplotList) <= self.evolSubplotRows*(self.evolSubplotColumns-1):
@@ -572,17 +572,17 @@ class ParticleTrackerWindow(QParticleTrackerWindow, Ui_ParticleTrackerWindow):
         self.mainCanvas.draw()
 
     def MakeInstantPlots(self):
-        timeStep = self.instantTimeStep_Slider.value()
-        self.dataPlotter.MakePlot(self.instantPlotsFigure, self.instantSubplotList, self.instantSubplotRows, self.instantSubplotColumns, timeStep)
+        time_step = self.instantTimeStep_Slider.value()
+        self.dataPlotter.MakePlot(self.instantPlotsFigure, self.instantSubplotList, self.instantSubplotRows, self.instantSubplotColumns, time_step)
         self.instantPlotsCanvas.draw()
 
     def SetInstantTimeSteps(self):
         i = 0
         for subplot in self.instantSubplotList:
             if i == 0:
-                self.instantTimeSteps = subplot.GetTimeSteps()
+                self.instantTimeSteps = subplot.get_time_steps()
             else :
-                self.instantTimeSteps = np.intersect1d(self.instantTimeSteps, subplot.GetTimeSteps())
+                self.instantTimeSteps = np.intersect1d(self.instantTimeSteps, subplot.get_time_steps())
             i+=1
         minTime = min(self.instantTimeSteps)
         maxTime = max(self.instantTimeSteps)

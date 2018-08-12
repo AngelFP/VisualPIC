@@ -23,204 +23,220 @@ from h5py import File as H5File
 import numpy as np
 
 from VisualPIC.DataReading.dataReader import DataReader
-from VisualPIC.DataReading.openPMDTimeSeriesSingleton import OpenPMDTimeSeriesSingleton, openpmd_installed
+from VisualPIC.DataReading.openPMDTimeSeriesSingleton import (
+    OpenPMDTimeSeriesSingleton, openpmd_installed)
 
 
 class RawDataReaderBase(DataReader):
     """Parent class for all rawDataReaders"""
     __metaclass__  = abc.ABCMeta
-    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
-        DataReader.__init__(self, location, speciesName, dataName, internalName)
-        self.internalName = dataName
-        self.firstTimeStep = firstTimeStep
-        self._ReadBasicData()
+    def __init__(self, location, species_name, data_name, internal_name,
+                 first_time_step):
+        DataReader.__init__(self, location, species_name, data_name,
+                            internal_name)
+        self.internal_name = data_name
+        self.first_time_step = first_time_step
+        self.read_basic_data()
 
-    def GetData(self, timeStep):
-        if timeStep != self.currentTimeStep:
-            self.currentTimeStep = timeStep
-            self.data = self._ReadData(timeStep)
+    def get_data(self, time_step):
+        if time_step != self.current_time_step:
+            self.current_time_step = time_step
+            self.data = self.read_data(time_step)
         return self.data
 
-    def GetDataUnits(self):
-        if self.dataUnits == "":
-            self._ReadUnits()
-        return self.dataUnits
+    def get_data_units(self):
+        if self.data_units == "":
+            self.read_units()
+        return self.data_units
 
-    def GetTime(self, timeStep):
-        if timeStep != self.currentTimeStep:
-            self.currentTimeStep = timeStep
-            self._ReadTime(timeStep)
-        return self.currentTime
+    def get_time(self, time_step):
+        if time_step != self.current_time_step:
+            self.current_time_step = time_step
+            self.read_time(time_step)
+        return self.current_time
 
-    def GetTimeUnits(self):
-        if self.timeUnits == "":
-            self._ReadUnits()
-        return self.timeUnits
+    def get_time_units(self):
+        if self.time_units == "":
+            self.read_units()
+        return self.time_units
 
     @abc.abstractmethod
-    def _ReadBasicData(self):
+    def read_basic_data(self):
         raise NotImplementedError
 
 
 class OsirisRawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
+    def __init__(self, location, species_name, data_name, internal_name,
+                 first_time_step):
+        RawDataReaderBase.__init__(self, location, species_name, data_name,
+                                   internal_name, first_time_step)
 
-    def _ReadData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        if self.internalName == "tag":
-            tags = np.array(file_content.get(self.internalName))
+    def read_data(self, time_step):
+        file_content = self.open_file(time_step)
+        if self.internal_name == "tag":
+            tags = np.array(file_content.get(self.internal_name))
             a = tags[:,0]
             b = tags[:,1]
             data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
         else:
-            data = np.array(file_content.get(self.internalName))
-        self.currentTime = file_content.attrs["TIME"][0]
+            data = np.array(file_content.get(self.internal_name))
+        self.current_time = file_content.attrs["TIME"][0]
         file_content.close()
         return data
 
-    def _ReadTime(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        self.currentTime = file_content.attrs["TIME"][0]
+    def read_time(self, time_step):
+        file_content = self.open_file(time_step)
+        self.current_time = file_content.attrs["TIME"][0]
         file_content.close()
 
-    def _ReadUnits(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self.dataUnits = str(list(file_content[self.internalName].attrs["UNITS"])[0])[2:-1].replace("\\\\","\\")
-        self.timeUnits = str(file_content.attrs["TIME UNITS"][0])[2:-1].replace("\\\\","\\")
+    def read_units(self):
+        file_content = self.open_file(self.first_time_step)
+        self.data_units = str(list(file_content[self.internal_name].attrs[
+            "UNITS"])[0])[2:-1].replace("\\\\","\\")
+        self.time_units = str(file_content.attrs[
+            "TIME UNITS"][0])[2:-1].replace("\\\\","\\")
         file_content.close()
 
-    def _ReadSimulationProperties(self, file_content):
+    def read_simulation_properties(self, file_content):
         self.grid_resolution = np.array(file_content.attrs['NX'])
-        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_size = (np.array(file_content.attrs['XMAX'])
+                          - np.array(file_content.attrs['XMIN']))
         self.grid_units = 'c/ \omega_p'
 
-    def _OpenFile(self, timeStep):
-        fileName = "RAW-" + self.speciesName + "-" + str(timeStep).zfill(6)
+    def open_file(self, time_step):
+        fileName = "RAW-" + self.species_name + "-" + str(time_step).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadSimulationProperties(file_content)
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self.read_simulation_properties(file_content)
         file_content.close()
 
 
 class HiPACERawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
+    def __init__(self, location, species_name, data_name, internal_name,
+                 first_time_step):
+        RawDataReaderBase.__init__(self, location, species_name, data_name,
+                                   internal_name, first_time_step)
 
-    def _ReadData(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        if self.internalName == "tag":
-            tags = np.array(file_content.get(self.internalName))
+    def read_data(self, time_step):
+        file_content = self.open_file(time_step)
+        if self.internal_name == "tag":
+            tags = np.array(file_content.get(self.internal_name))
             a = tags[:,0]
             b = tags[:,1]
             data = 1/2*(a+b)*(a+b+1)+b # Cantor pairing function
         else:
-            data = np.array(file_content.get(self.internalName))
-        self.currentTime = file_content.attrs["TIME"][0]
-        if self.internalName == "x1":
-            data += self.currentTime
+            data = np.array(file_content.get(self.internal_name))
+        self.current_time = file_content.attrs["TIME"][0]
+        if self.internal_name == "x1":
+            data += self.current_time
         file_content.close()
         return data
 
-    def _ReadTime(self, timeStep):
-        file_content = self._OpenFile(timeStep)
-        self.currentTime = file_content.attrs["TIME"][0]
+    def read_time(self, time_step):
+        file_content = self.open_file(time_step)
+        self.current_time = file_content.attrs["TIME"][0]
         file_content.close()
 
-    def _ReadUnits(self):
+    def read_units(self):
         # No units information is currently stored by HiPACE
-        if self.dataName == "x1" or self.dataName == "x2" or self.dataName == "x3":
-            self.dataUnits = 'c/ \omega_p'
-        elif self.dataName == "p1" or self.dataName == "p2" or self.dataName == "p3":
-            self.dataUnits = 'm_e c'
-        elif self.dataName == "q":
-            self.dataUnits = 'e'
+        if self.data_name in ["x1" , "x2", "x3"]:
+            self.data_units = 'c/ \omega_p'
+        elif self.data_name in ["p1", "p2", "p3"]:
+            self.data_units = 'm_e c'
+        elif self.data_name == "q":
+            self.data_units = 'e'
         else:
-            self.dataUnits = 'unknown'
-        self.timeUnits = '1/ \omega_p'
+            self.data_units = 'unknown'
+        self.time_units = '1/ \omega_p'
 
-    def _OpenFile(self, timeStep):
-        fileName = "raw_" + self.speciesName + "_" + str(timeStep).zfill(6)
+    def open_file(self, time_step):
+        fileName = "raw_" + self.species_name + "_" + str(time_step).zfill(6)
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
         return file_content
 
-    def _ReadSimulationProperties(self, file_content):
+    def read_simulation_properties(self, file_content):
         self.grid_resolution = np.array(file_content.attrs['NX'])
-        self.grid_size = np.array(file_content.attrs['XMAX']) - np.array(file_content.attrs['XMIN'])
+        self.grid_size = (np.array(file_content.attrs['XMAX'])
+                          - np.array(file_content.attrs['XMIN']))
         self.grid_units = 'c/ \omega_p'
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadSimulationProperties(file_content)
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self.read_simulation_properties(file_content)
         file_content.close()
 
 class OpenPMDRawDataReader(RawDataReaderBase):
-    def __init__(self, location, speciesName, dataName, internalName, firstTimeStep):
+    def __init__(self, location, species_name, data_name, internal_name,
+                 first_time_step):
         # First check whether openPMD is installed
         if not openpmd_installed:
-            raise RunTimeError("You need to install openPMD-viewer, e.g. with:\n"
+            raise RunTimeError(
+                "You need to install openPMD-viewer, e.g. with:\n"
                 "pip install openPMD-viewer")
         # Store an openPMD timeseries object
         # (Its API is used in order to conveniently extract data from the file)
-        self.openpmd_ts = OpenPMDTimeSeriesSingleton( location, check_all_files=False )
+        self.openpmd_ts = OpenPMDTimeSeriesSingleton(location,
+                                                     check_all_files=False)
         # Initialize the instance
-        RawDataReaderBase.__init__(self, location, speciesName, dataName, internalName, firstTimeStep)
+        RawDataReaderBase.__init__(self, location, species_name, data_name,
+                                   internal_name, first_time_step)
 
-    def _ReadData(self, timeStep):
-        data, = self.openpmd_ts.get_particle( [self.internalName],
-                    species=self.speciesName, iteration=timeStep )
+    def read_data(self, time_step):
+        data, = self.openpmd_ts.get_particle( [self.internal_name],
+                    species=self.species_name, iteration=time_step )
         # VisualPIC needs the total charge and mass per particle, therefore,
-        #in openPMD this quantities have to be multiplied by the particle weight
-        if self.internalName == 'charge' or self.internalName == 'mass':
+        #in openPMD this quantities have to be multiplied by the particle
+        #weight
+        if self.internal_name == 'charge' or self.internal_name == 'mass':
             w, = self.openpmd_ts.get_particle( ['w'],
-                    species=self.speciesName, iteration=timeStep )
+                    species=self.species_name, iteration=time_step )
             data = data*w
-        self.currentTime = self._ReadTime(timeStep)
+        self.current_time = self.read_time(time_step)
         return data
 
-    def _ReadTime(self, timeStep):
+    def read_time(self, time_step):
         # The line below sets the attribute `_current_i` of openpmd_ts
-        self.openpmd_ts._find_output( None, timeStep )
+        self.openpmd_ts._find_output( None, time_step )
         # This sets the corresponding time
-        self.currentTime = self.openpmd_ts.t[ self.openpmd_ts._current_i ]
+        self.current_time = self.openpmd_ts.t[ self.openpmd_ts._current_i ]
 
-    def _ReadUnits(self):
+    def read_units(self):
         # OpenPMD data always provide conversion to SI units
         # TODO: Get the units from file
-        if self.internalName in ["x", "y", "z"]:
-            self.dataUnits = "μm" 
-        elif self.internalName in ["ux", "uy", "uz"]:
-            self.dataUnits = "m_e c" 
-        elif self.internalName == 'charge':
-            self.dataUnits = "C"
-        elif self.internalName == 'mass':
-            self.dataUnits = "kg"
+        if self.internal_name in ["x", "y", "z"]:
+            self.data_units = "μm" 
+        elif self.internal_name in ["ux", "uy", "uz"]:
+            self.data_units = "m_e c" 
+        elif self.internal_name == 'charge':
+            self.data_units = "C"
+        elif self.internal_name == 'mass':
+            self.data_units = "kg"
         else:
-            self.dataUnits = "arb.u." 
-        self.timeUnits = "s"
+            self.data_units = "arb.u." 
+        self.time_units = "s"
 
-    def _OpenFile(self, timeStep):
+    def open_file(self, time_step):
         # The line below sets the attribute `_current_i` of openpmd_ts
-        self.openpmd_ts._find_output( None, timeStep )
+        self.openpmd_ts._find_output( None, time_step )
         # This finds the full path to the corresponding file
         fileName = self.openpmd_ts.h5_files[ self.openpmd_ts._current_i ]
         file_content = H5File(fileName, 'r')
         return file_content
 
-    def _ReadSimulationProperties(self, file_content):
+    def read_simulation_properties(self, file_content):
         # TODO: Add the proper resolution
         self.grid_resolution = None
         self.grid_size = None
         self.grid_units = 'm'
 
-    def _ReadBasicData(self):
-        file_content = self._OpenFile(self.firstTimeStep)
-        self._ReadSimulationProperties(file_content)
+    def read_basic_data(self):
+        file_content = self.open_file(self.first_time_step)
+        self.read_simulation_properties(file_content)
         file_content.close()

@@ -62,8 +62,8 @@ class DataPlotter:
             "Raw":axisTypes,
             "RawEvolution":evolutionTypes
             }
-    # todo: remove timeStep from input variables. Allow to have diferent number of input variables.        
-    def MakePlot(self, figure, subplotList, rows, columns, timeStep = None):
+    # todo: remove time_step from input variables. Allow to have diferent number of input variables.        
+    def MakePlot(self, figure, subplotList, rows, columns, time_step = None):
         self.currentAxesNumber = rows*columns
         for ax in figure.axes:
             figure.delaxes(ax)
@@ -71,34 +71,34 @@ class DataPlotter:
         for subplot in subplotList:
             if subplot != None:
                 # create axes
-                if subplot.GetAxesDimension() == "3D":
-                    ax = figure.add_subplot(rows,columns,subplot.GetPosition(), projection='3d')
+                if subplot.get_axes_dimension() == "3D":
+                    ax = figure.add_subplot(rows,columns,subplot.get_position(), projection='3d')
                 else:
-                    ax = figure.add_subplot(rows,columns,subplot.GetPosition())
+                    ax = figure.add_subplot(rows,columns,subplot.get_position())
                 # set axis limits
-                ax.set_xlim([subplot.GetAxisProperty("x", "AxisLimits")["Min"],subplot.GetAxisProperty("x", "AxisLimits")["Max"]])
-                ax.set_autoscalex_on(subplot.GetAxisProperty("x", "AutoAxisLimits"))
-                ax.set_ylim([subplot.GetAxisProperty("y", "AxisLimits")["Min"],subplot.GetAxisProperty("y", "AxisLimits")["Max"]])
-                ax.set_autoscaley_on(subplot.GetAxisProperty("y", "AutoAxisLimits"))
-                if subplot.GetAxesDimension() == "3D":
-                    if not subplot.GetAxisProperty("z", "AutoAxisLimits"):
-                        ax.set_zlim([subplot.GetAxisProperty("z", "AxisLimits")["Min"],subplot.GetAxisProperty("z", "AxisLimits")["Max"]])
+                ax.set_xlim([subplot.get_axis_property("x", "AxisLimits")["Min"],subplot.get_axis_property("x", "AxisLimits")["Max"]])
+                ax.set_autoscalex_on(subplot.get_axis_property("x", "AutoAxisLimits"))
+                ax.set_ylim([subplot.get_axis_property("y", "AxisLimits")["Min"],subplot.get_axis_property("y", "AxisLimits")["Max"]])
+                ax.set_autoscaley_on(subplot.get_axis_property("y", "AutoAxisLimits"))
+                if subplot.get_axes_dimension() == "3D":
+                    if not subplot.get_axis_property("z", "AutoAxisLimits"):
+                        ax.set_zlim([subplot.get_axis_property("z", "AxisLimits")["Min"],subplot.get_axis_property("z", "AxisLimits")["Max"]])
 
                 # make plot on axes
-                self.PlotFromDataType[subplot.GetDataType()](figure, ax, subplot, rows, columns, timeStep)
+                self.PlotFromDataType[subplot.get_data_type()](figure, ax, subplot, rows, columns, time_step)
 
-    def MakeFieldPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        num1DFields = len(subplot.GetFieldsToPlotWithDimension("1D"))
-        num2DFields = len(subplot.GetFieldsToPlotWithDimension("2D"))
+    def MakeFieldPlot(self, figure, ax, subplot, rows, columns, time_step):
+        num1DFields = len(subplot.get_fields_to_plot_with_dimension("1D"))
+        num2DFields = len(subplot.get_fields_to_plot_with_dimension("2D"))
         i = 0
-        for field in subplot.GetFieldsToPlotWithDimension("2D"):
-            plotData = field.GetData(timeStep)
-            units = field.GetProperty("fieldUnits")
-            field_cmap = self.colorMapsCollection.GetColorMap(field.GetProperty("cMap"))
-            scale = field.GetProperty("minVal"), field.GetProperty("maxVal")
-            autoScale = field.GetProperty("autoScale")
+        for field in subplot.get_fields_to_plot_with_dimension("2D"):
+            plotData = field.get_data(time_step)
+            units = field.get_property("fieldUnits")
+            field_cmap = self.colorMapsCollection.GetColorMap(field.get_property("cMap"))
+            scale = field.get_property("minVal"), field.get_property("maxVal")
+            autoScale = field.get_property("autoScale")
             # make plot
-            im = self.plotTypes["Field"][field.GetProperty("plotType")](ax, plotData, field_cmap, scale, autoScale)
+            im = self.plotTypes["Field"][field.get_property("plotType")](ax, plotData, field_cmap, scale, autoScale)
             # change plot size to make room for the colorBar
             if i == 0:
                 pos1 = ax.get_position()
@@ -112,16 +112,16 @@ class DataPlotter:
             cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
             cbar = figure.colorbar(im, cax = cbAxes, cmap=field_cmap, drawedges=False)
             cbar.solids.set_edgecolor("face")
-            cbar.set_label(label="$"+units+"$",size=subplot.GetColorBarProperty("FontSize"))
+            cbar.set_label(label="$"+units+"$",size=subplot.get_cbar_property("FontSize"))
             tick_locator = ticker.MaxNLocator(nbins=int(10/num2DFields))
             cbar.locator = tick_locator
             cbar.update_ticks()
             i += 1
             # label axes
             ax.xaxis.set_major_locator( LinearLocator(5) )
-            ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
-            ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
-            ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+            ax.set_xlabel(subplot.get_axis_property("x", "LabelText") + " $["+subplot.get_axis_property("x", "Units")+"]$", fontsize=subplot.get_axis_property("x", "LabelFontSize"))
+            ax.set_ylabel(subplot.get_axis_property("y", "LabelText") + " $["+subplot.get_axis_property("y", "Units")+"]$", fontsize=subplot.get_axis_property("y", "LabelFontSize"))
+            ax.set_title(subplot.get_title_property("Text"), fontsize=subplot.get_title_property("FontSize"))
         if num1DFields > 0 and num2DFields > 0:
             axPos = ax.get_position()
             newAxPos = [axPos.x0, axPos.y0 ,  axPos.width-0.07, axPos.height]
@@ -130,32 +130,32 @@ class DataPlotter:
             axis1D.set_position(axPos)
         elif num1DFields > 0:
             axis1D = ax
-        for field in subplot.GetFieldsToPlotWithDimension("1D"):
-            units = field.GetProperty("fieldUnits")
-            plotData = field.GetData(timeStep)
-            self.plotTypes["Field"][field.GetProperty("plotType")](axis1D, plotData)  
+        for field in subplot.get_fields_to_plot_with_dimension("1D"):
+            units = field.get_property("fieldUnits")
+            plotData = field.get_data(time_step)
+            self.plotTypes["Field"][field.get_property("plotType")](axis1D, plotData)  
             if num2DFields > 0:
                 axis1D.set_ylabel("$"+units+"$")
             else:
                 axis1D.xaxis.set_major_locator( LinearLocator(5) )
-                axis1D.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
+                axis1D.set_xlabel(subplot.get_axis_property("x", "LabelText") + " $["+subplot.get_axis_property("x", "Units")+"]$", fontsize=subplot.get_axis_property("x", "LabelFontSize"))
                 axis1D.set_ylabel("$"+units+"$")
-                axis1D.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+                axis1D.set_title(subplot.get_title_property("Text"), fontsize=subplot.get_title_property("FontSize"))
         
-    def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
+    def MakeAxisDataPlot(self, figure, ax, subplot, rows, columns, time_step):
         #ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        axisData = subplot.GetDataToPlot()
-        plotProperties = subplot.GetCopyAllPlotProperties()
-        axisProperties = subplot.GetCopyAllAxesProperties()
+        axisData = subplot.get_data_to_plot()
+        plotProperties = subplot.get_copy_all_plot_properties()
+        axisProperties = subplot.get_copy_all_axes_properties()
         plotData = {}
         # Load data
         for dataSetName, values in axisData.items():
-            plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(timeStep)
-        cMap = self.colorMapsCollection.GetColorMap(subplot.GetPlotProperty(subplot.GetPlotType(),"CMap"))
+            plotData[dataSetName] = axisData[dataSetName].GetDataSetPlotData(time_step)
+        cMap = self.colorMapsCollection.GetColorMap(subplot.get_plot_property(subplot.get_plot_type(),"CMap"))
         # make plot
-        im = self.plotTypes["Raw"][subplot.GetPlotType()](ax, plotData, plotProperties, axisProperties, cMap)
+        im = self.plotTypes["Raw"][subplot.get_plot_type()](ax, plotData, plotProperties, axisProperties, cMap)
         # colorBar
-        if subplot.GetPlotProperty("General", "DisplayColorbar") == True:
+        if subplot.get_plot_property("General", "DisplayColorbar") == True:
             # change plot size to make room for the colorBar
             pos1 = ax.get_position()
             pos2 = [pos1.x0, pos1.y0 ,  pos1.width-0.1, pos1.height]
@@ -167,20 +167,20 @@ class DataPlotter:
             cbAxes = figure.add_axes([cbX, cbY, cbWidth, cbHeight]) 
             cbar = figure.colorbar(im, cax = cbAxes, cmap=cMap, drawedges=False)
             cbar.solids.set_edgecolor("face")
-            if subplot.GetPlotType() == "Histogram" or subplot.GetPlotType() == "Scatter":
-                cbar.set_label(label="$"+axisData["weight"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
-            elif subplot.GetPlotType() == "Arrows":
-                cbar.set_label(label="$"+axisData["Px"].GetProperty("dataSetUnits")+"$",size=subplot.GetColorBarProperty("FontSize"))
+            if subplot.get_plot_type() == "Histogram" or subplot.get_plot_type() == "Scatter":
+                cbar.set_label(label="$"+axisData["weight"].get_property("dataSetUnits")+"$",size=subplot.get_cbar_property("FontSize"))
+            elif subplot.get_plot_type() == "Arrows":
+                cbar.set_label(label="$"+axisData["Px"].get_property("dataSetUnits")+"$",size=subplot.get_cbar_property("FontSize"))
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
-        ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
-        ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
-        if subplot.GetAxesDimension() == "3D":
-            ax.set_zlabel(subplot.GetAxisProperty("z", "LabelText") + " $["+subplot.GetAxisProperty("z", "Units")+"]$", fontsize=subplot.GetAxisProperty("z", "LabelFontSize"))
-        ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+        ax.set_xlabel(subplot.get_axis_property("x", "LabelText") + " $["+subplot.get_axis_property("x", "Units")+"]$", fontsize=subplot.get_axis_property("x", "LabelFontSize"))
+        ax.set_ylabel(subplot.get_axis_property("y", "LabelText") + " $["+subplot.get_axis_property("y", "Units")+"]$", fontsize=subplot.get_axis_property("y", "LabelFontSize"))
+        if subplot.get_axes_dimension() == "3D":
+            ax.set_zlabel(subplot.get_axis_property("z", "LabelText") + " $["+subplot.get_axis_property("z", "Units")+"]$", fontsize=subplot.get_axis_property("z", "LabelFontSize"))
+        ax.set_title(subplot.get_title_property("Text"), fontsize=subplot.get_title_property("FontSize"))
 
-    def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, timeStep):
-        allPaticlesData = subplot.GetDataToPlot() # list of dictionaries (with keys "particle", "x", "y" and "z")
+    def MakeRawEvolutionDataPlot(self, figure, ax, subplot, rows, columns, time_step):
+        allPaticlesData = subplot.get_data_to_plot() # list of dictionaries (with keys "particle", "x", "y" and "z")
         for particleData in allPaticlesData:
             plotData = {}
             plotData["x"] = particleData["x"].GetDataSetPlotData()
@@ -188,12 +188,12 @@ class DataPlotter:
             if "z" in particleData:
                 plotData["z"] = particleData["z"].GetDataSetPlotData()
             # make plot
-            im = self.plotTypes["RawEvolution"][subplot.GetAxesDimension()](ax, plotData, particleData["plotStyle"])
+            im = self.plotTypes["RawEvolution"][subplot.get_axes_dimension()](ax, plotData, particleData["plotStyle"])
         # label axes
         ax.xaxis.set_major_locator( LinearLocator(5) )
-        ax.set_xlabel(subplot.GetAxisProperty("x", "LabelText") + " $["+subplot.GetAxisProperty("x", "Units")+"]$", fontsize=subplot.GetAxisProperty("x", "LabelFontSize"))
-        ax.set_ylabel(subplot.GetAxisProperty("y", "LabelText") + " $["+subplot.GetAxisProperty("y", "Units")+"]$", fontsize=subplot.GetAxisProperty("y", "LabelFontSize"))
-        ax.set_title(subplot.GetTitleProperty("Text"), fontsize=subplot.GetTitleProperty("FontSize"))
+        ax.set_xlabel(subplot.get_axis_property("x", "LabelText") + " $["+subplot.get_axis_property("x", "Units")+"]$", fontsize=subplot.get_axis_property("x", "LabelFontSize"))
+        ax.set_ylabel(subplot.get_axis_property("y", "LabelText") + " $["+subplot.get_axis_property("y", "Units")+"]$", fontsize=subplot.get_axis_property("y", "LabelFontSize"))
+        ax.set_title(subplot.get_title_property("Text"), fontsize=subplot.get_title_property("FontSize"))
 
     """
     Field data plot types

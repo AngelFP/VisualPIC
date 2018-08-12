@@ -25,7 +25,7 @@ class CustomColorMap:
         self.name = name
         self.colormap = colormap
         
-    def GetName(self):
+    def get_name(self):
         return self.name
     
     def GetColorMap(self):
@@ -36,6 +36,7 @@ class ColorMapsCollection:
         self.LoadColorMapsList()
         
     def LoadColorMapsList(self):
+        # TODO: simply get the list from matplotlib
         self.SingleColorMapsNamesList = ["Accent", "Blues", "BrBG", "BuGn", "BuPu", "CMRmap",
                               "Dark2", "GnBu", "Greens", "Greys", "OrRd", "Oranges",
                               "PRGn", "Paired", "Pastel1", "Pastel2", "PiYG", "PuBu",
@@ -161,11 +162,11 @@ class ColorMapsCollection:
         blueTransp = CustomColorMap('Uniform Blue Transparent', matplotlib.cm.get_cmap('Uniform Blue Transparent'))
         self.UniformCMapsWithTransparency.append(blueTransp)
         
-    def GetAllColorMapNames(self):
+    def get_all_cmap_names(self):
         cmapList = list()
         cmapList = self.GetUniformColorMapsWithTransparencyNames() + self.GetTransparentColorMapsNames() + self.GetSingleColorMapsNamesList()
         return cmapList
-    def GetAllColorMapNamesWithTransparency(self):
+    def get_all_cmap_names_with_tansparency(self):
         cmapList = list()
         cmapList = self.GetUniformColorMapsWithTransparencyNames() + self.GetTransparentColorMapsNames()
         return cmapList
@@ -174,16 +175,16 @@ class ColorMapsCollection:
         return self.SingleColorMapsNamesList
         
     def GetTransparentColorMapsNames(self):
-        namesList = list()
+        names_list = list()
         for cmap in self.TransparentColorMapList:
-            namesList.append(cmap.GetName())
-        return namesList
+            names_list.append(cmap.get_name())
+        return names_list
         
     def GetUniformColorMapsWithTransparencyNames(self):
-        namesList = list()
+        names_list = list()
         for cmap in self.UniformCMapsWithTransparency:
-            namesList.append(cmap.GetName())
-        return namesList
+            names_list.append(cmap.get_name())
+        return names_list
         
     def GetColorMap(self, colorMapName):
         for cmapName in self.SingleColorMapsNamesList:
@@ -192,9 +193,9 @@ class ColorMapsCollection:
                 return cmap
                 
         for cmap in self.TransparentColorMapList:
-            if cmap.GetName() == colorMapName:
+            if cmap.get_name() == colorMapName:
                 return cmap.GetColorMap()
                 
         for cmap in self.UniformCMapsWithTransparency:
-            if cmap.GetName() == colorMapName:
+            if cmap.get_name() == colorMapName:
                 return cmap.GetColorMap()

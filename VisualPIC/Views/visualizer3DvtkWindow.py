@@ -44,11 +44,11 @@ Ui_Visualizer3DvtkWindow, QVisualizer3DvtkWindow = loadUiType(guipath)
 
 	
 class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
-    def __init__(self, dataContainer):
+    def __init__(self, data_container):
         super(Visualizer3DvtkWindow, self).__init__()
         self.setupUi(self)
         self.set_ui_icons()
-        self.vtk_3d_visualizer = Visualizer3Dvtk(dataContainer)
+        self.vtk_3d_visualizer = Visualizer3Dvtk(data_container)
         self.register_ui_events()
         self.create_vtk_widget()
         self.current_time_step = -1
@@ -78,7 +78,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
         super(Visualizer3DvtkWindow, self).closeEvent(*args, **kwargs)
         
     def create_vtk_widget(self):
-        self.vtk_widget = self.vtk_3d_visualizer.get_vtk_widget(self.plot_Widget)
+        self.vtk_widget = self.vtk_3d_visualizer.get_vtk_widget(
+            self.plot_Widget)
         self.plotWidget_layout.addWidget(self.vtk_widget)
     
     def register_ui_events(self):
@@ -232,9 +233,11 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     def get_current_time_step(self):
         return self.current_time_step
 
-    def update_colorbars(self, time_step, update_data=True, update_position=True):
+    def update_colorbars(self, time_step, update_data=True,
+                         update_position=True):
         if self.cbar_checkBox.isChecked():
-            self.vtk_3d_visualizer.create_colorbars(time_step, update_data, update_position)
+            self.vtk_3d_visualizer.create_colorbars(time_step, update_data,
+                                                    update_position)
             self.update_render()
 
     """
@@ -271,14 +274,15 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
                 text = item.text()
                 if "[" in text:
                     fieldName = text.split(" [")[0]
-                    speciesName = text.split(" [")[1][:-1]
+                    species_name = text.split(" [")[1][:-1]
                 else:
                     fieldName = text
-                    speciesName = ""
+                    species_name = ""
                 if self.vtk_3d_visualizer.add_volume_field(fieldName,
-                                                         speciesName):
-                    wid = VolumeVTKItem(self.vtk_3d_visualizer.get_volume_field(
-                        fieldName, speciesName), self)
+                                                         species_name):
+                    wid = VolumeVTKItem(
+                        self.vtk_3d_visualizer.get_volume_field(
+                            fieldName, species_name), self)
                     wid2 = QtWidgets.QListWidgetItem()
                     wid2.setSizeHint(QtCore.QSize(100, 40))
                     self.fieldsToRender_listWidget.addItem(wid2)
@@ -299,7 +303,8 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
             item_i = self.fieldsToRender_listWidget.item(i)
             if item == self.fieldsToRender_listWidget.itemWidget(item_i):
                 self.fieldsToRender_listWidget.takeItem(i)
-        self.update_colorbars(self.current_time_step, update_data=False, update_position=True)
+        self.update_colorbars(self.current_time_step, update_data=False,
+                              update_position=True)
         self.set_time_steps()
 
     def set_time_steps(self):
@@ -323,7 +328,7 @@ class Visualizer3DvtkWindow(QVisualizer3DvtkWindow, Ui_Visualizer3DvtkWindow):
     Others
     """
     def get_data_folder_location(self):
-        return self.vtk_3d_visualizer.dataContainer.GetDataFolderLocation()
+        return self.vtk_3d_visualizer.data_container.get_data_folder_location()
 
     def save_screenshot(self, path):
         self.vtk_3d_visualizer.save_screenshot(path)

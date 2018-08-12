@@ -23,67 +23,67 @@ from VisualPIC.DataReading.dataReader import DataReader
 
 class DataElement(object):
     """Base class for all data elements (fields and rawDataSets)"""
-    _unitConverter = None
+    unit_converter = None
 
     @classmethod
-    def SetUnitConverter(cls, unitConverter):
-        cls._unitConverter = unitConverter
+    def set_unit_converter(cls, unit_converter):
+        cls.unit_converter = unit_converter
 
-    def __init__(self, standardName, timeSteps, speciesName = "", hasNonISUnits = True):
-        self.dataStandardName = standardName
-        self.speciesName = speciesName
-        self.timeSteps = timeSteps # array of integers
-        self.hasNonISUnits = hasNonISUnits
+    def __init__(self, standard_name, time_steps, species_name = "",
+                 has_non_si_units = True):
+        self.data_standard_name = standard_name
+        self.species_name = species_name
+        self.time_steps = time_steps # array of integers
+        self.has_non_si_units = has_non_si_units
         
-    def GetName(self):
-        return self.dataStandardName
+    def get_name(self):
+        return self.data_standard_name
 
-    def GetSpeciesName(self):
-        return self.speciesName
+    def get_species_name(self):
+        return self.species_name
 
-    def GetTimeSteps(self):
-        return self.timeSteps
+    def get_time_steps(self):
+        return self.time_steps
 
-    def GetFirstTimeStep(self):
-        return self.timeSteps[0]
+    def get_first_time_step(self):
+        return self.time_steps[0]
 
-    def GetSimulationCellSizeInOriginalUnits(self):
-        return self.dataReader.grid_size/self.dataReader.grid_resolution
+    def get_simulation_cell_size_in_original_units(self):
+        return self.data_reader.grid_size / self.data_reader.grid_resolution
 
-    def GetSimulationCellSizeInISUnits(self):
-        return self._unitConverter.GetCellSizeInISUnits(self)
+    def get_simulation_cell_size_in_si_units(self):
+        return self.unit_converter.get_cell_size_in_si_units(self)
 
     """
     Possible units
     """
-    def GetPossibleDataUnits(self):
-        return self._unitConverter.GetPossibleDataUnits(self)
+    def get_possible_data_units(self):
+        return self.unit_converter.get_possible_data_units(self)
 
-    def GetDataISUnits(self):
-        return self._unitConverter.GetDataISUnits(self)
+    def get_data_si_units(self):
+        return self.unit_converter.get_data_si_units(self)
     
-    def GetPossibleTimeUnits(self):
-        return self._unitConverter.GetPossibleTimeUnits(self)
+    def get_possible_time_units(self):
+        return self.unit_converter.get_possible_time_units(self)
 
-    def GetTimeOriginalUnits(self):
+    def get_time_original_units(self):
         raise NotImplementedError
         
-    def GetDataOriginalUnits(self):
+    def get_data_original_units(self):
         raise NotImplementedError
 
     """
     Conversion of units
     """
-    def GetAxisInUnits(self, axis, units, timeStep):
-        return self._unitConverter.GetAxisInUnits(axis, self, units, timeStep)
+    def get_axis_in_units(self, axis, units, time_step):
+        return self.unit_converter.get_axis_in_units(axis, self, units,
+                                                     time_step)
 
-    def GetAxisInISUnits(self, axis, timeStep):
-        return self._unitConverter.GetAxisInISUnits(axis, self, timeStep)
+    def get_axis_in_si_units(self, axis, time_step):
+        return self.unit_converter.get_axis_in_si_units(axis, self, time_step)
 
-    def GetTimeInUnits(self, units, timeStep):
-        return self._unitConverter.GetTimeInUnits(self, units, timeStep)
+    def get_time_in_units(self, units, time_step):
+        return self.unit_converter.get_time_in_units(self, units, time_step)
 
-    def GetTimeInOriginalUnits(self, timeStep):
+    def get_time_in_original_units(self, time_step):
         raise NotImplementedError
-    
-

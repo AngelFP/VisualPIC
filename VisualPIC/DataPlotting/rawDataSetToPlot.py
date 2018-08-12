@@ -22,22 +22,22 @@ class RawDataSetToPlot:
     def __init__(self, dataSet):
         self._dataSet = dataSet
         self._dataProperties = {
-            "name":dataSet.GetName(), 
-            "speciesName":dataSet.GetSpeciesName(), 
-            "timeSteps":dataSet.GetTimeSteps(),
-            "dataSetUnits":dataSet.GetDataOriginalUnits(), 
-            "timeUnits":dataSet.GetTimeOriginalUnits(),
-            "possibleDataSetUnits":dataSet.GetPossibleDataUnits(),
-            "possibleTimeUnits":dataSet.GetPossibleTimeUnits()
+            "name":dataSet.get_name(), 
+            "species_name":dataSet.get_species_name(), 
+            "time_steps":dataSet.get_time_steps(),
+            "dataSetUnits":dataSet.get_data_original_units(), 
+            "timeUnits":dataSet.get_time_original_units(),
+            "possibleDataSetUnits":dataSet.get_possible_data_units(),
+            "possibleTimeUnits":dataSet.get_possible_time_units()
         }
 
-    def GetTime(self, timeStep):
-        return self._dataSet.GetTimeInUnits(self._dataProperties["timeUnits"], timeStep)
+    def get_time(self, time_step):
+        return self._dataSet.get_time_in_units(self._dataProperties["timeUnits"], time_step)
         
-    def GetDataSetPlotData(self, timeStep):
-        return self._dataSet.GetDataInUnits(self._dataProperties["dataSetUnits"], timeStep)
+    def GetDataSetPlotData(self, time_step):
+        return self._dataSet.get_data_in_units(self._dataProperties["dataSetUnits"], time_step)
     
-    def GetProperty(self, propertyName):
+    def get_property(self, propertyName):
         return self._dataProperties[propertyName]
 
     def SetProperty(self, propertyName, value):

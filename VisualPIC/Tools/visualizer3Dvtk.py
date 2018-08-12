@@ -28,8 +28,8 @@ from VisualPIC.Controls.qt4.QVTKRenderWindowInteractor import (
 
 
 class Visualizer3Dvtk():
-    def __init__(self, dataContainer):
-        self.dataContainer = dataContainer
+    def __init__(self, data_container):
+        self.data_container = data_container
         self.load_available_3d_fields()
         self.volume_list = list()
         self.vtk_volume = vtk.vtkVolume()
@@ -52,21 +52,21 @@ class Visualizer3Dvtk():
 
     def load_available_3d_fields(self):
         self.available_fields = list()
-        species_list = self.dataContainer.GetAvailableSpecies()
-        domainFields = self.dataContainer.GetAvailableDomainFields()
+        species_list = self.data_container.get_available_species()
+        domainFields = self.data_container.get_available_domain_fields()
         for species in species_list:
-            for field in species.GetAvailableFields():
-                #if field.GetFieldDimension() == "3D":
+            for field in species.get_available_fields():
+                #if field.get_field_geometry() == "3D":
                 self.available_fields.append(field)
         for field in domainFields:
-            #if field.GetFieldDimension() == "3D":
+            #if field.get_field_geometry() == "3D":
             self.available_fields.append(field)
 
     def get_list_of_available_3d_fields(self):
         names_list = list()
         for field in self.available_fields:
-            names_list.append({"field_name": field.GetName(),
-                               "species_name": field.GetSpeciesName()})
+            names_list.append({"field_name": field.get_name(),
+                               "species_name": field.get_species_name()})
         return names_list
 
     def get_time_steps(self):
@@ -190,7 +190,7 @@ class Visualizer3Dvtk():
                     if (volume.get_field_name() == field_name):
                         return False
                 new_volume = Volume3D(
-                    self.dataContainer.GetDomainField(field_name))
+                    self.data_container.get_domain_field(field_name))
             else:
                 for volume in self.volume_list:
                     # do not add volume if already in list
@@ -198,7 +198,7 @@ class Visualizer3Dvtk():
                         and volume.get_species_name() == species_name)):
                         return False
                 new_volume = Volume3D(
-                    self.dataContainer.GetSpeciesField(species_name,
+                    self.data_container.get_species_field(species_name,
                                                        field_name))
             # add volume to list
             self.volume_list.append(new_volume)
@@ -425,8 +425,8 @@ class Visualizer3Dvtk():
 class Volume3D():
     def __init__(self, field3D):
         self.actor_type = "Volume"
-        self.name = field3D.GetName()
-        self.species_name = field3D.GetSpeciesName()
+        self.name = field3D.get_name()
+        self.species_name = field3D.get_species_name()
         self.field = field3D
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_color = vtk.vtkColorTransferFunction()
@@ -471,7 +471,7 @@ class Volume3D():
         return fld_val, op_val
 
     def get_field_name(self):
-        return self.field.GetName()
+        return self.field.get_name()
 
     def get_field_histogram(self, time_step, bins=64):
         fld_data = self.get_data(time_step)
@@ -489,13 +489,13 @@ class Volume3D():
                 np.linspace(self.min_range, self.max_range, nels))
 
     def get_field_units(self):
-        return self.field.GetDataISUnits()
+        return self.field.get_data_si_units()
 
     def get_species_name(self):
-        return self.field.GetSpeciesName()
+        return self.field.get_species_name()
 
     def get_time_steps(self):
-        return self.field.GetTimeSteps()
+        return self.field.get_time_steps()
 
     def set_cmap(self, fld_val, r_val, g_val, b_val):
         # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
@@ -557,12 +557,12 @@ class Volume3D():
     def load_field_data(self, time_step, transv_el = None, lon_el = None,
                         fraction = 1):
         if not self.is_data_loaded(time_step):
-            if self.field.GetFieldDimension() in ["3D", "thetaMode"]:
-                self.fieldData = self.field.GetAllFieldDataInOriginalUnits(
+            if self.field.get_field_geometry() in ["3D", "thetaMode"]:
+                self.fieldData = self.field.get_all_field_data_in_original_units(
                     time_step)
-            if self.field.GetFieldDimension() == "2D":
+            if self.field.get_field_geometry() == "2D":
                 self.fieldData = (
-                    self.field.Get3DFieldFrom2DSliceInOriginalUnits(
+                    self.field.get_3d_field_from_2d_slice_in_original_units(
                         time_step, transv_el, lon_el, fraction))
             if not self.custom_cmap_range:
                 self.max_range = np.amax(self.fieldData)
@@ -577,19 +577,19 @@ class Volume3D():
 
     def get_axes(self, time_step):
         axes = {}
-        if self.field.GetFieldDimension() == "thetaMode":
-            axes["z"] = self.field.GetAxisDataInOriginalUnits("r", time_step)
-            axes["y"] = self.field.GetAxisDataInOriginalUnits("r", time_step)
-            axes["x"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
+        if self.field.get_field_geometry() == "thetaMode":
+            axes["z"] = self.field.get_axis_data_in_original_units("r", time_step)
+            axes["y"] = self.field.get_axis_data_in_original_units("r", time_step)
+            axes["x"] = self.field.get_axis_data_in_original_units("z", time_step)
         else:
-            if self.field.GetFieldDimension() == "3D":
-                axes["z"] = self.field.GetAxisDataInOriginalUnits("y",
+            if self.field.get_field_geometry() == "3D":
+                axes["z"] = self.field.get_axis_data_in_original_units("y",
                                                                   time_step)
-            if self.field.GetFieldDimension() == "2D":
-                axes["z"] = self.field.GetAxisDataInOriginalUnits("x",
+            if self.field.get_field_geometry() == "2D":
+                axes["z"] = self.field.get_axis_data_in_original_units("x",
                                                                   time_step)
-            axes["y"] = self.field.GetAxisDataInOriginalUnits("x", time_step)
-            axes["x"] = self.field.GetAxisDataInOriginalUnits("z", time_step)
+            axes["y"] = self.field.get_axis_data_in_original_units("x", time_step)
+            axes["x"] = self.field.get_axis_data_in_original_units("z", time_step)
         return axes
 
     def get_axes_spacing(self, time_step, transv_el = None, lon_el = None,
@@ -597,11 +597,11 @@ class Volume3D():
         # TODO: implement number of elements and fraction in 3D
         spacing = {}
         axes = self.get_axes(time_step)
-        if self.field.GetFieldDimension() == "3D":
+        if self.field.get_field_geometry() == "3D":
             spacing["x"] = np.abs(axes["x"][1] - axes["x"][0])
             spacing["y"] = np.abs(axes["y"][1] - axes["y"][0])
             spacing["z"] = np.abs(axes["z"][1] - axes["z"][0])
-        if self.field.GetFieldDimension() == "2D":
+        if self.field.get_field_geometry() == "2D":
             spacing["x"] = np.abs(axes["x"][-1] - axes["x"][0]) / lon_el
             spacing["y"] = np.abs(axes["y"][-1] - axes["y"][0]) / (transv_el
                                                                    *fraction)

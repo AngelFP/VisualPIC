@@ -20,21 +20,26 @@
 from VisualPIC.DataReading.rawDataReaders import *
 from VisualPIC.DataReading.fieldReaders import *
 
+
 class RawDataReaderSelector:
-    dataReaders = {"Osiris": OsirisRawDataReader,
-                   "HiPACE": HiPACERawDataReader,
-                   "openPMD": OpenPMDRawDataReader
-                   }
+    """Class in charge of returning the corresponding raw data reader"""
+    data_readers = {"Osiris": OsirisRawDataReader,
+                    "HiPACE": HiPACERawDataReader,
+                    "openPMD": OpenPMDRawDataReader}
     @classmethod
-    def GetReader(cls, simulationCode, location, speciesName, dataName, internalName, firstTimeStep):
-        return cls.dataReaders[simulationCode](location, speciesName, dataName, internalName, firstTimeStep)
+    def get_reader(cls, simulation_code, location, species_name, data_name,
+                  internal_name, first_time_step):
+        return cls.data_readers[simulation_code](
+            location, species_name, data_name, internal_name, first_time_step)
 
 
 class FieldReaderSelector:
-    dataReaders = {"Osiris": OsirisFieldReader,
-                   "HiPACE": HiPACEFieldReader,
-                   "openPMD": OpenPMDFieldReader
-                   }
+    """Class in charge of returning the corresponding field data reader"""
+    data_readers = {"Osiris": OsirisFieldReader,
+                    "HiPACE": HiPACEFieldReader,
+                    "openPMD": OpenPMDFieldReader}
     @classmethod
-    def GetReader(cls, simulationCode, location, speciesName, dataName, firstTimeStep):
-        return cls.dataReaders[simulationCode](location, speciesName, dataName, firstTimeStep)
+    def get_reader(cls, simulation_code, location, species_name, data_name,
+                  first_time_step):
+        return cls.data_readers[simulation_code](
+            location, species_name, data_name, first_time_step)
