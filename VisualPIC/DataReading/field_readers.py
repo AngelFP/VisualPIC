@@ -138,28 +138,28 @@ class OsirisFieldReader(FieldReader):
     def read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
         md = {}
-        field_units = self.get_field_units(file, field_path)
-        field_shape = self.get_field_shape(file, field_path)
-        field_geometry = self.determine_geometry(file)
+        field_units = self._get_field_units(file, field_path)
+        field_shape = self._get_field_shape(file, field_path)
+        field_geometry = self._determine_geometry(file)
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
-        md['axis'] = self.get_axis_data(file, field_path, field_geometry,
+        md['axis'] = self._get_axis_data(file, field_path, field_geometry,
                                        field_shape)
-        md['time'] = self.get_time_data(file)
+        md['time'] = self._get_time_data(file)
         file.close()
         return md
         
-    def get_field_units(self, file, field_path):
+    def _get_field_units(self, file, field_path):
         """ Returns the field units"""
         return str(list(file[field_path].attrs["UNITS"])[0])[2:-1].replace(
             "\\\\","\\")
 
-    def get_field_shape(self, file, field_path):
+    def _get_field_shape(self, file, field_path):
         """ Returns shape of field array"""
         return file[field_path].shape
 
-    def determine_geometry(self, file):
+    def _determine_geometry(self, file):
         """ Determines the field geometry """
         if '/AXIS/AXIS3' in file:
             return "3dcartesian"
@@ -168,7 +168,7 @@ class OsirisFieldReader(FieldReader):
         else:
             return "1d"
 
-    def get_axis_data(self, file, field_path, field_geometry, field_shape):
+    def _get_axis_data(self, file, field_path, field_geometry, field_shape):
         """ Returns dictionary with the array and units of each field axis """
         axis_data = {}
         axis_data['z'] = {}
@@ -193,7 +193,7 @@ class OsirisFieldReader(FieldReader):
                                                   field_shape[2])
         return axis_data
 
-    def get_time_data(self, file):
+    def _get_time_data(self, file):
         """ Returns dictionary with value and units of the simulation time """
         time_data = {}
         time_data["value"] = file.attrs["TIME"][0]
@@ -283,7 +283,7 @@ class OpenPMDFieldReader(FieldReader):
         md['time']['value'] = t
         md['time']['units'] = 's'
         field_geometry = params['fields_metadata'][field]['geometry']
-        field_units = self.determine_field_units(field)
+        field_units = self._determine_field_units(field)
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
@@ -299,7 +299,7 @@ class OpenPMDFieldReader(FieldReader):
                                                     ax_el[axis])
         return md
 
-    def determine_field_units(self, field):
+    def _determine_field_units(self, field):
         if field == 'E':
             return 'V/m'
         if field == 'B':
