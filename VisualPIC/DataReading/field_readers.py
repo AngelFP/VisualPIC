@@ -28,20 +28,20 @@ class FieldReader():
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_field(self, file_path, field_path, slice_i=None, slice_j=None,
+    def read_field(self, file_path, field_path, slice_i=0.5, slice_j=0.5,
                    slice_dir_i=None, slice_dir_j=None, transv_ax='r', m=0,
                    theta=0):
         fld_metadata = self.read_field_metadata(file_path, field_path)
         geom = fld_metadata['field']['geometry']
-        if geom == "1D":
+        if geom == "1d":
             fld = self.read_field_1d(file_path, field_path)
-        elif geom == "2D-cart":
+        elif geom == "2dcartesian":
             fld = self.read_field_2d_cart(file_path, field_path, slice_i,
                                           slice_dir_i)
-        elif geom == "3D-cart":
+        elif geom == "3dcartesian":
             fld = self.read_field_3d_cart(file_path, field_path, slice_i,
                                           slice_j, slice_dir_i, slice_dir_j)
-        elif geom == "2D-cyl":
+        elif geom == "2dcylindrical":
             fld = self.read_field_2d_cyl(file_path, field_path, slice_i,
                                          slice_dir_i)
         elif geom == "thetaMode":
@@ -54,7 +54,7 @@ class FieldReader():
     def readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
                           transv_ax):
         geom = field_metadata['field']['geometry']
-        if geom in ["2D-cyl", "thetaMode"]:
+        if geom in ["2dcylindrical", "thetaMode"]:
             if transv_ax != 'r':
                 r_array = field_metadata['axis']['r']['array']
                 r_units = field_metadata['axis']['r']['units']
@@ -72,20 +72,20 @@ class FieldReader():
     def read_field_1d(self, file_path, field_path):
         raise NotImplementedError
 
-    def read_field_2d_cart(self, file_path, field_path, slice_i=None,
+    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
                            slice_dir_i='z'):
         raise NotImplementedError
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=None,
-                           slice_j=None, slice_dir_i=None, slice_dir_j=None):
+    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         raise NotImplementedError
 
     def read_field_2d_cyl(self, file_path, field_path, transv_ax='r', 
-                          slice_i=None, slice_dir_i=None):
+                          slice_i=0.5, slice_dir_i=None):
         raise NotImplementedError
 
     def read_field_theta(self, file_path, field_path, m=0, theta=0,
-                         transv_ax='r', slice_i=None, slice_dir_i=None):
+                         transv_ax='r', slice_i=0.5, slice_dir_i=None):
         raise NotImplementedError
 
     def read_field_metadata(self, file_path, field_path):
@@ -100,11 +100,11 @@ class OsirisFieldReader(FieldReader):
         file = H5F(file_path, 'r')
         return file[field_path]
     
-    def read_field_2d_cart(self, file_path, field_path, slice_i=None,
+    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
                            slice_dir_i=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
-        if slice_i is not None:
+        if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'z']
             slice_list = [slice(None)] * fld.ndim
@@ -115,11 +115,11 @@ class OsirisFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=None,
-                           slice_j=None, slice_dir_i=None, slice_dir_j=None):
+    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
-        if slice_i is not None:
+        if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'y', 'z']
             slice_list = [slice(None)] * fld.ndim
@@ -127,7 +127,7 @@ class OsirisFieldReader(FieldReader):
             axis_elements_i = fld_shape[axis_idx_i] 
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
-            if slice_j is not None:
+            if slice_dir_j is not None:
                 axis_idx_j = axis_order.index(slice_dir_j)
                 axis_elements_j = fld_shape[axis_idx_j] 
                 slice_idx_j = int(round(axis_elements_j * slice_j))
@@ -162,11 +162,11 @@ class OsirisFieldReader(FieldReader):
     def determine_geometry(self, file):
         """ Determines the field geometry """
         if '/AXIS/AXIS3' in file:
-            return "3D-cart"
+            return "3dcartesian"
         elif '/AXIS/AXIS2' in file:
-            return "2D-cart"
+            return "2dcartesian"
         else:
-            return "1D"
+            return "1d"
 
     def get_axis_data(self, file, field_path, field_geometry, field_shape):
         """ Returns dictionary with the array and units of each field axis """
@@ -177,14 +177,14 @@ class OsirisFieldReader(FieldReader):
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
                                               field_shape[0])
-        if field_geometry in ["2D-cart", "3D-cart"]:
+        if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
             axis_data["x"]["units"] = str(list(file['/AXIS/AXIS2'].attrs[
                 "UNITS"])[0])[2:-1].replace("\\\\","\\")
             axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                                   file.attrs['XMAX'][1],
                                                   field_shape[1])
-        if field_geometry == "3D-cart":
+        if field_geometry == "3dcartesian":
             axis_data['y'] = {}
             axis_data["y"]["units"] = str(list(file['/AXIS/AXIS3'].attrs[
                 "UNITS"])[0])[2:-1].replace("\\\\","\\")
@@ -206,8 +206,47 @@ class OpenPMDFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
+    def read_field_1d(self, file_path, field_path):
+        fld, _ = opmd_fr.read_field_1d(file_path, field_path, ['z'])
+        return fld
+
+    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
+                           slice_dir_i=None):
+        fld, _ = opmd_fr.read_field_2d(file_path, field_path, ['z', 'x'])
+        if slice_dir_i is not None:
+            fld_shape = fld.shape
+            axis_order = ['x', 'z']
+            slice_list = [slice(None)] * fld.ndim
+            axis_idx_i = axis_order.index(slice_dir_i)
+            axis_elements_i = fld_shape[axis_idx_i] 
+            slice_idx_i = int(round(axis_elements_i * slice_i))
+            slice_list[axis_idx_i] = slice_idx_i
+            fld = fld[tuple(slice_list)]
+        return fld
+
+    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+        if slice_dir_i is not None:
+            slicing = -1. + 2*slice_i
+        else:
+            slicing = None
+        fld, _ = opmd_fr.read_field_3d(file_path, field_path, ['z', 'x', 'y'],
+                                       slicing, slice_dir_i)
+        if slice_dir_i is not None and slice_dir_j is not None:
+            fld_shape = fld.shape
+            axis_order = ['x', 'y', 'z']
+            axis_order.remove(slice_dir_i)
+            slice_list = [slice(None)] * fld.ndim
+            axis_idx_j = axis_order.index(slice_dir_j)
+            axis_elements_j = fld_shape[axis_idx_j] 
+            slice_idx_j = int(round(axis_elements_j * slice_j))
+            slice_list[axis_idx_j] = slice_idx_j
+            fld = fld[tuple(slice_list)]
+        return fld
+
+
     def read_field_theta(self, file_path, field_path, m=0, theta=0,
-                         transv_ax='r', slice_i=None, slice_dir_i=None):
+                         transv_ax='r', slice_i=0.5, slice_dir_i=None):
         if transv_ax == 'r':
             fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
         else:
