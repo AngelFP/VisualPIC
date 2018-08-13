@@ -52,7 +52,8 @@ class FolderField(Field):
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
             slice_dir_j, transv_ax, m, theta)
+        return fld, fld_md
 
     def _get_file_path(self, time_step):
-        ts_i = self.field_timesteps.index(time_step)
+        ts_i = self.field_timesteps.tolist().index(time_step)
         return self.field_files[ts_i]
