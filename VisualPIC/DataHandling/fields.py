@@ -37,13 +37,14 @@ class Field():
 
 class FolderField(Field):
     def __init__(self, field_name, field_path, field_files, field_timesteps,
-                 field_reader, unit_converter):
+                 field_reader, unit_converter, species_name=""):
         self.field_name = field_name
         self.field_path = field_path
         self.field_files = field_files
         self.field_timesteps = field_timesteps
         self.field_reader = field_reader
         self.unit_converter = unit_converter
+        self.species_name = species_name
 
     def get_field_data_in_original_units(
         self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
