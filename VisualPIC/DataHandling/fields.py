@@ -24,17 +24,17 @@ class Field():
         self.field_timesteps = field_timesteps
         self.species_name = species_name
 
-    def get_field_data_in_original_units(
+    def get_data_in_original_units(
         self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
         slice_dir_j=None, transv_ax='r', m=0, theta=0):
         raise NotImplementedError
 
-    def get_field_data_in_si_units(
+    def get_data_in_si_units(
         self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
         slice_dir_j=None, transv_ax='r', m=0, theta=0):
         raise NotImplementedError
 
-    def get_field_data_in_units(
+    def get_data_in_units(
         self, time_step, field_units, axes_units, slice_i=0.5, slice_j=0.5,
         slice_dir_i=None, slice_dir_j=None, transv_ax='r', m=0, theta=0):
         raise NotImplementedError
@@ -49,7 +49,7 @@ class FolderField(Field):
         self.field_reader = field_reader
         self.unit_converter = unit_converter
 
-    def get_field_data_in_original_units(
+    def get_data_in_original_units(
         self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
         slice_dir_j=None, transv_ax='r', m=0, theta=0):
         file_path = self._get_file_path(time_step)
