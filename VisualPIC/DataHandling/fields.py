@@ -24,19 +24,9 @@ class Field():
         self.field_timesteps = field_timesteps
         self.species_name = species_name
 
-    def get_data_in_original_units(
-        self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-        slice_dir_j=None, transv_ax='r', m=0, theta=0):
-        raise NotImplementedError
-
-    def get_data_in_si_units(
-        self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-        slice_dir_j=None, transv_ax='r', m=0, theta=0):
-        raise NotImplementedError
-
-    def get_data_in_units(
-        self, time_step, field_units, axes_units, slice_i=0.5, slice_j=0.5,
-        slice_dir_i=None, slice_dir_j=None, transv_ax='r', m=0, theta=0):
+    def get_data(self, time_step, field_units='orig', axes_units='orig',
+                 slice_i=0.5, slice_j=0.5, slice_dir_i=None, slice_dir_j=None,
+                 transv_ax='r', m=0, theta=0):
         raise NotImplementedError
 
 
@@ -49,13 +39,19 @@ class FolderField(Field):
         self.field_reader = field_reader
         self.unit_converter = unit_converter
 
-    def get_data_in_original_units(
-        self, time_step, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-        slice_dir_j=None, transv_ax='r', m=0, theta=0):
+    def get_data(self, time_step, field_units='orig', axes_units='orig',
+                 slice_i=0.5, slice_j=0.5, slice_dir_i=None, slice_dir_j=None,
+                 transv_ax='r', m=0, theta=0):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
             slice_dir_j, transv_ax, m, theta)
+        if field_units != 'orig':
+            #realize conversion
+            raise NotImplementedError
+        if axes_units != 'orig':
+            #realize conversion
+            raise NotImplementedError
         return fld, fld_md
 
     def _get_file_path(self, time_step):
