@@ -24,9 +24,9 @@ class Field():
         self.field_timesteps = field_timesteps
         self.species_name = species_name
 
-    def get_data(self, time_step, field_units='orig', axes_units='orig',
-                 slice_i=0.5, slice_j=0.5, slice_dir_i=None, slice_dir_j=None,
-                 transv_ax='r', m=0, theta=0):
+    def get_data(self, time_step, field_units=None, axes_units=None,
+                 time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
+                 slice_dir_j=None, transv_ax='r', m=0, theta=0):
         raise NotImplementedError
 
 
@@ -40,8 +40,8 @@ class FolderField(Field):
         self.unit_converter = unit_converter
 
     def get_data(self, time_step, field_units=None, axes_units=None,
-                 slice_i=0.5, slice_j=0.5, slice_dir_i=None, slice_dir_j=None,
-                 transv_ax='r', m=0, theta=0):
+                 time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
+                 slice_dir_j=None, transv_ax='r', m=0, theta=0):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
@@ -50,6 +50,9 @@ class FolderField(Field):
             #realize conversion
             raise NotImplementedError
         if axes_units is not None:
+            #realize conversion
+            raise NotImplementedError
+        if time_units is not None:
             #realize conversion
             raise NotImplementedError
         return fld, fld_md
