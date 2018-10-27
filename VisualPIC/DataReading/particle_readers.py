@@ -25,17 +25,15 @@ class ParticleReader():
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_particle_data(self, file_path, species_list=[],
+    def read_particle_data(self, file_path, species_name,
                            component_list=[]):
         file = self._get_file_handle(file_path)
         data_dict = {}
-        for species in species_list:
-            data_dict[species] ={}
-            for component in component_list:
-                metadata = self._read_component_metadata(file, species,
-                                                         component)
-                data = self._read_component_data(file, species, component)
-                data_dict[species][component] = (data, metadata)
+        for component in component_list:
+            metadata = self._read_component_metadata(file, species_name,
+                                                        component)
+            data = self._read_component_data(file, species_name, component)
+            data_dict[component] = (data, metadata)
         #self._release_file_handle(file)
         return data_dict
 
