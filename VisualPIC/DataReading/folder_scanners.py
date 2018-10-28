@@ -21,19 +21,26 @@
 import os
 
 import numpy as np
+from h5py import File as H5F
 
 import VisualPIC.DataReading.field_readers as fr
+import VisualPIC.DataReading.particle_readers as pr
 from VisualPIC.DataHandling.fields import FolderField
+from VisualPIC.DataHandling.particle_species import ParticleSpecies
 import VisualPIC.DataHandling.unitConverters as uc
 
 class FolderScanner():
     def get_list_of_fields(self, folder_path):
-        pass
+        raise NotImplementedError
+
+    def get_list_of_species(self, folder_path):
+        raise NotImplementedError
 
 
 class OsirisFolderScanner(FolderScanner):
     def __init__(self):
         self.field_reader = fr.OsirisFieldReader()
+        self.particle_reader = pr.OsirisParticleReader()
         #self.unit_converter = uc.OsirisUnitConverter()
 
     def get_list_of_fields(self, folder_path):
@@ -62,6 +69,21 @@ class OsirisFolderScanner(FolderScanner):
                             self._create_field(field, field_folder))
         return field_list
 
+    def get_list_of_species(self, folder_path):
+        species_list = []
+        folders_in_path = os.listdir(folder_path)
+        for folder in folders_in_path:
+            if folder == "RAW":
+                subdir = os.path.join(folder_path, folder)
+                available_species = os.listdir(subdir)
+                for species in available_species:
+                    species_folder = os.path.join(subdir, species)
+                    if os.path.isdir(species_folder):
+                        species_fields = os.listdir(species_folder)
+                        species_list.append(self._create_species(
+                                    species, species_folder))
+        return species_list
+
     def _create_field(self, field_name, field_folder, species_name=""):
         field_path = self._get_field_path(field_name)
         osiris_field_name = self._get_osiris_field_name(
@@ -71,8 +93,20 @@ class OsirisFolderScanner(FolderScanner):
         fld_files, time_steps = self._get_files_and_timesteps(
             field_folder)
         return FolderField(field_name, field_path, fld_files,
-                        time_steps, self.field_reader,
-                        'uc', species_name)
+                           time_steps, self.field_reader,
+                           'uc', species_name)
+
+    def _create_species(self, species_name, species_folder):
+        species_files, time_steps = self._get_files_and_timesteps(
+            species_folder)
+        species_components = []
+        file_path = species_files[0]
+        file_content = H5F(file_path, 'r')
+        for dataset_name in list(file_content):
+            species_components.append(
+                self._get_standard_visualpic_name(dataset_name))
+        return ParticleSpecies(species_name, species_components, time_steps,
+                               species_files, self.particle_reader, 'uc')
 
     def _get_field_path(self, field_folder_name):
         return '/' + self._get_osiris_field_name(field_folder_name)
@@ -84,7 +118,17 @@ class OsirisFolderScanner(FolderScanner):
                           'b1': 'Bz',
                           'b2': 'Bx',
                           'b3': 'By',
-                          'charge': 'rho'}
+                          'charge': 'rho',
+                          'x1': 'z',
+                          'x2': 'x',
+                          'x3': 'y',
+                          'p1': 'pz',
+                          'p2': 'px',
+                          'p3': 'py',
+                          'q': 'q',
+                          'ene': 'ekin',
+                          'tag': 'tag'}
+
         if osiris_name in name_relations:
             return name_relations[osiris_name]
         else:
