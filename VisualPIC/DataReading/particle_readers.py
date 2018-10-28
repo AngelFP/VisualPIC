@@ -59,6 +59,7 @@ class OsirisParticleReader(ParticleReader):
                                'px': 'p2',
                                'py': 'p3',
                                'q': 'q',
+                               'ekin': 'ene',
                                'tag': 'tag'}
         return super().__init__(*args, **kwargs)
 
