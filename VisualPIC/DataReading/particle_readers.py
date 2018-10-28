@@ -70,12 +70,20 @@ class OsirisParticleReader(ParticleReader):
         file_handle.close()
 
     def _read_component_data(self, file_handle, species, component):
-        return file_handle[self.name_relations[component]]
+        data = file_handle[self.name_relations[component]]
+        if component == 'tag':
+            # Apply Cantor pairing function
+            print(data)
+            a = data[:,0]
+            b = data[:,1]
+            data = 1/2*(a+b)*(a+b+1)+b 
+        return data
 
     def _read_component_metadata(self, file_handle, species, component):
         metadata = {}
-        metadata['units'] = self._numpy_bytes_to_string(
-            file_handle[self.name_relations[component]].attrs['UNITS'][0])
+        if component != 'tag': 
+            metadata['units'] = self._numpy_bytes_to_string(
+                file_handle[self.name_relations[component]].attrs['UNITS'][0])
         metadata['time'] = {}
         metadata['time']['value'] = file_handle.attrs['TIME'][0]
         metadata['time']['units'] = self._numpy_bytes_to_string(
