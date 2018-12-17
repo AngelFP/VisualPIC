@@ -19,6 +19,9 @@
 
 from h5py import File as H5F
 import numpy as np
+import scipy.constants as ct
+
+from VisualPIC.helper_functions import join_infile_path
 
 
 class ParticleReader():
@@ -97,3 +100,66 @@ class OsirisParticleReader(ParticleReader):
 
     def _numpy_bytes_to_string(self, npbytes):
         return str(npbytes)[2:-1].replace("\\\\","\\")
+
+
+class OpenPMDParticleReader(ParticleReader):
+    def __init__(self, *args, **kwargs):
+        self.name_relations = {'z': 'position/z',
+                               'x': 'position/x',
+                               'y': 'position/y',
+                               'pz': 'momentum/z',
+                               'px': 'momentum/x',
+                               'py': 'momentum/y',
+                               'q': 'charge'}
+        return super().__init__(*args, **kwargs)
+
+    def _get_file_handle(self, file_path):
+        return H5F(file_path, 'r')
+
+    def _release_file_handle(self, file_handle):
+        file_handle.close()
+
+    def _read_component_data(self, file_handle, species, component):
+        # get base path in file
+        iteration = list(file_handle['/data'].keys())[0]
+        base_path = '/data/{}'.format(iteration)
+        # get path under which particle data is stored
+        particles_path = file_handle.attrs['particlesPath'].decode()
+        # get species
+        beam_species = file_handle[
+            join_infile_path(base_path, particles_path, species)]
+        component_to_read = self.name_relations[component]
+        if 'position' in component_to_read:
+            data = beam_species[component_to_read]
+            coord = component_to_read[-1]
+            data += beam_species['positionOffset/'+coord].attrs['value']
+        elif 'momentum' in component_to_read:
+            data = beam_species[component_to_read]
+            m = beam_species['mass'].attrs['value']
+            data = data / (m*ct.c)
+        elif component_to_read == 'charge':
+            data = beam_species[component_to_read].attrs['value']
+            w = beam_species['weighting'][:]
+            data = data * w
+        return data
+
+    def _read_component_metadata(self, file_handle, species, component):
+        # get base path in file
+        iteration = list(file_handle['/data'].keys())[0]
+        base_path = '/data/{}'.format(iteration)
+        component_to_read = self.name_relations[component]
+        metadata = {}
+        if 'position' in component_to_read:
+            metadata['units'] = 'm'
+        elif 'momentum' in component_to_read:
+            metadata['units'] = 'm_e*c'
+        elif component_to_read == 'charge':
+            metadata['units'] = 'C'
+        metadata['time'] = {}
+        metadata['time']['value'] = file_handle[base_path].attrs['time']
+        metadata['time']['units'] = 's'
+        metadata['grid'] = {}
+        metadata['grid']['resolution'] = None
+        metadata['grid']['size'] = None
+        metadata['grid']['size_units'] = None
+        return metadata
