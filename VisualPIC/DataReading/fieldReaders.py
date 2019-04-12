@@ -356,8 +356,14 @@ class OpenPMDFieldReader(FieldReaderBase):
         file_content.close()
 
     def _GetMatrixShape(self, file_content):
-        _, dataset = openpmd_find_dataset( file_content, self.internalName )
-        self.matrixShape = openpmd_get_shape( dataset )
+        # Find the name of the field ; vector fields like E are encoded as "E/x"
+        field_and_coord = self.internalName.split("/")
+        # Note: the code below has very bad performance because
+        # it automatically reads the field data, just to extract the metadata
+        # TODO: improve in the future
+        F, _ = self.openpmd_ts.get_field(
+                    *field_and_coord, slicing=None, theta=None )
+        self.matrixShape = F.shape
 
     def _ReadInternalName(self, file_content):
         self.internalName = self.openpmd_dataName
@@ -366,7 +372,7 @@ class OpenPMDFieldReader(FieldReaderBase):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
         fieldname = self.internalName.split("/")[0]
         geometry = self.openpmd_ts.fields_metadata[fieldname]['geometry']
-        if geometry == '3dcartesian':
+        if (geometry == '3dcartesian') or (geometry == 'thetaMode'):
             self.fieldDimension = "3D"
         elif geometry == '2dcartesian':
             self.fieldDimension = "2D"
@@ -405,8 +411,9 @@ class OpenPMDFieldReader(FieldReaderBase):
     def _ReadAllFieldData(self, timeStep):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
         field_and_coord = self.internalName.split("/")
-        fieldData, _ = self.openpmd_ts.get_field(
-                        *field_and_coord, iteration=timeStep, slicing=None )
+        fieldData, _ = self.openpmd_ts.get_field( *field_and_coord,
+                iteration=timeStep, slicing=None, theta=None )
+        # theta=None converts "thetaMode" to 3D Cartesian array
         return fieldData
 
     def _ReadAxisData(self, timeStep):
@@ -416,7 +423,7 @@ class OpenPMDFieldReader(FieldReaderBase):
         # it automatically reads the field data, just to extract the metadata
         # TODO: improve in the future
         _, field_meta_data = self.openpmd_ts.get_field( *field_and_coord,
-                                    iteration=timeStep, slicing=None )
+                               iteration=timeStep, slicing=None, theta=None )
         # Construct the `axisData` from the object `field_meta_data`
         axisData = {}
         axisData["x"] = getattr( field_meta_data, "z" )
