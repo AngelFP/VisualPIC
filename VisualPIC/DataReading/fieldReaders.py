@@ -357,13 +357,24 @@ class OpenPMDFieldReader(FieldReaderBase):
 
     def _GetMatrixShape(self, file_content):
         # Find the name of the field ; vector fields like E are encoded as "E/x"
-        field_and_coord = self.internalName.split("/")
-        # Note: the code below has very bad performance because
-        # it automatically reads the field data, just to extract the metadata
-        # TODO: improve in the future
-        F, _ = self.openpmd_ts.get_field(
-                    *field_and_coord, slicing=None, theta=None )
-        self.matrixShape = F.shape
+        fieldname = self.internalName.split("/")[0]
+        geometry = self.openpmd_ts.fields_metadata[fieldname]['geometry']
+        t = self.openpmd_ts.fields_metadata[fieldname]['type']
+        # For thetaMode: avoid trying to access "E/x"
+        # (is stored internally E/r and E/t)
+        internal_name = self.internalName
+        if (geometry == "thetaMode") and (t=="vector"):
+            if internal_name.endswith("x") or internal_name.endswith("y"):
+                internal_name = internal_name[:-1] + "r"
+        # Get the shape
+        _, dataset = openpmd_find_dataset( file_content, internal_name )
+        shape = openpmd_get_shape( dataset )
+        # In the case of `thetaMode` geometry, the obtained shape is
+        # (number of radial points, number of points in z, number of modes)
+        if geometry == 'thetaMode':
+            # Convert to nx, ny, nz
+            shape = (2*shape[0], 2*shape[0], shape[1])
+        self.matrixShape = shape
 
     def _ReadInternalName(self, file_content):
         self.internalName = self.openpmd_dataName
@@ -421,9 +432,11 @@ class OpenPMDFieldReader(FieldReaderBase):
         field_and_coord = self.internalName.split("/")
         # Note: the code below has very bad performance because
         # it automatically reads the field data, just to extract the metadata
-        # TODO: improve in the future
         _, field_meta_data = self.openpmd_ts.get_field( *field_and_coord,
-                               iteration=timeStep, slicing=None, theta=None )
+                               iteration=timeStep, slicing=None )
+        geometry = self.openpmd_ts.fields_metadata[field_and_coord[0]]['geometry']
+        if geometry == 'thetaMode':
+            field_meta_data._convert_cylindrical_to_3Dcartesian()
         # Construct the `axisData` from the object `field_meta_data`
         axisData = {}
         axisData["x"] = getattr( field_meta_data, "z" )
