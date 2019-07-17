@@ -241,7 +241,7 @@ class HiPACEFieldReader(FieldReaderBase):
         self._ReadInternalName(file_content)
         self._DetermineFieldDimension(file_content)
         self._GetMatrixShape(file_content)
-        self._ReadSimulationProperties(file_content)
+        #self._ReadSimulationProperties(file_content)
         file_content.close()
 
     def _GetMatrixShape(self, file_content):

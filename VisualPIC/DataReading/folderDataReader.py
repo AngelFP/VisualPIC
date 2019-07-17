@@ -208,7 +208,7 @@ class FolderDataReader:
                     data_time_steps = list()
                     for file in data_files:
                         if data_name in file:
-                            time_step = int(file[-9, -3])
+                            time_step = int(file[-9:-3])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddDomainField(FolderField("HiPACE", data_name, self.GiveStandardNameForHiPACEQuantity(data_name), data_folder, data_time_steps))
