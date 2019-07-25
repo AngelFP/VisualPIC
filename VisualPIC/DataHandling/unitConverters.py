@@ -272,7 +272,7 @@ class HiPACEUnitConverter(GeneralUnitConverter):
         super().SetSimulationParameters(params)
         self._SetNormalizationFactor(params["n_p"])
 
-    def ConvertToISUnits(self, dataElement):
+    def ConvertToISUnits(self, dataElement, data):
         dataElementName = dataElement.GetName()
         if dataElementName == "Ex" or dataElementName == "Ey" or dataElementName == "Ez":
             return data*self.E0 # V/m
