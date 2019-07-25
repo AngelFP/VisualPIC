@@ -276,7 +276,7 @@ class OpenPMDFieldReader(FieldReader):
 
     def read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
-        field, coord = field_path.split('/')
+        field, *_ = field_path.split('/')
         md = {}
         t, params = read_openPMD_params(file_path)
         md['time'] = {}

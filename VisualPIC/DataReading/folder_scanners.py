@@ -22,6 +22,9 @@ import os
 
 import numpy as np
 from h5py import File as H5F
+from opmd_viewer.openpmd_timeseries.utilities import list_h5_files
+from opmd_viewer.openpmd_timeseries.data_reader.params_reader import (
+    read_openPMD_params)
 
 import VisualPIC.DataReading.field_readers as fr
 import VisualPIC.DataReading.particle_readers as pr
@@ -35,6 +38,56 @@ class FolderScanner():
 
     def get_list_of_species(self, folder_path):
         raise NotImplementedError
+
+
+class OpenPMDFolderScanner(FolderScanner):
+    def __init__(self):
+        self.field_reader = fr.OpenPMDFieldReader()
+        self.particle_reader = pr.OpenPMDParticleReader()
+
+    def get_list_of_fields(self, folder_path):
+        field_list = []
+        h5_files, iterations = list_h5_files(folder_path)
+        t, opmd_params = read_openPMD_params(h5_files[0])
+        avail_fields = opmd_params['avail_fields']
+        for field in avail_fields:
+            if opmd_params['fields_metadata'][field]['type'] == 'vector':
+                field_comps = \
+                    opmd_params['fields_metadata'][field]['axis_labels']
+                for comp in field_comps:
+                    field_path = field + '/' + comp
+                    field_name = self._get_standard_visualpic_name(field_path)
+                    field_list.append(
+                        FolderField(field_name, field_path, h5_files,
+                                    iterations, self.field_reader, 'uc'))
+            else:
+                field_list.append(
+                        FolderField(field, field, h5_files, iterations,
+                                    self.field_reader, 'uc'))
+        return field_list
+
+    def _get_standard_visualpic_name(self, opmd_name):
+        name_relations = {'E/z': 'Ez',
+                          'E/x': 'Ex',
+                          'E/y': 'Ey',
+                          'E/r': 'Er',
+                          'B/z': 'Bz',
+                          'B/x': 'Bx',
+                          'B/y': 'By',
+                          'B/r': 'Br',
+                          'rho': 'rho',
+                          'z': 'z',
+                          'x': 'x',
+                          'y': 'y',
+                          'r': 'r',
+                          'p/z': 'pz',
+                          'p/x': 'px',
+                          'p/y': 'py',
+                          'q': 'q'}
+        if opmd_name in name_relations:
+            return name_relations[opmd_name]
+        else:
+            raise ValueError('Unknown data name {}.'.format(opmd_name))
 
 
 class OsirisFolderScanner(FolderScanner):
