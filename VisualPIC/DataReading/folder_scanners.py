@@ -32,6 +32,7 @@ from VisualPIC.DataHandling.fields import FolderField
 from VisualPIC.DataHandling.particle_species import ParticleSpecies
 import VisualPIC.DataHandling.unitConverters as uc
 
+
 class FolderScanner():
     def get_list_of_fields(self, folder_path):
         raise NotImplementedError
