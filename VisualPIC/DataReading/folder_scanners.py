@@ -52,9 +52,11 @@ class OpenPMDFolderScanner(FolderScanner):
         t, opmd_params = read_openPMD_params(h5_files[0])
         avail_fields = opmd_params['avail_fields']
         for field in avail_fields:
-            if opmd_params['fields_metadata'][field]['type'] == 'vector':
-                field_comps = \
-                    opmd_params['fields_metadata'][field]['axis_labels']
+            field_metadata = opmd_params['fields_metadata'][field]
+            if field_metadata['type'] == 'vector':
+                field_comps = field_metadata['axis_labels']
+                if field_metadata['geometry'] == 'thetaMode':
+                    field_comps += ['x', 'y']
                 for comp in field_comps:
                     field_path = field + '/' + comp
                     field_name = self._get_standard_visualpic_name(field_path)

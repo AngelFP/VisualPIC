@@ -29,8 +29,7 @@ class FieldReader():
         return super().__init__(*args, **kwargs)
 
     def read_field(self, file_path, field_path, slice_i=0.5, slice_j=0.5,
-                   slice_dir_i=None, slice_dir_j=None, transv_ax='r', m=0,
-                   theta=0):
+                   slice_dir_i=None, slice_dir_j=None, m=0, theta=0):
         fld_metadata = self.read_field_metadata(file_path, field_path)
         geom = fld_metadata['field']['geometry']
         if geom == "1d":
@@ -46,24 +45,11 @@ class FieldReader():
                                          slice_dir_i)
         elif geom == "thetaMode":
             fld = self.read_field_theta(file_path, field_path, m, theta,
-                                        transv_ax, slice_i, slice_dir_i)
-        self.readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j,
-                               transv_ax)
+                                        slice_i, slice_dir_i)
+        self.readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j)
         return fld, fld_metadata
 
-    def readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
-                          transv_ax):
-        geom = field_metadata['field']['geometry']
-        if geom in ["2dcylindrical", "thetaMode"]:
-            if transv_ax != 'r':
-                r_array = field_metadata['axis']['r']['array']
-                r_units = field_metadata['axis']['r']['units']
-                new_ax_array = np.linspace(-max(r_array), max(r_array),
-                                           len(r_array)*2)
-                field_metadata['axis'][transv_ax] = {}
-                field_metadata['axis'][transv_ax]['units'] = r_units
-                field_metadata['axis'][transv_ax]['array'] = new_ax_array
-                del field_metadata['axis']['r']
+    def readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j):
         if slice_dir_i is not None:
             del field_metadata['axis'][slice_dir_i]
         if slice_dir_j is not None:
@@ -80,12 +66,12 @@ class FieldReader():
                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         raise NotImplementedError
 
-    def read_field_2d_cyl(self, file_path, field_path, transv_ax='r', 
-                          slice_i=0.5, slice_dir_i=None):
+    def read_field_2d_cyl(self, file_path, field_path, slice_i=0.5,
+                          slice_dir_i=None):
         raise NotImplementedError
 
     def read_field_theta(self, file_path, field_path, m=0, theta=0,
-                         transv_ax='r', slice_i=0.5, slice_dir_i=None):
+                         slice_i=0.5, slice_dir_i=None):
         raise NotImplementedError
 
     def read_field_metadata(self, file_path, field_path):
@@ -246,26 +232,28 @@ class OpenPMDFieldReader(FieldReader):
 
 
     def read_field_theta(self, file_path, field_path, m=0, theta=0,
-                         transv_ax='r', slice_i=0.5, slice_dir_i=None):
-        if transv_ax == 'r':
-            fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
-        else:
-            # Code from openpmd-viewer
-            # For Cartesian components, combine r and t components
-            field, coord = field_path.split('/')
+                         slice_i=0.5, slice_dir_i=None):
+        field, *comp = field_path.split('/')
+        if len(comp) > 0:
+            comp = comp[0]
+        if comp in ['x', 'y']:
             fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', m,
                                                theta)
             fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', m,
                                                theta)
-            if transv_ax == 'x':
+            if comp == 'x':
                 fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
-            elif transv_ax == 'y':
+            elif comp == 'y':
                 fld = np.sin(theta) * fld_r + np.cos(theta) * fld_t
             # Revert the sign below the axis
             fld[: int(fld.shape[0] / 2)] *= -1
+        else:
+            fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = [transv_ax, 'z']
+            axis_order = ['r', 'z']
+            if comp in ['x', 'y']:
+                axis_order[0] = comp
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i] 
@@ -274,9 +262,40 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
+    #def read_field_theta(self, file_path, field_path, m=0, theta=0,
+    #                     slice_i=0.5, slice_dir_i=None):
+    #    if transv_ax == 'r':
+    #        fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
+    #    else:
+    #        # Code from openpmd-viewer
+    #        # For Cartesian components, combine r and t components
+    #        field, *coord = field_path.split('/')
+    #        fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', m,
+    #                                           theta)
+    #        fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', m,
+    #                                           theta)
+    #        if transv_ax == 'x':
+    #            fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
+    #        elif transv_ax == 'y':
+    #            fld = np.sin(theta) * fld_r + np.cos(theta) * fld_t
+    #        # Revert the sign below the axis
+    #        fld[: int(fld.shape[0] / 2)] *= -1
+    #    if slice_dir_i is not None:
+    #        fld_shape = fld.shape
+    #        axis_order = [transv_ax, 'z']
+    #        slice_list = [slice(None)] * fld.ndim
+    #        axis_idx_i = axis_order.index(slice_dir_i)
+    #        axis_elements_i = fld_shape[axis_idx_i] 
+    #        slice_idx_i = int(round(axis_elements_i * slice_i))
+    #        slice_list[axis_idx_i] = slice_idx_i
+    #        fld = fld[tuple(slice_list)]
+    #    return fld
+
     def read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
-        field, *_ = field_path.split('/')
+        field, *comp = field_path.split('/')
+        if len(comp) > 0:
+            comp = comp[0]
         md = {}
         t, params = read_openPMD_params(file_path)
         md['time'] = {}
@@ -297,6 +316,15 @@ class OpenPMDFieldReader(FieldReader):
             md['axis'][axis]['array'] = np.linspace(ax_lims[axis][0], 
                                                     ax_lims[axis][1],
                                                     ax_el[axis])
+        if field_geometry == 'thetaMode' and comp in ['x', 'y']:
+            r_array = md['axis']['r']['array']
+            r_units = md['axis']['r']['units']
+            new_ax_array = np.linspace(-max(r_array), max(r_array),
+                                        len(r_array)*2)
+            md['axis'][comp] = {}
+            md['axis'][comp]['units'] = r_units
+            md['axis'][comp]['array'] = new_ax_array
+            del md['axis']['r']
         return md
 
     def _determine_field_units(self, field):
