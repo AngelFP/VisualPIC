@@ -69,6 +69,20 @@ class OpenPMDFolderScanner(FolderScanner):
                                     self.field_reader, 'uc'))
         return field_list
 
+    def get_list_of_species(self, folder_path):
+        species_list = []
+        h5_files, iterations = list_h5_files(folder_path)
+        t, opmd_params = read_openPMD_params(h5_files[0])
+        avail_species = opmd_params['avail_species']
+        for species in avail_species:
+            species_comps = opmd_params['avail_record_components'][species]
+            for i, comp in enumerate(species_comps):
+                species_comps[i] = self._get_standard_visualpic_name(comp)
+            species_list.append(
+                ParticleSpecies(species, species_comps, iterations, h5_files,
+                                self.particle_reader, 'uc'))
+        return species_list
+
     def _get_standard_visualpic_name(self, opmd_name):
         name_relations = {'E/z': 'Ez',
                           'E/x': 'Ex',
@@ -83,10 +97,13 @@ class OpenPMDFolderScanner(FolderScanner):
                           'x': 'x',
                           'y': 'y',
                           'r': 'r',
-                          'p/z': 'pz',
-                          'p/x': 'px',
-                          'p/y': 'py',
-                          'q': 'q'}
+                          'uz': 'pz',
+                          'ux': 'px',
+                          'uy': 'py',
+                          'charge': 'q',
+                          'mass': 'm',
+                          'id': 'tag',
+                          'w': 'w'}
         if opmd_name in name_relations:
             return name_relations[opmd_name]
         else:
