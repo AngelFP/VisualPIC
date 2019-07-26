@@ -162,21 +162,21 @@ class OsirisFieldReader(FieldReader):
             "UNITS"])[0])[2:-1].replace("\\\\","\\")
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
-                                              field_shape[0])
+                                              field_shape[0]+1)
         if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
             axis_data["x"]["units"] = str(list(file['/AXIS/AXIS2'].attrs[
                 "UNITS"])[0])[2:-1].replace("\\\\","\\")
             axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                                   file.attrs['XMAX'][1],
-                                                  field_shape[1])
+                                                  field_shape[1]+1)
         if field_geometry == "3dcartesian":
             axis_data['y'] = {}
             axis_data["y"]["units"] = str(list(file['/AXIS/AXIS3'].attrs[
                 "UNITS"])[0])[2:-1].replace("\\\\","\\")
             axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
                                                   file.attrs['XMAX'][2],
-                                                  field_shape[2])
+                                                  field_shape[2]+1)
         return axis_data
 
     def _get_time_data(self, file):
@@ -315,12 +315,12 @@ class OpenPMDFieldReader(FieldReader):
             md['axis'][axis]['units'] = 'm'
             md['axis'][axis]['array'] = np.linspace(ax_lims[axis][0], 
                                                     ax_lims[axis][1],
-                                                    ax_el[axis])
+                                                    ax_el[axis]+1)
         if field_geometry == 'thetaMode' and comp in ['x', 'y']:
             r_array = md['axis']['r']['array']
             r_units = md['axis']['r']['units']
             new_ax_array = np.linspace(-max(r_array), max(r_array),
-                                        len(r_array)*2)
+                                        len(r_array)*2-1)
             md['axis'][comp] = {}
             md['axis'][comp]['units'] = r_units
             md['axis'][comp]['array'] = new_ax_array
