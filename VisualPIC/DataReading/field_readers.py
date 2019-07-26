@@ -252,8 +252,6 @@ class OpenPMDFieldReader(FieldReader):
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['r', 'z']
-            if comp in ['x', 'y']:
-                axis_order[0] = comp
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i] 
@@ -313,18 +311,13 @@ class OpenPMDFieldReader(FieldReader):
         for axis in axes:
             md['axis'][axis] = {}
             md['axis'][axis]['units'] = 'm'
-            md['axis'][axis]['array'] = np.linspace(ax_lims[axis][0], 
-                                                    ax_lims[axis][1],
-                                                    ax_el[axis]+1)
-        if field_geometry == 'thetaMode' and comp in ['x', 'y']:
-            r_array = md['axis']['r']['array']
-            r_units = md['axis']['r']['units']
-            new_ax_array = np.linspace(-max(r_array), max(r_array),
-                                        len(r_array)*2-1)
-            md['axis'][comp] = {}
-            md['axis'][comp]['units'] = r_units
-            md['axis'][comp]['array'] = new_ax_array
-            del md['axis']['r']
+            ax_min = ax_lims[axis][0]
+            ax_max = ax_lims[axis][1]
+            ax_elms = ax_el[axis]+1
+            if field_geometry == 'thetaMode' and axis == 'r':
+                ax_min = -ax_max
+                ax_elms += ax_el[axis]
+            md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
         return md
 
     def _determine_field_units(self, field):
