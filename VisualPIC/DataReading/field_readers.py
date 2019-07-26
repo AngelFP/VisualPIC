@@ -313,10 +313,10 @@ class OpenPMDFieldReader(FieldReader):
             md['axis'][axis]['units'] = 'm'
             ax_min = ax_lims[axis][0]
             ax_max = ax_lims[axis][1]
-            ax_elms = ax_el[axis]+1
+            ax_els = ax_el[axis]+1
             if field_geometry == 'thetaMode' and axis == 'r':
                 ax_min = -ax_max
-                ax_elms += ax_el[axis]
+                ax_els += ax_el[axis]
             md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
         return md
 
