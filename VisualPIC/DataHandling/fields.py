@@ -29,6 +29,9 @@ class Field():
                  slice_dir_j=None, m=0, theta=0):
         raise NotImplementedError
 
+    def get_only_metadata(self, time_step):
+        raise NotImplementedError
+
 
 class FolderField(Field):
     def __init__(self, field_name, field_path, field_files, field_timesteps,
@@ -56,6 +59,11 @@ class FolderField(Field):
             #realize conversion
             raise NotImplementedError
         return fld, fld_md
+
+    def get_only_metadata(self, time_step):
+        file_path = self._get_file_path(time_step)
+        return self.field_reader.read_field_metadata(
+            file_path, self.field_path)
 
     def _get_file_path(self, time_step):
         ts_i = self.field_timesteps.tolist().index(time_step)
