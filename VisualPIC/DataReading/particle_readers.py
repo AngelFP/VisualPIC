@@ -36,7 +36,7 @@ class ParticleReader():
             metadata = self._read_component_metadata(file, species_name,
                                                         component)
             data = self._read_component_data(file, species_name, component)
-            data_dict[component] = (data, metadata)
+            data_dict[component] = (np.array(data), metadata)
         #self._release_file_handle(file)
         return data_dict
 
@@ -100,6 +100,55 @@ class OsirisParticleReader(ParticleReader):
 
     def _numpy_bytes_to_string(self, npbytes):
         return str(npbytes)[2:-1].replace("\\\\","\\")
+
+
+class HiPACEParticleReader(ParticleReader):
+    def __init__(self, *args, **kwargs):
+        self.name_relations = {'z': 'x1',
+                               'x': 'x2',
+                               'y': 'x3',
+                               'pz': 'p1',
+                               'px': 'p2',
+                               'py': 'p3',
+                               'q': 'q',
+                               'ekin': 'ene',
+                               'tag': 'tag'}
+        return super().__init__(*args, **kwargs)
+
+    def _get_file_handle(self, file_path):
+        return H5F(file_path, 'r')
+
+    def _release_file_handle(self, file_handle):
+        file_handle.close()
+
+    def _read_component_data(self, file_handle, species, component):
+        data = file_handle[self.name_relations[component]]
+        if component == 'tag':
+            # Apply Cantor pairing function
+            print(data)
+            a = data[:,0]
+            b = data[:,1]
+            data = 1/2*(a+b)*(a+b+1)+b 
+        return data
+
+    def _read_component_metadata(self, file_handle, species, component):
+        metadata = {}
+        if component in ['x', 'y', 'z']:
+            units = 'c/ \omega_p'
+        elif component in ['px', 'py', 'pz']:
+            units = 'm_e c'
+        elif component == 'q':
+            units = 'e'
+        metadata['units'] = units
+        metadata['time'] = {}
+        metadata['time']['value'] = file_handle.attrs['TIME'][0]
+        metadata['time']['units'] = '1/ \\omega_p'
+        metadata['grid'] = {}
+        metadata['grid']['resolution'] = file_handle.attrs['NX']
+        metadata['grid']['size'] = (file_handle.attrs['XMAX']
+                                    - file_handle.attrs['XMIN'])
+        metadata['grid']['size_units'] = '\\omega_p/c'
+        return metadata
 
 
 class OpenPMDParticleReader(ParticleReader):
