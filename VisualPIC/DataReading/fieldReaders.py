@@ -323,11 +323,11 @@ class HiPACEFieldReader(FieldReaderBase):
 
     def _OpenFile(self, timeStep):
         if self.speciesName != "":
-            fileName = 'density_' + self.speciesName + '_' + self.dataName
+            fileName = 'density_' + self.speciesName #+ '_' + self.dataName
         else:
             fileName = 'field_' + self.dataName
 
-        fileName += '_' + str(timeStep).zfill(6)
+        fileName += '_' + str(timeStep).zfill(6) + '.0'
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')

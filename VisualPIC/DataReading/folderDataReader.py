@@ -192,7 +192,7 @@ class FolderDataReader:
         data_folder = self._dataLocation
         data_types = ['density', 'field', 'raw']
 
-        files_in_folder = os.listdir(data_folder)
+        files_in_folder = sorted(os.listdir(data_folder))
 
         for data_type in data_types:
             if data_type == 'field':
@@ -201,26 +201,26 @@ class FolderDataReader:
                 for file in files_in_folder:
                     if file.endswith(".h5") and data_type in file:
                         data_files.append(file)
-                        data_name = file.replace(data_type + '_', '')[0:-10]
+                        data_name = file.split('_')[1]
                         if data_name not in data_names:
                             data_names.append(data_name)
                 for data_name in data_names:
                     data_time_steps = list()
                     for file in data_files:
                         if data_name in file:
-                            time_step = int(file[-9:-3])
+                            time_step = int(file.split('_')[-1].split('.')[0])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddDomainField(FolderField("HiPACE", data_name, self.GiveStandardNameForHiPACEQuantity(data_name), data_folder, data_time_steps))
 
             if data_type == 'density':
-                data_name = 'charge'
+                data_name = 'density'
                 data_files = list()
                 species_names = list()
                 for file in files_in_folder:
                     if file.endswith(".h5") and data_type in file:
                         data_files.append(file)
-                        species_name = file.replace(data_type + '_', '').replace('_' + data_name + '_', '')[0:-9]
+                        species_name = file.split('_')[1]
                         if species_name not in species_names:
                             species_names.append(species_name)
                 for species_name in species_names:
@@ -228,7 +228,7 @@ class FolderDataReader:
                     data_time_steps = list()
                     for file in data_files:
                         if species_name in file:
-                            time_step = int(file[-9:-3])
+                            time_step = int(file.split('_')[-1].split('.')[0])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     self.AddFieldToSpecies(species_name, FolderField("HiPACE", data_name, self.GiveStandardNameForOsirisQuantity(data_name), data_folder, data_time_steps, species_name))
@@ -239,7 +239,7 @@ class FolderDataReader:
                 for file in files_in_folder:
                     if file.endswith(".h5") and data_type in file:
                         data_files.append(file)
-                        species_name = file.replace(data_type + '_', '')[0:-10]
+                        species_name = file.split('_')[1]
                         if species_name not in species_names:
                             species_names.append(species_name)
 
@@ -249,11 +249,11 @@ class FolderDataReader:
                     data_time_steps = list()
                     for file in data_files:
                         if species_name in file:
-                            time_step = int(file[-9:-3])
+                            time_step = int(file.split('_')[-1].split('.')[0])
                             data_time_steps.append(time_step)
                     data_time_steps = np.array(data_time_steps)
                     if data_time_steps.size != 0:
-                        file_path = data_folder + '/' + data_type + '_' + species_name + '_' + str(data_time_steps[0]).zfill(6) + '.h5'
+                        file_path = data_folder + '/' + data_type + '_' + species_name + '_' + str(data_time_steps[0]).zfill(6) + '.0' + '.h5'
                         file_content = H5File(file_path, 'r')
                         for data_set_name in list(file_content):
                             if data_set_name == "tag":
@@ -265,7 +265,7 @@ class FolderDataReader:
     def GiveStandardNameForHiPACEQuantity(self, original_name):
         if "Ez" in original_name:
             return "Ez"
-        elif "charge" in original_name:
+        elif "density" in original_name:
             return "Charge density"
         elif original_name == "x1":
             return "z"

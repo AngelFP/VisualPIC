@@ -151,7 +151,7 @@ class HiPACERawDataReader(RawDataReaderBase):
         self.timeUnits = '1/ \omega_p'
 
     def _OpenFile(self, timeStep):
-        fileName = "raw_" + self.speciesName + "_" + str(timeStep).zfill(6)
+        fileName = "raw_" + self.speciesName + "_" + str(timeStep).zfill(6) + ".0"
         ending = ".h5"
         file_path = self.location + "/" + fileName + ending
         file_content = H5File(file_path, 'r')
