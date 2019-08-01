@@ -93,7 +93,7 @@ class OsirisFieldReader(FieldReader):
         fld = file[field_path]
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = ['x', 'z']
+            axis_order = ['z', 'x']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i] 
@@ -108,7 +108,7 @@ class OsirisFieldReader(FieldReader):
         fld = file[field_path]
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = ['x', 'y', 'z']
+            axis_order = ['z', 'x', 'y']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i] 
