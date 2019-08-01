@@ -231,9 +231,9 @@ class HiPACEFieldReader(FieldReader):
         # HiPACE does not store unit information in data files
         file = os.path.split(file_path)[-1]
         if 'field' in file:
-            return 'm_e c \omega_p e^{-1}'
+            return 'm_e c \\omega_p e^{-1}'
         elif 'density' in file:
-            'e \omega_p^3/ c^3'
+            'e \\omega_p^3/ c^3'
         else:
             return ''
 
@@ -245,17 +245,17 @@ class HiPACEFieldReader(FieldReader):
         """ Returns dictionary with the array and units of each field axis """
         axis_data = {}
         axis_data['z'] = {}
-        axis_data["z"]["units"] = 'c/ \omega_p'
+        axis_data["z"]["units"] = 'c/ \\omega_p'
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
                                               field_shape[0]+1)
         axis_data['x'] = {}
-        axis_data["x"]["units"] = 'c/ \omega_p'
+        axis_data["x"]["units"] = 'c/ \\omega_p'
         axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                               file.attrs['XMAX'][1],
                                               field_shape[1]+1)
         axis_data['y'] = {}
-        axis_data["y"]["units"] = 'c/ \omega_p'
+        axis_data["y"]["units"] = 'c/ \\omega_p'
         axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
                                               file.attrs['XMAX'][2],
                                               field_shape[2]+1)
@@ -265,7 +265,7 @@ class HiPACEFieldReader(FieldReader):
         """ Returns dictionary with value and units of the simulation time """
         time_data = {}
         time_data["value"] = file.attrs["TIME"][0]
-        time_data["units"] = '1/ \omega_p'
+        time_data["units"] = '1/ \\omega_p'
         return time_data
 
 
