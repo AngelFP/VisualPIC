@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from h5py import File as H5F
 import numpy as np
 from opmd_viewer.openpmd_timeseries.data_reader.params_reader import (
@@ -185,6 +186,86 @@ class OsirisFieldReader(FieldReader):
         time_data["value"] = file.attrs["TIME"][0]
         time_data["units"] = str(file.attrs["TIME UNITS"][0])[2:-1].replace(
             "\\\\","\\")
+        return time_data
+
+
+class HiPACEFieldReader(FieldReader):
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+        file = H5F(file_path, 'r')
+        fld = file[field_path]
+        if slice_dir_i is not None:
+            fld_shape = fld.shape
+            axis_order = ['z', 'x', 'y']
+            slice_list = [slice(None)] * fld.ndim
+            axis_idx_i = axis_order.index(slice_dir_i)
+            axis_elements_i = fld_shape[axis_idx_i] 
+            slice_idx_i = int(round(axis_elements_i * slice_i))
+            slice_list[axis_idx_i] = slice_idx_i
+            if slice_dir_j is not None:
+                axis_idx_j = axis_order.index(slice_dir_j)
+                axis_elements_j = fld_shape[axis_idx_j] 
+                slice_idx_j = int(round(axis_elements_j * slice_j))
+                slice_list[axis_idx_j] = slice_idx_j
+            fld = fld[tuple(slice_list)]
+        return fld
+
+    def read_field_metadata(self, file_path, field_path):
+        file = H5F(file_path, 'r')
+        md = {}
+        field_units = self._get_field_units(file_path)
+        field_shape = self._get_field_shape(file, field_path)
+        md['field'] = {}
+        md['field']['units'] = field_units
+        md['field']['geometry'] = '3dcartesian'
+        md['axis'] = self._get_axis_data(file, field_shape)
+        md['time'] = self._get_time_data(file)
+        file.close()
+        return md
+        
+    def _get_field_units(self, file_path):
+        """ Returns the field units"""
+        # HiPACE does not store unit information in data files
+        file = os.path.split(file_path)[-1]
+        if 'field' in file:
+            return 'm_e c \omega_p e^{-1}'
+        elif 'density' in file:
+            'e \omega_p^3/ c^3'
+        else:
+            return ''
+
+    def _get_field_shape(self, file, field_path):
+        """ Returns shape of field array"""
+        return file[field_path].shape
+
+    def _get_axis_data(self, file, field_shape):
+        """ Returns dictionary with the array and units of each field axis """
+        axis_data = {}
+        axis_data['z'] = {}
+        axis_data["z"]["units"] = 'c/ \omega_p'
+        axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
+                                              file.attrs['XMAX'][0],
+                                              field_shape[0]+1)
+        axis_data['x'] = {}
+        axis_data["x"]["units"] = 'c/ \omega_p'
+        axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
+                                              file.attrs['XMAX'][1],
+                                              field_shape[1]+1)
+        axis_data['y'] = {}
+        axis_data["y"]["units"] = 'c/ \omega_p'
+        axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
+                                              file.attrs['XMAX'][2],
+                                              field_shape[2]+1)
+        return axis_data
+
+    def _get_time_data(self, file):
+        """ Returns dictionary with value and units of the simulation time """
+        time_data = {}
+        time_data["value"] = file.attrs["TIME"][0]
+        time_data["units"] = '1/ \omega_p'
         return time_data
 
 
