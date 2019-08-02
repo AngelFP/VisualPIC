@@ -130,7 +130,7 @@ class HiPACEParticleReader(ParticleReader):
             b = data[:,1]
             data = 1/2*(a+b)*(a+b+1)+b 
         if component == 'q':
-            n_cells = file_handle.attrs['NX
+            n_cells = file_handle.attrs['NX']
             sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
             cell_vol = np.prod(sim_size/n_cells)
         return data
