@@ -133,6 +133,7 @@ class HiPACEParticleReader(ParticleReader):
             n_cells = file_handle.attrs['NX']
             sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
             cell_vol = np.prod(sim_size/n_cells)
+            data *= cell_vol
         return data
 
     def _read_component_metadata(self, file_handle, species, component):
