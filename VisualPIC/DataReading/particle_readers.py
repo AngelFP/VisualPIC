@@ -129,6 +129,10 @@ class HiPACEParticleReader(ParticleReader):
             a = data[:,0]
             b = data[:,1]
             data = 1/2*(a+b)*(a+b+1)+b 
+        if component == 'q':
+            n_cells = file_handle.attrs['NX
+            sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
+            cell_vol = np.prod(sim_size/n_cells)
         return data
 
     def _read_component_metadata(self, file_handle, species, component):
@@ -138,7 +142,7 @@ class HiPACEParticleReader(ParticleReader):
         elif component in ['px', 'py', 'pz']:
             units = 'm_e c'
         elif component == 'q':
-            units = 'e'
+            units = 'e n_p c^3 / \\omega_p^3'
         metadata['units'] = units
         metadata['time'] = {}
         metadata['time']['value'] = file_handle.attrs['TIME'][0]
