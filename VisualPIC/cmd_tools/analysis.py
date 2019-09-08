@@ -1,5 +1,7 @@
 """ Colletion of command-line methods for data analysis """
 
+import os
+
 import numpy as np
 import aptools.data_analysis.beam_diagnostics as bd
 from VisualPIC.DataReading.folder_scanners import (OsirisFolderScanner,
