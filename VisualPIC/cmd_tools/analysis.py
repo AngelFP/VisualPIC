@@ -30,7 +30,7 @@ def analyze_beam_evolution(sim_path, sim_code, species_name,
     if t_step_range is not None:
         time_steps = beam.timesteps[
             np.where((beam.timesteps >= t_step_range[0])
-                     and (beam.timesteps <= t_step_range[1]))]
+                     & (beam.timesteps <= t_step_range[1]))]
     else:
         time_steps = beam.timesteps
     print('Done.')
