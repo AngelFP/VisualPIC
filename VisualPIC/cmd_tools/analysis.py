@@ -20,7 +20,7 @@ def analyze_beam_evolution(sim_path, sim_code, species_name,
     species_list = folder_scanner.get_list_of_species(sim_path)
 
     found_species = False
-    for species in sp_list:
+    for species in species_list:
         if species.species_name == species_name:
             beam = species
             found_species = True
