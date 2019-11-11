@@ -312,7 +312,7 @@ class OpenPMDFieldReader(FieldReader):
         return fld
 
 
-    def read_field_theta(self, file_path, field_path, m=0, theta=0,
+    def read_field_theta(self, file_path, field_path, m='all', theta=0,
                          slice_i=0.5, slice_dir_i=None):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
