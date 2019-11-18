@@ -108,10 +108,11 @@ class OpenPMDFolderScanner(FolderScanner):
                           'mass': 'm',
                           'id': 'tag',
                           'w': 'w'}
-        if opmd_name in name_relations:
+        try:
             return name_relations[opmd_name]
-        else:
-            raise ValueError('Unknown data name {}.'.format(opmd_name))
+        except:
+            print('Unknown data name {}.'.format(opmd_name))
+            return opmd_name
 
 
 class OsirisFolderScanner(FolderScanner):
@@ -206,10 +207,11 @@ class OsirisFolderScanner(FolderScanner):
                           'ene': 'ekin',
                           'tag': 'tag'}
 
-        if osiris_name in name_relations:
+        try:
             return name_relations[osiris_name]
-        else:
-            raise ValueError('Unknown data name {}.'.format(osiris_name))
+        except:
+            print('Unknown data name {}.'.format(osiris_name))
+            return osiris_name
 
     def _get_osiris_field_name(self, field_folder_name):
         return field_folder_name.replace('-savg', '')
@@ -319,9 +321,9 @@ class HiPACEFolderScanner(FolderScanner):
                           'ene': 'ekin',
                           'tag': 'tag'}
 
-        if hipace_name in name_relations:
+        try:
             return name_relations[hipace_name]
-        else:
+        except:
             print('Unknown data name {}.'.format(hipace_name))
             return hipace_name
 
