@@ -110,7 +110,7 @@ class OpenPMDFolderScanner(FolderScanner):
                           'w': 'w'}
         try:
             return name_relations[opmd_name]
-        except:
+        except KeyError:
             print('Unknown data name {}.'.format(opmd_name))
             return opmd_name
 
@@ -209,7 +209,7 @@ class OsirisFolderScanner(FolderScanner):
 
         try:
             return name_relations[osiris_name]
-        except:
+        except KeyError:
             print('Unknown data name {}.'.format(osiris_name))
             return osiris_name
 
@@ -323,7 +323,7 @@ class HiPACEFolderScanner(FolderScanner):
 
         try:
             return name_relations[hipace_name]
-        except:
+        except KeyError:
             print('Unknown data name {}.'.format(hipace_name))
             return hipace_name
 
