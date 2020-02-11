@@ -1,6 +1,6 @@
 # Try to import openPMD-viewer (required for openPMD data)
 try:
-    from opmd_viewer import OpenPMDTimeSeries
+    from openpmd_viewer import OpenPMDTimeSeries
     openpmd_installed = True
 except ImportError:
     openpmd_installed = False

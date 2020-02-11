@@ -20,9 +20,9 @@
 import os
 from h5py import File as H5F
 import numpy as np
-from opmd_viewer.openpmd_timeseries.data_reader.params_reader import (
+from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
     read_openPMD_params)
-import opmd_viewer.openpmd_timeseries.data_reader.field_reader as opmd_fr
+import openpmd_viewer.openpmd_timeseries.data_reader.field_reader as opmd_fr
 
 
 class FieldReader():
@@ -274,12 +274,14 @@ class OpenPMDFieldReader(FieldReader):
         return super().__init__(*args, **kwargs)
 
     def read_field_1d(self, file_path, field_path):
-        fld, _ = opmd_fr.read_field_1d(file_path, field_path, ['z'])
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path, ['z'],
+                                              None, None)
         return fld
 
     def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
                            slice_dir_i=None):
-        fld, _ = opmd_fr.read_field_2d(file_path, field_path, ['z', 'x'])
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
+                                              ['z', 'x'], None, None)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'z']
@@ -297,8 +299,9 @@ class OpenPMDFieldReader(FieldReader):
             slicing = -1. + 2*slice_i
         else:
             slicing = None
-        fld, _ = opmd_fr.read_field_3d(file_path, field_path, ['z', 'x', 'y'],
-                                       slicing, slice_dir_i)
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
+                                              ['z', 'x', 'y'], slicing,
+                                              slice_dir_i)
         if slice_dir_i is not None and slice_dir_j is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'y', 'z']
@@ -318,10 +321,10 @@ class OpenPMDFieldReader(FieldReader):
         if len(comp) > 0:
             comp = comp[0]
         if comp in ['x', 'y']:
-            fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', m,
-                                               theta)
-            fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', m,
-                                               theta)
+            fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', None,
+                                               None, m, theta)
+            fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
+                                               None, m, theta)
             if comp == 'x':
                 fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
             elif comp == 'y':
@@ -329,7 +332,8 @@ class OpenPMDFieldReader(FieldReader):
             # Revert the sign below the axis
             fld[: int(fld.shape[0] / 2)] *= -1
         else:
-            fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
+            fld, _ = opmd_fr.read_field_circ(file_path, field_path, None, None,
+                                             m, theta)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['r', 'z']

@@ -22,8 +22,8 @@ import os
 
 import numpy as np
 from h5py import File as H5F
-from opmd_viewer.openpmd_timeseries.utilities import list_h5_files
-from opmd_viewer.openpmd_timeseries.data_reader.params_reader import (
+from openpmd_viewer.openpmd_timeseries.utilities import list_h5_files
+from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
     read_openPMD_params)
 
 import VisualPIC.DataReading.field_readers as fr

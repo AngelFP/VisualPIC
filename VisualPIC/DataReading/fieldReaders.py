@@ -26,9 +26,9 @@ from VisualPIC.DataReading.dataReader import DataReader
 from VisualPIC.DataReading.openPMDTimeSeriesSingleton import (
     OpenPMDTimeSeriesSingleton, openpmd_installed)
 if openpmd_installed:
-    from opmd_viewer.openpmd_timeseries.data_reader.utilities import (
+    from openpmd_viewer.openpmd_timeseries.data_reader.utilities import (
         get_shape as openpmd_get_shape)
-    from opmd_viewer.openpmd_timeseries.data_reader.field_reader import (
+    from openpmd_viewer.openpmd_timeseries.data_reader.field_reader import (
         find_dataset as openpmd_find_dataset)
 
 
