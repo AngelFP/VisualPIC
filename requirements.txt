@@ -6,3 +6,4 @@ h5py
 matplotlib
 vtk
 openpmd-viewer==1.0.0
+aptools

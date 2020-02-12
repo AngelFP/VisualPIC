@@ -28,9 +28,9 @@ from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
 
 import VisualPIC.DataReading.field_readers as fr
 import VisualPIC.DataReading.particle_readers as pr
+import VisualPIC.DataHandling.unit_converters as uc
 from VisualPIC.DataHandling.fields import FolderField
 from VisualPIC.DataHandling.particle_species import ParticleSpecies
-import VisualPIC.DataHandling.unitConverters as uc
 
 
 class FolderScanner():
@@ -45,6 +45,7 @@ class OpenPMDFolderScanner(FolderScanner):
     def __init__(self):
         self.field_reader = fr.OpenPMDFieldReader()
         self.particle_reader = pr.OpenPMDParticleReader()
+        self.unit_converter = uc.OpenPMDUnitConverter()
 
     def get_list_of_fields(self, folder_path):
         field_list = []
@@ -62,11 +63,12 @@ class OpenPMDFolderScanner(FolderScanner):
                     field_name = self._get_standard_visualpic_name(field_path)
                     field_list.append(
                         FolderField(field_name, field_path, h5_files,
-                                    iterations, self.field_reader, 'uc'))
+                                    iterations, self.field_reader,
+                                    self.unit_converter))
             else:
                 field_list.append(
                         FolderField(field, field, h5_files, iterations,
-                                    self.field_reader, 'uc'))
+                                    self.field_reader, self.unit_converter))
         return field_list
 
     def get_list_of_species(self, folder_path):
@@ -80,7 +82,7 @@ class OpenPMDFolderScanner(FolderScanner):
                 species_comps[i] = self._get_standard_visualpic_name(comp)
             species_list.append(
                 ParticleSpecies(species, species_comps, iterations, h5_files,
-                                self.particle_reader, 'uc'))
+                                self.particle_reader, self.unit_converter))
         return species_list
 
     def _get_standard_visualpic_name(self, opmd_name):
@@ -116,10 +118,10 @@ class OpenPMDFolderScanner(FolderScanner):
 
 
 class OsirisFolderScanner(FolderScanner):
-    def __init__(self):
+    def __init__(self, plasma_density=None):
         self.field_reader = fr.OsirisFieldReader()
         self.particle_reader = pr.OsirisParticleReader()
-        #self.unit_converter = uc.OsirisUnitConverter()
+        self.unit_converter = uc.OsirisUnitConverter(plasma_density)
 
     def get_list_of_fields(self, folder_path):
         field_list = []
@@ -172,7 +174,7 @@ class OsirisFolderScanner(FolderScanner):
             field_folder)
         return FolderField(field_name, field_path, fld_files,
                            time_steps, self.field_reader,
-                           'uc', species_name)
+                           self.unit_converter, species_name)
 
     def _create_species(self, species_name, species_folder):
         species_files, time_steps = self._get_files_and_timesteps(
@@ -184,7 +186,8 @@ class OsirisFolderScanner(FolderScanner):
             species_components.append(
                 self._get_standard_visualpic_name(dataset_name))
         return ParticleSpecies(species_name, species_components, time_steps,
-                               species_files, self.particle_reader, 'uc')
+                               species_files, self.particle_reader,
+                               self.unit_converter)
 
     def _get_field_path(self, field_folder_name):
         return '/' + self._get_osiris_field_name(field_folder_name)
@@ -233,10 +236,10 @@ class OsirisFolderScanner(FolderScanner):
 
 
 class HiPACEFolderScanner(FolderScanner):
-    def __init__(self):
+    def __init__(self, plasma_density=None):
         self.field_reader = fr.HiPACEFieldReader()
         self.particle_reader = pr.HiPACEParticleReader()
-        #self.unit_converter = uc.OsirisUnitConverter()
+        self.unit_converter = uc.HiPACEUnitConverter(plasma_density)
 
     def get_list_of_fields(self, folder_path):
         files_in_folder = sorted(os.listdir(folder_path))
@@ -289,7 +292,8 @@ class HiPACEFolderScanner(FolderScanner):
         else:
             vpic_name = self._get_standard_visualpic_name(name)
         return FolderField(vpic_name, name, field_files, time_steps,
-                           self.field_reader, 'uc', species_name)
+                           self.field_reader, self.unit_converter,
+                           species_name)
 
     def _create_species(self, folder_path, files_in_folder, species_name):
         species_files, time_steps = self._get_files_and_timesteps(
@@ -301,7 +305,8 @@ class HiPACEFolderScanner(FolderScanner):
             species_components.append(
                 self._get_standard_visualpic_name(dataset_name))
         return ParticleSpecies(species_name, species_components, time_steps,
-                               species_files, self.particle_reader, 'uc')
+                               species_files, self.particle_reader,
+                               self.unit_converter)
 
     def _get_standard_visualpic_name(self, hipace_name):
         name_relations = {'Ez': 'Ez',

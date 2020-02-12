@@ -43,21 +43,20 @@ class FolderField(Field):
         self.unit_converter = unit_converter
 
     def get_data(self, time_step, field_units=None, axes_units=None,
-                 time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-                 slice_dir_j=None, m=0, theta=0):
+                 axes_to_convert=None, time_units=None, slice_i=0.5,
+                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m=0,
+                 theta=0):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
             slice_dir_j, m, theta)
-        if field_units is not None:
-            #realize conversion
-            raise NotImplementedError
-        if axes_units is not None:
-            #realize conversion
-            raise NotImplementedError
-        if time_units is not None:
-            #realize conversion
-            raise NotImplementedError
+        # perform unit conversion
+        unit_list = [field_units, axes_units, time_units]
+        if any(unit is not None for unit in unit_list):
+            fld, fld_md  = self.unit_converter.convert_field_units(
+                fld, fld_md, target_field_units=field_units,
+                target_axes_units=axes_units, axes_to_convert=axes_to_convert,
+                target_time_units=time_units)
         return fld, fld_md
 
     def get_only_metadata(self, time_step):

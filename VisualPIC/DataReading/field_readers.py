@@ -139,8 +139,7 @@ class OsirisFieldReader(FieldReader):
         
     def _get_field_units(self, file, field_path):
         """ Returns the field units"""
-        return str(list(file[field_path].attrs["UNITS"])[0])[2:-1].replace(
-            "\\\\","\\")
+        return self._numpy_bytes_to_string(file[field_path].attrs["UNITS"][0])
 
     def _get_field_shape(self, file, field_path):
         """ Returns shape of field array"""
@@ -159,22 +158,22 @@ class OsirisFieldReader(FieldReader):
         """ Returns dictionary with the array and units of each field axis """
         axis_data = {}
         axis_data['z'] = {}
-        axis_data["z"]["units"] = str(list(file['/AXIS/AXIS1'].attrs[
-            "UNITS"])[0])[2:-1].replace("\\\\","\\")
+        axis_data["z"]["units"] = self._numpy_bytes_to_string(
+                file['/AXIS/AXIS1'].attrs["UNITS"][0])
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
                                               field_shape[2]+1)
         if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
-            axis_data["x"]["units"] = str(list(file['/AXIS/AXIS2'].attrs[
-                "UNITS"])[0])[2:-1].replace("\\\\","\\")
+            axis_data["x"]["units"] = self._numpy_bytes_to_string(
+                file['/AXIS/AXIS2'].attrs["UNITS"][0])
             axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                                   file.attrs['XMAX'][1],
                                                   field_shape[0]+1)
         if field_geometry == "3dcartesian":
             axis_data['y'] = {}
-            axis_data["y"]["units"] = str(list(file['/AXIS/AXIS3'].attrs[
-                "UNITS"])[0])[2:-1].replace("\\\\","\\")
+            axis_data["y"]["units"] = self._numpy_bytes_to_string(
+                file['/AXIS/AXIS3'].attrs["UNITS"][0])
             axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
                                                   file.attrs['XMAX'][2],
                                                   field_shape[1]+1)
@@ -184,9 +183,12 @@ class OsirisFieldReader(FieldReader):
         """ Returns dictionary with value and units of the simulation time """
         time_data = {}
         time_data["value"] = file.attrs["TIME"][0]
-        time_data["units"] = str(file.attrs["TIME UNITS"][0])[2:-1].replace(
-            "\\\\","\\")
+        time_data["units"] = self._numpy_bytes_to_string(
+            file.attrs["TIME UNITS"][0])
         return time_data
+
+    def _numpy_bytes_to_string(self, npbytes):
+        return str(npbytes)[2:-1].replace("\\\\","\\").replace(' ', '')
 
 
 class HiPACEFieldReader(FieldReader):

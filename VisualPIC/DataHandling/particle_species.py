@@ -48,8 +48,10 @@ class ParticleSpecies():
         data = {**folder_data, **custom_data}
         if data_units is not None:
             if len(data_units) == len(components_list):
+                units_dict = dict(zip(components_list, data_units))
                 #Perform data unit conversion
-                raise NotImplementedError
+                self.unit_converter.convert_particle_data_units(data, target_data_units=units_dict,
+                                    target_time_units=time_units)
             else:
                 print('Lenght of units and components lists does not match.')
         return data

@@ -99,7 +99,7 @@ class OsirisParticleReader(ParticleReader):
         return metadata
 
     def _numpy_bytes_to_string(self, npbytes):
-        return str(npbytes)[2:-1].replace("\\\\","\\")
+        return str(npbytes)[2:-1].replace("\\\\","\\").replace(' ', '')
 
 
 class HiPACEParticleReader(ParticleReader):
