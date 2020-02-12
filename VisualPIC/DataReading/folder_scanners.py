@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+#Copyright 2016-2020 Angel Ferran Pousa, DESY
 #
 #This file is part of VisualPIC.
 #
@@ -34,20 +34,72 @@ from VisualPIC.DataHandling.particle_species import ParticleSpecies
 
 
 class FolderScanner():
+
+    "Base class for all folder scanners."
+
     def get_list_of_fields(self, folder_path):
+        """
+        Get list of fields in the specified path. Should be implemented in the
+        FolderScanner subclass for each simulation code.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of FolderField objects
+        """
         raise NotImplementedError
 
+
     def get_list_of_species(self, folder_path):
+        """
+        Get list of species in the specified path. Should be implemented in the
+        FolderScanner subclass for each simulation code.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of ParticleSpecies objects
+        """
         raise NotImplementedError
 
 
 class OpenPMDFolderScanner(FolderScanner):
+    
+    "Folder scanner class for openPMD data."
+
     def __init__(self):
+        """
+        Initialize the folder scanner and assign corresponding data readers
+        and unit converter.
+        """
         self.field_reader = fr.OpenPMDFieldReader()
         self.particle_reader = pr.OpenPMDParticleReader()
         self.unit_converter = uc.OpenPMDUnitConverter()
 
     def get_list_of_fields(self, folder_path):
+        """
+        Get list of fields in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of FolderField objects
+        """
         field_list = []
         h5_files, iterations = list_h5_files(folder_path)
         t, opmd_params = read_openPMD_params(h5_files[0])
@@ -72,6 +124,19 @@ class OpenPMDFolderScanner(FolderScanner):
         return field_list
 
     def get_list_of_species(self, folder_path):
+        """
+        Get list of species in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of ParticleSpecies objects
+        """
         species_list = []
         h5_files, iterations = list_h5_files(folder_path)
         t, opmd_params = read_openPMD_params(h5_files[0])
@@ -86,6 +151,20 @@ class OpenPMDFolderScanner(FolderScanner):
         return species_list
 
     def _get_standard_visualpic_name(self, opmd_name):
+        """
+        Translate the name of a field, coordinate or other physical quantities
+        from the openPMD standard to the VisualPIC convention.
+
+        Parameters
+        ----------
+
+        opmd_name : str
+            Name of the variable in openPMD.
+
+        Returns
+        -------
+        A string with the VisualPIC name.
+        """
         name_relations = {'E/z': 'Ez',
                           'E/x': 'Ex',
                           'E/y': 'Ey',
@@ -119,11 +198,35 @@ class OpenPMDFolderScanner(FolderScanner):
 
 class OsirisFolderScanner(FolderScanner):
     def __init__(self, plasma_density=None):
+        """
+        Initialize the folder scanner and assign corresponding data readers
+        and unit converter.
+
+        Parameters
+        ----------
+
+        plasma_density : float
+            (Optional) Value of the plasma density in m^{-3}. Needed only to
+            convert data to non-normalized units.
+        """
         self.field_reader = fr.OsirisFieldReader()
         self.particle_reader = pr.OsirisParticleReader()
         self.unit_converter = uc.OsirisUnitConverter(plasma_density)
 
     def get_list_of_fields(self, folder_path):
+        """
+        Get list of fields in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of FolderField objects
+        """
         field_list = []
         folders_in_path = os.listdir(folder_path)
         for folder in folders_in_path:
@@ -150,6 +253,19 @@ class OsirisFolderScanner(FolderScanner):
         return field_list
 
     def get_list_of_species(self, folder_path):
+        """
+        Get list of species in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of ParticleSpecies objects
+        """
         species_list = []
         folders_in_path = os.listdir(folder_path)
         for folder in folders_in_path:
@@ -165,6 +281,27 @@ class OsirisFolderScanner(FolderScanner):
         return species_list
 
     def _create_field(self, field_name, field_folder, species_name=""):
+        """
+        Create a FolderField object with the specified information.
+
+        Parameters
+        ----------
+
+        field_name : str
+            Name of the field according to the VisualPIC convention.
+
+        field_folder : str
+            Path to the folder containing the field data files.
+
+        species_name : str
+            (Optional) Name of the particle species to which the field belongs.
+            Only needed if the field actually belongs to a species.
+            For example, for the charge density.
+
+        Returns
+        -------
+        A FolderField object
+        """
         field_path = self._get_field_path(field_name)
         osiris_field_name = self._get_osiris_field_name(
             field_name)
@@ -177,6 +314,22 @@ class OsirisFolderScanner(FolderScanner):
                            self.unit_converter, species_name)
 
     def _create_species(self, species_name, species_folder):
+        """
+        Create a ParticleSpecies object with the specified information.
+
+        Parameters
+        ----------
+
+        species_name : str
+            Name of the particle species.
+
+        species_folder : str
+            Path to the folder containing the species data files.
+
+        Returns
+        -------
+        A ParticleSpecies object
+        """
         species_files, time_steps = self._get_files_and_timesteps(
             species_folder)
         species_components = []
@@ -193,6 +346,20 @@ class OsirisFolderScanner(FolderScanner):
         return '/' + self._get_osiris_field_name(field_folder_name)
 
     def _get_standard_visualpic_name(self, osiris_name):
+        """
+        Translate the name of a field, coordinate or other physical quantities
+        from the OSIRIS naming to the VisualPIC convention.
+
+        Parameters
+        ----------
+
+        osiris_name : str
+            Name of the variable in OSIRIS.
+
+        Returns
+        -------
+        A string with the VisualPIC name.
+        """
         name_relations = {'e1': 'Ez',
                           'e2': 'Ex',
                           'e3': 'Ey',
@@ -217,9 +384,26 @@ class OsirisFolderScanner(FolderScanner):
             return osiris_name
 
     def _get_osiris_field_name(self, field_folder_name):
+        """
+        Returns the OSIRIS field name, removing the '-savg' suffix if
+        neccesary
+        """
         return field_folder_name.replace('-savg', '')
 
     def _get_files_and_timesteps(self, field_folder_path):
+        """
+        Get a list of all field files and timesteps.
+
+        Parameters
+        ----------
+
+        field_folder_path : str
+            Path to the folder containing the field files.
+
+        Returns
+        -------
+        A tuple with a an array of file paths and and array of timesteps.
+        """
         all_files = os.listdir(field_folder_path)
         h5_files = list()
         for file in all_files:
@@ -237,11 +421,35 @@ class OsirisFolderScanner(FolderScanner):
 
 class HiPACEFolderScanner(FolderScanner):
     def __init__(self, plasma_density=None):
+        """
+        Initialize the folder scanner and assign corresponding data readers
+        and unit converter.
+
+        Parameters
+        ----------
+
+        plasma_density : float
+            (Optional) Value of the plasma density in m^{-3}. Needed only to
+            convert data to non-normalized units.
+        """
         self.field_reader = fr.HiPACEFieldReader()
         self.particle_reader = pr.HiPACEParticleReader()
         self.unit_converter = uc.HiPACEUnitConverter(plasma_density)
 
     def get_list_of_fields(self, folder_path):
+        """
+        Get list of fields in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of FolderField objects
+        """
         files_in_folder = sorted(os.listdir(folder_path))
         # scan for names of fields and species
         species_names = []
@@ -269,6 +477,19 @@ class HiPACEFolderScanner(FolderScanner):
         return available_fields
 
     def get_list_of_species(self, folder_path):
+        """
+        Get list of species in the specified path.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the simulation data.
+
+        Returns
+        -------
+        A list of ParticleSpecies objects
+        """
         files_in_folder = sorted(os.listdir(folder_path))
         species_names = []
         for file in files_in_folder:
@@ -285,6 +506,36 @@ class HiPACEFolderScanner(FolderScanner):
 
     def _create_field(self, folder_path, files_in_folder, prefix, name,
                       species_name=""):
+        """
+        Create a FolderField object with the specified information.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the data files.
+
+        files_in_folder : list
+            List of all data files in the HiPACE simulation folder (not only
+            those of the current field).
+
+        prefix : str
+            HiPACE files have a prefix 'field', 'density' or 'raw' depending
+            on the data type. Possible values here are 'field' or 'density'.
+
+        name : str
+            For 'field' data this is the name of the field. For 'density' data
+            it corresponds to the species name.
+
+        species_name : str
+            (Optional) Name of the particle species to which the field belongs.
+            Only needed if the field actually belongs to a species.
+            For example, for the charge density.
+
+        Returns
+        -------
+        A FolderField object.
+        """
         field_files, time_steps = self._get_files_and_timesteps(
                 folder_path, files_in_folder, prefix, name)
         if prefix == 'density':
@@ -296,6 +547,26 @@ class HiPACEFolderScanner(FolderScanner):
                            species_name)
 
     def _create_species(self, folder_path, files_in_folder, species_name):
+        """
+        Create a ParticleSpecies object with the specified information.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the data files.
+
+        files_in_folder : list
+            List of all data files in the HiPACE simulation folder (not only
+            those of the current field).
+
+        species_name : str
+            Name of the particle species.
+
+        Returns
+        -------
+        A ParticleSpecies object.
+        """
         species_files, time_steps = self._get_files_and_timesteps(
             folder_path, files_in_folder, 'raw', species_name)
         species_components = []
@@ -309,6 +580,20 @@ class HiPACEFolderScanner(FolderScanner):
                                self.unit_converter)
 
     def _get_standard_visualpic_name(self, hipace_name):
+        """
+        Translate the name of a field, coordinate or other physical quantities
+        from the HiPACE naming to the VisualPIC convention.
+
+        Parameters
+        ----------
+
+        hipace_name : str
+            Name of the variable in HiPACE.
+
+        Returns
+        -------
+        A string with the VisualPIC name.
+        """
         name_relations = {'Ez': 'Ez',
                           'ExmBy': 'Wx',
                           'EypBx': 'Wy',
@@ -334,6 +619,27 @@ class HiPACEFolderScanner(FolderScanner):
 
     def _get_files_and_timesteps(self, folder_path, files_in_folder, prefix,
                                  name):
+        """
+        Get a list of all field files and timesteps.
+
+        Parameters
+        ----------
+
+        folder_path : str
+            Path to the folder containing the data files.
+
+        files_in_folder : list
+            List of all data files in the HiPACE simulation folder (not only
+            those of the current field).
+
+        prefix : str
+            HiPACE files have a prefix 'field', 'density' or 'raw' depending
+            on the data type. Possible values here are 'field' or 'density'.
+
+        Returns
+        -------
+        A tuple with a an array of file paths and and array of timesteps.
+        """
         field_files = [os.path.join(folder_path, file) for file in \
             files_in_folder if (prefix in file) and (name in file)]
         time_steps = np.zeros(len(field_files))
