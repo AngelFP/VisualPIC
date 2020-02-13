@@ -280,7 +280,7 @@ class OsirisFolderScanner(FolderScanner):
                                     species, species_folder))
         return species_list
 
-    def _create_field(self, field_name, field_folder, species_name=""):
+    def _create_field(self, field_name, field_folder, species_name=None):
         """
         Create a FolderField object with the specified information.
 
@@ -505,7 +505,7 @@ class HiPACEFolderScanner(FolderScanner):
         return available_species
 
     def _create_field(self, folder_path, files_in_folder, prefix, name,
-                      species_name=""):
+                      species_name=None):
         """
         Create a FolderField object with the specified information.
 

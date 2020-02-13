@@ -19,7 +19,7 @@
 
 
 class Field():
-    def __init__(self, field_name, field_timesteps, species_name=''):
+    def __init__(self, field_name, field_timesteps, species_name=None):
         self.field_name = field_name
         self.field_timesteps = field_timesteps
         self.species_name = species_name
@@ -35,7 +35,7 @@ class Field():
 
 class FolderField(Field):
     def __init__(self, field_name, field_path, field_files, field_timesteps,
-                 field_reader, unit_converter, species_name=''):
+                 field_reader, unit_converter, species_name=None):
         super().__init__(field_name, field_timesteps, species_name)
         self.field_path = field_path
         self.field_files = field_files
