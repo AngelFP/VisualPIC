@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import aptools.data_analysis.beam_diagnostics as bd
-from VisualPIC.DataReading.folder_scanners import (OsirisFolderScanner,
+from VisualPIC.data_reading.folder_scanners import (OsirisFolderScanner,
                                                    OpenPMDFolderScanner, 
                                                    HiPACEFolderScanner)
 from VisualPIC.helper_functions import print_progress_bar

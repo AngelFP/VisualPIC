@@ -26,11 +26,11 @@ from openpmd_viewer.openpmd_timeseries.utilities import list_h5_files
 from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
     read_openPMD_params)
 
-import VisualPIC.DataReading.field_readers as fr
-import VisualPIC.DataReading.particle_readers as pr
-import VisualPIC.DataHandling.unit_converters as uc
-from VisualPIC.DataHandling.fields import FolderField
-from VisualPIC.DataHandling.particle_species import ParticleSpecies
+import VisualPIC.data_reading.field_readers as fr
+import VisualPIC.data_reading.particle_readers as pr
+import VisualPIC.data_handling.unit_converters as uc
+from VisualPIC.data_handling.fields import FolderField
+from VisualPIC.data_handling.particle_species import ParticleSpecies
 
 
 class FolderScanner():
