@@ -94,3 +94,4 @@ Temporary Items
 /build/lib/VisualPIC
 /dist
 /visualPIC.egg-info
+/VisualPIC/tests.py
