@@ -1,5 +1,9 @@
 """ Module for the DataContainer class """
 
+
+from VisualPIC.data_handling.derived_field_definitions import (
+    derived_field_definitions)
+from VisualPIC.data_handling.fields import DerivedField
 from VisualPIC.data_reading.folder_scanners import (OsirisFolderScanner,
                                                     OpenPMDFolderScanner,
                                                     HiPACEFolderScanner)
@@ -9,7 +13,8 @@ class DataContainer():
     
     """Class containing a providing access to all the simulation data"""
 
-    def __init__(self, simulation_code, data_folder_path, plasma_density=None):
+    def __init__(self, simulation_code, data_folder_path, plasma_density=None,
+                 laser_wavelength=0.8e-6):
         """
         Initialize the data container.
 
@@ -28,12 +33,20 @@ class DataContainer():
             (Optional) Value of the plasma density in m^{-3}. Needed only for
             'Osiris' and 'HiPACE' data to allow for conversion to
             non-normalized units.
+
+        laser_wavelength : float
+            Wavelength (in metres) of the laser in the simulation. Needed for
+            computing the normalized vector potential.
         """
         self.simulation_code = simulation_code
         self.data_folder_path = data_folder_path
-        self.plasma_density = plasma_density
+        self.sim_params = {'n_p': plasma_density,
+                           'lambda_0': laser_wavelength}
         self.folder_scanner = self._get_folder_scanner(simulation_code,
                                                        plasma_density)
+        self.folder_fields = []
+        self.particle_species = []
+        self.derived_fields = []
 
     def load_data(self):
         """Load the data into the data container."""
@@ -41,11 +54,15 @@ class DataContainer():
             self.data_folder_path)
         self.particle_species = self.folder_scanner.get_list_of_species(
             self.data_folder_path)
+        self.derived_fields = self._generate_derived_fields()
 
-    def get_list_of_fields(self):
+    def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
         fields_list = []
-        for field in self.folder_fields:
+        available_fields = self.folder_fields
+        if include_derived:
+            available_fields = available_fields + self.derived_fields
+        for field in available_fields:
             fld_name = field.field_name
             fld_species = field.species_name
             if fld_species is not None:
@@ -78,7 +95,7 @@ class DataContainer():
         -------
         A FolderField object containing the specified field.
         """
-        for field in self.folder_fields:
+        for field in self.folder_fields + self.derived_fields:
             if (field_name == field.field_name and
                 species_name == field.species_name):
                 return field
@@ -123,4 +140,25 @@ class DataContainer():
             raise ValueError("Unsupported code '{}'.".format(simulation_code) +
                              " Possible values are 'Osiris', 'HiPACE' or " +
                              "'openPMD'.")
+
+    def _generate_derived_fields(self):
+        """Returns a list with the available derived fields."""
+        derived_field_list = []
+        sim_geometry = self._get_simulation_geometry()
+        folder_field_names = self.get_list_of_fields(include_derived=False)
+        for derived_field in derived_field_definitions:
+            if set(derived_field['requirements'][sim_geometry]).issubset(
+                folder_field_names):
+                base_fields = []
+                for field_name in derived_field['requirements'][sim_geometry]:
+                    base_fields.append(self.get_field(field_name))
+                derived_field_list.append(DerivedField(
+                    derived_field, sim_geometry, self.sim_params, base_fields))
+        return derived_field_list
+
+    def _get_simulation_geometry(self):
+        """Returns a string with the geometry used in the simulation."""
+        if self.folder_fields is not None:
+            fld_md = self.folder_fields[0].get_only_metadata(0)
+            return fld_md['field']['geometry']
 

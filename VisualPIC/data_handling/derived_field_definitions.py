@@ -1,0 +1,134 @@
+""" Module containing the definitions of derived fields."""
+
+
+import scipy.constants as ct
+import numpy as np
+
+
+derived_field_definitions = []
+
+
+'''
+-------------------------------------------------------------------------------
+Template for adding new derived fields. Copy the code below, uncomment and
+substitude 'Field name' and 'field_name' with the appropiate name.
+-------------------------------------------------------------------------------
+
+# Field name
+def calculate_field_name(data_list, sim_geometry, sim_params):
+    """
+    Defines how the field is calculated for each possible simulation geometry.
+
+    Parameters
+    ----------
+
+    data_list : list
+        List containing all the FolderFields specified in
+        field_name['requirements'][sim_geometry] and in the same order.
+
+    sim_geometry : str
+        Geometry of the simulation.
+
+    sim_params : dict
+        Provided if needed to calculate some fields. Dictionary containing the
+        keys 'n_p' for the plasma density and 'lambda_0' for the laser
+        wavelength in the simulation.
+
+    Returns
+    -------
+    An numpy array containing the field data with the same dimensions as the
+    fields in the data_list.
+    """
+    if sim_geometry == '1d':
+        raise NotImplementedError
+    elif sim_geometry == '2dcartesian':
+        raise NotImplementedError
+    elif sim_geometry == '3dcartesian':
+        raise NotImplementedError
+    elif sim_geometry == '2dcylindrical':
+        raise NotImplementedError
+    elif sim_geometry == 'thetaMode':
+        raise NotImplementedError
+
+
+# Dictionary containing the necessary field information. The requirements for
+# each geometry is simply a list of strings with the names of the fields (in
+# VisualPIC convention) needed to compute the derived field.
+field_name = {'name': 'F',
+              'units': '',
+              'requirements': {'1d': [],
+                               '2dcartesian': [],
+                               '3dcartesian': [],
+                               '2dcylindrical': [],
+                               'thetaMode': []},
+              'recipe': calculate_field_name}
+
+
+# Finally, add the dictionary to the list.
+derived_field_definitions.append(field_name)
+'''
+
+
+# Intensity
+def calculate_intensity(data_list, sim_geometry, sim_params):
+    if sim_geometry == '1d':
+        Ez = data_list[0]
+        E2 = Ez**2
+    elif sim_geometry == '2dcartesian':
+        Ez, Ex = data_list
+        E2 = Ez**2 + Ex**2
+    elif sim_geometry == '3dcartesian':
+        Ez, Ex, Ey = data_list
+        E2 = Ez**2 + Ex**2 + Ey**2
+    elif sim_geometry == '2dcylindrical':
+        raise NotImplementedError
+    elif sim_geometry == 'thetaMode':
+        Ez, Ex, Ey = data_list
+        E2 = Ez**2 + Ex**2 + Ey**2
+    return ct.c * ct.epsilon_0 / 2 * E2
+
+
+intensity = {'name': 'I',
+             'units': 'W/m^2',
+             'requirements': {'1d': ['Ez'],
+                              '2dcartesian': ['Ez', 'Ex'],
+                              '3dcartesian': ['Ez', 'Ex', 'Ey'],
+                              '2dcylindrical': [],
+                              'thetaMode': ['Ez', 'Ex', 'Ey']},
+             'recipe': calculate_intensity}
+
+
+derived_field_definitions.append(intensity)
+
+
+# Normalized vector potential
+def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
+    l_0 = sim_params['lambda_0']
+    if sim_geometry == '1d':
+        Ez = data_list[0]
+        E2 = Ez**2
+    elif sim_geometry == '2dcartesian':
+        Ez, Ex = data_list
+        E2 = Ez**2 + Ex**2
+    elif sim_geometry == '3dcartesian':
+        Ez, Ex, Ey = data_list
+        E2 = Ez**2 + Ex**2 + Ey**2
+    elif sim_geometry == '2dcylindrical':
+        raise NotImplementedError
+    elif sim_geometry == 'thetaMode':
+        Ez, Ex, Ey = data_list
+        E2 = Ez**2 + Ex**2 + Ey**2
+    return np.sqrt(7.3e-11 * l_0**2 * ct.c * ct.epsilon_0 / 2 * E2) 
+
+
+norm_vector_pot = {'name': 'a',
+                   'units': 'm_e*c^2/e',
+                   'requirements': {'1d': ['Ez'],
+                                    '2dcartesian': ['Ez', 'Ex'],
+                                    '3dcartesian': ['Ez', 'Ex', 'Ey'],
+                                    '2dcylindrical': [],
+                                    'thetaMode': ['Ez', 'Ex', 'Ey']},
+                   'recipe': calculate_norm_vector_pot}
+
+
+derived_field_definitions.append(norm_vector_pot)
