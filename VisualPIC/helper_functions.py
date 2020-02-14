@@ -5,9 +5,31 @@ import sys
 import numpy as np
 
 
-def print_progress_bar(pre_string, step, total_steps):
-    n_dash = int(round(step/total_steps*20))
-    n_space = 20 - n_dash
+def print_progress_bar(pre_string, step, total_steps, total_dashes=20):
+    """
+    Prints an updatable progress bar to the terminal output.
+
+    Parameters:
+    -----------
+
+    pre_string : str
+        A string with a message to include before (in front) the progress bar.
+
+    step : int
+        Current step of the progress.
+
+    total_steps : int
+        Total number of steps that have to be completed.
+
+    total_dashes : int
+        Number of dashes that the progress bar should be made of.
+
+    Returns:
+    --------
+    A string with the complete path using '/' as separator.
+    """
+    n_dash = int(round(step/total_steps*total_dashes))
+    n_space = total_dashes - n_dash
     status = pre_string + '[' + '-'*n_dash + ' '*n_space + '] '
     if step < total_steps:
         status += '\r'
