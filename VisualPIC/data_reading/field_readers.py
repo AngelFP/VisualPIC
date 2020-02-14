@@ -162,7 +162,7 @@ class OsirisFieldReader(FieldReader):
                 file['/AXIS/AXIS1'].attrs["UNITS"][0])
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
-                                              field_shape[2]+1)
+                                              field_shape[-1]+1)
         if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
             axis_data["x"]["units"] = self._numpy_bytes_to_string(
