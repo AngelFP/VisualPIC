@@ -43,6 +43,9 @@ bfieldgradient_conversion = {'MT/m': 1e-6,
                              'GV/m^2': ct.c * 1e-9}
 
 
+intensity_conversion = {'W/cm^2': 1e-4}
+
+
 class UnitConverter():
     def __init__(self):
         self.conversion_factors = {'m': length_conversion,
@@ -51,7 +54,10 @@ class UnitConverter():
                                    'T': bfield_conversion,
                                    'V/m^2': efieldgradient_conversion,
                                    'T/m': bfieldgradient_conversion,
-                                   'J*s/m': momentum_conversion}
+                                   'J*s/m': momentum_conversion,
+                                   'W/m^2': intensity_conversion}
+
+        self.si_units = self.conversion_factors.keys()
 
     def convert_field_units(self, field_data, field_md,
                             target_field_units=None, target_axes_units=None,
@@ -68,13 +74,15 @@ class UnitConverter():
                 axes_to_convert, convert_time)
 
         # convert field data to desired units
-        if convert_field and target_field_units != 'SI':
+        if convert_field and (target_field_units != 'SI' and
+                              target_field_units not in self.si_units):
             field_units = field_md['field']['units']
             field_data = self.convert_data(field_data, field_units,
                                            target_field_units)
             field_md['field']['units'] = target_field_units
         # convert axes data to desired units
-        if convert_axes and target_axes_units != 'SI':
+        if convert_axes and (target_axes_units != 'SI' and
+                             target_axes_units not in self.si_units):
             for axis, target_units in zip(axes_to_convert, target_axes_units):
                 axis_data = field_md['axis'][axis]['array']
                 axis_units = field_md['axis'][axis]['units']
@@ -83,7 +91,8 @@ class UnitConverter():
                 field_md['axis'][axis]['units'] = target_units
                 field_md['axis'][axis]['array'] = axis_data
         # convert time data to desired units
-        if convert_time and target_time_units != 'SI':
+        if convert_time and (target_time_units != 'SI' and
+                             target_time_units not in self.si_units):
             time_units = field_md['time']['units']
             time_value = field_md['time']['value']
             time_value = self.convert_data(time_value, time_units,
@@ -101,10 +110,13 @@ class UnitConverter():
             var_target_units = target_data_units[var_name]
             var_units = var_md['units']
             # convert to SI
-            var_data, var_units = self.convert_data_to_si(
-                var_data, var_units, var_md)
-            var_md['units'] = var_units
-            if var_target_units != 'SI':
+            if var_units not in self.si_units:
+                var_data, var_units = self.convert_data_to_si(
+                    var_data, var_units, var_md)
+                var_md['units'] = var_units
+            # convert to desired units
+            if (var_target_units != 'SI' and
+                var_target_units not in self.si_units):
                 var_data = self.convert_data(var_data, var_units,
                                              var_target_units)
                 var_md['units'] = var_target_units
@@ -132,26 +144,29 @@ class UnitConverter():
                                   axes_to_convert=[], convert_time=True):
         if convert_field:
             field_units = field_md['field']['units']
-            field_data, field_units = self.convert_data_to_si(
-                field_data, field_units, field_md)
-            field_md['field']['units'] = field_units
+            if field_units not in self.si_units:
+                field_data, field_units = self.convert_data_to_si(
+                    field_data, field_units, field_md)
+                field_md['field']['units'] = field_units
 
         if convert_axes:
             for axis in axes_to_convert:
                 axis_data = field_md['axis'][axis]['array']
                 axis_units = field_md['axis'][axis]['units']
-                axis_data, axis_units = self.convert_data_to_si(
-                    axis_data, axis_units, field_md)
-                field_md['axis'][axis]['units'] = axis_units
-                field_md['axis'][axis]['array'] = axis_data
+                if axis_units not in self.si_units:
+                    axis_data, axis_units = self.convert_data_to_si(
+                        axis_data, axis_units, field_md)
+                    field_md['axis'][axis]['units'] = axis_units
+                    field_md['axis'][axis]['array'] = axis_data
 
         if convert_time:
             time_units = field_md['time']['units']
             time_value = field_md['time']['value']
-            time_value, time_units = self.convert_data_to_si(
-                time_value, time_units, field_md)
-            field_md['time']['value'] = time_value
-            field_md['time']['units'] = time_units
+            if time_units not in self.si_units:
+                time_value, time_units = self.convert_data_to_si(
+                    time_value, time_units, field_md)
+                field_md['time']['value'] = time_value
+                field_md['time']['units'] = time_units
 
         return field_data, field_md
 
