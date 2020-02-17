@@ -21,6 +21,10 @@ momentum_conversion = {'MeV/c': 1e-6 * ct.c/ct.e,
                        'GeV/c': 1e-9 * ct.c/ct.e}
 
 
+angle_conversion = {'mrad': 1e3,
+                    'urad': 1e6}
+
+
 efield_conversion = {'GV/m': 1e-9,
                      'MV/m': 1e-6,
                      'T': 1/ct.c}
@@ -50,6 +54,7 @@ class UnitConverter():
     def __init__(self):
         self.conversion_factors = {'m': length_conversion,
                                    's': time_conversion,
+                                   'rad': angle_conversion,
                                    'V/m': efield_conversion,
                                    'T': bfield_conversion,
                                    'V/m^2': efieldgradient_conversion,
