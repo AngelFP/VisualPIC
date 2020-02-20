@@ -48,13 +48,16 @@ class DataContainer():
         self.particle_species = []
         self.derived_fields = []
 
-    def load_data(self):
+    def load_data(self, force_reload=False):
         """Load the data into the data container."""
-        self.folder_fields = self.folder_scanner.get_list_of_fields(
-            self.data_folder_path)
-        self.particle_species = self.folder_scanner.get_list_of_species(
-            self.data_folder_path)
-        self.derived_fields = self._generate_derived_fields()
+        if not self.folder_fields or force_reload:
+            self.folder_fields = self.folder_scanner.get_list_of_fields(
+                self.data_folder_path)
+        if not self.particle_species or force_reload:
+            self.particle_species = self.folder_scanner.get_list_of_species(
+                self.data_folder_path)
+        if not self.derived_fields or force_reload:
+            self.derived_fields = self._generate_derived_fields()
 
     def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
