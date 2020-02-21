@@ -30,52 +30,62 @@ class FieldReader():
         return super().__init__(*args, **kwargs)
 
     def read_field(self, file_path, field_path, slice_i=0.5, slice_j=0.5,
-                   slice_dir_i=None, slice_dir_j=None, m=0, theta=0):
-        fld_metadata = self.read_field_metadata(file_path, field_path)
+                   slice_dir_i=None, slice_dir_j=None, m=0, theta=0,
+                   only_metadata=False):
+        fld_metadata = self._read_field_metadata(file_path, field_path)
+        self._readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j, theta)
+        if only_metadata:
+            return np.array([]), fld_metadata
         geom = fld_metadata['field']['geometry']
         if geom == "1d":
-            fld = self.read_field_1d(file_path, field_path)
+            fld = self._read_field_1d(file_path, field_path)
         elif geom == "2dcartesian":
-            fld = self.read_field_2d_cart(file_path, field_path, slice_i,
+            fld = self._read_field_2d_cart(file_path, field_path, slice_i,
                                           slice_dir_i)
         elif geom == "3dcartesian":
-            fld = self.read_field_3d_cart(file_path, field_path, slice_i,
+            fld = self._read_field_3d_cart(file_path, field_path, slice_i,
                                           slice_j, slice_dir_i, slice_dir_j)
         elif geom == "2dcylindrical":
-            fld = self.read_field_2d_cyl(file_path, field_path, slice_i,
+            fld = self._read_field_2d_cyl(file_path, field_path, slice_i,
                                          slice_dir_i)
         elif geom == "thetaMode":
-            fld = self.read_field_theta(file_path, field_path, m, theta,
+            fld = self._read_field_theta(file_path, field_path, m, theta,
                                         slice_i, slice_dir_i)
-        self.readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j)
         return fld, fld_metadata
 
-    def readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j):
+    def _readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
+                           theta):
+        if (field_metadata['field']['geometry'] == 'thetaMode' and
+            theta is None):
+            r_axis_md = field_metadata['axis']['r']
+            field_metadata['axis']['x'] = r_axis_md
+            field_metadata['axis']['y'] = r_axis_md
+            del field_metadata['axis']['r']
         if slice_dir_i is not None:
             del field_metadata['axis'][slice_dir_i]
         if slice_dir_j is not None:
             del field_metadata['axis'][slice_dir_j]
 
-    def read_field_1d(self, file_path, field_path):
+    def _read_field_1d(self, file_path, field_path):
         raise NotImplementedError
 
-    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_dir_i='z'):
+    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_dir_i='z'):
         raise NotImplementedError
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         raise NotImplementedError
 
-    def read_field_2d_cyl(self, file_path, field_path, slice_i=0.5,
-                          slice_dir_i=None):
+    def _read_field_2d_cyl(self, file_path, field_path, slice_i=0.5,
+                           slice_dir_i=None):
         raise NotImplementedError
 
-    def read_field_theta(self, file_path, field_path, m=0, theta=0,
-                         slice_i=0.5, slice_dir_i=None):
+    def _read_field_theta(self, file_path, field_path, m=0, theta=0,
+                          slice_i=0.5, slice_dir_i=None):
         raise NotImplementedError
 
-    def read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, field_path):
         raise NotImplementedError
 
 
@@ -83,12 +93,12 @@ class OsirisFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_field_1d(self, file_path, field_path):
+    def _read_field_1d(self, file_path, field_path):
         file = H5F(file_path, 'r')
         return file[field_path]
     
-    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_dir_i=None):
+    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_dir_i=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         if slice_dir_i is not None:
@@ -102,8 +112,8 @@ class OsirisFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         if slice_dir_i is not None:
@@ -120,9 +130,11 @@ class OsirisFieldReader(FieldReader):
                 slice_idx_j = int(round(axis_elements_j * slice_j))
                 slice_list[axis_idx_j] = slice_idx_j
             fld = fld[tuple(slice_list)]
+        else:
+            fld = fld[:]
         return fld
 
-    def read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
         md = {}
         field_units = self._get_field_units(file, field_path)
@@ -195,7 +207,7 @@ class HiPACEFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
@@ -215,7 +227,7 @@ class HiPACEFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
         md = {}
         field_units = self._get_field_units(file_path)
@@ -275,15 +287,15 @@ class OpenPMDFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_field_1d(self, file_path, field_path):
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path, ['z'],
-                                              None, None)
+    def _read_field_1d(self, file_path, field_path):
+        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path, ['z'],
+                                               None, None)
         return fld
 
-    def read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_dir_i=None):
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
-                                              ['z', 'x'], None, None)
+    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_dir_i=None):
+        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path,
+                                               ['z', 'x'], None, None)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'z']
@@ -295,15 +307,15 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
+                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         if slice_dir_i is not None:
             slicing = -1. + 2*slice_i
         else:
             slicing = None
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
-                                              ['z', 'x', 'y'], slicing,
-                                              slice_dir_i)
+        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path,
+                                               ['z', 'x', 'y'], slicing,
+                                               slice_dir_i)
         if slice_dir_i is not None and slice_dir_j is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'y', 'z']
@@ -317,16 +329,16 @@ class OpenPMDFieldReader(FieldReader):
         return fld
 
 
-    def read_field_theta(self, file_path, field_path, m='all', theta=0,
-                         slice_i=0.5, slice_dir_i=None):
+    def _read_field_theta(self, file_path, field_path, m='all', theta=0,
+                          slice_i=0.5, slice_dir_i=None):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
         if comp in ['x', 'y']:
-            fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', None,
-                                               None, m, theta)
-            fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
-                                               None, m, theta)
+            fld_r, _ = opmd_fr._read_field_circ(file_path, field + '/r', None,
+                                                None, m, theta)
+            fld_t, _ = opmd_fr._read_field_circ(file_path, field + '/t', None,
+                                                None, m, theta)
             if comp == 'x':
                 fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
             elif comp == 'y':
@@ -347,17 +359,17 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    #def read_field_theta(self, file_path, field_path, m=0, theta=0,
+    #def _read_field_theta(self, file_path, field_path, m=0, theta=0,
     #                     slice_i=0.5, slice_dir_i=None):
     #    if transv_ax == 'r':
-    #        fld, _ = opmd_fr.read_field_circ(file_path, field_path, m, theta)
+    #        fld, _ = opmd_fr._read_field_circ(file_path, field_path, m, theta)
     #    else:
     #        # Code from openpmd-viewer
     #        # For Cartesian components, combine r and t components
     #        field, *coord = field_path.split('/')
-    #        fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', m,
+    #        fld_r, _ = opmd_fr._read_field_circ(file_path, field + '/r', m,
     #                                           theta)
-    #        fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', m,
+    #        fld_t, _ = opmd_fr._read_field_circ(file_path, field + '/t', m,
     #                                           theta)
     #        if transv_ax == 'x':
     #            fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
@@ -376,7 +388,7 @@ class OpenPMDFieldReader(FieldReader):
     #        fld = fld[tuple(slice_list)]
     #    return fld
 
-    def read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
         field, *comp = field_path.split('/')
         if len(comp) > 0:

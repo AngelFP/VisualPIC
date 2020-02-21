@@ -30,11 +30,22 @@ class Field():
 
     def get_data(self, time_step, field_units=None, axes_units=None,
                  time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-                 slice_dir_j=None, m=0, theta=0):
+                 slice_dir_j=None, m=0, theta=0, only_metadata=False):
         raise NotImplementedError
 
-    def get_only_metadata(self, time_step):
-        raise NotImplementedError
+    def get_only_metadata(self, time_step, field_units=None, axes_units=None,
+                          axes_to_convert=None, time_units=None,
+                          slice_dir_i=None, slice_dir_j=None, m=0, theta=0):
+        fld, fld_md = self.get_data(
+            time_step, field_units=field_units, axes_units=axes_units,
+            axes_to_convert=axes_to_convert, time_units=time_units,
+            slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
+            theta=theta, only_metadata=True)
+        return fld_md
+
+    def get_geometry(self):
+        field_md = self.get_only_metadata(self.timesteps[0])
+        return field_md['field']['geometry']
 
 
 class FolderField(Field):
@@ -49,11 +60,11 @@ class FolderField(Field):
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m=0,
-                 theta=0):
+                 theta=0, only_metadata=False):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
-            slice_dir_j, m, theta)
+            slice_dir_j, m, theta, only_metadata)
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
@@ -62,11 +73,6 @@ class FolderField(Field):
                 target_axes_units=axes_units, axes_to_convert=axes_to_convert,
                 target_time_units=time_units)
         return fld, fld_md
-
-    def get_only_metadata(self, time_step):
-        file_path = self._get_file_path(time_step)
-        return self.field_reader.read_field_metadata(
-            file_path, self.field_path)
 
     def _get_file_path(self, time_step):
         ts_i = self.timesteps.tolist().index(time_step)
@@ -87,17 +93,19 @@ class DerivedField(Field):
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m=0,
-                 theta=0):
+                 theta=0, only_metadata=False):
         field_data = []
         for field in self.base_fields:
             fld, fld_md = field.get_data(
                 time_step, field_units='SI', axes_units=axes_units,
                 axes_to_convert=axes_to_convert, time_units=time_units,
                 slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
-                slice_dir_j=slice_dir_j, m=m, theta=theta)
+                slice_dir_j=slice_dir_j, m=m, theta=theta,
+                only_metadata=only_metadata)
             field_data.append(fld)
-        fld = self.field_dict['recipe'](field_data, self.sim_geometry,
-                                        self.sim_params)
+        if not only_metadata:
+            fld = self.field_dict['recipe'](field_data, self.sim_geometry,
+                                            self.sim_params)
         fld_md['field']['units'] = self.field_dict['units']
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
@@ -107,8 +115,3 @@ class DerivedField(Field):
                 target_axes_units=axes_units, axes_to_convert=axes_to_convert,
                 target_time_units=time_units)
         return fld, fld_md
-
-    def get_only_metadata(self, time_step):
-        fld_md = self.base_fields[0].get_only_metadata(time_step)
-        fld_md['field']['units'] = self.field_dict['units']
-        return fld_md
