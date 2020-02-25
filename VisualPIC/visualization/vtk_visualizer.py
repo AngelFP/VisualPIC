@@ -205,7 +205,7 @@ class VTKVisualizer():
         self.window.SetSize(500, 500)
         self.window.AddRenderer(self.renderer)
         self.window.SetOffScreenRendering(1)
-        self.interactor = vtk.vtkRenderWindowInteractor()
+        self.interactor = vtk.vtkGenericRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
