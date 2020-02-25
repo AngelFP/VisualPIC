@@ -288,14 +288,14 @@ class OpenPMDFieldReader(FieldReader):
         return super().__init__(*args, **kwargs)
 
     def _read_field_1d(self, file_path, field_path):
-        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path, ['z'],
-                                               None, None)
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path, ['z'],
+                                              None, None)
         return fld
 
     def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
                             slice_dir_i=None):
-        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path,
-                                               ['z', 'x'], None, None)
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
+                                              ['z', 'x'], None, None)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'z']
@@ -313,9 +313,9 @@ class OpenPMDFieldReader(FieldReader):
             slicing = -1. + 2*slice_i
         else:
             slicing = None
-        fld, _ = opmd_fr._read_field_cartesian(file_path, field_path,
-                                               ['z', 'x', 'y'], slicing,
-                                               slice_dir_i)
+        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
+                                              ['z', 'x', 'y'], slicing,
+                                              slice_dir_i)
         if slice_dir_i is not None and slice_dir_j is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'y', 'z']
