@@ -104,23 +104,26 @@ class OpenPMDFolderScanner(FolderScanner):
         h5_files, iterations = list_h5_files(folder_path)
         t, opmd_params = read_openPMD_params(h5_files[0])
         avail_fields = opmd_params['avail_fields']
-        for field in avail_fields:
-            field_metadata = opmd_params['fields_metadata'][field]
-            if field_metadata['type'] == 'vector':
-                field_comps = field_metadata['axis_labels']
-                if field_metadata['geometry'] == 'thetaMode':
-                    field_comps += ['x', 'y']
-                for comp in field_comps:
-                    field_path = field + '/' + comp
-                    field_name = self._get_standard_visualpic_name(field_path)
+        if avail_fields is not None:
+            for field in avail_fields:
+                field_metadata = opmd_params['fields_metadata'][field]
+                if field_metadata['type'] == 'vector':
+                    field_comps = field_metadata['axis_labels']
+                    if field_metadata['geometry'] == 'thetaMode':
+                        field_comps += ['x', 'y']
+                    for comp in field_comps:
+                        field_path = field + '/' + comp
+                        field_name = self._get_standard_visualpic_name(
+                            field_path)
+                        field_list.append(
+                            FolderField(field_name, field_path, h5_files,
+                                        iterations, self.field_reader,
+                                        self.unit_converter))
+                else:
                     field_list.append(
-                        FolderField(field_name, field_path, h5_files,
-                                    iterations, self.field_reader,
-                                    self.unit_converter))
-            else:
-                field_list.append(
-                        FolderField(field, field, h5_files, iterations,
-                                    self.field_reader, self.unit_converter))
+                            FolderField(field, field, h5_files, iterations,
+                                        self.field_reader,
+                                        self.unit_converter))
         return field_list
 
     def get_list_of_species(self, folder_path):
@@ -141,13 +144,15 @@ class OpenPMDFolderScanner(FolderScanner):
         h5_files, iterations = list_h5_files(folder_path)
         t, opmd_params = read_openPMD_params(h5_files[0])
         avail_species = opmd_params['avail_species']
-        for species in avail_species:
-            species_comps = opmd_params['avail_record_components'][species]
-            for i, comp in enumerate(species_comps):
-                species_comps[i] = self._get_standard_visualpic_name(comp)
-            species_list.append(
-                ParticleSpecies(species, species_comps, iterations, h5_files,
-                                self.particle_reader, self.unit_converter))
+        if avail_species is not None:
+            for species in avail_species:
+                species_comps = opmd_params['avail_record_components'][species]
+                for i, comp in enumerate(species_comps):
+                    species_comps[i] = self._get_standard_visualpic_name(comp)
+                species_list.append(
+                    ParticleSpecies(species, species_comps, iterations,
+                                    h5_files, self.particle_reader,
+                                    self.unit_converter))
         return species_list
 
     def _get_standard_visualpic_name(self, opmd_name):
