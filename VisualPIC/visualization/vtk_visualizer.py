@@ -205,7 +205,10 @@ class VTKVisualizer():
         self.window.SetSize(500, 500)
         self.window.AddRenderer(self.renderer)
         self.window.SetOffScreenRendering(1)
-        self.interactor = vtk.vtkGenericRenderWindowInteractor()
+        if self.vis_config['use_qt']:
+            self.interactor = vtk.vtkGenericRenderWindowInteractor()
+        else:
+            self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
@@ -321,6 +324,9 @@ class VolumetricField():
         self.ytrim = ytrim
         self.ztrim = ztrim
         self.resolution = resolution
+
+    def get_name(self):
+        return field.field_name
 
     def get_data(self, timestep):
         fld_data, *_ = self.field.get_data(timestep, theta=None)
