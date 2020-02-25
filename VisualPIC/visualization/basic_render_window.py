@@ -5,7 +5,7 @@ from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 class BasicRenderWindow(QtWidgets.QMainWindow):
 
-    """Basic Qt window for intercative visualization of 3D renders."""
+    """Basic Qt window for interactive visualization of 3D renders."""
 
     def __init__(self, vtk_render_window, interactor, parent=None):
         super().__init__(parent=parent)
