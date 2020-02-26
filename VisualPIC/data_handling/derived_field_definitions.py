@@ -83,8 +83,8 @@ def calculate_intensity(data_list, sim_geometry, sim_params):
     elif sim_geometry == '2dcylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
-        Ez, Ex, Ey = data_list
-        E2 = Ez**2 + Ex**2 + Ey**2
+        Ez, Er, Et = data_list
+        E2 = Ez**2 + Er**2 + Et**2
     return ct.c * ct.epsilon_0 / 2 * E2
 
 
@@ -94,7 +94,7 @@ intensity = {'name': 'I',
                               '2dcartesian': ['Ez', 'Ex'],
                               '3dcartesian': ['Ez', 'Ex', 'Ey'],
                               '2dcylindrical': [],
-                              'thetaMode': ['Ez', 'Ex', 'Ey']},
+                              'thetaMode': ['Ez', 'Er', 'Et']},
              'recipe': calculate_intensity}
 
 
@@ -116,8 +116,8 @@ def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
     elif sim_geometry == '2dcylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
-        Ez, Ex, Ey = data_list
-        E2 = Ez**2 + Ex**2 + Ey**2
+        Ez, Er, Et = data_list
+        E2 = Ez**2 + Er**2 + Et**2
     return np.sqrt(7.3e-11 * l_0**2 * ct.c * ct.epsilon_0 / 2 * E2) 
 
 
@@ -127,7 +127,7 @@ norm_vector_pot = {'name': 'a',
                                     '2dcartesian': ['Ez', 'Ex'],
                                     '3dcartesian': ['Ez', 'Ex', 'Ey'],
                                     '2dcylindrical': [],
-                                    'thetaMode': ['Ez', 'Ex', 'Ey']},
+                                    'thetaMode': ['Ez', 'Er', 'Et']},
                    'recipe': calculate_norm_vector_pot}
 
 
