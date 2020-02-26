@@ -30,7 +30,7 @@ class Field():
 
     def get_data(self, time_step, field_units=None, axes_units=None,
                  time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-                 slice_dir_j=None, m=0, theta=0, only_metadata=False):
+                 slice_dir_j=None, m='all', theta=0, only_metadata=False):
         raise NotImplementedError
 
     def get_only_metadata(self, time_step, field_units=None, axes_units=None,
@@ -59,7 +59,7 @@ class FolderField(Field):
 
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m=0,
+                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
                  theta=0, only_metadata=False):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
@@ -92,7 +92,7 @@ class DerivedField(Field):
 
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m=0,
+                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
                  theta=0, only_metadata=False):
         field_data = []
         for field in self.base_fields:
