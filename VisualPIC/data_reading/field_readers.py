@@ -335,10 +335,10 @@ class OpenPMDFieldReader(FieldReader):
         if len(comp) > 0:
             comp = comp[0]
         if comp in ['x', 'y']:
-            fld_r, _ = opmd_fr._read_field_circ(file_path, field + '/r', None,
-                                                None, m, theta)
-            fld_t, _ = opmd_fr._read_field_circ(file_path, field + '/t', None,
-                                                None, m, theta)
+            fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', None,
+                                               None, m, theta)
+            fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
+                                               None, m, theta)
             if comp == 'x':
                 fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
             elif comp == 'y':
