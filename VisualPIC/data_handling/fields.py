@@ -17,6 +17,8 @@
 #You should have received a copy of the GNU General Public License
 #along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
+from copy import copy
+
 from VisualPIC.helper_functions import get_common_timesteps
 
 
@@ -27,15 +29,40 @@ class Field():
         self.timesteps = field_timesteps
         self.species_name = species_name
         self.unit_converter = unit_converter
+        self._current_data_params = None
+        self._fld_data = None
+        self._fld_metadata = None
 
     def get_data(self, time_step, field_units=None, axes_units=None,
-                 time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-                 slice_dir_j=None, m='all', theta=0, only_metadata=False):
-        raise NotImplementedError
+                 axes_to_convert=None, time_units=None, slice_i=0.5,
+                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
+                 theta=0, only_metadata=False):
+        params = [time_step, field_units, axes_units, axes_to_convert,
+                  time_units, slice_i, slice_j, slice_dir_i, slice_dir_j, m,
+                  theta]
+        # Avoid reading data more than once in a consecutive way
+        if (params != self._current_data_params or
+            (not only_metadata and self._fld_data is None)):
+            self._current_data_params = params
+            fld_data, fld_metadata = self._get_data(
+                time_step, field_units=field_units, axes_units=axes_units,
+                axes_to_convert=axes_to_convert, time_units=time_units,
+                slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
+                theta=theta, only_metadata=only_metadata)
+            if only_metadata:
+                self._fld_data = None
+            else:
+                self._fld_data = fld_data
+            self._fld_metadata = fld_metadata
+        if only_metadata:
+            return [], copy(self._fld_metadata)
+        else:
+            return copy(self._fld_data), copy(self._fld_metadata)
 
     def get_only_metadata(self, time_step, field_units=None, axes_units=None,
                           axes_to_convert=None, time_units=None,
-                          slice_dir_i=None, slice_dir_j=None, m=0, theta=0):
+                          slice_dir_i=None, slice_dir_j=None, m='all',
+                          theta=0):
         fld, fld_md = self.get_data(
             time_step, field_units=field_units, axes_units=axes_units,
             axes_to_convert=axes_to_convert, time_units=time_units,
@@ -47,6 +74,11 @@ class Field():
         field_md = self.get_only_metadata(self.timesteps[0])
         return field_md['field']['geometry']
 
+    def _get_data(self, time_step, field_units=None, axes_units=None,
+                  time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
+                  slice_dir_j=None, m='all', theta=0, only_metadata=False):
+        raise NotImplementedError
+
 
 class FolderField(Field):
     def __init__(self, field_name, field_path, field_files, field_timesteps,
@@ -57,10 +89,10 @@ class FolderField(Field):
         self.field_files = field_files
         self.field_reader = field_reader
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
-                 axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, only_metadata=False):
+    def _get_data(self, time_step, field_units=None, axes_units=None,
+                  axes_to_convert=None, time_units=None, slice_i=0.5,
+                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
+                  theta=0, only_metadata=False):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
@@ -90,10 +122,10 @@ class DerivedField(Field):
         unit_converter = base_fields[0].unit_converter
         super().__init__(field_name, field_timesteps, unit_converter)
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
-                 axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, only_metadata=False):
+    def _get_data(self, time_step, field_units=None, axes_units=None,
+                  axes_to_convert=None, time_units=None, slice_i=0.5,
+                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
+                  theta=0, only_metadata=False):
         field_data = []
         for field in self.base_fields:
             fld, fld_md = field.get_data(
