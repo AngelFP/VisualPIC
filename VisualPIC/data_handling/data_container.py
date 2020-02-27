@@ -162,6 +162,7 @@ class DataContainer():
     def _get_simulation_geometry(self):
         """Returns a string with the geometry used in the simulation."""
         if self.folder_fields is not None:
-            fld_md = self.folder_fields[0].get_only_metadata(0)
+            time_steps = self.folder_fields[0].timesteps
+            fld_md = self.folder_fields[0].get_only_metadata(time_steps[0])
             return fld_md['field']['geometry']
 
