@@ -12,6 +12,7 @@ try:
 except:
     qt_installed = False
 
+from VisualPIC.helper_functions import get_common_timesteps
 from VisualPIC.visualization.volume_appearance import *
 if qt_installed:
     from VisualPIC.visualization.basic_render_window import BasicRenderWindow
@@ -51,6 +52,8 @@ class VTKVisualizer():
                            'show_axes': show_axes,
                            'use_qt': use_qt}
         self.volume_field_list = []
+        self.current_time_step = -1
+        self.available_time_steps = None
         self._initialize_base_vtk_elements()
         self._add_axes_widget()
         self._add_visualpic_logo()
@@ -102,12 +105,13 @@ class VTKVisualizer():
             self.volume_field_list.append(VolumetricField(
                 field, cmap, opacity, vmax, vmin, xtrim, ytrim, ztrim,
                 resolution))
+            self.available_time_steps = self._get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
             raise ValueError(
                 "Field geometry '{}' not supported.".format(fld_geom))
 
-    def render_to_file(self, timestep, file_path, resolution=None):
+    def render_to_file(self, timestep_idx, file_path, resolution=None):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -125,13 +129,14 @@ class VTKVisualizer():
             List containing the horizontal and vertical resolution of the
             rendered image.
         """
+        self.current_time_step = self.available_time_steps[timestep_idx]
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
             self.window.SetSize(*resolution)
         if self.old_vtk:
-            self._load_data_into_volume(timestep)
+            self._load_data_into_volume(self.current_time_step)
         else:
-            self._load_data_into_multi_volume(timestep)
+            self._load_data_into_multi_volume(self.current_time_step)
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)        
@@ -141,7 +146,7 @@ class VTKVisualizer():
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep):
+    def show(self, timestep_idx=0):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -151,11 +156,12 @@ class VTKVisualizer():
         timestep : int
             Time step of the fiels to be rendered.
         """
+        self.current_time_step = self.available_time_steps[timestep_idx]
         self.window.SetOffScreenRendering(0)
         if self.old_vtk:
-            self._load_data_into_volume(timestep)
+            self._load_data_into_volume(self.current_time_step)
         else:
-            self._load_data_into_multi_volume(timestep)
+            self._load_data_into_multi_volume(self.current_time_step)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
             window = BasicRenderWindow(self)
@@ -201,6 +207,16 @@ class VTKVisualizer():
                 self.renderer.SetBackground(0, 0, 0)
         else:
             self.renderer.SetBackground(*color)
+
+    def _get_possible_timesteps(self):
+        """
+        Returns a numpy array with all the time steps commonly available
+        to all fields in the visualizer.
+        """
+        fld_list = []
+        for volume in self.volume_field_list:
+            fld_list.append(volume.field)
+        return get_common_timesteps(fld_list)
 
     def _initialize_base_vtk_elements(self):
         try:
