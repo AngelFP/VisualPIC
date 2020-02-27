@@ -404,9 +404,10 @@ class VolumetricField():
         self.ztrim = ztrim
         self.resolution = resolution
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
+        self.vtk_cmap = vtk.vtkColorTransferFunction()
 
     def get_name(self):
-        return field.field_name
+        return self.field.field_name
 
     def get_data(self, timestep):
         fld_data, *_ = self.field.get_data(timestep, theta=None)
@@ -427,6 +428,11 @@ class VolumetricField():
         return ax_orig, ax_spacing
 
     def get_vtk_opacity(self, timestep=None):
+        opacity = self.get_opacity(timestep)
+        self._set_vtk_opacity(opacity)
+        return self.vtk_opacity
+
+    def get_opacity(self, timestep=None):
         if isinstance(self.opacity, Opacity):
             opacity = self.opacity
         elif self.opacity != 'auto':
@@ -437,21 +443,18 @@ class VolumetricField():
                     "Opacity '{}' does not exist.".format(self.opacity))
         else:
             opacity = self.get_optimized_opacity(timestep)
-        self._set_vtk_opacity(opacity)
-        return self.vtk_opacity
+        return opacity
 
     def set_opacity(self, opacity):
         self.opacity = opacity
         self._set_vtk_opacity(opacity)
 
-    def _set_vtk_opacity(self, opacity):
-        fld_vals, op_vals = opacity.get_opacity_values()
-        self.vtk_opacity.RemoveAllPoints()
-        for fv, ov in zip(fld_vals, op_vals):
-            self.vtk_opacity.AddPoint(fv, ov)
-
     def get_vtk_colormap(self):
-        vtk_cmap = vtk.vtkColorTransferFunction()
+        cmap = self.get_colormap()
+        self._set_vtk_colormap(cmap)
+        return self.vtk_cmap
+
+    def get_colormap(self):
         if isinstance(self.cmap, Colormap):
             cmap = self.cmap
         else:
@@ -460,21 +463,37 @@ class VolumetricField():
             else:
                 raise ValueError(
                     "Colormap '{}' does not exist.".format(self.cmap))
-        fld_val, r_val, g_val, b_val = cmap.get_cmap_values()
-        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
-        points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
-        vtk_cmap.FillFromDataPointer(int(len(points)/4), points)
-        return vtk_cmap
+        return cmap
 
-    def get_optimized_opacity(self, time_step):
-        nel = 11
-        fld_data = self.get_data(time_step)
-        hist, hist_edges = np.histogram(fld_data, bins=nel)
+    def set_colormap(self, cmap):
+        self.cmap = cmap
+        self._set_vtk_colormap(cmap)
+
+    def get_optimized_opacity(self, time_step, bins=11):
+        hist, *_ = self.get_field_data_histogram(time_step, bins=bins)
         hist = np.ma.log(hist).filled(0)
-        fld_val = np.linspace(0, 255, nel)
+        fld_val = np.linspace(0, 255, bins)
         op_val = 1 - hist/hist.max()
         opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
         return opacity
+
+    def get_field_data_histogram(self, time_step, bins=11):
+        fld_data = self.get_data(time_step)
+        hist, hist_edges = np.histogram(fld_data, bins=bins)
+        return hist, hist_edges
+
+    def _set_vtk_opacity(self, opacity):
+        fld_vals, op_vals = opacity.get_opacity_values()
+        self.vtk_opacity.RemoveAllPoints()
+        for fv, ov in zip(fld_vals, op_vals):
+            self.vtk_opacity.AddPoint(fv, ov)
+
+    def _set_vtk_colormap(self, cmap):
+        self.vtk_cmap.RemoveAllPoints()
+        fld_val, r_val, g_val, b_val = cmap.get_cmap_values()
+        # points = [x0, r0, g0, b0, x1, r1, g1, b1, ..., xN, rN, gN, bN]
+        points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
+        self.vtk_cmap.FillFromDataPointer(int(len(points)/4), points)
 
     def _trim_field(self, fld_data):
         shape = fld_data.shape
