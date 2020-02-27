@@ -30,7 +30,7 @@ class FieldReader():
         return super().__init__(*args, **kwargs)
 
     def read_field(self, file_path, field_path, slice_i=0.5, slice_j=0.5,
-                   slice_dir_i=None, slice_dir_j=None, m=0, theta=0,
+                   slice_dir_i=None, slice_dir_j=None, m='all', theta=0,
                    only_metadata=False):
         fld_metadata = self._read_field_metadata(file_path, field_path)
         self._readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j, theta)
@@ -81,7 +81,7 @@ class FieldReader():
                            slice_dir_i=None):
         raise NotImplementedError
 
-    def _read_field_theta(self, file_path, field_path, m=0, theta=0,
+    def _read_field_theta(self, file_path, field_path, m='all', theta=0,
                           slice_i=0.5, slice_dir_i=None):
         raise NotImplementedError
 
