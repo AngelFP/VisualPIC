@@ -3,7 +3,7 @@ from PyQt5.Qt import Qt
 from PyQt5 import QtCore, QtWidgets
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-#from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
+from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
 
 
 class BasicRenderWindow(QtWidgets.QMainWindow):
@@ -20,6 +20,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
     def setup_interface(self):
         self.frame = QtWidgets.QFrame()
         self.vl = QtWidgets.QVBoxLayout()
+        self.dialog_dict = {}
 
         self.vtk_widget = QVTKRenderWindowInteractor(
             self.frame, rw=self.vtk_vis.window, iren=self.vtk_vis.interactor)
@@ -42,7 +43,18 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.settings_button.clicked.connect(self.settings_button_clicked)
 
     def settings_button_clicked(self):
-        pass
+        fld_list = self.vtk_vis.get_list_of_fields()
+        fld_name, ok_pressed = QtWidgets.QInputDialog.getItem(
+            self, 'Edit field properties', 'Select field:', fld_list, 0, False)
+        if ok_pressed:
+            if fld_name in self.dialog_dict:
+                setup_window = self.dialog_dict[fld_name]
+            else:
+                fld_idx = fld_list.index(fld_name)
+                setup_window = SetupFieldVolumeWindow(
+                    self.vtk_vis.volume_field_list[fld_idx], self)
+                self.dialog_dict[fld_name] = setup_window
+            setup_window.show()
 
     def closeEvent(self, *args, **kwargs):
         """ This fixes bug described in 
