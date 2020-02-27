@@ -129,7 +129,10 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
             self.window.SetSize(*resolution)
-        self._load_data_into_volume(timestep)
+        if self.old_vtk:
+            self._load_data_into_volume(timestep)
+        else:
+            self._load_data_into_multi_volume(timestep)
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)        
@@ -150,10 +153,13 @@ class VTKVisualizer():
             Time step of the fiels to be rendered.
         """
         self.window.SetOffScreenRendering(0)
-        self._load_data_into_volume(timestep)
+        if self.old_vtk:
+            self._load_data_into_volume(timestep)
+        else:
+            self._load_data_into_multi_volume(timestep)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            window = BasicRenderWindow(self.window, self.interactor)
+            window = BasicRenderWindow(self)
             app.exec_()
         else:
             self.window.Render()
@@ -198,7 +204,13 @@ class VTKVisualizer():
             self.renderer.SetBackground(*color)
 
     def _initialize_base_vtk_elements(self):
-        self.vtk_volume = vtk.vtkVolume()
+        try:
+            # vtkMultiVolume class available only in vtk >= 8.2.0
+            self.vtk_volume = vtk.vtkMultiVolume()
+            self.old_vtk = False
+        except:
+            self.vtk_volume = vtk.vtkVolume()
+            self.old_vtk = True
         self.renderer = vtk.vtkRenderer()
         self.renderer.AddVolume(self.vtk_volume)
         self.window = vtk.vtkRenderWindow()
@@ -260,7 +272,59 @@ class VTKVisualizer():
         self.vtk_volume.SetMapper(vtk_volume_mapper)
         self.vtk_volume.SetProperty(vtk_volume_prop)
         self.renderer.ResetCamera()
-    
+
+    def _load_data_into_multi_volume(self, timestep):
+        vtk_vols, imports = self._create_volumes(timestep)
+        # Create the mapper
+        vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
+        vtk_volume_mapper.UseJitteringOn()
+        self.vtk_volume.SetMapper(vtk_volume_mapper)
+        for i, (vol, imp) in enumerate(zip(vtk_vols, imports)):
+            vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
+            self.vtk_volume.SetVolume(vol, i)
+        self.renderer.ResetCamera()
+
+    def _create_volumes(self, timestep):
+        self.npdatamulti = list()
+        vol_list = list()
+        imports_list = list()
+        for i, vol_field in enumerate(self.volume_field_list):
+            vtk_vol = vtk.vtkVolume()
+            vtk_volume_prop = vtk.vtkVolumeProperty()
+            vtk_volume_prop.SetInterpolationTypeToLinear()
+            vtk_volume_prop.SetColor(vol_field.get_vtk_colormap())
+            vtk_volume_prop.SetScalarOpacity(vol_field.get_vtk_opacity(timestep))
+            vtk_volume_prop.ShadeOff()
+            vtk_vol.SetProperty(vtk_volume_prop)
+            self.npdatamulti.append(vol_field.get_data(timestep))
+            vol_list.append(vtk_vol)
+
+            ax_orig, ax_spacing = vol_field.get_axes_data(timestep)
+            max_spacing = max(ax_spacing)
+            max_cell_size = 0.1
+            norm_factor = max_cell_size/max_spacing
+            ax_orig *= norm_factor
+            ax_spacing *= norm_factor
+
+            # Put data in VTK format
+            vtk_data_import = vtk.vtkImageImport()
+            vtk_data_import.SetImportVoidPointer(self.npdatamulti[i])
+            vtk_data_import.SetDataScalarTypeToUnsignedChar()
+            vtk_data_import.SetDataExtent(0, self.npdatamulti[i].shape[2]-1,
+                                          0, self.npdatamulti[i].shape[1]-1,
+                                          0, self.npdatamulti[i].shape[0]-1)
+            vtk_data_import.SetWholeExtent(0, self.npdatamulti[i].shape[2]-1,
+                                           0, self.npdatamulti[i].shape[1]-1,
+                                           0, self.npdatamulti[i].shape[0]-1)
+            vtk_data_import.SetDataSpacing(ax_spacing[0],
+                                           ax_spacing[1],
+                                           ax_spacing[2])
+            # data origin is also changed by the normalization
+            vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[1], ax_orig[2])
+            vtk_data_import.Update()
+            imports_list.append(vtk_data_import)
+        return vol_list, imports_list
+
     def _get_volume_properties(self, timestep):
         vtk_volume_prop = vtk.vtkVolumeProperty()
         vtk_volume_prop.IndependentComponentsOn()
