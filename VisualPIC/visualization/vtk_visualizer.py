@@ -208,6 +208,13 @@ class VTKVisualizer():
         else:
             self.renderer.SetBackground(*color)
 
+    def get_list_of_fields(self):
+        """Returns a list with the names of all available fields."""
+        fld_list = []
+        for vol_field in self.volume_field_list:
+            fld_list.append(vol_field.get_name())
+        return fld_list
+
     def _get_possible_timesteps(self):
         """
         Returns a numpy array with all the time steps commonly available
@@ -407,7 +414,11 @@ class VolumetricField():
         self.vtk_cmap = vtk.vtkColorTransferFunction()
 
     def get_name(self):
-        return self.field.field_name
+        fld_name = self.field.field_name
+        fld_sp = self.field.species_name
+        if fld_sp is not None:
+            fld_name += ' [{}]'.format(fld_sp)
+        return fld_name
 
     def get_data(self, timestep):
         fld_data, *_ = self.field.get_data(timestep, theta=None)
@@ -471,15 +482,16 @@ class VolumetricField():
 
     def get_optimized_opacity(self, time_step, bins=11):
         hist, *_ = self.get_field_data_histogram(time_step, bins=bins)
-        hist = np.ma.log(hist).filled(0)
         fld_val = np.linspace(0, 255, bins)
-        op_val = 1 - hist/hist.max()
+        op_val = 1 - hist
         opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
         return opacity
 
     def get_field_data_histogram(self, time_step, bins=11):
         fld_data = self.get_data(time_step)
         hist, hist_edges = np.histogram(fld_data, bins=bins)
+        hist = np.ma.log(hist).filled(0)
+        hist /= hist.max()
         return hist, hist_edges
 
     def _set_vtk_opacity(self, opacity):
