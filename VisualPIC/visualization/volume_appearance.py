@@ -74,7 +74,7 @@ class VolumeStyleHandler():
                 if op.get_name() == op_name:
                     return op
 
-        def get_opacity_data(self, op_name):
+        def get_opacity_values(self, op_name):
             for op in self.default_opacities + self.other_opacities:
                 if op.get_name() == op_name:
                     return op.get_opacity_values()
@@ -159,10 +159,10 @@ class VolumeStyleHandler():
                 if cmap.get_name() == cmap_name:
                     return cmap
 
-        def get_cmap_data(self, cmap_name):
+        def get_cmap_values(self, cmap_name):
             for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
-                    return cmap.get_cmap()
+                    return cmap.get_cmap_values()
 
         def save_cmap(self, name, fld_val, r_val, g_val, b_val, folder_path):
             if (fld_val.min() >= 0 and fld_val.max() <= 255
