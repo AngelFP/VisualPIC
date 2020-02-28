@@ -118,7 +118,8 @@ class VTKVisualizer():
             raise ValueError(
                 "Field geometry '{}' not supported.".format(fld_geom))
 
-    def render_to_file(self, timestep_idx, file_path, resolution=None):
+    def render_to_file(self, timestep, file_path, resolution=None,
+                       ts_is_index=True):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -127,7 +128,10 @@ class VTKVisualizer():
         ----------
 
         timestep : int
-            Time step of the fiels to be rendered.
+            Time step of the fiels to be rendered. Can be the index of a
+            time step in self.available_time_steps or directly the numerical
+            value of a time step. This is indicated by the 'ts_is_insex'
+            parameter.
 
         file_path : str
             Path to the file to which the render should be saved.
@@ -135,8 +139,19 @@ class VTKVisualizer():
         resolution : list
             List containing the horizontal and vertical resolution of the
             rendered image.
+
+        ts_is_index : Bools
+            Indicates whether the value provided in 'timestep' is the index of
+            the time step (True) or the numerical value of the time step
+            (False).
         """
-        self.current_time_step = self.available_time_steps[timestep_idx]
+        if ts_is_index:
+            self.current_time_step = self.available_time_steps[timestep]
+        else:
+            if timestep not in self.available_time_steps:
+                raise ValueError(
+                    'Time step {} is not available.'.format(timestep))
+            self.current_time_step = timestep
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
             self.window.SetSize(*resolution)
@@ -154,7 +169,7 @@ class VTKVisualizer():
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep_idx=0):
+    def show(self, timestep=0, ts_is_index=True):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -162,9 +177,23 @@ class VTKVisualizer():
         ----------
 
         timestep : int
-            Time step of the fiels to be rendered.
+            Time step of the fiels to be rendered. Can be the index of a
+            time step in self.available_time_steps or directly the numerical
+            value of a time step. This is indicated by the 'ts_is_insex'
+            parameter.
+
+        ts_is_index : Bools
+            Indicates whether the value provided in 'timestep' is the index of
+            the time step (True) or the numerical value of the time step
+            (False).
         """
-        self.current_time_step = self.available_time_steps[timestep_idx]
+        if ts_is_index:
+            self.current_time_step = self.available_time_steps[timestep]
+        else:
+            if timestep not in self.available_time_steps:
+                raise ValueError(
+                    'Time step {} is not available.'.format(timestep))
+            self.current_time_step = timestep
         self.window.SetOffScreenRendering(0)
         if self.old_vtk:
             self._load_data_into_volume(self.current_time_step)
