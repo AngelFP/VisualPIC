@@ -2,7 +2,6 @@
 
 import sys
 from pkg_resources import resource_filename
-from copy import copy
 
 import vtk
 import numpy as np
@@ -52,13 +51,7 @@ class VTKVisualizer():
                            'show_logo': show_logo,
                            'show_axes': show_axes,
                            'use_qt': use_qt}
-        self.camera_props = {
-            'angles': {
-                'azimuth': 0,
-                'elevation': 0
-                },
-            'zoom': 1
-            }
+        self.camera_props = {'zoom': 1}
         self.volume_field_list = []
         self.current_time_step = -1
         self.available_time_steps = None
@@ -255,11 +248,12 @@ class VTKVisualizer():
         return fld_list
 
     def set_camera_angles(self, azimuth, elevation):
-        self.camera_props['angles']['azimuth'] = azimuth
-        self.camera_props['angles']['elevation'] = elevation
+        self.camera.Azimuth(azimuth)
+        self.camera.Elevation(elevation)
 
     def set_camera_zoom(self, zoom):
         self.camera_props['zoom'] = zoom
+        self.camera.Zoom(zoom)
 
     def get_possible_timesteps(self):
         """
@@ -272,13 +266,7 @@ class VTKVisualizer():
         return get_common_timesteps(fld_list)
 
     def _setup_camera(self):
-        # It is necessary to keep a copy of the original camera because
-        # setting the Azimuth and Elevation is additive.
-        self.camera = copy(self._original_camera)
-        self.renderer.SetActiveCamera(self.camera)
         self.renderer.ResetCamera()
-        self.camera.Azimuth(self.camera_props['angles']['azimuth'])
-        self.camera.Elevation(self.camera_props['angles']['elevation'])
         self.camera.Zoom(self.camera_props['zoom'])
 
     def _initialize_base_vtk_elements(self):
@@ -302,7 +290,6 @@ class VTKVisualizer():
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
         self.camera = self.renderer.GetActiveCamera()
-        self._original_camera = copy(self.camera)
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
