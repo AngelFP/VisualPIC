@@ -36,10 +36,10 @@ class Field():
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, only_metadata=False):
+                 theta=0, max_resolution_3d_tm=None, only_metadata=False):
         params = [time_step, field_units, axes_units, axes_to_convert,
                   time_units, slice_i, slice_j, slice_dir_i, slice_dir_j, m,
-                  theta]
+                  theta, max_resolution_3d_tm]
         # Avoid reading data more than once in a consecutive way
         if (params != self._current_data_params or
             (not only_metadata and self._fld_data is None)):
@@ -48,7 +48,8 @@ class Field():
                 time_step, field_units=field_units, axes_units=axes_units,
                 axes_to_convert=axes_to_convert, time_units=time_units,
                 slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
-                theta=theta, only_metadata=only_metadata)
+                theta=theta, max_resolution_3d_tm=max_resolution_3d_tm,
+                only_metadata=only_metadata)
             if only_metadata:
                 self._fld_data = None
             else:
@@ -62,12 +63,13 @@ class Field():
     def get_only_metadata(self, time_step, field_units=None, axes_units=None,
                           axes_to_convert=None, time_units=None,
                           slice_dir_i=None, slice_dir_j=None, m='all',
-                          theta=0):
+                          theta=0, max_resolution_3d_tm=None):
         fld, fld_md = self.get_data(
             time_step, field_units=field_units, axes_units=axes_units,
             axes_to_convert=axes_to_convert, time_units=time_units,
             slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
-            theta=theta, only_metadata=True)
+            theta=theta, max_resolution_3d_tm=max_resolution_3d_tm,
+            only_metadata=True)
         return fld_md
 
     def get_geometry(self):
@@ -76,7 +78,8 @@ class Field():
 
     def _get_data(self, time_step, field_units=None, axes_units=None,
                   time_units=None, slice_i=0.5, slice_j=0.5, slice_dir_i=None,
-                  slice_dir_j=None, m='all', theta=0, only_metadata=False):
+                  slice_dir_j=None, m='all', theta=0,
+                  max_resolution_3d_tm=None, only_metadata=False):
         raise NotImplementedError
 
 
@@ -92,11 +95,11 @@ class FolderField(Field):
     def _get_data(self, time_step, field_units=None, axes_units=None,
                   axes_to_convert=None, time_units=None, slice_i=0.5,
                   slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                  theta=0, only_metadata=False):
+                  theta=0, max_resolution_3d_tm=None, only_metadata=False):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
             file_path, self.field_path, slice_i, slice_j, slice_dir_i,
-            slice_dir_j, m, theta, only_metadata)
+            slice_dir_j, m, theta, max_resolution_3d_tm, only_metadata)
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
@@ -125,7 +128,7 @@ class DerivedField(Field):
     def _get_data(self, time_step, field_units=None, axes_units=None,
                   axes_to_convert=None, time_units=None, slice_i=0.5,
                   slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                  theta=0, only_metadata=False):
+                  theta=0, max_resolution_3d_tm=None, only_metadata=False):
         field_data = []
         for field in self.base_fields:
             fld, fld_md = field.get_data(
@@ -133,6 +136,7 @@ class DerivedField(Field):
                 axes_to_convert=axes_to_convert, time_units=time_units,
                 slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
                 slice_dir_j=slice_dir_j, m=m, theta=theta,
+                max_resolution_3d_tm=max_resolution_3d_tm,
                 only_metadata=only_metadata)
             field_data.append(fld)
         if not only_metadata:

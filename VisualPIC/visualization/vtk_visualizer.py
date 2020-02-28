@@ -62,7 +62,7 @@ class VTKVisualizer():
 
     def add_field(self, field, cmap='viridis', opacity='auto',
                   vmax=None, vmin=None, xtrim=None, ytrim=None, ztrim=None,
-                  resolution=None):
+                  resolution=None, max_resolution_3d_tm=[100, 100]):
         """
         Add a field to the 3D visualization.
 
@@ -100,12 +100,17 @@ class VTKVisualizer():
             This allows rendering the field with a different 3D resolution than
             that of the original data. A list of 3 integers shoud be provided
             contaning the resoltion along z (longitudinal), x and y (transv.).
-            
+
+        max_resolution_3d_tm : list
+            Maximum longitudinal and transverse resolution (eg. [1000, 500])
+            that the 3d field generated from thetaMode data should have. This
+            allows for faster reconstruction of the 3d field and less memory
+            usage.
         """
         if field.get_geometry() in ['thetaMode', '3dcartesian']:
             self.volume_field_list.append(VolumetricField(
                 field, cmap, opacity, vmax, vmin, xtrim, ytrim, ztrim,
-                resolution))
+                resolution, max_resolution_3d_tm))
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
@@ -444,7 +449,7 @@ class VolumetricField():
 
     def __init__(self, field, cmap='viridis', opacity='auto', vmax=None,
                  vmin=None, xtrim=None, ytrim=None, ztrim=None,
-                 resolution=None):
+                 resolution=None, max_resolution_3d_tm=None):
         self.field = field
         self.style_handler = VolumeStyleHandler()
         self.cmap = cmap
@@ -455,6 +460,7 @@ class VolumetricField():
         self.ytrim = ytrim
         self.ztrim = ztrim
         self.resolution = resolution
+        self.max_resolution_3d_tm = max_resolution_3d_tm
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
 
@@ -466,14 +472,18 @@ class VolumetricField():
         return fld_name
 
     def get_data(self, timestep):
-        fld_data, *_ = self.field.get_data(timestep, theta=None)
+        fld_data, *_ = self.field.get_data(
+            timestep, theta=None,
+            max_resolution_3d_tm=self.max_resolution_3d_tm)
         fld_data = self._trim_field(fld_data)
         fld_data = self._change_resolution(fld_data)
         fld_data = self._normalize_field(fld_data)
         return fld_data
 
     def get_axes_data(self, timestep):
-        fld_md = self.field.get_only_metadata(timestep, theta=None)
+        fld_md = self.field.get_only_metadata(
+            timestep, theta=None,
+            max_resolution_3d_tm=self.max_resolution_3d_tm)
         z = fld_md['axis']['z']['array']
         x = fld_md['axis']['x']['array']
         y = fld_md['axis']['y']['array']
