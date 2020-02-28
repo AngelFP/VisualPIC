@@ -112,7 +112,7 @@ class VTKVisualizer():
             self.volume_field_list.append(VolumetricField(
                 field, cmap, opacity, vmax, vmin, xtrim, ytrim, ztrim,
                 resolution))
-            self.available_time_steps = self._get_possible_timesteps()
+            self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
             raise ValueError(
@@ -260,12 +260,7 @@ class VTKVisualizer():
     def set_camera_zoom(self, zoom):
         self.camera_props['zoom'] = zoom
 
-    def _setup_camera(self):
-        self.camera.Azimuth(self.camera_props['angles']['azimuth'])
-        self.camera.Elevation(self.camera_props['angles']['elevation'])
-        self.camera.Zoom(self.camera_props['zoom'])
-
-    def _get_possible_timesteps(self):
+    def get_possible_timesteps(self):
         """
         Returns a numpy array with all the time steps commonly available
         to all fields in the visualizer.
@@ -274,6 +269,11 @@ class VTKVisualizer():
         for volume in self.volume_field_list:
             fld_list.append(volume.field)
         return get_common_timesteps(fld_list)
+
+    def _setup_camera(self):
+        self.camera.Azimuth(self.camera_props['angles']['azimuth'])
+        self.camera.Elevation(self.camera_props['angles']['elevation'])
+        self.camera.Zoom(self.camera_props['zoom'])
 
     def _initialize_base_vtk_elements(self):
         try:
