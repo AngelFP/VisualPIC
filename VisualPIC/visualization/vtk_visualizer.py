@@ -51,6 +51,12 @@ class VTKVisualizer():
                            'show_logo': show_logo,
                            'show_axes': show_axes,
                            'use_qt': use_qt}
+        self.camera_props = {
+            'angles': {
+                'azimuth': 0,
+                'elevation': 0
+                }
+            }
         self.volume_field_list = []
         self.current_time_step = -1
         self.available_time_steps = None
@@ -137,6 +143,7 @@ class VTKVisualizer():
             self._load_data_into_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
+        self._setup_camera()
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)        
@@ -162,6 +169,7 @@ class VTKVisualizer():
             self._load_data_into_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
+        self._setup_camera()
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
             window = BasicRenderWindow(self)
@@ -215,6 +223,14 @@ class VTKVisualizer():
             fld_list.append(vol_field.get_name())
         return fld_list
 
+    def set_camera_angles(self, azimuth, yaw):
+        self.camera_props['angles']['azimuth'] = azimuth
+        self.camera_props['angles']['elevation'] = yaw
+
+    def _setup_camera(self):
+        self.camera.Azimuth(self.camera_props['angles']['azimuth'])
+        self.camera.Elevation(self.camera_props['angles']['elevation'])
+
     def _get_possible_timesteps(self):
         """
         Returns a numpy array with all the time steps commonly available
@@ -245,6 +261,7 @@ class VTKVisualizer():
             self.interactor = vtk.vtkRenderWindowInteractor()
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
+        self.camera = self.renderer.GetActiveCamera()
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
