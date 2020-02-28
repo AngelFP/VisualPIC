@@ -2,6 +2,7 @@
 
 import sys
 from pkg_resources import resource_filename
+from copy import deepcopy
 
 import vtk
 import numpy as np
@@ -271,7 +272,11 @@ class VTKVisualizer():
         return get_common_timesteps(fld_list)
 
     def _setup_camera(self):
-        self.camera.ResetCamera()
+        # It is necessary to keep a copy of the original camera because
+        # setting the Azimuth and Elevation is additive.
+        self.camera = deepcopy(self._original_camera)
+        self.renderer.SetActiveCamera(self.camera)
+        self.renderer.ResetCamera()
         self.camera.Azimuth(self.camera_props['angles']['azimuth'])
         self.camera.Elevation(self.camera_props['angles']['elevation'])
         self.camera.Zoom(self.camera_props['zoom'])
@@ -297,6 +302,7 @@ class VTKVisualizer():
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
         self.camera = self.renderer.GetActiveCamera()
+        self._original_camera = deepcopy(self.camera)
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
