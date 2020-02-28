@@ -55,7 +55,8 @@ class VTKVisualizer():
             'angles': {
                 'azimuth': 0,
                 'elevation': 0
-                }
+                },
+            'zoom': 1
             }
         self.volume_field_list = []
         self.current_time_step = -1
@@ -223,13 +224,17 @@ class VTKVisualizer():
             fld_list.append(vol_field.get_name())
         return fld_list
 
-    def set_camera_angles(self, azimuth, yaw):
+    def set_camera_angles(self, azimuth, elevation):
         self.camera_props['angles']['azimuth'] = azimuth
-        self.camera_props['angles']['elevation'] = yaw
+        self.camera_props['angles']['elevation'] = elevation
+
+    def set_camera_zoom(self, zoom):
+        self.camera_props['zoom'] = zoom
 
     def _setup_camera(self):
         self.camera.Azimuth(self.camera_props['angles']['azimuth'])
         self.camera.Elevation(self.camera_props['angles']['elevation'])
+        self.camera.Zoom(self.camera_props['zoom'])
 
     def _get_possible_timesteps(self):
         """
