@@ -70,18 +70,18 @@ class FieldReader():
                 nr = len(r)
                 nz = len(z)
                 max_res_lon, max_res_transv = max_resolution_3d_tm
-                #if nz > max_res_lon:
-                #    excess_z = int(np.round(nz/max_res_lon))
-                #    field_metadata['axis']['z']['array'] = z[::excess_z]
-                #if nr > max_res_transv/2:
-                #    excess_r = int(np.round(Nr/max_res_transv/2))
-                #    r_md['array'] = r[::excess_r]
-                if nr > max_res_transv:
-                    r = zoom(r, max_res_transv/nr, order=1)
-                    r_md['array'] = r
                 if nz > max_res_lon:
-                    z = zoom(z, max_res_lon/nz, order=1)
-                    field_metadata['axis']['z']['array'] = z
+                    excess_z = int(np.round(nz/max_res_lon))
+                    field_metadata['axis']['z']['array'] = z[::excess_z]
+                if nr > max_res_transv:
+                    excess_r = int(np.round(nr/max_res_transv))
+                    r_md['array'] = r[::excess_r]
+                #if nr > max_res_transv:
+                #    r = zoom(r, max_res_transv/nr, order=1)
+                #    r_md['array'] = r
+                #if nz > max_res_lon:
+                #    z = zoom(z, max_res_lon/nz, order=1)
+                #    field_metadata['axis']['z']['array'] = z
             # Create x and y axes and remove r
             field_metadata['axis']['x'] = r_md
             field_metadata['axis']['y'] = r_md
@@ -431,23 +431,23 @@ class OpenPMDFieldReader(FieldReader):
             if max_resolution_3d_tm is not None:
                 max_res_lon, max_res_transv = max_resolution_3d_tm
                 nz = Fcirc.shape[2]
-                #if nz > max_res_lon:
-                #    excess_z = int(np.round(nz/max_res_lon))
-                #    Fcirc = Fcirc[:, :, ::excess_z]
-                #    info.z = info.z[::excess_z]
-                #if nr > max_res_transv/2:
-                #    excess_r = int(np.round(nr/max_res_transv/2))
-                #    Fcirc = Fcirc[:, ::excess_r, :]
-                #    info.r = info.r[::excess_r]
-                fld_zoom = np.array([1., 1., 1.])
-                if nr > max_res_transv:
-                    fld_zoom[1] = max_res_transv/nr
-                    info.r = zoom(info.r, fld_zoom[1], order=1)
                 if nz > max_res_lon:
-                    fld_zoom[2] = max_res_lon/nz
-                    info.z = zoom(info.z, fld_zoom[2], order=1)
-                if any(fld_zoom != 1):
-                    Fcirc = zoom(Fcirc, fld_zoom, order=1)
+                    excess_z = int(np.round(nz/max_res_lon))
+                    Fcirc = Fcirc[:, :, ::excess_z]
+                    info.z = info.z[::excess_z]
+                if nr > max_res_transv/2:
+                    excess_r = int(np.round(nr/(max_res_transv/2)))
+                    Fcirc = Fcirc[:, ::excess_r, :]
+                    info.r = info.r[::excess_r]
+                #fld_zoom = np.array([1., 1., 1.])
+                #if nr > max_res_transv/2:
+                #    fld_zoom[1] = max_res_transv/nr/2
+                #    info.r = zoom(info.r, fld_zoom[1], order=1)
+                #if nz > max_res_lon:
+                #    fld_zoom[2] = max_res_lon/nz
+                #    info.z = zoom(info.z, fld_zoom[2], order=1)
+                #if any(fld_zoom != 1):
+                #    Fcirc = zoom(Fcirc, fld_zoom, order=0, mode='nearest', prefilter=False)
 
             # Convert cylindrical data to Cartesian data
             info._convert_cylindrical_to_3Dcartesian()
