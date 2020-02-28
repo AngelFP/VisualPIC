@@ -271,6 +271,7 @@ class VTKVisualizer():
         return get_common_timesteps(fld_list)
 
     def _setup_camera(self):
+        self.camera.ResetCamera()
         self.camera.Azimuth(self.camera_props['angles']['azimuth'])
         self.camera.Elevation(self.camera_props['angles']['elevation'])
         self.camera.Zoom(self.camera_props['zoom'])
