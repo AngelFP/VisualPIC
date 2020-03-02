@@ -108,9 +108,17 @@ class VTKVisualizer():
             usage.
         """
         if field.get_geometry() in ['thetaMode', '3dcartesian']:
+            # check if this field has already been added to a volume
+            name_suffix = None
+            fld_repeated_idx = 0
+            for vol_field in self.volume_field_list:
+                if vol_field.field == field:
+                    fld_repeated_idx += 1
+                    name_suffix = str(fld_repeated_idx)
+            # add to volume list
             self.volume_field_list.append(VolumetricField(
                 field, cmap, opacity, vmax, vmin, xtrim, ytrim, ztrim,
-                resolution, max_resolution_3d_tm))
+                resolution, max_resolution_3d_tm, name_suffix))
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
@@ -449,7 +457,7 @@ class VolumetricField():
 
     def __init__(self, field, cmap='viridis', opacity='auto', vmax=None,
                  vmin=None, xtrim=None, ytrim=None, ztrim=None,
-                 resolution=None, max_resolution_3d_tm=None):
+                 resolution=None, max_resolution_3d_tm=None, name_suffix=None):
         self.field = field
         self.style_handler = VolumeStyleHandler()
         self.cmap = cmap
@@ -460,6 +468,7 @@ class VolumetricField():
         self.ytrim = ytrim
         self.ztrim = ztrim
         self.resolution = resolution
+        self.name_suffix = name_suffix
         self.max_resolution_3d_tm = max_resolution_3d_tm
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
@@ -469,6 +478,8 @@ class VolumetricField():
         fld_sp = self.field.species_name
         if fld_sp is not None:
             fld_name += ' [{}]'.format(fld_sp)
+        if self.name_suffix is not None:
+            fld_name += ' ({})'.format(self.name_suffix)
         return fld_name
 
     def get_data(self, timestep):
