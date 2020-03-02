@@ -584,8 +584,8 @@ class VolumetricField():
             ymax = int(np.round(shape[1]/2 * (self.ytrim[1] + 1)))
             fld_data = fld_data[:, ymin:ymax]
         if self.ztrim is not None:
-            zmin = int(np.round(shape[1]/2 * (self.ztrim[0] + 1)))
-            zmax = int(np.round(shape[1]/2 * (self.ztrim[1] + 1)))
+            zmin = int(np.round(shape[2]/2 * (self.ztrim[0] + 1)))
+            zmax = int(np.round(shape[2]/2 * (self.ztrim[1] + 1)))
             fld_data = fld_data[:, :, zmin:zmax]
         return fld_data
 
