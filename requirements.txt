@@ -5,5 +5,5 @@ pillow
 h5py
 matplotlib
 vtk
-openpmd-viewer==1.0.0
+openpmd-viewer>=1.0.0
 aptools
