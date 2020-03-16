@@ -95,3 +95,4 @@ Temporary Items
 /dist
 /visualPIC.egg-info
 /VisualPIC/tests.py
+/.vscode
