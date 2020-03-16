@@ -290,6 +290,9 @@ class VTKVisualizer():
         except:
             self.vtk_volume = vtk.vtkVolume()
             self.old_vtk = True
+        self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
+        self.vtk_volume_mapper.UseJitteringOn()
+        self.vtk_volume.SetMapper(self.vtk_volume_mapper)
         self.renderer = vtk.vtkRenderer()
         self.renderer.AddVolume(self.vtk_volume)
         self.window = vtk.vtkRenderWindow()
@@ -344,23 +347,17 @@ class VTKVisualizer():
     def _load_data_into_volume(self, timestep):
         vtk_volume_prop = self._get_volume_properties(timestep)
         vtk_data_import = self._import_data(timestep)
-        # Create the mapper
-        vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
-        vtk_volume_mapper.SetInputConnection(vtk_data_import.GetOutputPort())
-        vtk_volume_mapper.Update()
+        # Setup mapper
+        self.vtk_volume_mapper.SetInputConnection(vtk_data_import.GetOutputPort())
+        self.vtk_volume_mapper.Update()
         # Add to volume
-        self.vtk_volume.SetMapper(vtk_volume_mapper)
         self.vtk_volume.SetProperty(vtk_volume_prop)
         self.renderer.ResetCamera()
 
     def _load_data_into_multi_volume(self, timestep):
         vtk_vols, imports = self._create_volumes(timestep)
-        # Create the mapper
-        vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
-        vtk_volume_mapper.UseJitteringOn()
-        self.vtk_volume.SetMapper(vtk_volume_mapper)
         for i, (vol, imp) in enumerate(zip(vtk_vols, imports)):
-            vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
+            self.vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
             self.vtk_volume.SetVolume(vol, i)
         self.renderer.ResetCamera()
 
