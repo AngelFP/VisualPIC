@@ -79,3 +79,85 @@ def get_common_timesteps(data_list):
         else:
             timesteps = np.intersect1d(timesteps, data_element.timesteps)
     return timesteps
+
+
+def get_closest_timestep(time_step, time_steps):
+    """
+    Return the closest time step to the specified desired time step.
+
+    Parameters:
+    -----------
+    time_step : int
+        Desired time step.
+
+    time_steps : ndarray
+        Array containing all available time steps.
+
+    Returns:
+    --------
+    An int with the desired time step if available in time_steps. Otherwise,
+    the closest available time step is returned.
+    """
+    if time_step in time_steps:
+        return time_step
+    else:
+        closest_higher = time_steps[np.where(time_steps > time_step)[0][0]]
+        closest_lower = time_steps[np.where(time_steps < time_step)[0][-1]]
+        if np.abs(time_step-closest_higher) < np.abs(time_step-closest_lower):
+            return closest_higher
+        else:
+            return closest_lower
+
+def get_next_timestep(current_time_step, time_steps):
+    """
+    Return the next time step to the specified one.
+
+    Parameters:
+    -----------
+    current_time_step : int
+        Current time step.
+
+    time_steps : ndarray
+        Array containing all available time steps.
+
+    Returns:
+    --------
+    An int with the next available time step. If the current time step is
+    already the last one in time_steps, current_time_step is returned.
+    """
+    if current_time_step not in time_steps:
+        raise ValueError(
+            'Time step {} is not in the provided timesteps.'.format(
+                current_time_step))
+    current_index = np.where(time_steps == current_time_step)[0][0]
+    if current_index < len(time_steps)-1:
+        return time_steps[current_index + 1]
+    else:
+        return current_time_step
+
+def get_previous_timestep(current_time_step, time_steps):
+    """
+    Return the previous time step to the specified one.
+
+    Parameters:
+    -----------
+    current_time_step : int
+        Current time step.
+
+    time_steps : ndarray
+        Array containing all available time steps.
+
+    Returns:
+    --------
+    An int with the previous available time step. If the current time step is
+    already the first one in time_steps, current_time_step is returned.
+    """
+    if current_time_step not in time_steps:
+        raise ValueError(
+            'Time step {} is not in the provided timesteps.'.format(
+                current_time_step))
+    current_index = np.where(time_steps == current_time_step)[0][0]
+    if current_index > 0:
+        return time_steps[current_index - 1]
+    else:
+        return current_time_step
