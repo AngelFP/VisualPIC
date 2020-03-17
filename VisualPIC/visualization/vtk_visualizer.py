@@ -15,7 +15,7 @@ except:
 from VisualPIC.helper_functions import get_common_timesteps
 from VisualPIC.visualization.volume_appearance import *
 if qt_installed:
-    from VisualPIC.visualization.basic_render_window import BasicRenderWindow
+    from VisualPIC.ui.basic_render_window import BasicRenderWindow
 
 
 class VTKVisualizer():
