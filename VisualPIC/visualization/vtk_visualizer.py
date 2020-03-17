@@ -261,10 +261,34 @@ class VTKVisualizer():
         return fld_list
 
     def set_camera_angles(self, azimuth, elevation):
+        """
+        Set the azimuth and elevation angles of the camera. This values are
+        additive, meaning that every time this method is called the angles are
+        increased or decreased (negative values) by the specified value.
+
+        Parameters
+        ----------
+
+        azimuth : float
+            The azimuth angle in degrees.
+
+        elevation : float
+            The elevation angle in degrees.
+        """
         self.camera.Azimuth(azimuth)
         self.camera.Elevation(elevation)
 
     def set_camera_zoom(self, zoom):
+        """
+        Set the camera zoom.
+        
+        Parameters
+        ----------
+
+        zoom : float
+            The zoom value of the camera. A value greater than 1 is a zoom-in,
+            a value less than 1 is a zoom-out.
+        """
         self.camera_props['zoom'] = zoom
         self.camera.Zoom(zoom)
 
@@ -279,12 +303,52 @@ class VTKVisualizer():
         return get_common_timesteps(fld_list)
 
     def set_color_window(self, value):
+        """
+        Set the color window of the mapper (controls the contrast). For more
+        information see
+        https://vtk.org/doc/nightly/html/classvtkGPUVolumeRayCastMapper.html
+        or
+        https://vtk.org/doc/nightly/html/classvtkSmartVolumeMapper.html
+
+        Parameters
+        ----------
+
+        value : float
+            Default window value is 1.0. The value can also be <0, leading to a
+            'negative' effect in the color.
+        """
         self.vtk_volume_mapper.SetFinalColorWindow(value)
 
     def set_color_level(self, value):
+        """
+        Set the color level of the mapper (controls the brightness). For more
+        information see
+        https://vtk.org/doc/nightly/html/classvtkGPUVolumeRayCastMapper.html
+        or
+        https://vtk.org/doc/nightly/html/classvtkSmartVolumeMapper.html
+
+        Parameters
+        ----------
+
+        value : float
+            Default level value is 0.5. The final color window will be centered
+            at the final color level, and together represent a linear
+            remapping of color values.
+        """
         self.vtk_volume_mapper.SetFinalColorLevel(value)
 
     def set_contrast(self, value):
+        """
+        Set the contrast of the render without having to manually change the
+        color window. For full control, using 'set_color_window' is advised.
+
+        Parameters
+        ----------
+
+        value : float
+            A float between -1 (minimum contrast) and 1 (maximum contrast).
+            The default contrast is 0.
+        """
         if value < -1:
             value = -1
         elif value > 1:
@@ -295,6 +359,17 @@ class VTKVisualizer():
         self.set_brightness(brightness)
 
     def set_brightness(self, value):
+        """
+        Set the brightness of the render without having to manually change the
+        color level. For full control, using 'set_color_level' is advised.
+
+        Parameters
+        ----------
+
+        value : float
+            A float between -1 (minimum brightness) and 1 (maximum brightness).
+            The default brightness is 0.
+        """
         if value < -1:
             value = -1
         elif value > 1:
@@ -304,19 +379,23 @@ class VTKVisualizer():
         self.set_color_level(color_level)
 
     def get_color_window(self):
+        """Return the color window value"""
         return self.vtk_volume_mapper.GetFinalColorWindow()
 
     def get_color_level(self):
+        """Return the color level value"""
         return self.vtk_volume_mapper.GetFinalColorLevel()
 
     def get_contrast(self):
+        """Return the contrast value"""
         w = self.vtk_volume_mapper.GetFinalColorWindow()
-        return -np.log10(w)
+        return -np.log10(np.abs(w))
 
     def get_brightness(self):
+        """Return the brightness value"""
         l = self.vtk_volume_mapper.GetFinalColorLevel()
         w = self.vtk_volume_mapper.GetFinalColorWindow()
-        return (1 - 2*l) / (1 + w)
+        return (1 - 2*l) / (1 + np.abs(w))
 
     def _setup_camera(self):
         self.renderer.ResetCamera()
