@@ -466,14 +466,12 @@ class VTKVisualizer():
         self.vtk_volume_mapper.Update()
         # Add to volume
         self.vtk_volume.SetProperty(vtk_volume_prop)
-        self.renderer.ResetCamera()
 
     def _load_data_into_multi_volume(self, timestep):
         vtk_vols, imports = self._create_volumes(timestep)
         for i, (vol, imp) in enumerate(zip(vtk_vols, imports)):
             self.vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
             self.vtk_volume.SetVolume(vol, i)
-        self.renderer.ResetCamera()
 
     def _create_volumes(self, timestep):
         self.npdatamulti = list()
