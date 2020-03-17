@@ -278,6 +278,46 @@ class VTKVisualizer():
             fld_list.append(volume.field)
         return get_common_timesteps(fld_list)
 
+    def set_color_window(self, value):
+        self.vtk_volume_mapper.SetFinalColorWindow(value)
+
+    def set_color_level(self, value):
+        self.vtk_volume_mapper.SetFinalColorLevel(value)
+
+    def set_contrast(self, value):
+        if value < -1:
+            value = -1
+        elif value > 1:
+            value = 1
+        color_window = 10 ** (-value)
+        brightness = self.get_brightness()
+        self.set_color_window(color_window)
+        self.set_brightness(brightness)
+
+    def set_brightness(self, value):
+        if value < -1:
+            value = -1
+        elif value > 1:
+            value = 1
+        w = self.get_color_window()
+        color_level = 0.5 - (0.5 + w/2)*value
+        self.set_color_level(color_level)
+
+    def get_color_window(self):
+        return self.vtk_volume_mapper.GetFinalColorWindow()
+
+    def get_color_level(self):
+        return self.vtk_volume_mapper.GetFinalColorLevel()
+
+    def get_contrast(self):
+        w = self.vtk_volume_mapper.GetFinalColorWindow()
+        return -np.log10(w)
+
+    def get_brightness(self):
+        l = self.vtk_volume_mapper.GetFinalColorLevel()
+        w = self.vtk_volume_mapper.GetFinalColorWindow()
+        return (1 - 2*l) / (1 + w)
+
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
