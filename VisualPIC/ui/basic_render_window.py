@@ -133,7 +133,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.timestep_line_edit.setText(str(value))
 
     def render_timestep(self, timestep):
-        self.vtk_vis.make_timestep_render(timestep, ts_is_index=False)
+        self.vtk_vis._make_timestep_render(timestep, ts_is_index=False)
         self.interactor.Render()
 
     def closeEvent(self, *args, **kwargs):

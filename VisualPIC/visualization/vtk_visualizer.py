@@ -155,7 +155,7 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
             self.window.SetSize(*resolution)
-        self.make_timestep_render(timestep, ts_is_index)
+        self._make_timestep_render(timestep, ts_is_index)
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)        
@@ -183,7 +183,7 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
         """
-        self.make_timestep_render(timestep, ts_is_index)
+        self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
@@ -375,7 +375,10 @@ class VTKVisualizer():
         w = self.vtk_volume_mapper.GetFinalColorWindow()
         return (1 - 2*l) / (1 + np.abs(w))
 
-    def make_timestep_render(self, timestep, ts_is_index=True):
+    def _make_timestep_render(self, timestep, ts_is_index=True):
+        """
+        Loads the time step data into the vtk volume and sets up the camera.
+        """
         if ts_is_index:
             self.current_time_step = self.available_time_steps[timestep]
         else:
