@@ -80,12 +80,15 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.frame)
 
     def register_ui_events(self):
-        self.edit_fields_button.clicked.connect(self.edit_fields_button_clicked)
+        self.edit_fields_button.clicked.connect(
+            self.edit_fields_button_clicked)
         self.settings_button.clicked.connect(self.settings_button_clicked)
         self.prev_button.clicked.connect(self.prev_button_clicked)
         self.next_button.clicked.connect(self.next_button_clicked)
-        self.timestep_slider.sliderReleased.connect(self.timestep_slider_released)
-        self.timestep_slider.valueChanged.connect(self.timestep_slider_value_changed)
+        self.timestep_slider.sliderReleased.connect(
+            self.timestep_slider_released)
+        self.timestep_slider.valueChanged.connect(
+            self.timestep_slider_value_changed)
 
     def edit_fields_button_clicked(self):
         fld_list = self.vtk_vis.get_list_of_fields()
