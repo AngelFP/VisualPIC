@@ -531,7 +531,7 @@ class VTKVisualizer():
             # Put data in VTK format
             vtk_data_import = vtk.vtkImageImport()
             vtk_data_import.SetImportVoidPointer(self.npdatamulti[i])
-            vtk_data_import.SetDataScalarTypeToUnsignedChar()
+            vtk_data_import.SetDataScalarTypeToFloat()
             vtk_data_import.SetDataExtent(0, self.npdatamulti[i].shape[2]-1,
                                           0, self.npdatamulti[i].shape[1]-1,
                                           0, self.npdatamulti[i].shape[0]-1)
@@ -575,7 +575,7 @@ class VTKVisualizer():
         # Put data in VTK format
         vtk_data_import = vtk.vtkImageImport()
         vtk_data_import.SetImportVoidPointer(self.npdatamulti)
-        vtk_data_import.SetDataScalarTypeToUnsignedChar()
+        vtk_data_import.SetDataScalarTypeToFloat()
         vtk_data_import.SetNumberOfScalarComponents(
             len(self.volume_field_list))
         vtk_data_import.SetDataExtent(0, self.npdatamulti.shape[2]-1,
@@ -764,7 +764,7 @@ class VolumetricField():
         fld_data[fld_data < 0] = 0
         fld_data[fld_data > 255] = 255
         # Change data from float to unsigned char
-        fld_data = np.array(fld_data, dtype=np.uint8)
+        fld_data = np.array(fld_data, dtype=np.float32)
         return fld_data
 
     def _change_resolution(self, fld_data):
