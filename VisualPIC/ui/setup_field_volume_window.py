@@ -28,7 +28,8 @@ import matplotlib.patches as patches
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 
-from VisualPIC.Controls.mplPlotManipulation import FigureWithPoints
+from VisualPIC.ui.controls.mpl_figure_with_draggable_points import (
+    FigureWithDraggablePoints)
 from VisualPIC.Views.SaveOpacityDialog import SaveOpacityDialog
 from VisualPIC.Views.SaveColormapDialog import SaveColormapDialog
 from VisualPIC.visualization.volume_appearance import Opacity, Colormap
@@ -68,21 +69,17 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         fld_name = self.volume.get_name()
         fld_units = 'ab'#self.volume.get_field_units()
         xlabel = fld_name + " [$" + fld_units + "$]"
-        self.opacity_figure = FigureWithPoints(1, 1, hist=hist,
-                                               hist_edges=hist_edges,
-                                               patch_color='tab:blue',
-                                               xlabels=[xlabel],
-                                               ylabels=["Opacity"])
+        self.opacity_figure = FigureWithDraggablePoints(
+            1, 1, hist=hist, hist_edges=hist_edges, patch_color='tab:blue',
+            xlabels=[xlabel], ylabels=["Opacity"], tight_layout=True)
         #self.opacity_figure.patch.set_facecolor("white")
         self.opacity_canvas = FigureCanvas(self.opacity_figure)
         self.opacityWidgetLayout.addWidget(self.opacity_canvas)
         self.opacity_canvas.draw()
-        self.cmap_figure = FigureWithPoints(3, 1, hist=hist,
-                                            hist_edges=hist_edges,
-                                            share_x_axis=True,
-                                            patch_color=['r', 'g', 'b'],
-                                            xlabels=[xlabel],
-                                            ylabels=["Red", "Green", "Blue"])
+        self.cmap_figure = FigureWithDraggablePoints(
+            3, 1, hist=hist, hist_edges=hist_edges, share_x_axis=True,
+            patch_color=['r', 'g', 'b'], xlabels=[xlabel],
+            ylabels=["Red", "Green", "Blue"], tight_layout=True)
         #self.cmap_figure.patch.set_facecolor("white")
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
@@ -95,13 +92,14 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.cmap_figure.set_points(0, fld_val, r_val)
         self.cmap_figure.set_points(1, fld_val, g_val)
         self.cmap_figure.set_points(2, fld_val, b_val)
-        #self.set_axes_range(time_step)
-        #self.set_range_in_line_edits(time_step)
+        self.set_axes_range(time_step)
+        self.set_range_in_line_edits(time_step)
 
     def set_axes_range(self, time_step):
         nels = 5
         label_pos = np.linspace(0, 255, nels)
-        labels_array = self.volume.get_field_range(time_step, 5)
+        vmin, vmax = self.volume.get_range(time_step)
+        labels_array = np.linspace(vmin, vmax, nels)
         labels_list = labels_array.tolist()
         labels = [format(label, '.2e') for label in labels_list]
         self.opacity_figure.set_axes_labels(0, "x", label_pos, labels)
@@ -118,7 +116,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.main_window.unbind_time_step_to(self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
-        hist, hist_edges = self.volume.get_field_histogram(time_step)
+        hist, hist_edges = self.volume.get_field_data_histogram(time_step, 100)
         self.opacity_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(1, hist_edges, hist)
@@ -150,10 +148,9 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.is_updating_ui = False
 
     def set_range_in_line_edits(self, time_step):
-        labels_array = self.volume.get_field_range(time_step, 2)
-        labels_list = labels_array.tolist()
-        self.min_lineEdit.setText(format(labels_list[0], '.2e'))
-        self.max_lineEdit.setText(format(labels_list[1], '.2e'))
+        range = self.volume.get_range(time_step)
+        self.min_lineEdit.setText(format(range[0], '.2e'))
+        self.max_lineEdit.setText(format(range[1], '.2e'))
 
     def get_cmap_list(self):
         op_list = self.style_handler.get_available_cmaps()
@@ -220,27 +217,28 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
             self.opacity_figure.set_points(0, fld_val, op_val)
 
     def get_optimized_opacity(self):
-        time_step = self.main_window.get_current_time_step()
-        fld_val, op_val = self.volume.get_optimized_opacity(time_step)
+        time_step = self.main_window.vtk_vis.current_time_step
+        opacity = self.volume.get_optimized_opacity(time_step)
+        fld_val, op_val = opacity.get_opacity_values()
         self.opacity_figure.set_points(0, fld_val, op_val)
 
     def save_opacity(self):
-        fld_val, op_val = self.opacity_figure.GetPoints(0)
+        fld_val, op_val = self.opacity_figure.get_points(0)
         op_dialog = SaveOpacityDialog(fld_val, op_val)
         op_dialog.exec_()
 
     def save_cmap(self):
-        fld_val, r_val = self.cmap_figure.GetPoints(0)
-        fld_val, g_val = self.cmap_figure.GetPoints(1)
-        fld_val, b_val = self.cmap_figure.GetPoints(2)
+        fld_val, r_val = self.cmap_figure.get_points(0)
+        fld_val, g_val = self.cmap_figure.get_points(1)
+        fld_val, b_val = self.cmap_figure.get_points(2)
         cmap_dialog = SaveColormapDialog(fld_val, r_val, g_val, b_val)
         cmap_dialog.exec_()
 
     def update_volume_properties(self):
-        fld_vals, op_val = self.opacity_figure.GetPoints(0)
-        fld_vals_cmap, r_val = self.cmap_figure.GetPoints(0)
-        fld_vals_cmap, g_val = self.cmap_figure.GetPoints(1)
-        fld_vals_cmap, b_val = self.cmap_figure.GetPoints(2)
+        fld_vals, op_val = self.opacity_figure.get_points(0)
+        fld_vals_cmap, r_val = self.cmap_figure.get_points(0)
+        fld_vals_cmap, g_val = self.cmap_figure.get_points(1)
+        fld_vals_cmap, b_val = self.cmap_figure.get_points(2)
         opacity = Opacity(name='custom', op_values=op_val, fld_values=fld_vals)
         cmap = Colormap(name='custom', r_values=r_val, g_values=g_val,
                         b_values=b_val, fld_values=fld_vals_cmap)
@@ -254,9 +252,9 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.set_field_range(min_val, max_val)
 
     def set_field_range(self, min_val, max_val):
-        time_step = self.main_window.get_current_time_step()
-        self.volume.set_cmap_range(min_val, max_val)
-        self.main_window.make_render()
+        time_step = self.main_window.vtk_vis.current_time_step
+        self.volume.set_range(min_val, max_val)
+        self.main_window.render_timestep(time_step)
         self.set_axes_range(time_step)
         self.set_histograms(time_step)
         self.set_range_in_line_edits(time_step)
