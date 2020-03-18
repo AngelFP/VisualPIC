@@ -26,7 +26,8 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
 
     def setup_interface(self):
         self.setWindowTitle('VisualPIC - 3D Visualizer')
-        icon_path = resource_filename('VisualPIC.ui.icons', 'vp_logo_sq.png')
+        icon_path = resource_filename('VisualPIC.ui.icons',
+                                      'vp_logo_sq_blue.png')
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.frame = QtWidgets.QFrame()
         self.vl = QtWidgets.QVBoxLayout()
