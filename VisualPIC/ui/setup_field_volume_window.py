@@ -49,6 +49,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
     def __init__(self, volume, parent=None):
         super(SetupFieldVolumeWindow, self).__init__(parent=parent)
         self.setupUi(self)
+        self.setWindowTitle('Edit field ({})'.format(volume.get_name()))
         self.main_window = parent
         self.volume = volume
         self.style_handler = volume.style_handler

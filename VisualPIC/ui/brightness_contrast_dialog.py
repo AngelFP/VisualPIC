@@ -13,6 +13,7 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         self.register_ui_events()
 
     def setup_interface(self):
+        self.setWindowTitle('Settings')
         self.vl = QtWidgets.QVBoxLayout()
 
         self.brightness_title_label = QtWidgets.QLabel()
