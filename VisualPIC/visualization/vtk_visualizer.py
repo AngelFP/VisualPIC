@@ -469,7 +469,25 @@ class VTKVisualizer():
         self.vtk_volume.SetProperty(vtk_volume_prop)
 
     def _load_data_into_multi_volume(self, timestep):
-        vtk_vols, imports = self._create_volumes(timestep)
+        # Workaround to fix wrong volume boundaries when a 'vtkMultiVolume' has
+        # only a single volume. The fix replaces the 'vtkMultiVolume' for a
+        # 'vtkVolume' and then calls '_load_data_into_volume'.
+        if len(self.volume_field_list) == 1:
+            if type(self.vtk_volume) != vtk.vtkVolume:
+                self.renderer.RemoveVolume(self.vtk_volume)
+                self.vtk_volume = vtk.vtkVolume()
+                self.renderer.AddVolume(self.vtk_volume)
+                self.vtk_volume.SetMapper(self.vtk_volume_mapper)
+            return self._load_data_into_volume(timestep)
+        # If the 'vtkMultiVolume' was replaced by a 'vtkVolume' but now the
+        # number of volumes is >1, go back to having a 'vtkMultiVolume'.
+        if type(self.vtk_volume) != vtk.vtkMultiVolume:
+            self.renderer.RemoveVolume(self.vtk_volume)
+            self.vtk_volume = vtk.vtkMultiVolume()
+            self.renderer.AddVolume(self.vtk_volume)
+            self.vtk_volume.SetMapper(self.vtk_volume_mapper)
+        # End of workaround
+
         # Workaround for avoiding segmentation fault using vtkMultiVolume.
         # A new mapper has to be created instead of updated when switching
         # time steps.
@@ -481,6 +499,8 @@ class VTKVisualizer():
         self.set_color_window(cw)
         self.set_color_level(cl)
         # End of workaround.
+
+        vtk_vols, imports = self._create_volumes(timestep)
         for i, (vol, imp) in enumerate(zip(vtk_vols, imports)):
             self.vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
             self.vtk_volume.SetVolume(vol, i)
