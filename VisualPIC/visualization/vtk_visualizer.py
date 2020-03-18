@@ -646,6 +646,23 @@ class VolumetricField():
         ax_spacing = np.array([z[1] - z[0], x[1] - x[0], y[1] - y[0]])
         return ax_orig, ax_spacing
 
+    def get_range(self, timestep):
+        if (self.vmin is None) or (self.vmax is None):
+            fld_data, *_ = self.field.get_data(
+                timestep, theta=None,
+                max_resolution_3d_tm=self.max_resolution_3d_tm)
+            vmin = np.min(fld_data)
+            vmax = np.max(fld_data)
+        if self.vmin is not None:
+            vmin = self.vmin
+        if self.vmax is not None:
+            vmax = self.vmax
+        return vmin, vmax
+
+    def set_range(self, vmin, vmax):
+        self.vmin = vmin
+        self.vmax = vmax
+
     def get_vtk_opacity(self, timestep=None):
         opacity = self.get_opacity(timestep)
         self._set_vtk_opacity(opacity)
