@@ -462,7 +462,8 @@ class VTKVisualizer():
         vtk_volume_prop = self._get_volume_properties(timestep)
         vtk_data_import = self._import_data(timestep)
         # Setup mapper
-        self.vtk_volume_mapper.SetInputConnection(vtk_data_import.GetOutputPort())
+        self.vtk_volume_mapper.SetInputConnection(
+            vtk_data_import.GetOutputPort())
         self.vtk_volume_mapper.Update()
         # Add to volume
         self.vtk_volume.SetProperty(vtk_volume_prop)
@@ -493,7 +494,8 @@ class VTKVisualizer():
             vtk_volume_prop = vtk.vtkVolumeProperty()
             vtk_volume_prop.SetInterpolationTypeToLinear()
             vtk_volume_prop.SetColor(vol_field.get_vtk_colormap())
-            vtk_volume_prop.SetScalarOpacity(vol_field.get_vtk_opacity(timestep))
+            vtk_volume_prop.SetScalarOpacity(
+                vol_field.get_vtk_opacity(timestep))
             vtk_volume_prop.ShadeOff()
             vtk_vol.SetProperty(vtk_volume_prop)
             self.npdatamulti.append(vol_field.get_data(timestep))
