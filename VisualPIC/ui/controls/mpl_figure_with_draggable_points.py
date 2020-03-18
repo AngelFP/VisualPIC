@@ -1,4 +1,8 @@
-# Code based on: http://stackoverflow.com/questions/21654008/matplotlib-drag-overlapping-points-interactively
+"""
+This module contains the class for a matplotlib figure with draggable points.
+
+The code is based on 'http://stackoverflow.com/questions/21654008/'.
+"""
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
@@ -7,13 +11,20 @@ from matplotlib.figure import Figure
 import numpy as np
 
 
-class FigureWithPoints(Figure):
-    def __init__(self, nrows=1, ncols=1, figsize = None, dpi = None,
-                 facecolor = None, edgecolor = None, linewidth = 0.0,
-                 frameon = None, subplotpars = None, tight_layout = None,
-                 xlabels = None, ylabels = None,
-                 share_x_axis = False, share_y_axis = False,
-                 hist = None, hist_edges = None, patch_color = 'r'):
+class FigureWithDraggablePoints(Figure):
+
+    """
+    Figure subclass which can display draggable points joined by lines. It can
+    also display a background histogram. This is useful for editing the opacity
+    and colormap of volumetric fields.
+    """
+
+    def __init__(self, nrows=1, ncols=1, figsize=None, dpi=None,
+                 facecolor=None, edgecolor=None, linewidth=0.0, frameon=None,
+                 subplotpars=None, tight_layout=None, xlabels=None,
+                 ylabels=None, share_x_axis=False, share_y_axis=False,
+                 hist=None, hist_edges=None, patch_color='r'):
+        """Initialize figure"""
         self.patch_color = patch_color
         self.drag_points = {}
         self.histograms = {}
@@ -98,7 +109,7 @@ class FigureWithPoints(Figure):
             self.axes[naxes].set_yticklabels(labels)
         self.canvas.draw()
 
-    def GetPoints(self, naxis):
+    def get_points(self, naxis):
         x = list()
         y = list()
         for dPoint in self.drag_points[naxis]:
