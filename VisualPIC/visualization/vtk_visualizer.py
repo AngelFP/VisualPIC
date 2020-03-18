@@ -469,6 +469,17 @@ class VTKVisualizer():
 
     def _load_data_into_multi_volume(self, timestep):
         vtk_vols, imports = self._create_volumes(timestep)
+        # Workaround for avoiding segmentation fault using vtkMultiVolume.
+        # A new mapper has to be created instead of updated when switching
+        # time steps.
+        cw = self.get_color_window()
+        cl = self.get_color_level()
+        self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
+        self.vtk_volume_mapper.UseJitteringOn()
+        self.vtk_volume.SetMapper(self.vtk_volume_mapper)
+        self.set_color_window(cw)
+        self.set_color_level(cl)
+        # End of workaround.
         for i, (vol, imp) in enumerate(zip(vtk_vols, imports)):
             self.vtk_volume_mapper.SetInputConnection(i, imp.GetOutputPort())
             self.vtk_volume.SetVolume(vol, i)
