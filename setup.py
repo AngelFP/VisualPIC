@@ -22,13 +22,15 @@ setup(name='VisualPIC',
       url='https://github.com/AngelFP/VisualPIC',
       license='GPLv3',
       packages=find_packages('.'),
-      package_data={'VisualPIC': ['ui/*',
-                                  'ui/icons/*',
-                                  'Views/*.ui',
-                                  'Assets/Visualizer3D/Colormaps/*.h5',
-                                  'Assets/Visualizer3D/Opacities/*.h5',
-                                  'Icons/*.png',
-                                  'Icons/mpl/*.svg']},
+      package_data={
+          'VisualPIC': ['ui/*',
+                        'ui/icons/*',
+                        'visualization/assets/vtk_visualizer/colormaps/*.h5',
+                        'visualization/assets/vtk_visualizer/opacities/*.h5',
+                        'Views/*.ui',
+                        'Icons/*.png',
+                        'Icons/mpl/*.svg']
+          },
       entry_points={
           'console_scripts': [
               'visualpic = VisualPIC.__main__:display_gui']},
