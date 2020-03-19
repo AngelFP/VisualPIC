@@ -68,6 +68,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         # https://commons.wikimedia.org/w/index.php?curid=49665075
         edit_icon_path = resource_filename('VisualPIC.ui.icons', 'edit.svg')
         self.edit_fields_button.setIcon(QtGui.QIcon(edit_icon_path))
+        self.hl.addWidget(self.edit_fields_button)
         self.settings_button = QtWidgets.QPushButton()
         # Icon by
         # https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/
@@ -77,8 +78,16 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         settings_icon_path = resource_filename('VisualPIC.ui.icons',
                                                'slider_settings.svg')
         self.settings_button.setIcon(QtGui.QIcon(settings_icon_path))
-        self.hl.addWidget(self.edit_fields_button)
         self.hl.addWidget(self.settings_button)
+        self.save_button = QtWidgets.QPushButton()
+        # Icon by
+        # https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/
+        # AUTHORS.txt 
+        # - lib/oojs-ui/themes/mediawiki/images/icons/, MIT,
+        # https://commons.wikimedia.org/w/index.php?curid=54913197
+        save_icon_path = resource_filename('VisualPIC.ui.icons', 'save.svg')
+        self.save_button.setIcon(QtGui.QIcon(save_icon_path))
+        self.hl.addWidget(self.save_button)
         
         self.vl.addLayout(self.hl)
         self.frame.setLayout(self.vl)
