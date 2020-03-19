@@ -61,8 +61,9 @@ class VTKVisualizer():
         self.set_background(self.vis_config['background_color'])
 
     def add_field(self, field, cmap='viridis', opacity='auto',
-                  vmax=None, vmin=None, xtrim=None, ytrim=None, ztrim=None,
-                  resolution=None, max_resolution_3d_tm=[100, 100]):
+                  gradient_opacity='uniform opaque', vmax=None, vmin=None,
+                  xtrim=None, ytrim=None, ztrim=None, resolution=None,
+                  max_resolution_3d_tm=[100, 100]):
         """
         Add a field to the 3D visualization.
 
@@ -79,7 +80,12 @@ class VTKVisualizer():
         opacity : str or Opacity
             The opacity scheme to be used. Possible values are 'auto',
             'linear positive', 'linear negative', 'v shape', 'inverse v shape',
-            'uniform' or any instace of Opacity.
+            'uniform opaque', 'uniform translucid' or any instace of Opacity.
+
+        gradient_opacity : str or Opacity
+            The gradient opacity to be used. Possible values are 'auto',
+            'linear positive', 'linear negative', 'v shape', 'inverse v shape',
+            'uniform opaque', 'uniform translucid' or any instace of Opacity.
 
         vmin, vmax : float
             Define the minimum and the maximum of the range of field values
@@ -117,8 +123,8 @@ class VTKVisualizer():
                     name_suffix = str(fld_repeated_idx)
             # add to volume list
             self.volume_field_list.append(VolumetricField(
-                field, cmap, opacity, vmax, vmin, xtrim, ytrim, ztrim,
-                resolution, max_resolution_3d_tm, name_suffix))
+                field, cmap, opacity, gradient_opacity, vmax, vmin, xtrim,
+                ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix))
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
@@ -516,6 +522,8 @@ class VTKVisualizer():
             vtk_volume_prop.SetColor(vol_field.get_vtk_colormap())
             vtk_volume_prop.SetScalarOpacity(
                 vol_field.get_vtk_opacity(timestep))
+            vtk_volume_prop.SetGradientOpacity(
+                vol_field.get_vtk_gradient_opacity(timestep))
             vtk_volume_prop.ShadeOff()
             vtk_vol.SetProperty(vtk_volume_prop)
             self.npdatamulti.append(vol_field.get_data(timestep))
@@ -555,6 +563,8 @@ class VTKVisualizer():
             vtk_volume_prop.SetColor(i, vol_field.get_vtk_colormap())
             vtk_volume_prop.SetScalarOpacity(
                 i, vol_field.get_vtk_opacity(timestep))
+            vtk_volume_prop.SetGradientOpacity(
+                vol_field.get_vtk_gradient_opacity(timestep))
             vtk_volume_prop.ShadeOff(i)
         return vtk_volume_prop
 
@@ -597,13 +607,15 @@ class VolumetricField():
 
     """Class for the volumetric fields to be displayed."""
 
-    def __init__(self, field, cmap='viridis', opacity='auto', vmax=None,
-                 vmin=None, xtrim=None, ytrim=None, ztrim=None,
-                 resolution=None, max_resolution_3d_tm=None, name_suffix=None):
+    def __init__(self, field, cmap='viridis', opacity='auto',
+                 gradient_opacity='uniform opaque', vmax=None, vmin=None,
+                 xtrim=None, ytrim=None, ztrim=None, resolution=None,
+                 max_resolution_3d_tm=None, name_suffix=None):
         self.field = field
         self.style_handler = VolumeStyleHandler()
         self.cmap = cmap
         self.opacity = opacity
+        self.gradient_opacity = gradient_opacity
         self.vmax = vmax
         self.vmin = vmin
         self.xtrim = xtrim # [-1, 1]
@@ -613,6 +625,7 @@ class VolumetricField():
         self.name_suffix = name_suffix
         self.max_resolution_3d_tm = max_resolution_3d_tm
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
+        self.vtk_gradient_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
 
     def get_name(self):
@@ -668,6 +681,11 @@ class VolumetricField():
         self._set_vtk_opacity(opacity)
         return self.vtk_opacity
 
+    def get_vtk_gradient_opacity(self, timestep=None):
+        opacity = self.get_gradient_opacity(timestep)
+        self._set_vtk_gradient_opacity(opacity)
+        return self.vtk_gradient_opacity
+
     def get_opacity(self, timestep=None):
         if isinstance(self.opacity, Opacity):
             opacity = self.opacity
@@ -681,9 +699,28 @@ class VolumetricField():
             opacity = self.get_optimized_opacity(timestep)
         return opacity
 
+    def get_gradient_opacity(self, timestep=None):
+        if (isinstance(self.gradient_opacity, Opacity) or
+            self.gradient_opacity is None):
+            opacity = self.gradient_opacity
+        elif self.gradient_opacity != 'auto':
+            if self.style_handler.opacity_exists(self.gradient_opacity):
+                opacity = self.style_handler.get_opacity(self.gradient_opacity)
+            else:
+                raise ValueError(
+                    "Opacity '{}' does not exist.".format(
+                        self.gradient_opacity))
+        else:
+            opacity = self.get_optimized_gradient_opacity(timestep)
+        return opacity
+
     def set_opacity(self, opacity):
         self.opacity = opacity
         self._set_vtk_opacity(opacity)
+
+    def set_gradient_opacity(self, opacity):
+        self.gradient_opacity = opacity
+        self._set_vtk_gradient_opacity(opacity)
 
     def get_vtk_colormap(self):
         cmap = self.get_colormap()
@@ -712,9 +749,25 @@ class VolumetricField():
         opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
         return opacity
 
+    def get_optimized_gradient_opacity(self, time_step, bins=11):
+        hist, *_ = self.get_field_data_gradient_histogram(time_step, bins=bins)
+        fld_val = np.linspace(0, 255, bins)
+        op_val = 1 - hist
+        opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
+        return opacity
+
     def get_field_data_histogram(self, time_step, bins=11):
         fld_data = self.get_data(time_step)
         hist, hist_edges = np.histogram(fld_data, bins=bins)
+        hist = np.ma.log(hist).filled(0)
+        hist /= hist.max()
+        return hist, hist_edges
+
+    def get_field_data_gradient_histogram(self, time_step, bins=11):
+        fld_data = self.get_data(time_step)
+        fld_grad = np.gradient(fld_data)
+        fld_grad = np.sqrt(fld_grad[0]**2 + fld_grad[1]**2 + fld_grad[2]**2)
+        hist, hist_edges = np.histogram(fld_grad, bins=bins)
         hist = np.ma.log(hist).filled(0)
         hist /= hist.max()
         return hist, hist_edges
@@ -724,6 +777,12 @@ class VolumetricField():
         self.vtk_opacity.RemoveAllPoints()
         for fv, ov in zip(fld_vals, op_vals):
             self.vtk_opacity.AddPoint(fv, ov)
+
+    def _set_vtk_gradient_opacity(self, opacity):
+        fld_vals, op_vals = opacity.get_opacity_values()
+        self.vtk_gradient_opacity.RemoveAllPoints()
+        for fv, ov in zip(fld_vals, op_vals):
+            self.vtk_gradient_opacity.AddPoint(fv, ov)
 
     def _set_vtk_colormap(self, cmap):
         self.vtk_cmap.RemoveAllPoints()
