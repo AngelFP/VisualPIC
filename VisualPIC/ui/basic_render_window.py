@@ -20,6 +20,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         super().__init__(parent=parent)
         self.vtk_vis = vtk_visualizer
         self.available_timesteps = self.vtk_vis.get_possible_timesteps()
+        self.timestep_change_callbacks = []
         self.setup_interface()
         self.register_ui_events()
         self.show()
@@ -139,6 +140,16 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
     def render_timestep(self, timestep):
         self.vtk_vis._make_timestep_render(timestep, ts_is_index=False)
         self.interactor.Render()
+        for callback in self.timestep_change_callbacks:
+            callback(timestep)
+
+    def add_timestep_change_callback(self, callback):
+        if callback not in self.timestep_change_callbacks:
+            self.timestep_change_callbacks.append(callback)
+
+    def remove_timestep_change_callback(self, callback):
+        if callback in self.timestep_change_callbacks:
+            self.timestep_change_callbacks.remove(callback)
 
     def closeEvent(self, *args, **kwargs):
         """ This fixes bug described in 
