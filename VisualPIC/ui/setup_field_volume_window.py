@@ -128,12 +128,14 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
     def register_time_step_events(self):
         self.main_window.add_timestep_change_callback(self.set_histograms)
         self.main_window.add_timestep_change_callback(self.set_axes_range)
-        self.main_window.add_timestep_change_callback(self.set_range_in_line_edits)
+        self.main_window.add_timestep_change_callback(
+            self.set_range_in_line_edits)
 
     def unregister_time_step_events(self):
         self.main_window.remove_timestep_change_callback(self.set_histograms)
         self.main_window.remove_timestep_change_callback(self.set_axes_range)
-        self.main_window.remove_timestep_change_callback(self.set_range_in_line_edits)
+        self.main_window.remove_timestep_change_callback(
+            self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
         hist, hist_edges = self.volume.get_field_data_histogram(time_step, 100)
