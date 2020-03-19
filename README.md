@@ -1,6 +1,6 @@
 # VisualPIC - A Data Visualizer for PIC Codes
 
-![VisualPIC logo](Logo/logo_horiz_transp.png)
+![VisualPIC logo](Logo/highlight_image.png)
 
 ## Introduction
 
