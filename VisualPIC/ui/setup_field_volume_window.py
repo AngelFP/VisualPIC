@@ -30,8 +30,8 @@ from matplotlib.backends.backend_qt5agg import (
 
 from VisualPIC.ui.controls.mpl_figure_with_draggable_points import (
     FigureWithDraggablePoints)
-from VisualPIC.Views.SaveOpacityDialog import SaveOpacityDialog
-from VisualPIC.Views.SaveColormapDialog import SaveColormapDialog
+from VisualPIC.ui.save_colormap_dialog import SaveColormapDialog
+from VisualPIC.ui.save_opacity_dialog import SaveOpacityDialog
 from VisualPIC.visualization.volume_appearance import Opacity, Colormap
 
 
@@ -296,19 +296,20 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
 
     def save_opacity(self):
         fld_val, op_val = self.opacity_figure.get_points(0)
-        op_dialog = SaveOpacityDialog(fld_val, op_val)
+        op_dialog = SaveOpacityDialog(fld_val, op_val, parent=self)
         op_dialog.exec_()
 
     def save_gradient_opacity(self):
         fld_val, op_val = self.gradient_opacity_figure.get_points(0)
-        op_dialog = SaveOpacityDialog(fld_val, op_val)
+        op_dialog = SaveOpacityDialog(fld_val, op_val, parent=self)
         op_dialog.exec_()
 
     def save_cmap(self):
         fld_val, r_val = self.cmap_figure.get_points(0)
         fld_val, g_val = self.cmap_figure.get_points(1)
         fld_val, b_val = self.cmap_figure.get_points(2)
-        cmap_dialog = SaveColormapDialog(fld_val, r_val, g_val, b_val)
+        cmap_dialog = SaveColormapDialog(fld_val, r_val, g_val, b_val,
+                                         parent=self)
         cmap_dialog.exec_()
 
     def update_volume_properties(self):

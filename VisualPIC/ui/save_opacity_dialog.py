@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+#Copyright 2016-2020 Angel Ferran Pousa
 #
 #This file is part of VisualPIC.
 #
@@ -23,7 +23,8 @@ import os
 from PyQt5.uic import loadUiType
 from PyQt5.QtWidgets import (QDialogButtonBox, QMessageBox, QPushButton,
                              QFileDialog)
-from VisualPIC.Tools.visualizer3Dvtk import ColormapHandler
+
+from VisualPIC.visualization.volume_appearance import VolumeStyleHandler
 
 
 if getattr(sys, 'frozen', False):
@@ -32,24 +33,23 @@ if getattr(sys, 'frozen', False):
 else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
-guipath = os.path.join( bundle_dir, 'SaveColormapDialog.ui' )
-Ui_SaveColormapDialog, QSaveColormapDialog = loadUiType(guipath)
+guipath = os.path.join( bundle_dir, 'save_opacity_dialog.ui' )
+Ui_SaveOpacityDialog, QSaveOpacityDialog = loadUiType(guipath)
 
 
-class SaveColormapDialog(QSaveColormapDialog, Ui_SaveColormapDialog):
-    def __init__(self, fld_val, r_val, g_val, b_val, parent=None):
-        super(SaveColormapDialog, self).__init__(parent)
+class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
+    def __init__(self, fld_val, op_val, parent=None):
+        super(SaveOpacityDialog, self).__init__(parent)
         self.setupUi(self)
-        self.cmap_handler = ColormapHandler()
+        self.setWindowTitle('Save opacity')
+        self.vs_handler = VolumeStyleHandler()
         self.fld_val = fld_val
-        self.r_val = r_val
-        self.g_val = g_val
-        self.b_val = b_val
+        self.op_val = op_val
         self.setup_ui()
         self.register_ui_events()
 
     def setup_ui(self):
-        self.location_lineEdit.setText(self.cmap_handler.cmaps_folder_path)
+        self.location_lineEdit.setText(self.vs_handler.opacity_folder_path)
         self.save_button = QPushButton("Save")
         self.close_button = QPushButton("Close")
         self.buttonBox.addButton(self.close_button,
@@ -67,10 +67,9 @@ class SaveColormapDialog(QSaveColormapDialog, Ui_SaveColormapDialog):
             self.location_lineEdit.setText(folder_path)
 
     def save_to_file(self):
-        cmap_name = self.cmap_name_lineEdit.text()
+        op_name = self.opacity_name_lineEdit.text()
         folder_path = self.location_lineEdit.text()
-        if self.cmap_handler.save_cmap(cmap_name, self.fld_val, self.r_val, 
-                                       self.g_val, self.b_val, folder_path):
-            success_message = QMessageBox(text="Colormap succesfully saved.")
-            success_message.exec_()
-
+        if self.vs_handler.save_opacity(op_name, self.fld_val, self.op_val,
+                                        folder_path):
+            success_message = QMessageBox.information(
+                self, 'Save opacity', 'Opacity succesfully saved to file.')
