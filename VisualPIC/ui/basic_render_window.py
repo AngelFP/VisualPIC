@@ -99,6 +99,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.settings_button.clicked.connect(self.settings_button_clicked)
         self.prev_button.clicked.connect(self.prev_button_clicked)
         self.next_button.clicked.connect(self.next_button_clicked)
+        self.save_button.clicked.connect(self.save_current_render_to_file)
         self.timestep_slider.sliderReleased.connect(
             self.timestep_slider_released)
         self.timestep_slider.valueChanged.connect(
@@ -159,6 +160,19 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
     def remove_timestep_change_callback(self, callback):
         if callback in self.timestep_change_callbacks:
             self.timestep_change_callbacks.remove(callback)
+
+    def save_current_render_to_file(self):
+        file_path, format = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Save current view', '', 'PNG (*.png)')
+        if file_path != '':
+            window = self.vtk_widget.GetRenderWindow()
+            w2if = vtk.vtkWindowToImageFilter()
+            w2if.SetInput(window)        
+            w2if.Update()
+            writer = vtk.vtkPNGWriter()
+            writer.SetFileName(file_path)
+            writer.SetInputConnection(w2if.GetOutputPort())
+            writer.Write()
 
     def closeEvent(self, *args, **kwargs):
         """ This fixes bug described in 
