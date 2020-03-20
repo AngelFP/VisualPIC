@@ -512,7 +512,6 @@ class VTKVisualizer():
             self.vtk_volume.SetVolume(vol, i)
 
     def _create_volumes(self, timestep):
-        self.npdatamulti = list()
         vol_list = list()
         imports_list = list()
         for i, vol_field in enumerate(self.volume_field_list):
@@ -526,7 +525,7 @@ class VTKVisualizer():
                 vol_field.get_vtk_gradient_opacity(timestep))
             vtk_volume_prop.ShadeOff()
             vtk_vol.SetProperty(vtk_volume_prop)
-            self.npdatamulti.append(vol_field.get_data(timestep))
+            vol_data = vol_field.get_data(timestep)
             vol_list.append(vtk_vol)
 
             ax_orig, ax_spacing = vol_field.get_axes_data(timestep)
@@ -538,14 +537,14 @@ class VTKVisualizer():
 
             # Put data in VTK format
             vtk_data_import = vtk.vtkImageImport()
-            vtk_data_import.SetImportVoidPointer(self.npdatamulti[i])
+            vtk_data_import.SetImportVoidPointer(vol_data)
             vtk_data_import.SetDataScalarTypeToFloat()
-            vtk_data_import.SetDataExtent(0, self.npdatamulti[i].shape[2]-1,
-                                          0, self.npdatamulti[i].shape[1]-1,
-                                          0, self.npdatamulti[i].shape[0]-1)
-            vtk_data_import.SetWholeExtent(0, self.npdatamulti[i].shape[2]-1,
-                                           0, self.npdatamulti[i].shape[1]-1,
-                                           0, self.npdatamulti[i].shape[0]-1)
+            vtk_data_import.SetDataExtent(0, vol_data.shape[2]-1,
+                                          0, vol_data.shape[1]-1,
+                                          0, vol_data.shape[0]-1)
+            vtk_data_import.SetWholeExtent(0, vol_data.shape[2]-1,
+                                           0, vol_data.shape[1]-1,
+                                           0, vol_data.shape[0]-1)
             vtk_data_import.SetDataSpacing(ax_spacing[0],
                                            ax_spacing[1],
                                            ax_spacing[2])
@@ -570,11 +569,11 @@ class VTKVisualizer():
 
     def _import_data(self, timestep):
         # Get data
-        npdatauchar = list()
+        volume_data_list = list()
         for i, vol_field in enumerate(self.volume_field_list):
-            npdatauchar.append(vol_field.get_data(timestep))
-        self.npdatamulti = np.concatenate(
-            [aux[...,np.newaxis] for aux in npdatauchar], axis=3)
+            volume_data_list.append(vol_field.get_data(timestep))
+        self._data_all_volumes = np.concatenate(
+            [aux[...,np.newaxis] for aux in volume_data_list], axis=3)
         ax_orig, ax_spacing = self.volume_field_list[0].get_axes_data(timestep)
         max_spacing = max(ax_spacing)
         max_cell_size = 0.1
@@ -584,16 +583,16 @@ class VTKVisualizer():
 
         # Put data in VTK format
         vtk_data_import = vtk.vtkImageImport()
-        vtk_data_import.SetImportVoidPointer(self.npdatamulti)
+        vtk_data_import.SetImportVoidPointer(self._data_all_volumes)
         vtk_data_import.SetDataScalarTypeToFloat()
         vtk_data_import.SetNumberOfScalarComponents(
             len(self.volume_field_list))
-        vtk_data_import.SetDataExtent(0, self.npdatamulti.shape[2]-1,
-                                      0, self.npdatamulti.shape[1]-1,
-                                      0, self.npdatamulti.shape[0]-1)
-        vtk_data_import.SetWholeExtent(0, self.npdatamulti.shape[2]-1,
-                                       0, self.npdatamulti.shape[1]-1,
-                                       0, self.npdatamulti.shape[0]-1)
+        vtk_data_import.SetDataExtent(0, self._data_all_volumes.shape[2]-1,
+                                      0, self._data_all_volumes.shape[1]-1,
+                                      0, self._data_all_volumes.shape[0]-1)
+        vtk_data_import.SetWholeExtent(0, self._data_all_volumes.shape[2]-1,
+                                       0, self._data_all_volumes.shape[1]-1,
+                                       0, self._data_all_volumes.shape[0]-1)
         vtk_data_import.SetDataSpacing(ax_spacing[0],
                                        ax_spacing[1],
                                        ax_spacing[2])
@@ -627,6 +626,7 @@ class VolumetricField():
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_gradient_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
+        self._loaded_timestep = None
 
     def get_name(self):
         fld_name = self.field.field_name
@@ -638,13 +638,23 @@ class VolumetricField():
         return fld_name
 
     def get_data(self, timestep):
-        fld_data, *_ = self.field.get_data(
-            timestep, theta=None,
-            max_resolution_3d_tm=self.max_resolution_3d_tm)
-        fld_data = self._trim_field(fld_data)
-        fld_data = self._change_resolution(fld_data)
-        fld_data = self._normalize_field(fld_data)
-        return fld_data
+        self._load_data(timestep)
+        return self._field_data
+
+    def _load_data(self, timestep):
+        if self._loaded_timestep != timestep:
+            fld_data, fld_md = self.field.get_data(
+                timestep, theta=None,
+                max_resolution_3d_tm=self.max_resolution_3d_tm)
+            fld_data = self._trim_field(fld_data)
+            fld_data = self._change_resolution(fld_data)
+            min_fld = np.min(fld_data)
+            max_fld = np.max(fld_data)
+            self._original_data_range = [min_fld, max_fld]
+            fld_data = self._normalize_field(fld_data)
+            self._field_data = fld_data
+            self._field_metadata = fld_md
+            self._loaded_timestep = timestep
 
     def get_axes_data(self, timestep):
         fld_md = self.field.get_only_metadata(
@@ -659,18 +669,21 @@ class VolumetricField():
         ax_spacing = np.array([z[1] - z[0], x[1] - x[0], y[1] - y[0]])
         return ax_orig, ax_spacing
 
+    def get_field_units(self):
+        raise NotImplementedError
+
     def get_range(self, timestep):
         if (self.vmin is None) or (self.vmax is None):
-            fld_data, *_ = self.field.get_data(
-                timestep, theta=None,
-                max_resolution_3d_tm=self.max_resolution_3d_tm)
-            vmin = np.min(fld_data)
-            vmax = np.max(fld_data)
+            vmin, vmax = self.get_original_data_range(timestep)
         if self.vmin is not None:
             vmin = self.vmin
         if self.vmax is not None:
             vmax = self.vmax
         return vmin, vmax
+
+    def get_original_data_range(self, timestep):
+        self._load_data(timestep)
+        return self._original_data_range
 
     def set_range(self, vmin, vmax):
         self.vmin = vmin
