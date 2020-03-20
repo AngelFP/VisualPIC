@@ -56,8 +56,11 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.style_handler = volume.style_handler
         self.register_ui_events()
         self.create_canvas_and_figure()
-        self.register_time_step_events()
         self.fill_ui()
+
+    def showEvent(self, *args, **kwargs):
+        self.register_time_step_events()
+        super(SetupFieldVolumeWindow, self).showEvent(*args, **kwargs)
 
     def closeEvent(self, *args, **kwargs):
         self.unregister_time_step_events()
