@@ -641,7 +641,7 @@ class VolumetricField():
         self._load_data(timestep)
         return self._field_data
 
-    def _load_data(self, timestep):
+    def _load_data(self, timestep, only_metadata=False):
         if self._loaded_timestep != timestep:
             fld_data, fld_md = self.field.get_data(
                 timestep, theta=None,
@@ -654,12 +654,12 @@ class VolumetricField():
             fld_data = self._normalize_field(fld_data)
             self._field_data = fld_data
             self._field_metadata = fld_md
-            self._loaded_timestep = timestep
+            if not only_metadata:
+                self._loaded_timestep = timestep
 
     def get_axes_data(self, timestep):
-        fld_md = self.field.get_only_metadata(
-            timestep, theta=None,
-            max_resolution_3d_tm=self.max_resolution_3d_tm)
+        self._load_data(timestep, only_metadata=True)
+        fld_md = self._field_metadata
         z = fld_md['axis']['z']['array']
         x = fld_md['axis']['x']['array']
         y = fld_md['axis']['y']['array']
@@ -670,7 +670,11 @@ class VolumetricField():
         return ax_orig, ax_spacing
 
     def get_field_units(self):
-        raise NotImplementedError
+        if self._field_metadata is not None:
+            fld_md = self._field_metadata
+        else:
+            fld_md = self.field.get_only_metadata(self.field.timesteps[0])
+        return fld_md['field']['units']
 
     def get_range(self, timestep):
         if (self.vmin is None) or (self.vmax is None):
