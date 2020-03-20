@@ -85,6 +85,21 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         fld_val, op_val = vol_op.get_opacity_values()
         self.opacity_figure.set_points(0, fld_val, op_val)
 
+        # Colormaps
+        self.cmap_figure = FigureWithDraggablePoints(
+            3, 1, hist=hist, hist_edges=hist_edges, share_x_axis=True,
+            patch_color=['r', 'g', 'b'], xlabels=[xlabel],
+            ylabels=["Red", "Green", "Blue"], tight_layout=True)
+        #self.cmap_figure.patch.set_facecolor("white")
+        self.cmap_canvas = FigureCanvas(self.cmap_figure)
+        self.colorsWidgetLayout.addWidget(self.cmap_canvas)
+        self.cmap_canvas.draw()
+        vol_cmap = self.volume.get_colormap()
+        fld_val, r_val, g_val, b_val = vol_cmap.get_cmap_values()
+        self.cmap_figure.set_points(0, fld_val, r_val)
+        self.cmap_figure.set_points(1, fld_val, g_val)
+        self.cmap_figure.set_points(2, fld_val, b_val)
+
         # Gradient opacity
         hist, hist_edges = self.volume.get_field_data_gradient_histogram(
             time_step, 100)
@@ -100,21 +115,6 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         vol_op = self.volume.get_gradient_opacity(time_step)
         fld_val, op_val = vol_op.get_opacity_values()
         self.gradient_opacity_figure.set_points(0, fld_val, op_val)
-
-        # Colormaps
-        self.cmap_figure = FigureWithDraggablePoints(
-            3, 1, hist=hist, hist_edges=hist_edges, share_x_axis=True,
-            patch_color=['r', 'g', 'b'], xlabels=[xlabel],
-            ylabels=["Red", "Green", "Blue"], tight_layout=True)
-        #self.cmap_figure.patch.set_facecolor("white")
-        self.cmap_canvas = FigureCanvas(self.cmap_figure)
-        self.colorsWidgetLayout.addWidget(self.cmap_canvas)
-        self.cmap_canvas.draw()
-        vol_cmap = self.volume.get_colormap()
-        fld_val, r_val, g_val, b_val = vol_cmap.get_cmap_values()
-        self.cmap_figure.set_points(0, fld_val, r_val)
-        self.cmap_figure.set_points(1, fld_val, g_val)
-        self.cmap_figure.set_points(2, fld_val, b_val)
 
         self.set_axes_range(time_step)
 
@@ -143,12 +143,12 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
     def set_histograms(self, time_step):
         hist, hist_edges = self.volume.get_field_data_histogram(time_step, 100)
         self.opacity_figure.plot_histogram(0, hist_edges, hist)
-        hist, hist_edges = self.volume.get_field_data_gradient_histogram(
-            time_step, 100)
-        self.gradient_opacity_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(1, hist_edges, hist)
         self.cmap_figure.plot_histogram(2, hist_edges, hist)
+        hist, hist_edges = self.volume.get_field_data_gradient_histogram(
+            time_step, 100)
+        self.gradient_opacity_figure.plot_histogram(0, hist_edges, hist)
 
     def register_ui_events(self):
         self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(
