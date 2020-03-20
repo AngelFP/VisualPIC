@@ -51,6 +51,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         super(SetupFieldVolumeWindow, self).__init__(parent=parent)
         self.setupUi(self)
         self.setWindowTitle('Edit field ({})'.format(volume.get_name()))
+        self.histogram_bins = 50
         self.main_window = parent
         self.volume = volume
         self.style_handler = volume.style_handler
@@ -69,11 +70,12 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
     def create_canvas_and_figure(self):
         time_step = self.main_window.vtk_vis.current_time_step
         fld_name = self.volume.get_name()
-        fld_units = 'ab'#self.volume.get_field_units()
+        fld_units = self.volume.get_field_units()
         xlabel = fld_name + " [$" + fld_units + "$]"
 
         # Scalar opacity
-        hist, hist_edges = self.volume.get_field_data_histogram(time_step, 100)
+        hist, hist_edges = self.volume.get_field_data_histogram(
+            time_step, self.histogram_bins)
         self.opacity_figure = FigureWithDraggablePoints(
             1, 1, hist=hist, hist_edges=hist_edges, patch_color='tab:blue',
             xlabels=[xlabel], ylabels=["Opacity"], tight_layout=True)
@@ -102,7 +104,8 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
 
         # Gradient opacity
         hist, hist_edges = self.volume.get_field_data_gradient_histogram(
-            time_step, 100)
+            time_step, self.histogram_bins)
+        xlabel = '$|\\nabla {}|$ [arb. u.]'.format(fld_name)
         self.gradient_opacity_figure = FigureWithDraggablePoints(
             1, 1, hist=hist, hist_edges=hist_edges, patch_color='tab:blue',
             xlabels=[xlabel], ylabels=["Opacity"], tight_layout=True)
@@ -141,13 +144,14 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
             self.set_range_in_line_edits)
 
     def set_histograms(self, time_step):
-        hist, hist_edges = self.volume.get_field_data_histogram(time_step, 100)
+        hist, hist_edges = self.volume.get_field_data_histogram(
+            time_step, self.histogram_bins)
         self.opacity_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(0, hist_edges, hist)
         self.cmap_figure.plot_histogram(1, hist_edges, hist)
         self.cmap_figure.plot_histogram(2, hist_edges, hist)
         hist, hist_edges = self.volume.get_field_data_gradient_histogram(
-            time_step, 100)
+            time_step, self.histogram_bins)
         self.gradient_opacity_figure.plot_histogram(0, hist_edges, hist)
 
     def register_ui_events(self):
