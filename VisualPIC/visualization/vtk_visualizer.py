@@ -686,8 +686,18 @@ class VolumetricField():
         return self._original_data_range
 
     def set_range(self, vmin, vmax):
-        self.vmin = vmin
-        self.vmax = vmax
+        # If data is already loaded, set range and renormalize data.
+        if self._loaded_timestep is not None:
+            current_vmin, current_vmax = self.get_range(self._loaded_timestep)
+            self._field_data *= (current_vmax-current_vmin) / 255
+            self._field_data += current_vmin
+            self.vmin = vmin
+            self.vmax = vmax
+            self._field_data = self._normalize_field(self._field_data)
+        # Otherwise just set the range
+        else:
+            self.vmin = vmin
+            self.vmax = vmax
 
     def get_vtk_opacity(self, timestep=None):
         opacity = self.get_opacity(timestep)
@@ -770,11 +780,29 @@ class VolumetricField():
         return opacity
 
     def get_field_data_histogram(self, time_step, bins=11):
+        """
+        Create a 1D histogram of the field values. The amount of values below
+        or under the [vmin, vmax] range (if specified) is added to the boundary
+        bins.
+        """
         fld_data = self.get_data(time_step)
-        hist, hist_edges = np.histogram(fld_data, bins=bins)
+        bin_edges = np.linspace(0, 255, bins+1)
+        fld_min = np.min(fld_data)
+        fld_max = np.max(fld_data)
+        if fld_min < 0:
+            bin_edges = np.insert(bin_edges, 0, fld_min)
+        if fld_max > 255:
+            bin_edges = np.append(bin_edges, fld_max)
+        hist, *_ = np.histogram(fld_data, bins=bin_edges)
+        if fld_min < 0:
+            hist[1] += hist[0]
+            hist = hist[1:]
+        if fld_max > 255:
+            hist[-2] += hist[-1]
+            hist = hist[:-1]
         hist = np.ma.log(hist).filled(0)
         hist /= hist.max()
-        return hist, hist_edges
+        return hist, bin_edges
 
     def get_field_data_gradient_histogram(self, time_step, bins=11):
         fld_data = self.get_data(time_step)
@@ -839,6 +867,10 @@ class VolumetricField():
         return x, y, z
 
     def _normalize_field(self, fld_data):
+        # Normalizing to a range between 0-255 is not only useful to simplify
+        # setting the colormaps and opacities. It also prevents large numbers
+        # in the fields which might lead to problems with vtk depending on the
+        # GPU used.
         if self.vmax is None:
             max_value = np.max(fld_data)
         else:
@@ -849,11 +881,8 @@ class VolumetricField():
             min_value = self.vmin
         fld_data -= min_value
         fld_data *= 255 / (max_value-min_value)
-        # norm_data = 255 * (fld_data-min_value)/(max_value-min_value)
-        fld_data[fld_data < 0] = 0
-        fld_data[fld_data > 255] = 255
-        # Change data from float to unsigned char
-        fld_data = np.array(fld_data, dtype=np.float32)
+        # Type conversion to single precission, if needed
+        fld_data = fld_data.astype(np.float32, copy=False)
         return fld_data
 
     def _change_resolution(self, fld_data):
