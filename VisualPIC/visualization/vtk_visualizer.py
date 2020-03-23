@@ -237,7 +237,7 @@ class VTKVisualizer():
         the render.
         """
         self.vis_config['show_logo'] = value
-        self.vtk_logo_representation.SetVisibility(value)
+        self.visualpic_logo.SetVisibility(value)
 
     def set_background(self, color, color_2=None):
         """
@@ -537,14 +537,14 @@ class VTKVisualizer():
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()
         self.vtk_image_data = self.vtk_png_reader.GetOutput()
-        self.vtk_logo_representation = vtk.vtkLogoRepresentation()
-        self.vtk_logo_representation.SetImage(self.vtk_image_data)
-        self.vtk_logo_representation.SetPosition(0.79, 0.01)
-        self.vtk_logo_representation.SetPosition2(.2, .1)
-        self.vtk_logo_representation.GetImageProperty().SetOpacity(1)
-        self.vtk_logo_representation.GetImageProperty().SetDisplayLocationToBackground()
-        self.renderer.AddViewProp(self.vtk_logo_representation)
-        self.vtk_logo_representation.SetRenderer(self.renderer)
+        self.visualpic_logo = vtk.vtkLogoRepresentation()
+        self.visualpic_logo.SetImage(self.vtk_image_data)
+        self.visualpic_logo.SetPosition(0.79, 0.01)
+        self.visualpic_logo.SetPosition2(.2, .1)
+        self.visualpic_logo.GetImageProperty().SetOpacity(1)
+        self.visualpic_logo.GetImageProperty().SetDisplayLocationToBackground()
+        self.renderer.AddViewProp(self.visualpic_logo)
+        self.visualpic_logo.SetRenderer(self.renderer)
         self.show_logo(self.vis_config['show_logo'])
 
     def _load_data_into_volume(self, timestep):
