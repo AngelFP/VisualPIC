@@ -80,11 +80,9 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.settings_button.setIcon(QtGui.QIcon(settings_icon_path))
         self.hl.addWidget(self.settings_button)
         self.save_button = QtWidgets.QPushButton()
-        # Icon by
-        # https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/
-        # AUTHORS.txt 
-        # - lib/oojs-ui/themes/mediawiki/images/icons/, MIT,
-        # https://commons.wikimedia.org/w/index.php?curid=54913197
+        # Icon By Font Awesome by Dave Gandy -
+        # https://fortawesome.github.com/Font-Awesome, CC BY-SA 3.0,
+        # https://commons.wikimedia.org/w/index.php?curid=24231809
         save_icon_path = resource_filename('VisualPIC.ui.icons', 'save.svg')
         self.save_button.setIcon(QtGui.QIcon(save_icon_path))
         self.hl.addWidget(self.save_button)
