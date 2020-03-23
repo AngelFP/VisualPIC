@@ -59,7 +59,8 @@ class VTKVisualizer():
         if use_qt and not qt_installed:
             print('Qt is not installed. Default VTK windows will be used.')
             use_qt = False
-        self.vis_config = {'show_logo': show_logo,
+        self.vis_config = {'background': background,
+                           'show_logo': show_logo,
                            'show_axes': show_axes,
                            'show_cube_axes': show_cube_axes,
                            'show_bounding_box': show_bounding_box,
@@ -265,6 +266,11 @@ class VTKVisualizer():
             self._set_background_colors('black', [0.12, 0.3, 0.475])
         else:
             self._set_background_colors(background)
+        self.vis_config['background'] = background
+
+    def get_background(self):
+        """Return the current render background."""
+        return self.vis_config['background']
 
     def get_list_of_fields(self):
         """Returns a list with the names of all available fields."""
