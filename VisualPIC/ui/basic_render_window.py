@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
-from VisualPIC.ui.brightness_contrast_dialog import BrightnessContrastDialog
+from VisualPIC.ui.render_settings_dialog import RenderSettingsDialog
 from VisualPIC.helper_functions import (
     get_closest_timestep, get_previous_timestep, get_next_timestep)
 
@@ -120,7 +120,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
 
     def settings_button_clicked(self):
         if self.settings_dialog is None:
-            self.settings_dialog = BrightnessContrastDialog(self.vtk_vis, self)
+            self.settings_dialog = RenderSettingsDialog(self.vtk_vis, self)
         self.settings_dialog.show()
 
     def prev_button_clicked(self):

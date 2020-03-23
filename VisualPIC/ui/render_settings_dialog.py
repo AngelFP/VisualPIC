@@ -2,9 +2,9 @@ from PyQt5.Qt import Qt
 from PyQt5 import QtWidgets
 
 
-class BrightnessContrastDialog(QtWidgets.QDialog):
+class RenderSettingsDialog(QtWidgets.QDialog):
 
-    """Basic dialog for editing the brightness and contrast of the render."""
+    """Basic dialog for editing the general settings of the render."""
 
     def __init__(self, vtk_visualizer, parent=None):
         super().__init__(parent=parent)
