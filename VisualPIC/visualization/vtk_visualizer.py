@@ -237,10 +237,7 @@ class VTKVisualizer():
         the render.
         """
         self.vis_config['show_logo'] = value
-        if value:
-            self.vtk_logo_widget.On()
-        else:
-            self.vtk_logo_widget.Off()
+        self.vtk_logo_representation.SetVisibility(value)
 
     def set_background(self, color, color_2=None):
         """
@@ -545,10 +542,9 @@ class VTKVisualizer():
         self.vtk_logo_representation.SetPosition(0.79, 0.01)
         self.vtk_logo_representation.SetPosition2(.2, .1)
         self.vtk_logo_representation.GetImageProperty().SetOpacity(1)
-        self.vtk_logo_widget = vtk.vtkLogoWidget()
-        self.vtk_logo_widget.SetInteractor(self.interactor)
-        self.vtk_logo_widget.SetRepresentation(self.vtk_logo_representation)
-        self.vtk_logo_widget.GetBorderRepresentation().SetShowBorderToOff()
+        self.vtk_logo_representation.GetImageProperty().SetDisplayLocationToBackground()
+        self.renderer.AddViewProp(self.vtk_logo_representation)
+        self.vtk_logo_representation.SetRenderer(self.renderer)
         self.show_logo(self.vis_config['show_logo'])
 
     def _load_data_into_volume(self, timestep):
