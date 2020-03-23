@@ -23,8 +23,8 @@ class VTKVisualizer():
     """Main class controlling the visualization"""
 
     def __init__(self, show_axes=True, show_cube_axes=False,
-                 show_bounding_box=True, show_logo=True, background='black',
-                 use_qt=True):
+                 show_bounding_box=True, show_logo=True,
+                 background='default gradient', use_qt=True):
         """
         Initialize the 3D visualizer.
 
@@ -44,8 +44,14 @@ class VTKVisualizer():
             Determines whether to show the VisualPIC logo in the render.
 
         background : str or list
-            Background color of the render. Possible values are 'black',
-            'white' or a list of 3 floats with the RGB values.
+            Background of the render. Possible string values are
+            'default gradient', 'white' and 'black'. A list of 3 floats
+            containing the RGB components (range 0 to 1) of any color can
+            also be provided (e.g. background=[1, 1, 0.5]). Alternatively, 
+            a list of two colors can also be given
+            (e.g. background=['black', [1, 1, 0.5]]). In this case, the
+            background will be a linear gradient between the two specified
+            colors.
 
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
@@ -53,9 +59,7 @@ class VTKVisualizer():
         if use_qt and not qt_installed:
             print('Qt is not installed. Default VTK windows will be used.')
             use_qt = False
-        self.vis_config = {'render_quality': 'auto',
-                           'background_color': background,
-                           'show_logo': show_logo,
+        self.vis_config = {'show_logo': show_logo,
                            'show_axes': show_axes,
                            'show_cube_axes': show_cube_axes,
                            'show_bounding_box': show_bounding_box,
@@ -65,7 +69,7 @@ class VTKVisualizer():
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
-        self.set_background(self.vis_config['background_color'])
+        self.set_background(background)
 
     def add_field(self, field, cmap='viridis', opacity='auto',
                   gradient_opacity='uniform opaque', vmax=None, vmin=None,
@@ -239,40 +243,28 @@ class VTKVisualizer():
         self.vis_config['show_logo'] = value
         self.visualpic_logo.SetVisibility(value)
 
-    def set_background(self, color, color_2=None):
+    def set_background(self, background):
         """
-        Set the background color of the 3D visualizer.
+        Set the render background.
 
         Parameters
         ----------
+        background : str or list
+            Possible string values are 'default gradient', 'white' and 'black'.
+            A list of 3 floats containing the RGB components (range 0 to 1)
+            of any color can also be provided (e.g. background=[1, 1, 0.5]).
+            Alternatively, a list of two colors can also be given
+            (e.g. background=['black', [1, 1, 0.5]]). In this case, the
+            background will be a linear gradient between the two specified
+            colors.
 
-        color : str or list
-            Background color of the render. Possible values are 'black',
-            'white' or a list of 3 floats with the RGB values.
-
-        color_2 : str or list
-            If specified, a linear gradient backround is set where 'color_2'
-            is the second color of the gradient. Possible values are 'black',
-            'white' or a list of 3 floats with the RGB values.
         """
-        if isinstance(color, str):
-            if color == 'white':
-                self.renderer.SetBackground(1, 1, 1)
-            elif color == 'black':
-                self.renderer.SetBackground(0, 0, 0)
+        if (type(background) == list) and (len(background) == 2):
+            self._set_background_colors(*background)
+        elif background == 'default gradient':
+            self._set_background_colors('black', [0.12, 0.3, 0.475])
         else:
-            self.renderer.SetBackground(*color)
-        if color_2 is not None:
-            self.renderer.GradientBackgroundOn()
-            if isinstance(color_2, str):
-                if color_2 == 'white':
-                    self.renderer.SetBackground2(1, 1, 1)
-                elif color_2 == 'black':
-                    self.renderer.SetBackground2(0, 0, 0)
-            else:
-                self.renderer.SetBackground2(*color_2)
-        else:
-            self.renderer.GradientBackgroundOff()
+            self._set_background_colors(background)
 
     def get_list_of_fields(self):
         """Returns a list with the names of all available fields."""
@@ -488,6 +480,41 @@ class VTKVisualizer():
         self._add_cube_axes()
         self._add_bounding_box()
         self._add_visualpic_logo()
+
+    def _set_background_colors(self, color, color_2=None):
+        """
+        Set the background color of the 3D visualizer.
+
+        Parameters
+        ----------
+
+        color : str or list
+            Background color of the render. Possible values are 'black',
+            'white' or a list of 3 floats with the RGB values.
+
+        color_2 : str or list
+            If specified, a linear gradient backround is set where 'color_2'
+            is the second color of the gradient. Possible values are 'black',
+            'white' or a list of 3 floats with the RGB values.
+        """
+        if isinstance(color, str):
+            if color == 'white':
+                self.renderer.SetBackground(1, 1, 1)
+            elif color == 'black':
+                self.renderer.SetBackground(0, 0, 0)
+        else:
+            self.renderer.SetBackground(*color)
+        if color_2 is not None:
+            self.renderer.GradientBackgroundOn()
+            if isinstance(color_2, str):
+                if color_2 == 'white':
+                    self.renderer.SetBackground2(1, 1, 1)
+                elif color_2 == 'black':
+                    self.renderer.SetBackground2(0, 0, 0)
+            else:
+                self.renderer.SetBackground2(*color_2)
+        else:
+            self.renderer.GradientBackgroundOff()
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
