@@ -66,6 +66,16 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         elif current_bg == 'white':
             self.white_bg_button.setChecked(True)
 
+        # axes and bbox
+        self.show_cube_axes_cb = QtWidgets.QCheckBox("Show cube axes")
+        self.show_cube_axes_cb.setChecked(
+            self.vtk_vis.vis_config['show_cube_axes'])
+        self.vl.addWidget(self.show_cube_axes_cb)
+        self.show_bbox_cb = QtWidgets.QCheckBox("Show bounding box")
+        self.show_bbox_cb.setChecked(
+            self.vtk_vis.vis_config['show_bounding_box'])
+        self.vl.addWidget(self.show_bbox_cb)
+
         self.setLayout(self.vl)
 
     def register_ui_events(self):
@@ -76,6 +86,17 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         self.default_bg_button.toggled.connect(self.default_bg_toggled)
         self.black_bg_button.toggled.connect(self.black_bg_toggled)
         self.white_bg_button.toggled.connect(self.white_bg_toggled)
+        self.show_cube_axes_cb.stateChanged.connect(
+            self.show_cube_axes_changed)
+        self.show_bbox_cb.stateChanged.connect(self.show_bbox_changed)
+
+    def show_cube_axes_changed(self, value):
+        self.vtk_vis.show_cube_axes(value)
+        self.update_render()
+
+    def show_bbox_changed(self, value):
+        self.vtk_vis.show_bounding_box(value)
+        self.update_render()
 
     def default_bg_toggled(self):
         self.vtk_vis.set_background('default gradient')
