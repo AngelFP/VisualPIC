@@ -218,7 +218,7 @@ class VTKVisualizer():
         else:
             self.vtk_logo_widget.Off()
 
-    def set_background(self, color):
+    def set_background(self, color, color_2=None):
         """
         Set the background color of the 3D visualizer.
 
@@ -228,6 +228,11 @@ class VTKVisualizer():
         color : str or list
             Background color of the render. Possible values are 'black',
             'white' or a list of 3 floats with the RGB values.
+
+        color_2 : str or list
+            If specified, a linear gradient backround is set where 'color_2'
+            is the second color of the gradient. Possible values are 'black',
+            'white' or a list of 3 floats with the RGB values.
         """
         if isinstance(color, str):
             if color == 'white':
@@ -236,6 +241,17 @@ class VTKVisualizer():
                 self.renderer.SetBackground(0, 0, 0)
         else:
             self.renderer.SetBackground(*color)
+        if color_2 is not None:
+            self.renderer.GradientBackgroundOn()
+            if isinstance(color_2, str):
+                if color_2 == 'white':
+                    self.renderer.SetBackground2(1, 1, 1)
+                elif color_2 == 'black':
+                    self.renderer.SetBackground2(0, 0, 0)
+            else:
+                self.renderer.SetBackground2(*color_2)
+        else:
+            self.renderer.GradientBackgroundOff()
 
     def get_list_of_fields(self):
         """Returns a list with the names of all available fields."""
