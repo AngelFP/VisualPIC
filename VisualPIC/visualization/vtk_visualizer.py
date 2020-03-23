@@ -22,7 +22,8 @@ class VTKVisualizer():
 
     """Main class controlling the visualization"""
 
-    def __init__(self, show_axes=True, show_logo=True, background='black',
+    def __init__(self, show_axes=True, show_cube_axes=False,
+                 show_bounding_box=True, show_logo=True, background='black',
                  use_qt=True):
         """
         Initialize the 3D visualizer.
@@ -33,7 +34,13 @@ class VTKVisualizer():
         show_axes : bool
             Determines whether to show a 3D axis in the render.
 
-        show_axes : bool
+        show_cube_axes : bool
+            Determines whether to show a bounding box with the volume axes.
+
+        show_bounding_box : bool
+            Determines whether to show a bounding box around the 3D volume.
+
+        show_logo : bool
             Determines whether to show the VisualPIC logo in the render.
 
         background : str or list
@@ -50,14 +57,14 @@ class VTKVisualizer():
                            'background_color': background,
                            'show_logo': show_logo,
                            'show_axes': show_axes,
+                           'show_cube_axes': show_cube_axes,
+                           'show_bounding_box': show_bounding_box,
                            'use_qt': use_qt}
         self.camera_props = {'zoom': 1}
         self.volume_field_list = []
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
-        self._add_axes_widget()
-        self._add_visualpic_logo()
         self.set_background(self.vis_config['background_color'])
 
     def add_field(self, field, cmap='viridis', opacity='auto',
@@ -206,6 +213,23 @@ class VTKVisualizer():
         """
         self.vis_config['show_axes'] = value
         self.vtk_orientation_marker.SetEnabled(value)
+
+    def show_cube_axes(self, value):
+        """
+        Show (for value=True) or hide (for value=False) the cube axes around
+        the 3D volume.
+        """
+        self.vis_config['show_cube_axes'] = value
+        self.vtk_cube_axes.SetVisibility(self.vis_config['show_cube_axes'])
+
+    def show_bounding_box(self, value):
+        """
+        Show (for value=True) or hide (for value=False) the bounding box 
+        around the 3D volume.
+        """
+        self.vis_config['show_bounding_box'] = value
+        self.vtk_cube_axes_edges.SetVisibility(
+            self.vis_config['show_bounding_box'])
 
     def show_logo(self, value):
         """
@@ -412,7 +436,28 @@ class VTKVisualizer():
             self._load_data_into_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
+        self._setup_cube_axes_and_bbox()
         self._setup_camera()
+
+    def _setup_cube_axes_and_bbox(self):
+        ax_data = self.volume_field_list[0].get_axes_data(
+            self.current_time_step)
+        ax_range = ax_data[2]
+        ax_units = ax_data[3]
+        x_range = ax_range[0]
+        y_range = ax_range[1]
+        z_range = ax_range[2]
+        self.vtk_cube_axes_edges.SetBounds(self.vtk_volume.GetBounds())
+        self.vtk_cube_axes.SetBounds(self.vtk_volume.GetBounds())
+        self.vtk_cube_axes.SetXTitle('z')
+        self.vtk_cube_axes.SetYTitle('y')
+        self.vtk_cube_axes.SetZTitle('x')
+        self.vtk_cube_axes.SetXAxisRange(x_range[0], x_range[1])
+        self.vtk_cube_axes.SetYAxisRange(y_range[0], y_range[1])
+        self.vtk_cube_axes.SetZAxisRange(z_range[0], z_range[1])
+        self.vtk_cube_axes.SetXUnits(ax_units[0])
+        self.vtk_cube_axes.SetYUnits(ax_units[1])
+        self.vtk_cube_axes.SetZUnits(ax_units[2])
 
     def _setup_camera(self):
         self.renderer.ResetCamera()
@@ -442,6 +487,10 @@ class VTKVisualizer():
         self.interactor.SetRenderWindow(self.window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
         self.camera = self.renderer.GetActiveCamera()
+        self._add_axes_widget()
+        self._add_cube_axes()
+        self._add_bounding_box()
+        self._add_visualpic_logo()
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
@@ -460,6 +509,28 @@ class VTKVisualizer():
         self.vtk_orientation_marker.SetViewport(0, 0, 0.2, 0.2)
         self.show_axes(self.vis_config['show_axes'])
         self.vtk_orientation_marker.InteractiveOff()
+
+    def _add_cube_axes(self):
+        self.vtk_cube_axes = vtk.vtkCubeAxesActor()
+        self.vtk_cube_axes.SetCamera(self.camera)
+        self.vtk_cube_axes.StickyAxesOff()
+        self.vtk_cube_axes.SetVisibility(self.vis_config['show_cube_axes'])
+        self.renderer.AddActor(self.vtk_cube_axes)
+
+    def _add_bounding_box(self):
+        self.vtk_cube_axes_edges = vtk.vtkCubeAxesActor()
+        self.vtk_cube_axes_edges.SetCamera(self.camera)
+        self.vtk_cube_axes_edges.SetFlyModeToStaticEdges()
+        self.vtk_cube_axes_edges.StickyAxesOff()
+        self.vtk_cube_axes_edges.SetVisibility(
+            self.vis_config['show_bounding_box'])
+        self.vtk_cube_axes_edges.XAxisLabelVisibilityOff()
+        self.vtk_cube_axes_edges.XAxisTickVisibilityOff()
+        self.vtk_cube_axes_edges.YAxisLabelVisibilityOff()
+        self.vtk_cube_axes_edges.YAxisTickVisibilityOff()
+        self.vtk_cube_axes_edges.ZAxisLabelVisibilityOff()
+        self.vtk_cube_axes_edges.ZAxisTickVisibilityOff()
+        self.renderer.AddActor(self.vtk_cube_axes_edges)
 
     def _add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
@@ -544,7 +615,7 @@ class VTKVisualizer():
             vol_data = vol_field.get_data(timestep)
             vol_list.append(vtk_vol)
 
-            ax_orig, ax_spacing = vol_field.get_axes_data(timestep)
+            ax_orig, ax_spacing, *_ = vol_field.get_axes_data(timestep)
             max_spacing = max(ax_spacing)
             max_cell_size = 0.1
             norm_factor = max_cell_size/max_spacing
@@ -590,7 +661,8 @@ class VTKVisualizer():
             volume_data_list.append(vol_field.get_data(timestep))
         self._data_all_volumes = np.concatenate(
             [aux[...,np.newaxis] for aux in volume_data_list], axis=3)
-        ax_orig, ax_spacing = self.volume_field_list[0].get_axes_data(timestep)
+        ax_orig, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
+            timestep)
         max_spacing = max(ax_spacing)
         max_cell_size = 0.1
         norm_factor = max_cell_size/max_spacing
@@ -683,7 +755,11 @@ class VolumetricField():
         x, y, z = self._change_resolution_axes(x, y, z)
         ax_orig = np.array([z[0], x[0], y[0]])
         ax_spacing = np.array([z[1] - z[0], x[1] - x[0], y[1] - y[0]])
-        return ax_orig, ax_spacing
+        ax_range = [[z[0], z[-1]], [x[0], x[-1]], [y[0], y[-1]]]
+        ax_units = [fld_md['axis']['z']['units'],
+                    fld_md['axis']['x']['units'],
+                    fld_md['axis']['y']['units']]
+        return ax_orig, ax_spacing, ax_range, ax_units
 
     def get_field_units(self):
         if self._field_metadata is not None:
