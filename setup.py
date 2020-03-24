@@ -26,14 +26,8 @@ setup(name='VisualPIC',
           'VisualPIC': ['ui/*',
                         'ui/icons/*',
                         'visualization/assets/vtk_visualizer/colormaps/*.h5',
-                        'visualization/assets/vtk_visualizer/opacities/*.h5',
-                        'Views/*.ui',
-                        'Icons/*.png',
-                        'Icons/mpl/*.svg']
+                        'visualization/assets/vtk_visualizer/opacities/*.h5']
           },
-      entry_points={
-          'console_scripts': [
-              'visualpic = VisualPIC.__main__:display_gui']},
       install_requires=read_requirements(),
       platforms='any',
       classifiers=(

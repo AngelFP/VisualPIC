@@ -1,8 +1,10 @@
 from pkg_resources import resource_filename
+import platform
+import ctypes
 
 import vtk
 import numpy as np
-from PyQt5.Qt import Qt
+from PyQt5.Qt import Qt, QStyleFactory
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 # use custom QVTKRenderWindowInteractor to fix crash
@@ -12,6 +14,17 @@ from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
 from VisualPIC.ui.render_settings_dialog import RenderSettingsDialog
 from VisualPIC.helper_functions import (
     get_closest_timestep, get_previous_timestep, get_next_timestep)
+
+# code for proper scaling in high-DPI screens. Move this somewhere else once \
+# final UI is implemented.
+if platform.system() == 'Windows':
+        myappid = 'visualpic' # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        ctypes.windll.user32.SetProcessDPIAware() 
+# Enable scaling for high DPI displays
+QtWidgets.QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+QtWidgets.QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+QtWidgets.QApplication.setStyle(QStyleFactory.create('Fusion'))
 
 
 class BasicRenderWindow(QtWidgets.QMainWindow):
