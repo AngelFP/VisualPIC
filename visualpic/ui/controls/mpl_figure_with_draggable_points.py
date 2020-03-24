@@ -48,7 +48,7 @@ class FigureWithDraggablePoints(Figure):
                 ax.set_ylim(0, 1)
                 if (share_y_axis
                         and n not in np.arange(0, ncols*nrows, ncols)+1):
-                    ax.tick_params(axis='y', which='both', labelleft='off')
+                    ax.tick_params(axis='y', which='both', labelleft=False)
                 elif share_y_axis:
                     if ylabels is not None:
                         ax.set_ylabel(ylabels[(n-1)/ncols])
@@ -57,7 +57,7 @@ class FigureWithDraggablePoints(Figure):
                         ax.set_ylabel(ylabels[n-1])
                 if (share_x_axis
                         and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
-                    ax.tick_params(axis='x', which='both', labelbottom='off')
+                    ax.tick_params(axis='x', which='both', labelbottom=False)
                 elif share_x_axis:
                     if xlabels is not None:
                         ax.set_xlabel(xlabels[n-1-ncols*nrows+ncols])
