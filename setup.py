@@ -1,7 +1,7 @@
 import sys
 from setuptools import setup, find_packages
 
-import VisualPIC
+import visualpic
 
 # Read long description
 with open("README.md", "r") as fh:
@@ -13,7 +13,7 @@ def read_requirements():
 
 # Main setup command
 setup(name='VisualPIC',
-      version=VisualPIC.__version__,
+      version=visualpic.__version__,
       author='Angel Ferran Pousa',
       author_email="angel.ferran.pousa@desy.de",
       description='Data visualizer for PIC codes',
@@ -23,7 +23,7 @@ setup(name='VisualPIC',
       license='GPLv3',
       packages=find_packages('.'),
       package_data={
-          'VisualPIC': ['ui/*',
+          'visualpic': ['ui/*',
                         'ui/icons/*',
                         'visualization/assets/vtk_visualizer/colormaps/*.h5',
                         'visualization/assets/vtk_visualizer/opacities/*.h5']
