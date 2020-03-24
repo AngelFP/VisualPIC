@@ -820,46 +820,6 @@ class VolumetricField():
         self._load_data(timestep)
         return self._field_data
 
-    def _load_data(self, timestep, only_metadata=False):
-        if self._loaded_timestep != timestep:
-            fld_data, fld_md = self.field.get_data(
-                timestep, theta=None,
-                max_resolution_3d_tm=self.max_resolution_3d_tm)
-            fld_data = self._trim_field(fld_data)
-            fld_data = self._change_resolution(fld_data)
-            min_fld = np.min(fld_data)
-            max_fld = np.max(fld_data)
-            self._original_data_range = [min_fld, max_fld]
-            fld_data = self._normalize_field(fld_data)
-            self._field_data = fld_data
-            self._field_metadata = fld_md
-            if not only_metadata:
-                self._loaded_timestep = timestep
-            if self.cbar is not None:
-                self.update_colorbar(timestep)
-
-    def update_colorbar(self, timestep):
-        cbar_range = np.array(self.get_range(timestep))
-        self.vtk_cmap.ResetAnnotations()
-        max_val = np.max(np.abs(cbar_range))
-        ord = int(np.log10(max_val))  # get order of magnitude
-        cbar_range = cbar_range/10**ord
-        norm_fld_vals = np.linspace(0, 255, self.cbar_ticks)
-        real_fld_vals = np.linspace(
-            cbar_range[0], cbar_range[1], self.cbar_ticks)
-        for j in np.arange(self.cbar_ticks):
-            self.vtk_cmap.SetAnnotation(norm_fld_vals[j],
-                                        format(real_fld_vals[j], '.2f'))
-        if ord != 0:
-            order_str = '10^' + str(ord) + ' '
-        else:
-            order_str = ''
-        title = self.get_name() + '\n['
-        if order_str != '':
-            title += order_str + '\n'
-        title += self.get_field_units() + ']'
-        self.cbar.SetTitle(title)
-
     def get_colorbar(self, n_ticks):
         if self.cbar is None:
             self.cbar = vtk.vtkScalarBarActor()
@@ -1039,6 +999,46 @@ class VolumetricField():
         hist = np.ma.log(hist).filled(0)
         hist /= hist.max()
         return hist, hist_edges
+
+    def _load_data(self, timestep, only_metadata=False):
+        if self._loaded_timestep != timestep:
+            fld_data, fld_md = self.field.get_data(
+                timestep, theta=None,
+                max_resolution_3d_tm=self.max_resolution_3d_tm)
+            fld_data = self._trim_field(fld_data)
+            fld_data = self._change_resolution(fld_data)
+            min_fld = np.min(fld_data)
+            max_fld = np.max(fld_data)
+            self._original_data_range = [min_fld, max_fld]
+            fld_data = self._normalize_field(fld_data)
+            self._field_data = fld_data
+            self._field_metadata = fld_md
+            if not only_metadata:
+                self._loaded_timestep = timestep
+            if self.cbar is not None:
+                self._update_colorbar(timestep)
+
+    def _update_colorbar(self, timestep):
+        cbar_range = np.array(self.get_range(timestep))
+        self.vtk_cmap.ResetAnnotations()
+        max_val = np.max(np.abs(cbar_range))
+        ord = int(np.log10(max_val))  # get order of magnitude
+        cbar_range = cbar_range/10**ord
+        norm_fld_vals = np.linspace(0, 255, self.cbar_ticks)
+        real_fld_vals = np.linspace(
+            cbar_range[0], cbar_range[1], self.cbar_ticks)
+        for j in np.arange(self.cbar_ticks):
+            self.vtk_cmap.SetAnnotation(norm_fld_vals[j],
+                                        format(real_fld_vals[j], '.2f'))
+        if ord != 0:
+            order_str = '10^' + str(ord) + ' '
+        else:
+            order_str = ''
+        title = self.get_name() + '\n['
+        if order_str != '':
+            title += order_str + '\n'
+        title += self.get_field_units() + ']'
+        self.cbar.SetTitle(title)
 
     def _set_vtk_opacity(self, opacity):
         fld_vals, op_vals = opacity.get_opacity_values()
