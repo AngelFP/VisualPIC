@@ -23,7 +23,7 @@ class VTKVisualizer():
     """Main class controlling the visualization"""
 
     def __init__(self, show_axes=True, show_cube_axes=False,
-                 show_bounding_box=True, show_logo=True,
+                 show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', use_qt=True):
         """
         Initialize the 3D visualizer.
@@ -39,6 +39,9 @@ class VTKVisualizer():
 
         show_bounding_box : bool
             Determines whether to show a bounding box around the 3D volume.
+
+        show_colorbars : bool
+            Determines whether to show the field colorbars.
 
         show_logo : bool
             Determines whether to show the VisualPIC logo in the render.
@@ -64,9 +67,11 @@ class VTKVisualizer():
                            'show_axes': show_axes,
                            'show_cube_axes': show_cube_axes,
                            'show_bounding_box': show_bounding_box,
+                           'show_colorbars': show_colorbars,
                            'use_qt': use_qt}
         self.camera_props = {'zoom': 1}
         self.volume_field_list = []
+        self.colorbar_widgets = []
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
@@ -134,9 +139,11 @@ class VTKVisualizer():
                     fld_repeated_idx += 1
                     name_suffix = str(fld_repeated_idx)
             # add to volume list
-            self.volume_field_list.append(VolumetricField(
+            volume_field = VolumetricField(
                 field, cmap, opacity, gradient_opacity, vmax, vmin, xtrim,
-                ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix))
+                ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix)
+            self.volume_field_list.append(volume_field)
+            self._add_colorbar(volume_field)
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
@@ -235,6 +242,18 @@ class VTKVisualizer():
         self.vis_config['show_bounding_box'] = value
         self.vtk_cube_axes_edges.SetVisibility(
             self.vis_config['show_bounding_box'])
+
+    def show_colorbars(self, value):
+        """
+        Show (for value=True) or hide (for value=False) the field colorbars.
+        """
+        self.vis_config['show_colorbars'] = value
+        if len(self.colorbar_widgets) > 0:
+            for cw in self.colorbar_widgets:
+                if value:
+                    cw.On()
+                else:
+                    cw.Off()
 
     def show_logo(self, value):
         """
@@ -718,6 +737,39 @@ class VTKVisualizer():
         vtk_data_import.Update()
         return vtk_data_import
 
+    def _add_colorbar(self, volume_field):
+        cbar = volume_field.get_colorbar(5)
+        cbar_widget = vtk.vtkScalarBarWidget()
+        cbar_widget.SetInteractor(self.interactor)
+        cbar_widget.SetScalarBarActor(cbar)
+        cbar_widget.RepositionableOff()
+        cbar_widget.ResizableOff()
+        cbar_widget.SelectableOff()
+        if self.vis_config['show_colorbars']:
+            cbar_widget.On()
+        else:
+            cbar_widget.Off()
+        self.colorbar_widgets.append(cbar_widget)
+        # (re)position colorbars
+        min_x = 0.87
+        max_x = 0.93
+        min_y = 0.12
+        max_y = 0.98
+        sep = 0.02
+        tot_height = max_y - min_y
+        tot_width = max_x - min_x
+        n_cbars = len(self.colorbar_widgets)
+        for i, cw in enumerate(self.colorbar_widgets):
+            w_cw = tot_width
+            h_cw = (tot_height - (n_cbars-1)*sep) / n_cbars
+            y_1 = min_y + i*(h_cw+sep)
+            y_2 = h_cw
+            x_1 = min_x
+            x_2 = w_cw
+            rep = cw.GetRepresentation()
+            rep.SetPosition(x_1, y_1)
+            rep.SetPosition2(x_2, y_2)
+
 
 class VolumetricField():
 
@@ -743,6 +795,8 @@ class VolumetricField():
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_gradient_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
+        self.cbar = None
+        self.cbar_ticks = 5
         self._loaded_timestep = None
 
     def get_name(self):
@@ -773,6 +827,44 @@ class VolumetricField():
             self._field_metadata = fld_md
             if not only_metadata:
                 self._loaded_timestep = timestep
+            if self.cbar is not None:
+                self.update_colorbar(timestep)
+
+    def update_colorbar(self, timestep):
+        cbar_range = np.array(self.get_range(timestep))
+        self.vtk_cmap.ResetAnnotations()
+        max_val = np.max(np.abs(cbar_range))
+        ord = int(np.log10(max_val)) # get order of magnitude
+        cbar_range = cbar_range/10**ord
+        norm_fld_vals = np.linspace(0, 255, self.cbar_ticks)
+        real_fld_vals = np.linspace(
+            cbar_range[0], cbar_range[1], self.cbar_ticks)
+        for j in np.arange(self.cbar_ticks):
+            self.vtk_cmap.SetAnnotation(norm_fld_vals[j],
+                                        format(real_fld_vals[j], '.2f'))
+        if ord != 0:
+            order_str = '10^' + str(ord) + ' '
+        else:
+            order_str = ''
+        title = self.get_name()+ '\n['
+        if order_str != '':
+            title += order_str + '\n'
+        title += self.get_field_units() + ']'
+        self.cbar.SetTitle(title)
+
+    def get_colorbar(self, n_ticks):
+        if self.cbar is None:
+            self.cbar = vtk.vtkScalarBarActor()
+            self.cbar.SetLookupTable(self.vtk_cmap)
+            self.cbar.DrawTickLabelsOff()
+            self.cbar.AnnotationTextScalingOn()
+            self.cbar.GetAnnotationTextProperty().SetFontSize(6)
+            self.cbar.GetTitleTextProperty().SetFontSize(6)
+            self.cbar.SetTextPositionToPrecedeScalarBar()
+        self.cbar_ticks = n_ticks
+        if self._loaded_timestep is not None:
+            self.update_colorbar(self._loaded_timestep)
+        return self.cbar
 
     def get_axes_data(self, timestep):
         self._load_data(timestep, only_metadata=True)

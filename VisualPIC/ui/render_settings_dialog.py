@@ -66,7 +66,7 @@ class RenderSettingsDialog(QtWidgets.QDialog):
         elif current_bg == 'white':
             self.white_bg_button.setChecked(True)
 
-        # axes and bbox
+        # axes, bbox, colorbars
         self.show_cube_axes_cb = QtWidgets.QCheckBox("Show cube axes")
         self.show_cube_axes_cb.setChecked(
             self.vtk_vis.vis_config['show_cube_axes'])
@@ -75,6 +75,10 @@ class RenderSettingsDialog(QtWidgets.QDialog):
         self.show_bbox_cb.setChecked(
             self.vtk_vis.vis_config['show_bounding_box'])
         self.vl.addWidget(self.show_bbox_cb)
+        self.show_cbars_cb = QtWidgets.QCheckBox("Show colorbars")
+        self.show_cbars_cb.setChecked(
+            self.vtk_vis.vis_config['show_colorbars'])
+        self.vl.addWidget(self.show_cbars_cb)
 
         self.setLayout(self.vl)
 
@@ -89,6 +93,7 @@ class RenderSettingsDialog(QtWidgets.QDialog):
         self.show_cube_axes_cb.stateChanged.connect(
             self.show_cube_axes_changed)
         self.show_bbox_cb.stateChanged.connect(self.show_bbox_changed)
+        self.show_cbars_cb.stateChanged.connect(self.show_cbars_changed)
 
     def show_cube_axes_changed(self, value):
         self.vtk_vis.show_cube_axes(value)
@@ -96,6 +101,10 @@ class RenderSettingsDialog(QtWidgets.QDialog):
 
     def show_bbox_changed(self, value):
         self.vtk_vis.show_bounding_box(value)
+        self.update_render()
+
+    def show_cbars_changed(self, value):
+        self.vtk_vis.show_colorbars(value)
         self.update_render()
 
     def default_bg_toggled(self):
