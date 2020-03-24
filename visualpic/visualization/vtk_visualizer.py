@@ -1,4 +1,12 @@
-"""This module contains the classes for 3D visualization with VTK"""
+"""
+This file is part of VisualPIC.
+
+The module contains the classes for 3D visualization with VTK.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
 
 import sys
 from pkg_resources import resource_filename

@@ -1,8 +1,13 @@
 """
-This module contains the class for a matplotlib figure with draggable points.
+This file is part of VisualPIC.
 
+The module contains the class for a matplotlib figure with draggable points.
 The code is based on 'http://stackoverflow.com/questions/21654008/'.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
 """
+
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse

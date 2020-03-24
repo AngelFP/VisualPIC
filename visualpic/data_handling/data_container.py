@@ -1,4 +1,11 @@
-""" Module for the DataContainer class """
+"""
+This file is part of VisualPIC.
+
+The module contains the DataContainer class.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
 
 
 from visualpic.data_handling.derived_field_definitions import (

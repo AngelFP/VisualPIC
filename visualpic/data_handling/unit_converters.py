@@ -1,3 +1,13 @@
+"""
+This file is part of VisualPIC.
+
+The module contains the definitions of the different unit converters.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
+
 import numpy as np
 import scipy.constants as ct
 import aptools.plasma_accel.general_equations as ge

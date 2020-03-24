@@ -1,3 +1,13 @@
+"""
+This file is part of VisualPIC.
+
+The module contains the class for the Qt dialog for the render settings.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
+
 from PyQt5.Qt import Qt
 from PyQt5 import QtWidgets
 

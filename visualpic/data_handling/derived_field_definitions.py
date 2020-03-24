@@ -1,4 +1,11 @@
-""" Module containing the definitions of derived fields."""
+"""
+This file is part of VisualPIC.
+
+The module contains the definitions of derived fields.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
 
 
 import scipy.constants as ct

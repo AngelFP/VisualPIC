@@ -1,3 +1,14 @@
+"""
+This file is part of VisualPIC.
+
+The module contains the classes related to the visual appearance of volumetric
+fields.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
+
 import os
 from pkg_resources import resource_filename
 

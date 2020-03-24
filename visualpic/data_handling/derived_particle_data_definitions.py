@@ -1,4 +1,11 @@
-""" Module containing the definitions of derived particle data."""
+"""
+This file is part of VisualPIC.
+
+The module contains the definitions of derived particle data.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
 
 
 derived_particle_data_definitions = []

@@ -1,3 +1,14 @@
+"""
+This file is part of VisualPIC.
+
+The module contains the class for the basic Qt render window of the 3D
+visualizer.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
+
 from pkg_resources import resource_filename
 import platform
 import ctypes

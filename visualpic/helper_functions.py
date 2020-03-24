@@ -1,4 +1,12 @@
-"""This module contains methods needed by other modules"""
+"""
+This file is part of VisualPIC.
+
+The module contains general helper methods needed in other modules.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
 
 import sys
 
