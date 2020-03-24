@@ -58,6 +58,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
                                       'vp_logo_sq_blue.png')
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.frame = QtWidgets.QFrame()
+        self.frame.setAttribute(QtCore.Qt.WA_NativeWindow)
         self.vl = QtWidgets.QVBoxLayout()
         self.dialog_dict = {}
         self.settings_dialog = None
