@@ -10,7 +10,7 @@ from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
 
 
 class DataContainer():
-    
+
     """Class containing a providing access to all the simulation data"""
 
     def __init__(self, simulation_code, data_folder_path, plasma_density=None,
@@ -100,7 +100,7 @@ class DataContainer():
         """
         for field in self.folder_fields + self.derived_fields:
             if (field_name == field.field_name and
-                species_name == field.species_name):
+                    species_name == field.species_name):
                 return field
         # raise error if no field has been found
         if species_name is not None:
@@ -115,7 +115,7 @@ class DataContainer():
 
         Parameters
         ----------
-        
+
         species_name : str
             Name of the particle species.
 
@@ -151,7 +151,7 @@ class DataContainer():
         folder_field_names = self.get_list_of_fields(include_derived=False)
         for derived_field in derived_field_definitions:
             if set(derived_field['requirements'][sim_geometry]).issubset(
-                folder_field_names):
+                    folder_field_names):
                 base_fields = []
                 for field_name in derived_field['requirements'][sim_geometry]:
                     base_fields.append(self.get_field(field_name))
@@ -165,4 +165,3 @@ class DataContainer():
             time_steps = self.folder_fields[0].timesteps
             fld_md = self.folder_fields[0].get_only_metadata(time_steps[0])
             return fld_md['field']['geometry']
-

@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+# Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
-#This file is part of VisualPIC.
+# This file is part of VisualPIC.
 #
-#VisualPIC is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# VisualPIC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#VisualPIC is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# VisualPIC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
@@ -61,7 +61,7 @@ class FieldReader():
     def _readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
                            theta, max_resolution_3d_tm):
         if (field_metadata['field']['geometry'] == 'thetaMode' and
-            theta is None):
+                theta is None):
             r_md = field_metadata['axis']['r']
             # Check if resolution should be reduced
             if max_resolution_3d_tm is not None:
@@ -76,10 +76,10 @@ class FieldReader():
                 if nr > max_res_transv:
                     excess_r = int(np.round(nr/max_res_transv))
                     r_md['array'] = r[::excess_r]
-                #if nr > max_res_transv:
+                # if nr > max_res_transv:
                 #    r = zoom(r, max_res_transv/nr, order=1)
                 #    r_md['array'] = r
-                #if nz > max_res_lon:
+                # if nz > max_res_lon:
                 #    z = zoom(z, max_res_lon/nz, order=1)
                 #    field_metadata['axis']['z']['array'] = z
             # Create x and y axes and remove r
@@ -122,7 +122,7 @@ class OsirisFieldReader(FieldReader):
     def _read_field_1d(self, file_path, field_path):
         file = H5F(file_path, 'r')
         return file[field_path]
-    
+
     def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
                             slice_dir_i=None):
         file = H5F(file_path, 'r')
@@ -132,7 +132,7 @@ class OsirisFieldReader(FieldReader):
             axis_order = ['z', 'x']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
-            axis_elements_i = fld_shape[axis_idx_i] 
+            axis_elements_i = fld_shape[axis_idx_i]
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
             fld = fld[tuple(slice_list)]
@@ -147,12 +147,12 @@ class OsirisFieldReader(FieldReader):
             axis_order = ['x', 'y', 'z']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
-            axis_elements_i = fld_shape[axis_idx_i] 
+            axis_elements_i = fld_shape[axis_idx_i]
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
             if slice_dir_j is not None:
                 axis_idx_j = axis_order.index(slice_dir_j)
-                axis_elements_j = fld_shape[axis_idx_j] 
+                axis_elements_j = fld_shape[axis_idx_j]
                 slice_idx_j = int(round(axis_elements_j * slice_j))
                 slice_list[axis_idx_j] = slice_idx_j
             fld = fld[tuple(slice_list)]
@@ -170,11 +170,11 @@ class OsirisFieldReader(FieldReader):
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
         md['axis'] = self._get_axis_data(file, field_path, field_geometry,
-                                       field_shape)
+                                         field_shape)
         md['time'] = self._get_time_data(file)
         file.close()
         return md
-        
+
     def _get_field_units(self, file, field_path):
         """ Returns the field units"""
         return self._numpy_bytes_to_string(file[field_path].attrs["UNITS"][0])
@@ -197,7 +197,7 @@ class OsirisFieldReader(FieldReader):
         axis_data = {}
         axis_data['z'] = {}
         axis_data["z"]["units"] = self._numpy_bytes_to_string(
-                file['/AXIS/AXIS1'].attrs["UNITS"][0])
+            file['/AXIS/AXIS1'].attrs["UNITS"][0])
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
                                               field_shape[-1]+1)
@@ -226,7 +226,7 @@ class OsirisFieldReader(FieldReader):
         return time_data
 
     def _numpy_bytes_to_string(self, npbytes):
-        return str(npbytes)[2:-1].replace("\\\\","\\").replace(' ', '')
+        return str(npbytes)[2:-1].replace("\\\\", "\\").replace(' ', '')
 
 
 class HiPACEFieldReader(FieldReader):
@@ -234,7 +234,7 @@ class HiPACEFieldReader(FieldReader):
         return super().__init__(*args, **kwargs)
 
     def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                           slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         if slice_dir_i is not None:
@@ -242,12 +242,12 @@ class HiPACEFieldReader(FieldReader):
             axis_order = ['z', 'x', 'y']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
-            axis_elements_i = fld_shape[axis_idx_i] 
+            axis_elements_i = fld_shape[axis_idx_i]
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
             if slice_dir_j is not None:
                 axis_idx_j = axis_order.index(slice_dir_j)
-                axis_elements_j = fld_shape[axis_idx_j] 
+                axis_elements_j = fld_shape[axis_idx_j]
                 slice_idx_j = int(round(axis_elements_j * slice_j))
                 slice_list[axis_idx_j] = slice_idx_j
             fld = fld[tuple(slice_list)]
@@ -265,7 +265,7 @@ class HiPACEFieldReader(FieldReader):
         md['time'] = self._get_time_data(file)
         file.close()
         return md
-        
+
     def _get_field_units(self, file_path):
         """ Returns the field units"""
         # HiPACE does not store unit information in data files
@@ -327,7 +327,7 @@ class OpenPMDFieldReader(FieldReader):
             axis_order = ['x', 'z']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
-            axis_elements_i = fld_shape[axis_idx_i] 
+            axis_elements_i = fld_shape[axis_idx_i]
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
             fld = fld[tuple(slice_list)]
@@ -348,12 +348,11 @@ class OpenPMDFieldReader(FieldReader):
             axis_order.remove(slice_dir_i)
             slice_list = [slice(None)] * fld.ndim
             axis_idx_j = axis_order.index(slice_dir_j)
-            axis_elements_j = fld_shape[axis_idx_j] 
+            axis_elements_j = fld_shape[axis_idx_j]
             slice_idx_j = int(round(axis_elements_j * slice_j))
             slice_list[axis_idx_j] = slice_idx_j
             fld = fld[tuple(slice_list)]
         return fld
-
 
     def _read_field_theta(self, file_path, field_path, m='all', theta=0,
                           slice_i=0.5, slice_dir_i=None,
@@ -362,9 +361,9 @@ class OpenPMDFieldReader(FieldReader):
         if len(comp) > 0:
             comp = comp[0]
         if comp in ['x', 'y']:
-            #fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', None,
+            # fld_r, _ = opmd_fr.read_field_circ(file_path, field + '/r', None,
             #                                   None, m, theta)
-            #fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
+            # fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
             #                                   None, m, theta)
             fld_r, _ = self.read_field_circ(file_path, field + '/r', None,
                                             None, m, theta,
@@ -379,7 +378,7 @@ class OpenPMDFieldReader(FieldReader):
             # Revert the sign below the axis
             fld[: int(fld.shape[0] / 2)] *= -1
         else:
-            #fld, _ = opmd_fr.read_field_circ(file_path, field_path, None,
+            # fld, _ = opmd_fr.read_field_circ(file_path, field_path, None,
             #                                 None, m, theta)
             fld, _ = self.read_field_circ(file_path, field_path, None, None, m,
                                           theta, max_resolution_3d_tm)
@@ -388,7 +387,7 @@ class OpenPMDFieldReader(FieldReader):
             axis_order = ['r', 'z']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
-            axis_elements_i = fld_shape[axis_idx_i] 
+            axis_elements_i = fld_shape[axis_idx_i]
             slice_idx_i = int(round(axis_elements_i * slice_i))
             slice_list[axis_idx_i] = slice_idx_i
             fld = fld[tuple(slice_list)]
@@ -402,15 +401,16 @@ class OpenPMDFieldReader(FieldReader):
         3d fields from thetaMode data.
         """
         # Open the HDF5 file
-        dfile = opmd_fr.h5py.File( filename, 'r' )
+        dfile = opmd_fr.h5py.File(filename, 'r')
         # Extract the dataset and and corresponding group
-        group, dset = opmd_fr.find_dataset( dfile, field_path )
+        group, dset = opmd_fr.find_dataset(dfile, field_path)
 
         # Extract the metainformation
-        Nm, Nr, Nz = opmd_fr.get_shape( dset )
-        info = opmd_fr.FieldMetaInformation( { 0: 'r', 1: 'z' }, (Nr, Nz),
+        Nm, Nr, Nz = opmd_fr.get_shape(dset)
+        info = opmd_fr.FieldMetaInformation(
+            {0: 'r', 1: 'z'}, (Nr, Nz),
             group.attrs['gridSpacing'], group.attrs['gridGlobalOffset'],
-            group.attrs['gridUnitSI'], dset.attrs['position'], thetaMode=True )
+            group.attrs['gridUnitSI'], dset.attrs['position'], thetaMode=True)
 
         # Convert to a 3D Cartesian array if theta is None
         if theta is None:
@@ -418,13 +418,13 @@ class OpenPMDFieldReader(FieldReader):
             # Get cylindrical info
             rmax = info.rmax
             inv_dr = 1./info.dr
-            Fcirc = opmd_fr.get_data( dset )  # (Extracts all modes)
+            Fcirc = opmd_fr.get_data(dset)  # (Extracts all modes)
             nr = Fcirc.shape[1]
             if m == 'all':
-                modes = [ mode for mode in range(0, int(Nm / 2) + 1) ]
+                modes = [mode for mode in range(0, int(Nm / 2) + 1)]
             else:
-                modes = [ m ]
-            modes = np.array( modes, dtype='int' )
+                modes = [m]
+            modes = np.array(modes, dtype='int')
             nmodes = len(modes)
 
             # If necessary, reduce resolution for 3D reconstruction
@@ -440,56 +440,57 @@ class OpenPMDFieldReader(FieldReader):
                     Fcirc = Fcirc[:, ::excess_r, :]
                     info.r = info.r[::excess_r]
                 #fld_zoom = np.array([1., 1., 1.])
-                #if nr > max_res_transv/2:
+                # if nr > max_res_transv/2:
                 #    fld_zoom[1] = max_res_transv/nr/2
                 #    info.r = zoom(info.r, fld_zoom[1], order=1)
-                #if nz > max_res_lon:
+                # if nz > max_res_lon:
                 #    fld_zoom[2] = max_res_lon/nz
                 #    info.z = zoom(info.z, fld_zoom[2], order=1)
-                #if any(fld_zoom != 1):
-                #    Fcirc = zoom(Fcirc, fld_zoom, order=0, mode='nearest', prefilter=False)
+                # if any(fld_zoom != 1):
+                #    Fcirc = zoom(Fcirc, fld_zoom, order=0, mode='nearest',
+                #                 prefilter=False)
 
             # Convert cylindrical data to Cartesian data
             info._convert_cylindrical_to_3Dcartesian()
             nx, ny, nz = len(info.x), len(info.y), len(info.z)
-            F_total = np.zeros( (nx, ny, nz) )
+            F_total = np.zeros((nx, ny, nz))
             opmd_fr.construct_3d_from_circ(
                 F_total, Fcirc, info.x, info.y, modes, nx, ny, nz, nr, nmodes,
-                inv_dr, rmax )
+                inv_dr, rmax)
 
         else:
 
             # Extract the modes and recombine them properly
-            F_total = np.zeros( (2 * Nr, Nz ) )
+            F_total = np.zeros((2 * Nr, Nz))
             if m == 'all':
                 # Sum of all the modes
                 # - Prepare the multiplier arrays
                 mult_above_axis = [1]
                 mult_below_axis = [1]
                 for mode in range(1, int(Nm / 2) + 1):
-                    cos = np.cos( mode * theta )
-                    sin = np.sin( mode * theta )
+                    cos = np.cos(mode * theta)
+                    sin = np.sin(mode * theta)
                     mult_above_axis += [cos, sin]
-                    mult_below_axis += [ (-1) ** mode * cos, (-1) ** mode * sin ]
-                mult_above_axis = np.array( mult_above_axis )
-                mult_below_axis = np.array( mult_below_axis )
+                    mult_below_axis += [(-1) ** mode * cos, (-1) ** mode * sin]
+                mult_above_axis = np.array(mult_above_axis)
+                mult_below_axis = np.array(mult_below_axis)
                 # - Sum the modes
-                F = opmd_fr.get_data( dset )  # (Extracts all modes)
-                F_total[Nr:, :] = np.tensordot( mult_above_axis,
-                                                F, axes=(0, 0) )[:, :]
-                F_total[:Nr, :] = np.tensordot( mult_below_axis,
-                                                F, axes=(0, 0) )[::-1, :]
+                F = opmd_fr.get_data(dset)  # (Extracts all modes)
+                F_total[Nr:, :] = np.tensordot(mult_above_axis,
+                                               F, axes=(0, 0))[:, :]
+                F_total[:Nr, :] = np.tensordot(mult_below_axis,
+                                               F, axes=(0, 0))[::-1, :]
             elif m == 0:
                 # Extract mode 0
-                F = get_data( dset, 0, 0 )
+                F = get_data(dset, 0, 0)
                 F_total[Nr:, :] = F[:, :]
                 F_total[:Nr, :] = F[::-1, :]
             else:
                 # Extract higher mode
-                cos = np.cos( m * theta )
-                sin = np.sin( m * theta )
-                F_cos = opmd_fr.get_data( dset, 2 * m - 1, 0 )
-                F_sin = opmd_fr.get_data( dset, 2 * m, 0 )
+                cos = np.cos(m * theta)
+                sin = np.sin(m * theta)
+                F_cos = opmd_fr.get_data(dset, 2 * m - 1, 0)
+                F_sin = opmd_fr.get_data(dset, 2 * m, 0)
                 F = cos * F_cos + sin * F_sin
                 F_total[Nr:, :] = F[:, :]
                 F_total[:Nr, :] = (-1) ** m * F[::-1, :]
@@ -497,17 +498,19 @@ class OpenPMDFieldReader(FieldReader):
         # Perform slicing if needed
         if slice_across is not None:
             # Slice field and clear metadata
-            inverted_axes_dict = {info.axes[key]: key for key in info.axes.keys()}
+            inverted_axes_dict = {
+                info.axes[key]: key for key in info.axes.keys()}
             for count, slice_across_item in enumerate(slice_across):
                 slicing_index = inverted_axes_dict[slice_across_item]
-                coord_array = getattr( info, slice_across_item )
+                coord_array = getattr(info, slice_across_item)
                 # Number of cells along the slicing direction
                 n_cells = len(coord_array)
                 # Index of the slice (prevent stepping out of the array)
-                i_cell = int( 0.5 * (slice_relative_position[count] + 1.) * n_cells )
-                i_cell = max( i_cell, 0 )
-                i_cell = min( i_cell, n_cells - 1)
-                F_total = np.take( F_total, [i_cell], axis=slicing_index )
+                i_cell = int(
+                    0.5 * (slice_relative_position[count] + 1.) * n_cells)
+                i_cell = max(i_cell, 0)
+                i_cell = min(i_cell, n_cells - 1)
+                F_total = np.take(F_total, [i_cell], axis=slicing_index)
             F_total = np.squeeze(F_total)
             # Remove the sliced labels from the FieldMetaInformation
             for slice_across_item in slice_across:
@@ -516,7 +519,7 @@ class OpenPMDFieldReader(FieldReader):
         # Close the file
         dfile.close()
 
-        return( F_total, info )
+        return(F_total, info)
 
     def _read_field_metadata(self, file_path, field_path):
         file = H5F(file_path, 'r')
@@ -558,4 +561,3 @@ class OpenPMDFieldReader(FieldReader):
             return 'C/m^3'
         elif field == 'J':
             return 'A'
-

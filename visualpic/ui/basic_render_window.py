@@ -18,9 +18,9 @@ from visualpic.helper_functions import (
 # code for proper scaling in high-DPI screens. Move this somewhere else once \
 # final UI is implemented.
 if platform.system() == 'Windows':
-        myappid = 'visualpic' # arbitrary string
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-        ctypes.windll.user32.SetProcessDPIAware() 
+    myappid = 'visualpic'  # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    ctypes.windll.user32.SetProcessDPIAware()
 # Enable scaling for high DPI displays
 QtWidgets.QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 QtWidgets.QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -88,7 +88,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.settings_button = QtWidgets.QPushButton()
         # Icon by
         # https://phabricator.wikimedia.org/diffusion/GOJU/browse/master/
-        # AUTHORS.txt 
+        # AUTHORS.txt
         # - lib/oojs-ui/themes/mediawiki/images/icons/, MIT,
         # https://commons.wikimedia.org/w/index.php?curid=54913197
         settings_icon_path = resource_filename('visualpic.ui.icons',
@@ -102,7 +102,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         save_icon_path = resource_filename('visualpic.ui.icons', 'save.svg')
         self.save_button.setIcon(QtGui.QIcon(save_icon_path))
         self.hl.addWidget(self.save_button)
-        
+
         self.vl.addLayout(self.hl)
         self.frame.setLayout(self.vl)
         self.setCentralWidget(self.frame)
@@ -181,7 +181,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         if file_path != '':
             window = self.vtk_widget.GetRenderWindow()
             w2if = vtk.vtkWindowToImageFilter()
-            w2if.SetInput(window)        
+            w2if.SetInput(window)
             w2if.Update()
             writer = vtk.vtkPNGWriter()
             writer.SetFileName(file_path)

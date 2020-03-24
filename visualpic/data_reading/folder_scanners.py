@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2020 Angel Ferran Pousa, DESY
+# Copyright 2016-2020 Angel Ferran Pousa, DESY
 #
-#This file is part of VisualPIC.
+# This file is part of VisualPIC.
 #
-#VisualPIC is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# VisualPIC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#VisualPIC is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# VisualPIC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
@@ -54,7 +54,6 @@ class FolderScanner():
         """
         raise NotImplementedError
 
-
     def get_list_of_species(self, folder_path):
         """
         Get list of species in the specified path. Should be implemented in the
@@ -74,7 +73,7 @@ class FolderScanner():
 
 
 class OpenPMDFolderScanner(FolderScanner):
-    
+
     "Folder scanner class for openPMD data."
 
     def __init__(self):
@@ -121,9 +120,9 @@ class OpenPMDFolderScanner(FolderScanner):
                                         self.unit_converter))
                 else:
                     field_list.append(
-                            FolderField(field, field, h5_files, iterations,
-                                        self.field_reader,
-                                        self.unit_converter))
+                        FolderField(field, field, h5_files, iterations,
+                                    self.field_reader,
+                                    self.unit_converter))
         return field_list
 
     def get_list_of_species(self, folder_path):
@@ -285,7 +284,7 @@ class OsirisFolderScanner(FolderScanner):
                     if os.path.isdir(species_folder):
                         species_fields = os.listdir(species_folder)
                         species_list.append(self._create_species(
-                                    species, species_folder))
+                            species, species_folder))
         return species_list
 
     def _create_field(self, field_name, field_folder, species_name=None):
@@ -545,7 +544,7 @@ class HiPACEFolderScanner(FolderScanner):
         A FolderField object.
         """
         field_files, time_steps = self._get_files_and_timesteps(
-                folder_path, files_in_folder, prefix, name)
+            folder_path, files_in_folder, prefix, name)
         if prefix == 'density':
             vpic_name = self._get_standard_visualpic_name('density')
         else:
@@ -648,8 +647,8 @@ class HiPACEFolderScanner(FolderScanner):
         -------
         A tuple with a an array of file paths and and array of timesteps.
         """
-        field_files = [os.path.join(folder_path, file) for file in \
-            files_in_folder if (prefix in file) and (name in file)]
+        field_files = [os.path.join(folder_path, file) for file in
+                       files_in_folder if (prefix in file) and (name in file)]
         time_steps = np.zeros(len(field_files))
         for i, file in enumerate(field_files):
             time_step = int(file.split('_')[-1].split('.')[0])

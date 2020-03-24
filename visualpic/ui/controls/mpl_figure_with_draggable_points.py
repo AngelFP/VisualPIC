@@ -39,10 +39,10 @@ class FigureWithDraggablePoints(Figure):
             for j in np.arange(ncols)+1:
                 n = (i-1)*ncols + j
                 ax = self.add_subplot(nrows, ncols, n)
-                ax.set_xlim(0,255)
-                ax.set_ylim(0,1)
-                if (share_y_axis 
-                    and n not in np.arange(0, ncols*nrows, ncols)+1):
+                ax.set_xlim(0, 255)
+                ax.set_ylim(0, 1)
+                if (share_y_axis
+                        and n not in np.arange(0, ncols*nrows, ncols)+1):
                     ax.tick_params(axis='y', which='both', labelleft='off')
                 elif share_y_axis:
                     if ylabels is not None:
@@ -50,8 +50,8 @@ class FigureWithDraggablePoints(Figure):
                 else:
                     if ylabels is not None:
                         ax.set_ylabel(ylabels[n-1])
-                if (share_x_axis 
-                    and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
+                if (share_x_axis
+                        and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
                     ax.tick_params(axis='x', which='both', labelbottom='off')
                 elif share_x_axis:
                     if xlabels is not None:
@@ -87,7 +87,8 @@ class FigureWithDraggablePoints(Figure):
         else:
             p_color = self.patch_color
         for i in np.arange(len(x)):
-            dPoint = DraggablePoint(self, naxis, x[i], y[i], 0.05, color=p_color)
+            dPoint = DraggablePoint(
+                self, naxis, x[i], y[i], 0.05, color=p_color)
             self.drag_points[naxis].append(dPoint)
             self.axes[naxis].add_patch(dPoint)
             dPoint.addLinesAndConnect()
@@ -113,14 +114,15 @@ class FigureWithDraggablePoints(Figure):
         x = list()
         y = list()
         for dPoint in self.drag_points[naxis]:
-                x.append(dPoint.x)
-                y.append(dPoint.y)
+            x.append(dPoint.x)
+            y.append(dPoint.y)
         return np.array(x), np.array(y)
 
 
 class DraggablePoint(Ellipse):
 
-    lock = None #  only one can be animated at a time
+    lock = None  # only one can be animated at a time
+
     def __init__(self, parent_figure, naxes, x=0.1, y=0.1, size_y=2, color='r'):
         self.parent_figure = parent_figure
         self.naxes = naxes
@@ -138,43 +140,52 @@ class DraggablePoint(Ellipse):
         y_min, y_max = self.parent_figure.axes[self.naxes].get_ylim()
         ax_width_range = x_max - x_min
         ax_height_range = y_max - y_min
-        ax_width = self.parent_figure.axes[self.naxes].get_window_extent().width
-        ax_height = self.parent_figure.axes[self.naxes].get_window_extent().height
+        ax_width = self.parent_figure.axes[self.naxes].get_window_extent(
+        ).width
+        ax_height = self.parent_figure.axes[self.naxes].get_window_extent(
+        ).height
         coef = (ax_width_range/ax_width) * (ax_height/ax_height_range)
         size_x = y_size * coef
         return size_x
 
     def get_scaled_size(self, size_x, size_y):
         standard_height = 800
-        ax_height = self.parent_figure.axes[self.naxes].get_window_extent().height
+        ax_height = self.parent_figure.axes[self.naxes].get_window_extent(
+        ).height
         coef = ax_height/standard_height
         return size_x/coef, size_y/coef
-
 
     def addLinesAndConnect(self):
         self.index = self.parent_figure.drag_points[self.naxes].index(self)
         if len(self.parent_figure.drag_points[self.naxes]) > 1:
-            lineX = [self.parent_figure.drag_points[self.naxes][self.index-1].x, self.x]
-            lineY = [self.parent_figure.drag_points[self.naxes][self.index-1].y, self.y]
+            lineX = [self.parent_figure.drag_points[self.naxes]
+                     [self.index-1].x, self.x]
+            lineY = [self.parent_figure.drag_points[self.naxes]
+                     [self.index-1].y, self.y]
 
             self.line = Line2D(lineX, lineY, color=self.color, alpha=0.5)
             self.parent_figure.axes[self.naxes].add_line(self.line)
         self.connect()
 
     def connect(self):
-
         'connect to all the events we need'
 
-        self.cidpress = self.figure.canvas.mpl_connect('button_press_event', self.on_press)
-        self.cidrelease = self.figure.canvas.mpl_connect('button_release_event', self.on_release)
-        self.cidmotion = self.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
+        self.cidpress = self.figure.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.figure.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.figure.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)
 
     def on_press(self, event):
 
-        if event.inaxes != self.axes: return
-        if DraggablePoint.lock is not None: return
+        if event.inaxes != self.axes:
+            return
+        if DraggablePoint.lock is not None:
+            return
         contains, attrd = self.contains(event)
-        if not contains: return
+        if not contains:
+            return
         self.press = (self.center), event.xdata, event.ydata
         DraggablePoint.lock = self
 
@@ -185,7 +196,8 @@ class DraggablePoint(Ellipse):
         if self.index > 0:
             self.line.set_animated(True)
         if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
-            self.parent_figure.drag_points[self.naxes][self.index+1].line.set_animated(True)
+            self.parent_figure.drag_points[
+                self.naxes][self.index + 1].line.set_animated(True)
         canvas.draw()
         self.background = canvas.copy_from_bbox(self.axes.bbox)
 
@@ -195,12 +207,12 @@ class DraggablePoint(Ellipse):
         # and blit just the redrawn area
         canvas.blit(axes.bbox)
 
-
     def on_motion(self, event):
 
         if DraggablePoint.lock is not self:
             return
-        if event.inaxes != self.axes: return
+        if event.inaxes != self.axes:
+            return
         self.center, xpress, ypress = self.press
         dx = event.xdata - xpress
         dy = event.ydata - ypress
@@ -216,27 +228,32 @@ class DraggablePoint(Ellipse):
         if self.index > 0:
             axes.draw_artist(self.line)
         if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
-            axes.draw_artist(self.parent_figure.drag_points[self.naxes][self.index + 1].line)
+            axes.draw_artist(
+                self.parent_figure.drag_points[self.naxes][
+                    self.index + 1].line)
 
         self.x = self.center[0]
         self.y = self.center[1]
-        
+
         if self.index > 0:
-            lineX = [self.parent_figure.drag_points[self.naxes][self.index - 1].x, self.x]
-            lineY = [self.parent_figure.drag_points[self.naxes][self.index - 1].y, self.y]
+            lineX = [self.parent_figure.drag_points[self.naxes]
+                     [self.index - 1].x, self.x]
+            lineY = [self.parent_figure.drag_points[self.naxes]
+                     [self.index - 1].y, self.y]
             self.line.set_data(lineX, lineY)
 
         if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
-            lineX = [self.x, self.parent_figure.drag_points[self.naxes][self.index + 1].x]
-            lineY = [self.y, self.parent_figure.drag_points[self.naxes][self.index + 1].y]
-            self.parent_figure.drag_points[self.naxes][self.index + 1].line.set_data(lineX, lineY)
+            lineX = [self.x, self.parent_figure.drag_points[self.naxes]
+                     [self.index + 1].x]
+            lineY = [self.y, self.parent_figure.drag_points[self.naxes]
+                     [self.index + 1].y]
+            self.parent_figure.drag_points[
+                self.naxes][self.index + 1].line.set_data(lineX, lineY)
 
         # blit just the redrawn area
         canvas.blit(axes.bbox)
 
-
     def on_release(self, event):
-
         'on release we reset the press data'
         if DraggablePoint.lock is not self:
             return
@@ -249,7 +266,8 @@ class DraggablePoint(Ellipse):
         if self.index > 0:
             self.line.set_animated(False)
         if self.index < len(self.parent_figure.drag_points[self.naxes])-1:
-            self.parent_figure.drag_points[self.naxes][self.index + 1].line.set_animated(False)
+            self.parent_figure.drag_points[
+                self.naxes][self.index + 1].line.set_animated(False)
 
         self.background = None
 
@@ -260,7 +278,6 @@ class DraggablePoint(Ellipse):
         self.y = self.center[1]
 
     def disconnect(self):
-
         'disconnect all the stored connection ids'
 
         self.figure.canvas.mpl_disconnect(self.cidpress)

@@ -5,19 +5,19 @@ import os
 import numpy as np
 import aptools.data_analysis.beam_diagnostics as bd
 from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
-                                                   OpenPMDFolderScanner, 
-                                                   HiPACEFolderScanner)
+                                                    OpenPMDFolderScanner,
+                                                    HiPACEFolderScanner)
 from visualpic.helper_functions import print_progress_bar
 
 
 def analyze_beam_evolution(sim_path, sim_code, species_name,
-                           t_step_range=None, slice_len=0.1e-6, save_to=None, 
+                           t_step_range=None, slice_len=0.1e-6, save_to=None,
                            saved_file_name='beam_params'):
     scanner_associations = {'osiris': OsirisFolderScanner,
                             'hipace': HiPACEFolderScanner,
                             'openpmd': OpenPMDFolderScanner}
 
-    print('Scanning simulation folder... ', end = '')
+    print('Scanning simulation folder... ', end='')
     folder_scanner = scanner_associations[sim_code]()
     species_list = folder_scanner.get_list_of_species(sim_path)
 
@@ -49,10 +49,10 @@ def analyze_beam_evolution(sim_path, sim_code, species_name,
         py, *_ = data['py']
         pz, *_ = data['pz']
         q, *_ = data['q']
-        
+
         # analyze beam
         beam_params = bd.general_analysis(x, y, z, px, py, pz, q,
-                                            len_slice=slice_len)
+                                          len_slice=slice_len)
         if i == 0:
             params_array = np.array(beam_params)
         else:
@@ -62,7 +62,7 @@ def analyze_beam_evolution(sim_path, sim_code, species_name,
 
     # save to file
     if save_to is not None:
-        print('Saving to file... ', end = '')
+        print('Saving to file... ', end='')
         file_path = os.path.join(save_to, saved_file_name)
         np.save(file_path, params_array)
         print('Done.')

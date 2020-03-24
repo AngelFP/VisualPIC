@@ -10,7 +10,7 @@ class VolumeStyleHandler():
     """Defines a style handler as singleton."""
 
     vsh = None
-    
+
     def __init__(self):
         if VolumeStyleHandler.vsh is None:
             VolumeStyleHandler.vsh = VolumeStyleHandler.__VolumeStyleHandler()
@@ -29,6 +29,7 @@ class VolumeStyleHandler():
             self.initialize_available_cmaps()
 
         """Opacities"""
+
         def initialize_available_opacities(self):
             self.default_opacities = list()
             self.other_opacities = list()
@@ -44,7 +45,7 @@ class VolumeStyleHandler():
             folder_opacities = list()
             for file in files_in_folder:
                 if file.endswith('.h5'):
-                    file_path = self.create_file_path(file, 
+                    file_path = self.create_file_path(file,
                                                       self.opacity_folder_path)
                     folder_opacities.append(Opacity(file_path))
             return folder_opacities
@@ -62,7 +63,7 @@ class VolumeStyleHandler():
             for op in self.default_opacities + self.other_opacities:
                 ops.append(op.get_name())
             return ops
-        
+
         def opacity_exists(self, op_name):
             for op in self.default_opacities + self.other_opacities:
                 if op.get_name() == op_name:
@@ -84,20 +85,20 @@ class VolumeStyleHandler():
             if (field_values.min() >= 0 and field_values.max() <= 255
                 and opacity_values.min() >= 0 and opacity_values.max() <= 1
                 and len(field_values) == len(opacity_values)
-                and len(opacity_values) <= self.max_len):
+                    and len(opacity_values) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
                 opacity_dataset = file.create_dataset(
-                    "opacity", data = opacity_values)
+                    "opacity", data=opacity_values)
                 field_dataset = file.create_dataset("field",
-                                                    data = field_values)
+                                                    data=field_values)
                 file.attrs["opacity_name"] = name
                 file.close()
                 # Add to available opacities
                 opacity = Opacity(file_path)
-                if (os.path.normpath(folder_path) 
-                    == self.opacity_folder_path):
+                if (os.path.normpath(folder_path)
+                        == self.opacity_folder_path):
                     self.default_opacities.append(opacity)
                 else:
                     self.other_opacities.append(opacity)
@@ -107,9 +108,9 @@ class VolumeStyleHandler():
 
         def add_opacity_from_file(self, file_path):
             self.other_opacities.append(Opacity(file_path))
-        
-        
+
         """Colormaps"""
+
         def initialize_available_cmaps(self):
             self.default_cmaps = list()
             self.other_cmaps = list()
@@ -125,7 +126,7 @@ class VolumeStyleHandler():
             folder_cmaps = list()
             for file in files_in_folder:
                 if file.endswith('.h5'):
-                    file_path = self.create_file_path(file, 
+                    file_path = self.create_file_path(file,
                                                       self.cmaps_folder_path)
                     folder_cmaps.append(Colormap(file_path))
             return folder_cmaps
@@ -147,7 +148,7 @@ class VolumeStyleHandler():
             for cmap in self.default_cmaps + self.other_cmaps:
                 cmaps.append(cmap.get_name())
             return cmaps
-        
+
         def cmap_exists(self, cmap_name):
             for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
@@ -170,7 +171,7 @@ class VolumeStyleHandler():
                 and g_val.min() >= 0 and g_val.max() <= 255
                 and b_val.min() >= 0 and b_val.max() <= 255
                 and len(fld_val) == len(r_val) == len(g_val) == len(b_val)
-                and len(fld_val) <= self.max_len):
+                    and len(fld_val) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
@@ -189,11 +190,12 @@ class VolumeStyleHandler():
                 return True
             else:
                 return False
-        
+
         def add_cmap_from_file(self, file_path):
             self.other_cmaps.append(Colormap(file_path))
 
         """Common"""
+
         def create_file_path(self, file_name, folder_path):
             if not file_name.endswith('.h5'):
                 file_name += ".h5"
@@ -226,7 +228,7 @@ class Opacity():
 
 
 class Colormap():
-    
+
     """Class defining a colormap for 3D fields."""
 
     def __init__(self, file_path=None, name=None, r_values=None, g_values=None,
@@ -250,4 +252,3 @@ class Colormap():
 
     def get_cmap_values(self):
         return self.fld_values, self.r_values, self.g_values, self.b_values
-

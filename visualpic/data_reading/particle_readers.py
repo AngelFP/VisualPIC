@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+# Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
-#This file is part of VisualPIC.
+# This file is part of VisualPIC.
 #
-#VisualPIC is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# VisualPIC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#VisualPIC is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# VisualPIC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from h5py import File as H5F
 import numpy as np
@@ -34,10 +34,10 @@ class ParticleReader():
         data_dict = {}
         for component in component_list:
             metadata = self._read_component_metadata(file, species_name,
-                                                        component)
+                                                     component)
             data = self._read_component_data(file, species_name, component)
             data_dict[component] = (np.array(data), metadata)
-        #self._release_file_handle(file)
+        # self._release_file_handle(file)
         return data_dict
 
     def _get_file_handle(self, file_path):
@@ -77,14 +77,14 @@ class OsirisParticleReader(ParticleReader):
         if component == 'tag':
             # Apply Cantor pairing function
             print(data)
-            a = data[:,0]
-            b = data[:,1]
-            data = 1/2*(a+b)*(a+b+1)+b 
+            a = data[:, 0]
+            b = data[:, 1]
+            data = 1/2*(a+b)*(a+b+1)+b
         return data
 
     def _read_component_metadata(self, file_handle, species, component):
         metadata = {}
-        if component != 'tag': 
+        if component != 'tag':
             metadata['units'] = self._numpy_bytes_to_string(
                 file_handle[self.name_relations[component]].attrs['UNITS'][0])
         metadata['time'] = {}
@@ -99,7 +99,7 @@ class OsirisParticleReader(ParticleReader):
         return metadata
 
     def _numpy_bytes_to_string(self, npbytes):
-        return str(npbytes)[2:-1].replace("\\\\","\\").replace(' ', '')
+        return str(npbytes)[2:-1].replace("\\\\", "\\").replace(' ', '')
 
 
 class HiPACEParticleReader(ParticleReader):
@@ -126,9 +126,9 @@ class HiPACEParticleReader(ParticleReader):
         if component == 'tag':
             # Apply Cantor pairing function
             print(data)
-            a = data[:,0]
-            b = data[:,1]
-            data = 1/2*(a+b)*(a+b+1)+b 
+            a = data[:, 0]
+            b = data[:, 1]
+            data = 1/2*(a+b)*(a+b+1)+b
         if component == 'q':
             n_cells = file_handle.attrs['NX']
             sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])

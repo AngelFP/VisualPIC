@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+# Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
-#This file is part of VisualPIC.
+# This file is part of VisualPIC.
 #
-#VisualPIC is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# VisualPIC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#VisualPIC is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# VisualPIC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -41,7 +41,7 @@ if getattr(sys, 'frozen', False):
 else:
     # we are running in a normal Python environment
     bundle_dir = os.path.dirname(os.path.abspath(__file__))
-guipath = os.path.join( bundle_dir, 'setup_field_volume_window.ui' )
+guipath = os.path.join(bundle_dir, 'setup_field_volume_window.ui')
 UI_SetupFieldVolumeWindow, QSetupFieldVolumeWindow = loadUiType(guipath)
 
 
@@ -79,7 +79,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.opacity_figure = FigureWithDraggablePoints(
             1, 1, hist=hist, hist_edges=hist_edges, patch_color='tab:blue',
             xlabels=[xlabel], ylabels=["Opacity"], tight_layout=True)
-        #self.opacity_figure.patch.set_facecolor("white")
+        # self.opacity_figure.patch.set_facecolor("white")
         self.opacity_canvas = FigureCanvas(self.opacity_figure)
         self.opacityWidgetLayout.addWidget(self.opacity_canvas)
         self.opacity_canvas.draw()
@@ -92,7 +92,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
             3, 1, hist=hist, hist_edges=hist_edges, share_x_axis=True,
             patch_color=['r', 'g', 'b'], xlabels=[xlabel],
             ylabels=["Red", "Green", "Blue"], tight_layout=True)
-        #self.cmap_figure.patch.set_facecolor("white")
+        # self.cmap_figure.patch.set_facecolor("white")
         self.cmap_canvas = FigureCanvas(self.cmap_figure)
         self.colorsWidgetLayout.addWidget(self.cmap_canvas)
         self.cmap_canvas.draw()
@@ -109,7 +109,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.gradient_opacity_figure = FigureWithDraggablePoints(
             1, 1, hist=hist, hist_edges=hist_edges, patch_color='tab:blue',
             xlabels=[xlabel], ylabels=["Opacity"], tight_layout=True)
-        #self.opacity_figure.patch.set_facecolor("white")
+        # self.opacity_figure.patch.set_facecolor("white")
         self.gradient_opacity_canvas = FigureCanvas(
             self.gradient_opacity_figure)
         self.gradient_opacityWidgetLayout.addWidget(
@@ -249,7 +249,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
             self.update_list_of_cmaps()
             self.cmap_comboBox.setCurrentIndex(
                 self.cmap_comboBox.count() - 1)
-    
+
     def set_cmap_from_combobox(self):
         if not self.is_updating_ui:
             cmap_name = self.cmap_comboBox.currentText()
@@ -334,7 +334,7 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         self.volume.set_gradient_opacity(gradient_opacity)
         self.volume.set_colormap(cmap)
         self.main_window.interactor.Render()
-        
+
     def range_button_clicked(self):
         min_val = float(self.min_lineEdit.text())
         max_val = float(self.max_lineEdit.text())

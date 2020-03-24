@@ -183,7 +183,7 @@ class VTKVisualizer():
         self._make_timestep_render(timestep, ts_is_index)
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
-        w2if.SetInput(self.window)        
+        w2if.SetInput(self.window)
         w2if.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(file_path)
@@ -319,7 +319,7 @@ class VTKVisualizer():
     def set_camera_zoom(self, zoom):
         """
         Set the camera zoom.
-        
+
         Parameters
         ----------
 
@@ -545,12 +545,12 @@ class VTKVisualizer():
         self.vtk_axes = vtk.vtkAxesActor()
         self.vtk_axes.SetXAxisLabelText("Z")
         self.vtk_axes.SetZAxisLabelText("X")
-        self.vtk_axes.GetZAxisShaftProperty().SetColor(0.129,0.467,0.694)
-        self.vtk_axes.GetZAxisTipProperty().SetColor(0.129,0.467,0.694)
-        self.vtk_axes.GetXAxisShaftProperty().SetColor(0.835,0.165,0.176)
-        self.vtk_axes.GetXAxisTipProperty().SetColor(0.835,0.165,0.176)
-        self.vtk_axes.GetYAxisShaftProperty().SetColor(0.188,0.627,0.224)
-        self.vtk_axes.GetYAxisTipProperty().SetColor(0.188,0.627,0.224)
+        self.vtk_axes.GetZAxisShaftProperty().SetColor(0.129, 0.467, 0.694)
+        self.vtk_axes.GetZAxisTipProperty().SetColor(0.129, 0.467, 0.694)
+        self.vtk_axes.GetXAxisShaftProperty().SetColor(0.835, 0.165, 0.176)
+        self.vtk_axes.GetXAxisTipProperty().SetColor(0.835, 0.165, 0.176)
+        self.vtk_axes.GetYAxisShaftProperty().SetColor(0.188, 0.627, 0.224)
+        self.vtk_axes.GetYAxisTipProperty().SetColor(0.188, 0.627, 0.224)
         self.vtk_orientation_marker = vtk.vtkOrientationMarkerWidget()
         self.vtk_orientation_marker.SetOutlineColor(1, 1, 1)
         self.vtk_orientation_marker.SetOrientationMarker(self.vtk_axes)
@@ -584,7 +584,7 @@ class VTKVisualizer():
     def _add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
         self.logo_path = resource_filename(
-                'visualpic.ui.icons', 'vp_logo_horiz_transp.png')
+            'visualpic.ui.icons', 'vp_logo_horiz_transp.png')
         self.vtk_png_reader = vtk.vtkPNGReader()
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()
@@ -708,7 +708,7 @@ class VTKVisualizer():
         for i, vol_field in enumerate(self.volume_field_list):
             volume_data_list.append(vol_field.get_data(timestep))
         self._data_all_volumes = np.concatenate(
-            [aux[...,np.newaxis] for aux in volume_data_list], axis=3)
+            [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
         ax_orig, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
             timestep)
         max_spacing = max(ax_spacing)
@@ -786,7 +786,7 @@ class VolumetricField():
         self.gradient_opacity = gradient_opacity
         self.vmax = vmax
         self.vmin = vmin
-        self.xtrim = xtrim # [-1, 1]
+        self.xtrim = xtrim  # [-1, 1]
         self.ytrim = ytrim
         self.ztrim = ztrim
         self.resolution = resolution
@@ -834,7 +834,7 @@ class VolumetricField():
         cbar_range = np.array(self.get_range(timestep))
         self.vtk_cmap.ResetAnnotations()
         max_val = np.max(np.abs(cbar_range))
-        ord = int(np.log10(max_val)) # get order of magnitude
+        ord = int(np.log10(max_val))  # get order of magnitude
         cbar_range = cbar_range/10**ord
         norm_fld_vals = np.linspace(0, 255, self.cbar_ticks)
         real_fld_vals = np.linspace(
@@ -846,7 +846,7 @@ class VolumetricField():
             order_str = '10^' + str(ord) + ' '
         else:
             order_str = ''
-        title = self.get_name()+ '\n['
+        title = self.get_name() + '\n['
         if order_str != '':
             title += order_str + '\n'
         title += self.get_field_units() + ']'
@@ -941,7 +941,7 @@ class VolumetricField():
 
     def get_gradient_opacity(self, timestep=None):
         if (isinstance(self.gradient_opacity, Opacity) or
-            self.gradient_opacity is None):
+                self.gradient_opacity is None):
             opacity = self.gradient_opacity
         elif self.gradient_opacity != 'auto':
             if self.style_handler.opacity_exists(self.gradient_opacity):
@@ -1118,4 +1118,3 @@ class VolumetricField():
             y = zoom(y, y_zoom)
             z = zoom(z, z_zoom)
         return x, y, z
-

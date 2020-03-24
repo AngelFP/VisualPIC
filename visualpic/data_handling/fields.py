@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-#Copyright 2016-2018 Angel Ferran Pousa, DESY
+# Copyright 2016-2018 Angel Ferran Pousa, DESY
 #
-#This file is part of VisualPIC.
+# This file is part of VisualPIC.
 #
-#VisualPIC is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# VisualPIC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#VisualPIC is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# VisualPIC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
 
@@ -73,7 +73,7 @@ class FolderField(Field):
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
-            fld, fld_md  = self.unit_converter.convert_field_units(
+            fld, fld_md = self.unit_converter.convert_field_units(
                 fld, fld_md, target_field_units=field_units,
                 target_axes_units=axes_units, axes_to_convert=axes_to_convert,
                 target_time_units=time_units)
@@ -82,7 +82,7 @@ class FolderField(Field):
     def _get_file_path(self, time_step):
         ts_i = self.timesteps.tolist().index(time_step)
         return self.field_files[ts_i]
-    
+
 
 class DerivedField(Field):
     def __init__(self, field_dict, sim_geometry, sim_params, base_fields):
@@ -116,7 +116,7 @@ class DerivedField(Field):
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
-            fld, fld_md  = self.unit_converter.convert_field_units(
+            fld, fld_md = self.unit_converter.convert_field_units(
                 fld, fld_md, target_field_units=field_units,
                 target_axes_units=axes_units, axes_to_convert=axes_to_convert,
                 target_time_units=time_units)

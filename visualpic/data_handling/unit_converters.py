@@ -107,7 +107,6 @@ class UnitConverter():
 
         return field_data, field_md
 
-
     def convert_particle_data_units(self, data_dict, target_data_units=None,
                                     target_time_units=None):
         for var_name, var_items in data_dict.items():
@@ -121,7 +120,7 @@ class UnitConverter():
                 var_md['units'] = var_units
             # convert to desired units
             if (var_target_units != 'SI' and
-                var_target_units not in self.si_units):
+                    var_target_units not in self.si_units):
                 var_data = self.convert_data(var_data, var_units,
                                              var_target_units)
                 var_md['units'] = var_target_units
@@ -139,10 +138,8 @@ class UnitConverter():
                              si_units, target_units, str(possible_units))
             raise ValueError(error_str)
 
-
     def get_possible_unit_conversions(self, si_units):
         return [*self.conversion_factors[si_units].keys()]
-
 
     def convert_field_to_si_units(self, field_data, field_md,
                                   convert_field=True, convert_axes=True,
@@ -175,7 +172,6 @@ class UnitConverter():
 
         return field_data, field_md
 
-
     def convert_data_to_si(self, data, data_units, metadata=None):
         # Has to be implemented for each simulation. Returs data and
         # data_units in SI.
@@ -204,7 +200,6 @@ class OsirisUnitConverter(UnitConverter):
             self.osiris_unit_conversion = None
         super().__init__()
 
-
     def convert_data_to_si(self, data, data_units, metadata=None):
         if self.osiris_unit_conversion is not None:
             if data_units in self.osiris_unit_conversion:
@@ -228,7 +223,6 @@ class OsirisUnitConverter(UnitConverter):
 class HiPACEUnitConverter(UnitConverter):
     def __init__(self, plasma_density=None):
         self.plasma_density = plasma_density
-
 
     def convert_data_to_si(self, data, data_units, metadata=None):
         raise NotImplementedError(

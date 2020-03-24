@@ -23,7 +23,7 @@ from visualpic.data_handling.derived_particle_data_definitions import (
 
 
 class ParticleSpecies():
-    
+
     """Class providing access to the data of a particle species"""
 
     def __init__(self, species_name, components_in_file, species_timesteps,

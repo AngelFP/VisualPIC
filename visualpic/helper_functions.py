@@ -108,6 +108,7 @@ def get_closest_timestep(time_step, time_steps):
         else:
             return closest_lower
 
+
 def get_next_timestep(current_time_step, time_steps):
     """
     Return the next time step to the specified one.
@@ -134,6 +135,7 @@ def get_next_timestep(current_time_step, time_steps):
         return time_steps[current_index + 1]
     else:
         return current_time_step
+
 
 def get_previous_timestep(current_time_step, time_steps):
     """
