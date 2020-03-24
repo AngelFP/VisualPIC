@@ -21,7 +21,7 @@ from h5py import File as H5F
 import numpy as np
 import scipy.constants as ct
 
-from VisualPIC.helper_functions import join_infile_path
+from visualpic.helper_functions import join_infile_path
 
 
 class ParticleReader():

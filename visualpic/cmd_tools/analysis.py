@@ -4,10 +4,10 @@ import os
 
 import numpy as np
 import aptools.data_analysis.beam_diagnostics as bd
-from VisualPIC.data_reading.folder_scanners import (OsirisFolderScanner,
+from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
                                                    OpenPMDFolderScanner, 
                                                    HiPACEFolderScanner)
-from VisualPIC.helper_functions import print_progress_bar
+from visualpic.helper_functions import print_progress_bar
 
 
 def analyze_beam_evolution(sim_path, sim_code, species_name,

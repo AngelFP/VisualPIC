@@ -22,9 +22,9 @@ class VolumeStyleHandler():
         def __init__(self):
             self.max_len = 50
             self.opacity_folder_path = resource_filename(
-                'VisualPIC.visualization.assets.vtk_visualizer.opacities', '')
+                'visualpic.visualization.assets.vtk_visualizer.opacities', '')
             self.cmaps_folder_path = resource_filename(
-                'VisualPIC.visualization.assets.vtk_visualizer.colormaps', '')
+                'visualpic.visualization.assets.vtk_visualizer.colormaps', '')
             self.initialize_available_opacities()
             self.initialize_available_cmaps()
 

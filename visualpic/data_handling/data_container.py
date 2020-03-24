@@ -1,10 +1,10 @@
 """ Module for the DataContainer class """
 
 
-from VisualPIC.data_handling.derived_field_definitions import (
+from visualpic.data_handling.derived_field_definitions import (
     derived_field_definitions)
-from VisualPIC.data_handling.fields import DerivedField
-from VisualPIC.data_reading.folder_scanners import (OsirisFolderScanner,
+from visualpic.data_handling.fields import DerivedField
+from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
                                                     OpenPMDFolderScanner,
                                                     HiPACEFolderScanner)
 

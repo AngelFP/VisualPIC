@@ -8,11 +8,11 @@ from PyQt5.Qt import Qt, QStyleFactory
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 # use custom QVTKRenderWindowInteractor to fix crash
-from VisualPIC.ui.controls.qt.QVTKRenderWindowInteractor import (
+from visualpic.ui.controls.qt.QVTKRenderWindowInteractor import (
     QVTKRenderWindowInteractor)
-from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
-from VisualPIC.ui.render_settings_dialog import RenderSettingsDialog
-from VisualPIC.helper_functions import (
+from visualpic.ui.setup_field_volume_window import SetupFieldVolumeWindow
+from visualpic.ui.render_settings_dialog import RenderSettingsDialog
+from visualpic.helper_functions import (
     get_closest_timestep, get_previous_timestep, get_next_timestep)
 
 # code for proper scaling in high-DPI screens. Move this somewhere else once \
@@ -43,7 +43,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
     def setup_interface(self):
         self.resize(600, 400)
         self.setWindowTitle('VisualPIC - 3D Viewer')
-        icon_path = resource_filename('VisualPIC.ui.icons',
+        icon_path = resource_filename('visualpic.ui.icons',
                                       'vp_logo_sq_blue.png')
         self.setWindowIcon(QtGui.QIcon(icon_path))
         self.frame = QtWidgets.QFrame()
@@ -65,12 +65,12 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.timestep_line_edit.setMaximumWidth(50)
         self.hl.addWidget(self.timestep_line_edit)
         self.prev_button = QtWidgets.QPushButton()
-        prev_icon_path = resource_filename('VisualPIC.ui.icons',
+        prev_icon_path = resource_filename('visualpic.ui.icons',
                                            'left_arrow.png')
         self.prev_button.setIcon(QtGui.QIcon(prev_icon_path))
         self.hl.addWidget(self.prev_button)
         self.next_button = QtWidgets.QPushButton()
-        next_icon_path = resource_filename('VisualPIC.ui.icons',
+        next_icon_path = resource_filename('visualpic.ui.icons',
                                            'right_arrow.png')
         self.next_button.setIcon(QtGui.QIcon(next_icon_path))
         self.hl.addWidget(self.next_button)
@@ -82,7 +82,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.edit_fields_button = QtWidgets.QPushButton()
         # Icon by Garrett Knoll, from The Noun Project, CC BY 3.0 us,
         # https://commons.wikimedia.org/w/index.php?curid=49665075
-        edit_icon_path = resource_filename('VisualPIC.ui.icons', 'edit.svg')
+        edit_icon_path = resource_filename('visualpic.ui.icons', 'edit.svg')
         self.edit_fields_button.setIcon(QtGui.QIcon(edit_icon_path))
         self.hl.addWidget(self.edit_fields_button)
         self.settings_button = QtWidgets.QPushButton()
@@ -91,7 +91,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         # AUTHORS.txt 
         # - lib/oojs-ui/themes/mediawiki/images/icons/, MIT,
         # https://commons.wikimedia.org/w/index.php?curid=54913197
-        settings_icon_path = resource_filename('VisualPIC.ui.icons',
+        settings_icon_path = resource_filename('visualpic.ui.icons',
                                                'slider_settings.svg')
         self.settings_button.setIcon(QtGui.QIcon(settings_icon_path))
         self.hl.addWidget(self.settings_button)
@@ -99,7 +99,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         # Icon By Font Awesome by Dave Gandy -
         # https://fortawesome.github.com/Font-Awesome, CC BY-SA 3.0,
         # https://commons.wikimedia.org/w/index.php?curid=24231809
-        save_icon_path = resource_filename('VisualPIC.ui.icons', 'save.svg')
+        save_icon_path = resource_filename('visualpic.ui.icons', 'save.svg')
         self.save_button.setIcon(QtGui.QIcon(save_icon_path))
         self.hl.addWidget(self.save_button)
         

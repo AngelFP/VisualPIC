@@ -28,11 +28,11 @@ import matplotlib.patches as patches
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 
-from VisualPIC.ui.controls.mpl_figure_with_draggable_points import (
+from visualpic.ui.controls.mpl_figure_with_draggable_points import (
     FigureWithDraggablePoints)
-from VisualPIC.ui.save_colormap_dialog import SaveColormapDialog
-from VisualPIC.ui.save_opacity_dialog import SaveOpacityDialog
-from VisualPIC.visualization.volume_appearance import Opacity, Colormap
+from visualpic.ui.save_colormap_dialog import SaveColormapDialog
+from visualpic.ui.save_opacity_dialog import SaveOpacityDialog
+from visualpic.visualization.volume_appearance import Opacity, Colormap
 
 
 if getattr(sys, 'frozen', False):

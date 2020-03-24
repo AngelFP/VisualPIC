@@ -18,7 +18,7 @@ along with VisualPIC.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-from VisualPIC.data_handling.derived_particle_data_definitions import (
+from visualpic.data_handling.derived_particle_data_definitions import (
     derived_particle_data_definitions, get_definition)
 
 

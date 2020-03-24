@@ -12,10 +12,10 @@ try:
 except:
     qt_installed = False
 
-from VisualPIC.helper_functions import get_common_timesteps
-from VisualPIC.visualization.volume_appearance import *
+from visualpic.helper_functions import get_common_timesteps
+from visualpic.visualization.volume_appearance import *
 if qt_installed:
-    from VisualPIC.ui.basic_render_window import BasicRenderWindow
+    from visualpic.ui.basic_render_window import BasicRenderWindow
 
 
 class VTKVisualizer():
@@ -584,7 +584,7 @@ class VTKVisualizer():
     def _add_visualpic_logo(self):
         self.vtk_image_data = vtk.vtkImageData()
         self.logo_path = resource_filename(
-                'VisualPIC.ui.icons', 'vp_logo_horiz_transp.png')
+                'visualpic.ui.icons', 'vp_logo_horiz_transp.png')
         self.vtk_png_reader = vtk.vtkPNGReader()
         self.vtk_png_reader.SetFileName(self.logo_path)
         self.vtk_png_reader.Update()

@@ -19,7 +19,7 @@
 
 from copy import copy
 
-from VisualPIC.helper_functions import get_common_timesteps
+from visualpic.helper_functions import get_common_timesteps
 
 
 class Field():

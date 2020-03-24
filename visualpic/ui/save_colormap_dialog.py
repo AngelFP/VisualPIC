@@ -24,7 +24,7 @@ from PyQt5.uic import loadUiType
 from PyQt5.QtWidgets import (QDialogButtonBox, QMessageBox, QPushButton,
                              QFileDialog)
 
-from VisualPIC.visualization.volume_appearance import VolumeStyleHandler
+from visualpic.visualization.volume_appearance import VolumeStyleHandler
 
 
 if getattr(sys, 'frozen', False):
