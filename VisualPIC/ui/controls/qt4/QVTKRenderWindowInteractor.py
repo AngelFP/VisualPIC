@@ -27,7 +27,7 @@ except ImportError:
     except ImportError:
         raise ImportError("Cannot load either PyQt or PySide")
 
-from VisualPIC.Controls.qt.QVTKRenderWindowInteractor import *
+from VisualPIC.ui.controls.qt.QVTKRenderWindowInteractor import *
 
 if __name__ == "__main__":
     print(PyQtImpl)

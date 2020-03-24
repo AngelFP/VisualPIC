@@ -4,8 +4,10 @@ import vtk
 import numpy as np
 from PyQt5.Qt import Qt
 from PyQt5 import QtCore, QtWidgets, QtGui
-from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
+# use custom QVTKRenderWindowInteractor to fix crash
+from VisualPIC.ui.controls.qt.QVTKRenderWindowInteractor import (
+    QVTKRenderWindowInteractor)
 from VisualPIC.ui.setup_field_volume_window import SetupFieldVolumeWindow
 from VisualPIC.ui.render_settings_dialog import RenderSettingsDialog
 from VisualPIC.helper_functions import (
