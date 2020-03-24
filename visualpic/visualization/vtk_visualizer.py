@@ -1022,9 +1022,11 @@ class VolumetricField():
         if fld_min < 0:
             hist[1] += hist[0]
             hist = hist[1:]
+            bin_edges = bin_edges[1:]
         if fld_max > 255:
             hist[-2] += hist[-1]
             hist = hist[:-1]
+            bin_edges = bin_edges[:-1]
         hist = np.ma.log(hist).filled(0)
         hist /= hist.max()
         return hist, bin_edges
