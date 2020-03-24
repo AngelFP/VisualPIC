@@ -552,7 +552,10 @@ class OpenPMDFieldReader(FieldReader):
     def _determine_field_units(self, field):
         if field == 'E':
             return 'V/m'
-        if field == 'B':
+        elif field == 'B':
             return 'T'
-        if field == 'rho':
+        elif field == 'rho':
             return 'C/m^3'
+        elif field == 'J':
+            return 'A'
+
