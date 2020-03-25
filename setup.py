@@ -1,7 +1,7 @@
 import sys
 from setuptools import setup, find_packages
 
-import visualpic
+from visualpic.__version__ import __version__
 
 # Read long description
 with open("README.md", "r") as fh:
@@ -13,7 +13,7 @@ def read_requirements():
 
 # Main setup command
 setup(name='VisualPIC',
-      version=visualpic.__version__,
+      version=__version__,
       author='Angel Ferran Pousa',
       author_email="angel.ferran.pousa@desy.de",
       description='Data visualizer for PIC codes',
