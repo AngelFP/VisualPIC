@@ -456,32 +456,34 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         self._Iren.MouseMoveEvent()
 
     def keyPressEvent(self, ev):
-        ctrl, shift = self._GetCtrlShift(ev)
-        if ev.key() < 256:
-            key = str(ev.text())
-        else:
-            key = chr(0)
+        pass
+        #ctrl, shift = self._GetCtrlShift(ev)
+        #if ev.key() < 256:
+        #    key = str(ev.text())
+        #else:
+        #    key = chr(0)
 
-        keySym = _qt_key_to_key_sym(ev.key())
-        if keySym is not None: # prevent crash when keySym is None
-            if shift and len(keySym) == 1 and keySym.isalpha():
-                keySym = keySym.upper()
+        #keySym = _qt_key_to_key_sym(ev.key())
+        #if keySym is not None: # prevent crash when keySym is None
+        #    if shift and len(keySym) == 1 and keySym.isalpha():
+        #        keySym = keySym.upper()
 
-        self._setEventInformation(self.__saveX, self.__saveY,
-                                  ctrl, shift, key, 0, keySym)
-        self._Iren.KeyPressEvent()
-        self._Iren.CharEvent()
+        #self._setEventInformation(self.__saveX, self.__saveY,
+        #                          ctrl, shift, key, 0, keySym)
+        #self._Iren.KeyPressEvent()
+        #self._Iren.CharEvent()
 
     def keyReleaseEvent(self, ev):
-        ctrl, shift = self._GetCtrlShift(ev)
-        if ev.key() < 256:
-            key = chr(ev.key())
-        else:
-            key = chr(0)
+        pass
+        #ctrl, shift = self._GetCtrlShift(ev)
+        #if ev.key() < 256:
+        #    key = chr(ev.key())
+        #else:
+        #    key = chr(0)
 
-        self._setEventInformation(self.__saveX, self.__saveY,
-                                  ctrl, shift, key, 0, None)
-        self._Iren.KeyReleaseEvent()
+        #self._setEventInformation(self.__saveX, self.__saveY,
+        #                          ctrl, shift, key, 0, None)
+        #self._Iren.KeyReleaseEvent()
 
     def wheelEvent(self, ev):
         if hasattr(ev, 'delta'):
