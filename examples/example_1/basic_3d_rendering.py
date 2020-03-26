@@ -16,7 +16,7 @@ sim_code = 'openPMD'
 dc = vp.DataContainer(sim_code, sim_folder_path)
 dc.load_data()
 
-# A list of all available fields in the can be displayed
+# Display list of all available fields
 print(dc.get_list_of_fields())
 
 # Get the fields to be visualized
