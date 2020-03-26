@@ -50,7 +50,7 @@ vis.show()
 This should open the following window:
 
 <p align="center">
-  <img alt="Basic render window" src="render_window.png" width="400px" />
+  <img alt="Basic render window" src="render_window.png" width="600px" />
 </p>
 
 This view allows the user to interact with the 3D data (move, zoom, rotate, etc.), edit the visual properties of the render and navigate through the different time steps of the simulation.
