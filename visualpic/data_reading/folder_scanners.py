@@ -330,11 +330,12 @@ class OsirisFolderScanner(FolderScanner):
         species_files, time_steps = self._get_files_and_timesteps(
             species_folder)
         species_components = []
-        file_path = species_files[0]
-        file_content = H5F(file_path, 'r')
-        for dataset_name in list(file_content):
-            species_components.append(
-                self._get_standard_visualpic_name(dataset_name))
+        if len(species_files) > 0:
+            file_path = species_files[0]
+            file_content = H5F(file_path, 'r')
+            for dataset_name in list(file_content):
+                species_components.append(
+                    self._get_standard_visualpic_name(dataset_name))
         return ParticleSpecies(species_name, species_components, time_steps,
                                species_files, self.particle_reader,
                                self.unit_converter)
