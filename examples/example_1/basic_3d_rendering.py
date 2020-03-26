@@ -12,7 +12,6 @@ import visualpic as vp
 
 # Start by loading the simulation data into a data container
 sim_folder_path = '/your/path/to/example-thetaMode/hdf5/'
-sim_folder_path = 'C:\\Users\\Angel\\ownCloud\\PhD\\Sample Data\\openPMD\\openPMD-example-datasets-draft\\example-thetaMode\\hdf5\\'
 sim_code = 'openPMD'
 dc = vp.DataContainer(sim_code, sim_folder_path)
 dc.load_data()
