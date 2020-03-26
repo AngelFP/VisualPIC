@@ -355,18 +355,31 @@ class OpenPMDFieldReader(FieldReader):
             #                                   None, m, theta)
             # fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
             #                                   None, m, theta)
-            fld_r, _ = self.read_field_circ(file_path, field + '/r', None,
-                                            None, m, theta,
-                                            max_resolution_3d_tm)
-            fld_t, _ = self.read_field_circ(file_path, field + '/t', None,
-                                            None, m, theta,
-                                            max_resolution_3d_tm)
-            if comp == 'x':
-                fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
-            elif comp == 'y':
-                fld = np.sin(theta) * fld_r + np.cos(theta) * fld_t
-            # Revert the sign below the axis
-            fld[: int(fld.shape[0] / 2)] *= -1
+            fld_r, info = self.read_field_circ(file_path, field + '/r', None,
+                                               None, m, theta,
+                                               max_resolution_3d_tm)
+            fld_t, *_ = self.read_field_circ(file_path, field + '/t', None,
+                                             None, m, theta,
+                                             max_resolution_3d_tm)
+            if theta is None:
+                # This reconstruction leads to problems on axis
+                nx, ny, nz = len(info.x), len(info.y), len(info.z)
+                X, Y = np.meshgrid(info.x, info.y)
+                theta_2d = np.arctan2(X, Y)
+                theta_3d = np.zeros([nx, ny, nz])
+                for i in np.arange(nz):
+                    theta_3d[:, :, i] = theta_2d
+                if comp == 'x':
+                    fld = np.cos(theta_3d) * fld_r - np.sin(theta_3d) * fld_t
+                elif comp == 'y':
+                    fld = np.sin(theta_3d) * fld_r + np.cos(theta_3d) * fld_t
+            else:
+                if comp == 'x':
+                    fld = np.cos(theta) * fld_r - np.sin(theta) * fld_t
+                elif comp == 'y':
+                    fld = np.sin(theta) * fld_r + np.cos(theta) * fld_t
+                # Revert the sign below the axis
+                fld[: int(fld.shape[0] / 2)] *= -1
         else:
             # fld, _ = opmd_fr.read_field_circ(file_path, field_path, None,
             #                                 None, m, theta)
