@@ -542,15 +542,15 @@ class VTKVisualizer():
                     'Time step {} is not available.'.format(timestep))
             self.current_time_step = timestep
         if self.old_vtk:
-            self._load_data_into_volume(self.current_time_step)
+            self._load_data_into_single_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
         self._setup_cube_axes_and_bbox()
         self._setup_camera()
 
-    def _load_data_into_volume(self, timestep):
-        vtk_volume_prop = self._get_volume_properties(timestep)
-        vtk_data_import = self._import_data(timestep)
+    def _load_data_into_single_volume(self, timestep):
+        vtk_volume_prop = self._get_single_volume_properties(timestep)
+        vtk_data_import = self._import_single_volume_data(timestep)
         # Setup mapper
         self.vtk_volume_mapper.SetInputConnection(
             vtk_data_import.GetOutputPort())
@@ -558,7 +558,7 @@ class VTKVisualizer():
         # Add to volume
         self.vtk_volume.SetProperty(vtk_volume_prop)
 
-    def _get_volume_properties(self, timestep):
+    def _get_single_volume_properties(self, timestep):
         vtk_volume_prop = vtk.vtkVolumeProperty()
         vtk_volume_prop.IndependentComponentsOn()
         vtk_volume_prop.SetInterpolationTypeToLinear()
@@ -571,7 +571,7 @@ class VTKVisualizer():
             vtk_volume_prop.ShadeOff(i)
         return vtk_volume_prop
 
-    def _import_data(self, timestep):
+    def _import_single_volume_data(self, timestep):
         # Get data
         volume_data_list = list()
         for i, vol_field in enumerate(self.volume_field_list):
@@ -609,14 +609,14 @@ class VTKVisualizer():
     def _load_data_into_multi_volume(self, timestep):
         # Workaround to fix wrong volume boundaries when a 'vtkMultiVolume' has
         # only a single volume. The fix replaces the 'vtkMultiVolume' for a
-        # 'vtkVolume' and then calls '_load_data_into_volume'.
+        # 'vtkVolume' and then calls '_load_data_into_single_volume'.
         if len(self.volume_field_list) == 1:
             if type(self.vtk_volume) != vtk.vtkVolume:
                 self.renderer.RemoveVolume(self.vtk_volume)
                 self.vtk_volume = vtk.vtkVolume()
                 self.renderer.AddVolume(self.vtk_volume)
                 self.vtk_volume.SetMapper(self.vtk_volume_mapper)
-            return self._load_data_into_volume(timestep)
+            return self._load_data_into_single_volume(timestep)
         # If the 'vtkMultiVolume' was replaced by a 'vtkVolume' but now the
         # number of volumes is >1, go back to having a 'vtkMultiVolume'.
         if type(self.vtk_volume) != vtk.vtkMultiVolume:
