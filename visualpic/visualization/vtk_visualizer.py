@@ -30,7 +30,7 @@ class VTKVisualizer():
 
     """Main class controlling the visualization"""
 
-    def __init__(self, show_axes=True, show_cube_axes=False,
+    def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', use_qt=True):
         """
