@@ -1,66 +1,60 @@
-# VisualPIC - A Data Visualizer for PIC Codes
+# VisualPIC - Data Visualization for Particle-in-Cell Codes
 
-![VisualPIC logo](Logo/highlight_image.png)
+![Highlight image](images/highlight_image.png)
 
-## Introduction
+## Welcome to a redesigned VisualPIC experience
 
-VisualPIC is a new software for data visualization and analysis specifically designed to work with Particle-In-Cell (PIC) simulation codes, mainly for its application in plasma wakefield acceleration.
+VisualPIC is currently undergoing a major rewrite of its codebase. Certain limitations in the design of the initial versions led to ever growing issues and unnecessary complexity when expanding its functionality to, for example, handle data with different geometries. To overcome these and other problems, a new completely redesigned version is being developed with a focus on the following key aspects:
 
-The original aim of VisualPIC was to provide a flexible and easy-to-use interface for data analysis, allowing the user to visualize the simulation results without having to write any code. This reduces the need of custom made scripts which, even if very efficient for specific cases, can easily tend to become quite cluttered and unpractical when used as the only tool for data visualization.
+* Providing a simple API for data access which is common for all supported simulation codes and data formats and can handle all possible geometries.
 
-The main principles under which this application was developed are:
+* On top of this, develop APIs for 2D and 3D data visualization which are fully decoupled from the GUI and can be easily used for scripting.
 
-* Easyness of use (must have a graphical user interface).
-* Cross-platform.
-* Written in Python (and Qt for the interface).
-* Open-source.
-* Compatibility with multiple PIC codes.
-* Open for collaboration.
-* Modular design.
+* The code should be well documented and (finally) adhere to the PEP-8 style guide.
 
-The main capabilities of the program include 2D and 3D visualization of fields and particle data, particle tracking through the simulation, the creation of snapshots and animations, as well as a dedicated visualizer for making eye-catching 3D renders of the simulation.
+This branch contains the latest developments in the new redesign and gives you a preview of what is ahead for `VisualPIC 0.5`. At the time of writing, the main features of the APIs for  data reading and 3D visualization have been implemented. The images below (as well the render on top) showcase some of the possibilities offered by this new version.
 
-![VisualPIC Screnshot](Logo/VisualPIC.PNG)
+<p align="center">
+  <img alt="Sample image" src="images/sample_image_3d_renderer.png" width="450px" />
+  <img alt="Sample image" src="images/sample_image_3d_renderer_2.png" width="450px" />
+</p>
 
-## Installation
-### Required software
-* Python 3.5 or higher.
-* Qt 5.7 or higher (will be installed with PyQt5).
-* FFmpeg.
+If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/general_redesign/examples/example_1).
 
-### Required Python packages
-* Numpy.
-* SciPy.
-* Matplotlib.
-* PyQt5.
-* H5Py.
-* Pillow.
-* openPMD-viewer.
+## How to install this new version
 
-### Installing the easy way
-* If you dont have it already, install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
-* Open a terminal and simply type `pip install visualpic`.
-* (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
-* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
+1) If you don't have Python (version 3.5 or higher) already installed, download the latest version, for example, from [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible to avoid memory limitations. It is recommended to create a virtual environment for `VisualPIC` (you can see how [here](https://docs.python.org/3/library/venv.html), for example). Remember to activate the new environment before proceeding with the installation.
 
-### Installing the manual way
-* Install Python 3.5 or higher. Download [here](https://www.python.org/downloads/release/python-352/). Choose the 64-bit version if possible.
-* Install all required dependencies: `pip install numpy, scipy, pyqt5, matplotlib, pillow, h5py, vtk`.
-* (Optional) If you plan on creating animations with VisualPIC, download FFmpeg ([link](https://ffmpeg.zeranoe.com/builds/)) and add it to your system PATH (As explained [here](http://www.wikihow.com/Install-FFmpeg-on-Windows), for example).
-* Clone this repository to your computer with `git clone https://github.com/AngelFP/VisualPIC.git`.
-* Finally, switch to the cloned directory with `cd VisualPIC` and install VisualPIC by typing `python setup.py install`
-* After this, you should be able to run VisualPIC by simply typing `visualpic` in the command line from any directory.
+2) Clone this repository to a directory in your computer using `git`
+```bash
+git clone https://github.com/AngelFP/VisualPIC.git
+```
+or simply download the code from [here](https://github.com/AngelFP/VisualPIC/archive/general_redesign.zip) and unzip it.
 
+3) If you haven't already, open a terminal in the newly created folder. If you used git to clone the repository, switch to this branch by typing
+```bash
+git checkout general_redesign
+```
+
+4) In principle, `VisualPIC` should be automatically installed by executing the `setup.py` file. However, this might currently fail in some platforms due to a bug in the current version of `PyQt5` (5.14.1) in the PyPI repository. To avoid this, simply begin by installing the previous version with
+```bash
+pip install pyqt5==5.14
+```
+
+5) After this, perform the installation with
+```bash
+python setup.py install
+```
+
+6) To get access to some of the 3D visualization features, `vtk 8.2` or higher is required. However, the latest version available on `PyPI` is `8.1.2`. To fix this, you can install version `8.2` from the `conda-forge` repository with
+```bash
+conda install -c conda-forge vtk
+```
 
 ## Collaborating
 
-### Adding support for more PIC codes
+This branch is in active development and contributions are more than welcome, particularly for implement support for new codes and geometries in the data readers. If you are interested in adding any functionality, start by forking this branch and make a PR once your changes are ready to be merged.
 
-One of the main objectives when designing VisualPIC was that it should be able to read data from any code, but without adding more complexity to the main logic.
-
-As a consequence, all the data reading process has been isolated from the rest of the code in well defined clases that read the data and "give it" to the rest of the code in a standarized way, independent from the simulation code that was used to create the data files.
-
-For more details about this and on how to add compatibility for more simulation codes, see the [documentation](/Documentation/AddSupportForAnotherCode.md).
 
 ## Citing VisualPIC
 If you use VisualPIC to produce plots or figures for any scientific work, please provide a reference to the following publication:
