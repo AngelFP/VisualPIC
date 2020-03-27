@@ -28,7 +28,7 @@ if qt_installed:
 
 class VTKVisualizer():
 
-    """Main class controlling the visualization"""
+    """Main class controlling the 3D visualization"""
 
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
