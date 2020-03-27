@@ -443,60 +443,6 @@ class VTKVisualizer():
         w = self.vtk_volume_mapper.GetFinalColorWindow()
         return (1 - 2*l) / (1 + np.abs(w))
 
-    def _make_timestep_render(self, timestep, ts_is_index=True):
-        """
-        Loads the time step data into the vtk volume and sets up the camera.
-        """
-        if ts_is_index:
-            self.current_time_step = self.available_time_steps[timestep]
-        else:
-            if timestep not in self.available_time_steps:
-                raise ValueError(
-                    'Time step {} is not available.'.format(timestep))
-            self.current_time_step = timestep
-        if self.old_vtk:
-            self._load_data_into_volume(self.current_time_step)
-        else:
-            self._load_data_into_multi_volume(self.current_time_step)
-        self._setup_cube_axes_and_bbox()
-        self._setup_camera()
-
-    def _setup_cube_axes_and_bbox(self):
-        # Get axes range of all volumes
-        for i, volume in enumerate(self.volume_field_list):
-            ax_data = volume.get_axes_data(self.current_time_step)
-            ax_range = ax_data[2]
-            ax_units = ax_data[3]
-            z_range = ax_range[0]
-            x_range = ax_range[2]
-            y_range = ax_range[1]
-            if i == 0:
-                z_range_all = z_range
-                x_range_all = x_range
-                y_range_all = y_range
-            else:
-                z_range_all = [np.min((z_range_all[0], z_range[0])),
-                               np.max((z_range_all[1], z_range[1]))]
-                x_range_all = [np.min((x_range_all[0], x_range[0])),
-                               np.max((x_range_all[1], x_range[1]))]
-                y_range_all = [np.min((y_range_all[0], y_range[0])),
-                               np.max((y_range_all[1], y_range[1]))]
-        self.vtk_cube_axes_edges.SetBounds(self.vtk_volume.GetBounds())
-        self.vtk_cube_axes.SetBounds(self.vtk_volume.GetBounds())
-        self.vtk_cube_axes.SetXTitle('z')
-        self.vtk_cube_axes.SetYTitle('y')
-        self.vtk_cube_axes.SetZTitle('x')
-        self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
-        self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
-        self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
-        self.vtk_cube_axes.SetXUnits(ax_units[0])
-        self.vtk_cube_axes.SetYUnits(ax_units[2])
-        self.vtk_cube_axes.SetZUnits(ax_units[1])
-
-    def _setup_camera(self):
-        self.renderer.ResetCamera()
-        self.camera.Zoom(self.camera_props['zoom'])
-
     def _initialize_base_vtk_elements(self):
         try:
             # vtkMultiVolume class available only in vtk >= 8.2.0
@@ -525,41 +471,6 @@ class VTKVisualizer():
         self._add_cube_axes()
         self._add_bounding_box()
         self._add_visualpic_logo()
-
-    def _set_background_colors(self, color, color_2=None):
-        """
-        Set the background color of the 3D visualizer.
-
-        Parameters
-        ----------
-
-        color : str or list
-            Background color of the render. Possible values are 'black',
-            'white' or a list of 3 floats with the RGB values.
-
-        color_2 : str or list
-            If specified, a linear gradient backround is set where 'color_2'
-            is the second color of the gradient. Possible values are 'black',
-            'white' or a list of 3 floats with the RGB values.
-        """
-        if isinstance(color, str):
-            if color == 'white':
-                self.renderer.SetBackground(1, 1, 1)
-            elif color == 'black':
-                self.renderer.SetBackground(0, 0, 0)
-        else:
-            self.renderer.SetBackground(*color)
-        if color_2 is not None:
-            self.renderer.GradientBackgroundOn()
-            if isinstance(color_2, str):
-                if color_2 == 'white':
-                    self.renderer.SetBackground2(1, 1, 1)
-                elif color_2 == 'black':
-                    self.renderer.SetBackground2(0, 0, 0)
-            else:
-                self.renderer.SetBackground2(*color_2)
-        else:
-            self.renderer.GradientBackgroundOff()
 
     def _add_axes_widget(self):
         self.vtk_axes = vtk.vtkAxesActor()
@@ -619,6 +530,24 @@ class VTKVisualizer():
         self.visualpic_logo.SetRenderer(self.renderer)
         self.show_logo(self.vis_config['show_logo'])
 
+    def _make_timestep_render(self, timestep, ts_is_index=True):
+        """
+        Loads the time step data into the vtk volume and sets up the camera.
+        """
+        if ts_is_index:
+            self.current_time_step = self.available_time_steps[timestep]
+        else:
+            if timestep not in self.available_time_steps:
+                raise ValueError(
+                    'Time step {} is not available.'.format(timestep))
+            self.current_time_step = timestep
+        if self.old_vtk:
+            self._load_data_into_volume(self.current_time_step)
+        else:
+            self._load_data_into_multi_volume(self.current_time_step)
+        self._setup_cube_axes_and_bbox()
+        self._setup_camera()
+
     def _load_data_into_volume(self, timestep):
         vtk_volume_prop = self._get_volume_properties(timestep)
         vtk_data_import = self._import_data(timestep)
@@ -628,6 +557,54 @@ class VTKVisualizer():
         self.vtk_volume_mapper.Update()
         # Add to volume
         self.vtk_volume.SetProperty(vtk_volume_prop)
+
+    def _get_volume_properties(self, timestep):
+        vtk_volume_prop = vtk.vtkVolumeProperty()
+        vtk_volume_prop.IndependentComponentsOn()
+        vtk_volume_prop.SetInterpolationTypeToLinear()
+        for i, vol_field in enumerate(self.volume_field_list):
+            vtk_volume_prop.SetColor(i, vol_field.get_vtk_colormap())
+            vtk_volume_prop.SetScalarOpacity(
+                i, vol_field.get_vtk_opacity(timestep))
+            vtk_volume_prop.SetGradientOpacity(
+                vol_field.get_vtk_gradient_opacity(timestep))
+            vtk_volume_prop.ShadeOff(i)
+        return vtk_volume_prop
+
+    def _import_data(self, timestep):
+        # Get data
+        volume_data_list = list()
+        for i, vol_field in enumerate(self.volume_field_list):
+            volume_data_list.append(vol_field.get_data(timestep))
+        self._data_all_volumes = np.concatenate(
+            [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
+        ax_orig, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
+            timestep)
+        max_spacing = max(ax_spacing)
+        max_cell_size = 0.1
+        norm_factor = max_cell_size/max_spacing
+        ax_orig *= norm_factor
+        ax_spacing *= norm_factor
+
+        # Put data in VTK format
+        vtk_data_import = vtk.vtkImageImport()
+        vtk_data_import.SetImportVoidPointer(self._data_all_volumes)
+        vtk_data_import.SetDataScalarTypeToFloat()
+        vtk_data_import.SetNumberOfScalarComponents(
+            len(self.volume_field_list))
+        vtk_data_import.SetDataExtent(0, self._data_all_volumes.shape[2]-1,
+                                      0, self._data_all_volumes.shape[1]-1,
+                                      0, self._data_all_volumes.shape[0]-1)
+        vtk_data_import.SetWholeExtent(0, self._data_all_volumes.shape[2]-1,
+                                       0, self._data_all_volumes.shape[1]-1,
+                                       0, self._data_all_volumes.shape[0]-1)
+        vtk_data_import.SetDataSpacing(ax_spacing[0],
+                                       ax_spacing[2],
+                                       ax_spacing[1])
+        # data origin is also changed by the normalization
+        vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
+        vtk_data_import.Update()
+        return vtk_data_import
 
     def _load_data_into_multi_volume(self, timestep):
         # Workaround to fix wrong volume boundaries when a 'vtkMultiVolume' has
@@ -709,53 +686,76 @@ class VTKVisualizer():
             imports_list.append(vtk_data_import)
         return vol_list, imports_list
 
-    def _get_volume_properties(self, timestep):
-        vtk_volume_prop = vtk.vtkVolumeProperty()
-        vtk_volume_prop.IndependentComponentsOn()
-        vtk_volume_prop.SetInterpolationTypeToLinear()
-        for i, vol_field in enumerate(self.volume_field_list):
-            vtk_volume_prop.SetColor(i, vol_field.get_vtk_colormap())
-            vtk_volume_prop.SetScalarOpacity(
-                i, vol_field.get_vtk_opacity(timestep))
-            vtk_volume_prop.SetGradientOpacity(
-                vol_field.get_vtk_gradient_opacity(timestep))
-            vtk_volume_prop.ShadeOff(i)
-        return vtk_volume_prop
+    def _setup_cube_axes_and_bbox(self):
+        # Get axes range of all volumes
+        for i, volume in enumerate(self.volume_field_list):
+            ax_data = volume.get_axes_data(self.current_time_step)
+            ax_range = ax_data[2]
+            ax_units = ax_data[3]
+            z_range = ax_range[0]
+            x_range = ax_range[2]
+            y_range = ax_range[1]
+            if i == 0:
+                z_range_all = z_range
+                x_range_all = x_range
+                y_range_all = y_range
+            else:
+                z_range_all = [np.min((z_range_all[0], z_range[0])),
+                               np.max((z_range_all[1], z_range[1]))]
+                x_range_all = [np.min((x_range_all[0], x_range[0])),
+                               np.max((x_range_all[1], x_range[1]))]
+                y_range_all = [np.min((y_range_all[0], y_range[0])),
+                               np.max((y_range_all[1], y_range[1]))]
+        self.vtk_cube_axes_edges.SetBounds(self.vtk_volume.GetBounds())
+        self.vtk_cube_axes.SetBounds(self.vtk_volume.GetBounds())
+        self.vtk_cube_axes.SetXTitle('z')
+        self.vtk_cube_axes.SetYTitle('y')
+        self.vtk_cube_axes.SetZTitle('x')
+        self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
+        self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
+        self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
+        self.vtk_cube_axes.SetXUnits(ax_units[0])
+        self.vtk_cube_axes.SetYUnits(ax_units[2])
+        self.vtk_cube_axes.SetZUnits(ax_units[1])
 
-    def _import_data(self, timestep):
-        # Get data
-        volume_data_list = list()
-        for i, vol_field in enumerate(self.volume_field_list):
-            volume_data_list.append(vol_field.get_data(timestep))
-        self._data_all_volumes = np.concatenate(
-            [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
-        ax_orig, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
-            timestep)
-        max_spacing = max(ax_spacing)
-        max_cell_size = 0.1
-        norm_factor = max_cell_size/max_spacing
-        ax_orig *= norm_factor
-        ax_spacing *= norm_factor
+    def _setup_camera(self):
+        self.renderer.ResetCamera()
+        self.camera.Zoom(self.camera_props['zoom'])
 
-        # Put data in VTK format
-        vtk_data_import = vtk.vtkImageImport()
-        vtk_data_import.SetImportVoidPointer(self._data_all_volumes)
-        vtk_data_import.SetDataScalarTypeToFloat()
-        vtk_data_import.SetNumberOfScalarComponents(
-            len(self.volume_field_list))
-        vtk_data_import.SetDataExtent(0, self._data_all_volumes.shape[2]-1,
-                                      0, self._data_all_volumes.shape[1]-1,
-                                      0, self._data_all_volumes.shape[0]-1)
-        vtk_data_import.SetWholeExtent(0, self._data_all_volumes.shape[2]-1,
-                                       0, self._data_all_volumes.shape[1]-1,
-                                       0, self._data_all_volumes.shape[0]-1)
-        vtk_data_import.SetDataSpacing(ax_spacing[0],
-                                       ax_spacing[2],
-                                       ax_spacing[1])
-        # data origin is also changed by the normalization
-        vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
-        vtk_data_import.Update()
-        return vtk_data_import
+    def _set_background_colors(self, color, color_2=None):
+        """
+        Set the background color of the 3D visualizer.
+
+        Parameters
+        ----------
+
+        color : str or list
+            Background color of the render. Possible values are 'black',
+            'white' or a list of 3 floats with the RGB values.
+
+        color_2 : str or list
+            If specified, a linear gradient backround is set where 'color_2'
+            is the second color of the gradient. Possible values are 'black',
+            'white' or a list of 3 floats with the RGB values.
+        """
+        if isinstance(color, str):
+            if color == 'white':
+                self.renderer.SetBackground(1, 1, 1)
+            elif color == 'black':
+                self.renderer.SetBackground(0, 0, 0)
+        else:
+            self.renderer.SetBackground(*color)
+        if color_2 is not None:
+            self.renderer.GradientBackgroundOn()
+            if isinstance(color_2, str):
+                if color_2 == 'white':
+                    self.renderer.SetBackground2(1, 1, 1)
+                elif color_2 == 'black':
+                    self.renderer.SetBackground2(0, 0, 0)
+            else:
+                self.renderer.SetBackground2(*color_2)
+        else:
+            self.renderer.GradientBackgroundOff()
 
     def _add_colorbar(self, volume_field):
         cbar = volume_field.get_colorbar(5)
