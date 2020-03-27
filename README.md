@@ -53,7 +53,7 @@ conda install -c conda-forge vtk
 
 ## Collaborating
 
-This branch is in active development and contributions are more than welcome, particularly for implement support for new codes and geometries in the data readers. If you are interested in adding any functionality, start by forking this branch and make a PR once your changes are ready to be merged.
+This branch is in active development and contributions are more than welcome, particularly for implementing support for new codes and geometries in the data readers. If you are interested in adding any functionality, start by forking this branch and make a PR once your changes are ready to be merged.
 
 
 ## Citing VisualPIC
