@@ -750,10 +750,10 @@ class VTKVisualizer():
                                        0, self._data_all_volumes.shape[1]-1,
                                        0, self._data_all_volumes.shape[0]-1)
         vtk_data_import.SetDataSpacing(ax_spacing[0],
-                                       ax_spacing[1],
-                                       ax_spacing[2])
+                                       ax_spacing[2],
+                                       ax_spacing[1])
         # data origin is also changed by the normalization
-        vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[1], ax_orig[2])
+        vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
         vtk_data_import.Update()
         return vtk_data_import
 
