@@ -495,7 +495,6 @@ class VTKVisualizer():
     def _add_cube_axes(self):
         self.vtk_cube_axes = vtk.vtkCubeAxesActor()
         self.vtk_cube_axes.SetCamera(self.camera)
-        self.vtk_cube_axes.StickyAxesOff()
         self.vtk_cube_axes.SetVisibility(self.vis_config['show_cube_axes'])
         self.renderer.AddActor(self.vtk_cube_axes)
 
