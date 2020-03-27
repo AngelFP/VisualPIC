@@ -105,12 +105,14 @@ class VTKVisualizer():
         opacity : str or Opacity
             The opacity scheme to be used. Possible values are 'auto',
             'linear positive', 'linear negative', 'v shape', 'inverse v shape',
-            'uniform opaque', 'uniform translucid' or any instace of Opacity.
+            'uniform opaque', 'uniform translucid', the path to an .h5 file
+            containing an opacity or any instace of Opacity.
 
         gradient_opacity : str or Opacity
             The gradient opacity to be used. Possible values are 'auto',
             'linear positive', 'linear negative', 'v shape', 'inverse v shape',
-            'uniform opaque', 'uniform translucid' or any instace of Opacity.
+            'uniform opaque', 'uniform translucid', the path to an .h5 file
+            containing an opacity or any instace of Opacity.
 
         vmin, vmax : float
             Define the minimum and the maximum of the range of field values
@@ -907,32 +909,11 @@ class VolumetricField():
         return self.vtk_gradient_opacity
 
     def get_opacity(self, timestep=None):
-        if isinstance(self.opacity, Opacity):
-            opacity = self.opacity
-        elif self.opacity != 'auto':
-            if self.style_handler.opacity_exists(self.opacity):
-                opacity = self.style_handler.get_opacity(self.opacity)
-            else:
-                raise ValueError(
-                    "Opacity '{}' does not exist.".format(self.opacity))
-        else:
-            opacity = self.get_optimized_opacity(timestep)
-        return opacity
+        return self._get_opacity_instance(self.opacity, timestep=timestep)
 
     def get_gradient_opacity(self, timestep=None):
-        if (isinstance(self.gradient_opacity, Opacity) or
-                self.gradient_opacity is None):
-            opacity = self.gradient_opacity
-        elif self.gradient_opacity != 'auto':
-            if self.style_handler.opacity_exists(self.gradient_opacity):
-                opacity = self.style_handler.get_opacity(self.gradient_opacity)
-            else:
-                raise ValueError(
-                    "Opacity '{}' does not exist.".format(
-                        self.gradient_opacity))
-        else:
-            opacity = self.get_optimized_gradient_opacity(timestep)
-        return opacity
+        return self._get_opacity_instance(
+            self.gradient_opacity, gradient_opacity=True, timestep=timestep)
 
     def set_opacity(self, opacity):
         self.opacity = opacity
@@ -962,15 +943,13 @@ class VolumetricField():
         self.cmap = cmap
         self._set_vtk_colormap(cmap)
 
-    def get_optimized_opacity(self, time_step, bins=11):
-        hist, *_ = self.get_field_data_histogram(time_step, bins=bins)
-        fld_val = np.linspace(0, 255, bins)
-        op_val = 1 - hist
-        opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
-        return opacity
-
-    def get_optimized_gradient_opacity(self, time_step, bins=11):
-        hist, *_ = self.get_field_data_gradient_histogram(time_step, bins=bins)
+    def get_optimized_opacity(self, time_step, bins=11,
+                              gradient_opacity=False):
+        if gradient_opacity:
+            hist, *_ = self.get_field_data_gradient_histogram(time_step,
+                                                              bins=bins)
+        else:
+            hist, *_ = self.get_field_data_histogram(time_step, bins=bins)
         fld_val = np.linspace(0, 255, bins)
         op_val = 1 - hist
         opacity = Opacity(name='auto', fld_values=fld_val, op_values=op_val)
@@ -1058,6 +1037,28 @@ class VolumetricField():
             title += order_str + '\n'
         title += self.get_field_units() + ']'
         self.cbar.SetTitle(title)
+
+    def _get_opacity_instance(self, opacity, gradient_opacity=False,
+                              timestep=None):
+        if not isinstance(opacity, Opacity):
+            # Check if opacity is a path to a file
+            if opacity.endswith('.h5'):
+                if os.path.exists(opacity):
+                    opacity = Opacity(file_path=opacity)
+                else:
+                    raise ValueError('Cannot find specified opacity file'
+                                     ' {}.'.format(opacity))
+            # If it's not 'auto', it should be one of the available opacities
+            elif opacity != 'auto':
+                if self.style_handler.opacity_exists(opacity):
+                    opacity = self.style_handler.get_opacity(opacity)
+                else:
+                    raise ValueError(
+                        "Opacity '{}' does not exist.".format(opacity))
+            else:
+                opacity = self.get_optimized_opacity(
+                    timestep, gradient_opacity=gradient_opacity)
+        return opacity
 
     def _set_vtk_opacity(self, opacity):
         fld_vals, op_vals = opacity.get_opacity_values()

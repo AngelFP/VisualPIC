@@ -289,7 +289,8 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
 
     def get_optimized_gradient_opacity(self):
         time_step = self.main_window.vtk_vis.current_time_step
-        opacity = self.volume.get_optimized_gradient_opacity(time_step)
+        opacity = self.volume.get_optimized_opacity(time_step,
+                                                    gradient_opacity=True)
         fld_val, op_val = opacity.get_opacity_values()
         self.gradient_opacity_figure.set_points(0, fld_val, op_val)
 
