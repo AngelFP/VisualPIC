@@ -462,24 +462,36 @@ class VTKVisualizer():
         self._setup_camera()
 
     def _setup_cube_axes_and_bbox(self):
-        ax_data = self.volume_field_list[0].get_axes_data(
-            self.current_time_step)
-        ax_range = ax_data[2]
-        ax_units = ax_data[3]
-        x_range = ax_range[0]
-        y_range = ax_range[1]
-        z_range = ax_range[2]
+        # Get axes range of all volumes
+        for i, volume in enumerate(self.volume_field_list):
+            ax_data = volume.get_axes_data(self.current_time_step)
+            ax_range = ax_data[2]
+            ax_units = ax_data[3]
+            z_range = ax_range[0]
+            x_range = ax_range[2]
+            y_range = ax_range[1]
+            if i == 0:
+                z_range_all = z_range
+                x_range_all = x_range
+                y_range_all = y_range
+            else:
+                z_range_all = [np.min((z_range_all[0], z_range[0])),
+                               np.max((z_range_all[1], z_range[1]))]
+                x_range_all = [np.min((x_range_all[0], x_range[0])),
+                               np.max((x_range_all[1], x_range[1]))]
+                y_range_all = [np.min((y_range_all[0], y_range[0])),
+                               np.max((y_range_all[1], y_range[1]))]
         self.vtk_cube_axes_edges.SetBounds(self.vtk_volume.GetBounds())
         self.vtk_cube_axes.SetBounds(self.vtk_volume.GetBounds())
         self.vtk_cube_axes.SetXTitle('z')
         self.vtk_cube_axes.SetYTitle('y')
         self.vtk_cube_axes.SetZTitle('x')
-        self.vtk_cube_axes.SetXAxisRange(x_range[0], x_range[1])
-        self.vtk_cube_axes.SetYAxisRange(y_range[0], y_range[1])
-        self.vtk_cube_axes.SetZAxisRange(z_range[0], z_range[1])
+        self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
+        self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
+        self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
         self.vtk_cube_axes.SetXUnits(ax_units[0])
-        self.vtk_cube_axes.SetYUnits(ax_units[1])
-        self.vtk_cube_axes.SetZUnits(ax_units[2])
+        self.vtk_cube_axes.SetYUnits(ax_units[2])
+        self.vtk_cube_axes.SetZUnits(ax_units[1])
 
     def _setup_camera(self):
         self.renderer.ResetCamera()
