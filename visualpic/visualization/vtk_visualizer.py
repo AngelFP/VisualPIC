@@ -689,10 +689,10 @@ class VTKVisualizer():
                                            0, vol_data.shape[1]-1,
                                            0, vol_data.shape[0]-1)
             vtk_data_import.SetDataSpacing(ax_spacing[0],
-                                           ax_spacing[1],
-                                           ax_spacing[2])
+                                           ax_spacing[2],
+                                           ax_spacing[1])
             # data origin is also changed by the normalization
-            vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[1], ax_orig[2])
+            vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
             vtk_data_import.Update()
             imports_list.append(vtk_data_import)
         return vol_list, imports_list
@@ -1011,7 +1011,11 @@ class VolumetricField():
             max_fld = np.max(fld_data)
             self._original_data_range = [min_fld, max_fld]
             fld_data = self._normalize_field(fld_data)
-            self._field_data = fld_data
+            # Making fld_data a new numpy array fixes a crash in
+            # vtk_data_import.SetImportVoidPointer in some cases when trimming
+            # in the y or z planes is applied. It is not clear why this
+            # happens.
+            self._field_data = np.array(fld_data)
             self._field_metadata = fld_md
             if not only_metadata:
                 self._loaded_timestep = timestep
@@ -1022,7 +1026,10 @@ class VolumetricField():
         cbar_range = np.array(self.get_range(timestep))
         self.vtk_cmap.ResetAnnotations()
         max_val = np.max(np.abs(cbar_range))
-        ord = int(np.log10(max_val))  # get order of magnitude
+        try:
+            ord = int(np.log10(max_val))  # get order of magnitude
+        except:
+            ord = 1
         cbar_range = cbar_range/10**ord
         norm_fld_vals = np.linspace(0, 255, self.cbar_ticks)
         real_fld_vals = np.linspace(
@@ -1107,7 +1114,8 @@ class VolumetricField():
         else:
             min_value = self.vmin
         fld_data -= min_value
-        fld_data *= 255 / (max_value-min_value)
+        if np.abs(max_value-min_value) > 0:
+            fld_data *= 255 / (max_value-min_value)
         # Type conversion to single precission, if needed
         fld_data = fld_data.astype(np.float32, copy=False)
         return fld_data
