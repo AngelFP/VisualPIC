@@ -81,6 +81,7 @@ def get_common_timesteps(data_list):
     --------
     An array containing only the common time steps.
     """
+    timesteps = np.array([])
     for i, data_element in enumerate(data_list):
         if i == 0:
             timesteps = data_element.timesteps
