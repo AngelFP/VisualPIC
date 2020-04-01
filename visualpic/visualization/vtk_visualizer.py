@@ -264,7 +264,9 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
             self.window.SetSize(*resolution)
-        self._make_timestep_render(timestep, ts_is_index)
+        # Only make render if any data has been added for visualization
+        if len(self.volume_field_list + self.scatter_species_list) > 0:
+            self._make_timestep_render(timestep, ts_is_index)
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
@@ -292,7 +294,9 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
         """
-        self._make_timestep_render(timestep, ts_is_index)
+        # Only make render if any data has been added for visualization
+        if len(self.volume_field_list + self.scatter_species_list) > 0:
+            self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
@@ -608,9 +612,6 @@ class VTKVisualizer():
         self.show_logo(self.vis_config['show_logo'])
 
     def _make_timestep_render(self, timestep, ts_is_index=True):
-        """
-        Loads the time step data into the vtk volume and sets up the camera.
-        """
         if ts_is_index:
             self.current_time_step = self.available_time_steps[timestep]
         else:
@@ -618,13 +619,16 @@ class VTKVisualizer():
                 raise ValueError(
                     'Time step {} is not available.'.format(timestep))
             self.current_time_step = timestep
+        self._render_volumes(self.current_time_step)
+        self._render_species(self.current_time_step)
+        self._setup_cube_axes_and_bbox()
+        self._setup_camera()
+
+    def _render_volumes(self, timestep):
         if self.old_vtk:
             self._load_data_into_single_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
-        self._render_species(self.current_time_step)
-        self._setup_cube_axes_and_bbox()
-        self._setup_camera()
 
     def _load_data_into_single_volume(self, timestep):
         vtk_volume_prop = self._get_single_volume_properties(timestep)

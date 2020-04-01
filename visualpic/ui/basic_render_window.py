@@ -79,22 +79,31 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         prev_icon_path = resource_filename('visualpic.ui.icons',
                                            'left_arrow.png')
         self.prev_button.setIcon(QtGui.QIcon(prev_icon_path))
+        if len(self.available_timesteps) == 0:
+            self.prev_button.setEnabled(False)
         self.hl.addWidget(self.prev_button)
         self.next_button = QtWidgets.QPushButton()
         next_icon_path = resource_filename('visualpic.ui.icons',
                                            'right_arrow.png')
         self.next_button.setIcon(QtGui.QIcon(next_icon_path))
+        if len(self.available_timesteps) == 0:
+            self.next_button.setEnabled(False)
         self.hl.addWidget(self.next_button)
         self.timestep_slider = QtWidgets.QSlider(Qt.Horizontal)
-        self.timestep_slider.setRange(np.min(self.available_timesteps),
-                                      np.max(self.available_timesteps))
-        self.timestep_slider.setValue(self.vtk_vis.current_time_step)
+        if len(self.available_timesteps) > 0:
+            self.timestep_slider.setRange(np.min(self.available_timesteps),
+                                          np.max(self.available_timesteps))
+            self.timestep_slider.setValue(self.vtk_vis.current_time_step)
+        else:
+            self.timestep_slider.setEnabled(False)
         self.hl.addWidget(self.timestep_slider)
         self.edit_fields_button = QtWidgets.QPushButton()
         # Icon by Garrett Knoll, from The Noun Project, CC BY 3.0 us,
         # https://commons.wikimedia.org/w/index.php?curid=49665075
         edit_icon_path = resource_filename('visualpic.ui.icons', 'edit.svg')
         self.edit_fields_button.setIcon(QtGui.QIcon(edit_icon_path))
+        if len(self.available_timesteps) == 0:
+            self.edit_fields_button.setEnabled(False)
         self.hl.addWidget(self.edit_fields_button)
         self.settings_button = QtWidgets.QPushButton()
         # Icon by
