@@ -121,20 +121,38 @@ class UnitConverter():
                                     target_time_units=None):
         for var_name, var_items in data_dict.items():
             var_data, var_md = var_items
-            var_target_units = target_data_units[var_name]
-            var_units = var_md['units']
-            # convert to SI
-            if var_units not in self.si_units:
-                var_data, var_units = self.convert_data_to_si(
-                    var_data, var_units, var_md)
-                var_md['units'] = var_units
-            # convert to desired units
-            if (var_target_units != 'SI' and
-                    var_target_units not in self.si_units):
-                var_data = self.convert_data(var_data, var_units,
-                                             var_target_units)
-                var_md['units'] = var_target_units
-            data_dict[var_name] = (var_data, var_md)
+            # Convert data units
+            if target_data_units is not None:
+                var_target_units = target_data_units[var_name]
+                if var_target_units is not None:
+                    var_units = var_md['units']
+                    # convert to SI
+                    if var_units not in self.si_units:
+                        var_data, var_units = self.convert_data_to_si(
+                            var_data, var_units, var_md)
+                        var_md['units'] = var_units
+                    # convert to desired units
+                    if (var_target_units != 'SI' and
+                        var_target_units not in self.si_units):
+                        var_data = self.convert_data(var_data, var_units,
+                                                        var_target_units)
+                        var_md['units'] = var_target_units
+                    data_dict[var_name] = (var_data, var_md)
+            # Convert time units
+            if target_time_units is not None:
+                time_units = var_md['time']['units']
+                time_value = var_md['time']['value']
+                # Convert to SI
+                if time_units not in self.si_units:
+                    time_value = self.convert_data_to_si(
+                        time_value, time_units)
+                # convert to desired units
+                if (target_time_units != 'SI' and
+                    target_time_units not in self.si_units):
+                    time_value = self.convert_data(time_value, time_units,
+                                                   target_time_units)
+                var_md['time']['value'] = time_value
+                var_md['time']['units'] = target_time_units
         return data_dict
 
     def convert_data(self, data, si_units, target_units):
