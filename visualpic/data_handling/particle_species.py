@@ -93,7 +93,8 @@ class ParticleSpecies():
         metadata dictionary.
         """
         # Check that the length of components_list and data_units match
-        if len(components_list) != len(data_units):
+        units_are_specified = data_units is not None
+        if (units_are_specified and (len(components_list) != len(data_units))):
             len_comp = len(components_list)
             len_units = len(data_units)
             raise ValueError(
@@ -102,15 +103,21 @@ class ParticleSpecies():
         # Separate components to read from file from those which are derived
         comp_to_read = []
         derived_components = []
-        comp_to_read_units = []
-        derived_components_units = []
-        for component, component_units in zip(components_list, data_units):
+        if units_are_specified:
+            comp_to_read_units = []
+            derived_components_units = []
+        else:
+            comp_to_read_units = None
+            derived_components_units = None
+        for i, component in enumerate(components_list):
             if component in self.components_in_file:
                 comp_to_read.append(component)
-                comp_to_read_units.append(component_units)
+                if units_are_specified:
+                    comp_to_read_units.append(data_units[i])
             elif component in self.derived_components:
                 derived_components.append(component)
-                derived_components_units.append(component_units)
+                if units_are_specified:
+                    derived_components_units.append(data_units[i])
             else:
                 available_comps = self.get_list_of_available_components()
                 raise ValueError(
