@@ -10,8 +10,10 @@ License: GNU GPL-3.0.
 
 import sys
 from pkg_resources import resource_filename
+import warnings
 
 import vtk
+import pyvista as pv
 import numpy as np
 from scipy.ndimage import zoom
 try:
@@ -79,7 +81,9 @@ class VTKVisualizer():
                            'use_qt': use_qt}
         self.camera_props = {'zoom': 1}
         self.volume_field_list = []
+        self.scatter_species_list = []
         self.colorbar_widgets = []
+        self._volume_norm_factor = 1
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
@@ -153,12 +157,82 @@ class VTKVisualizer():
                 field, cmap, opacity, gradient_opacity, vmax, vmin, xtrim,
                 ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix)
             self.volume_field_list.append(volume_field)
-            self._add_colorbar(volume_field)
+            self._add_colorbar(volume_field.get_colorbar(5))
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
             raise ValueError(
                 "Field geometry '{}' not supported.".format(fld_geom))
+
+    def add_species(self, species, color='w', cmap='viridis', vmax=None,
+                    vmin=None, xtrim=None, ytrim=None, ztrim=None, size=1,
+                    color_according_to=None, scale_with_charge=False):
+        """
+        Add a particle species to the 3D visualization.
+
+        Parameters
+        ----------
+
+        species : Species
+            The particle species to be displayed.
+
+        color : str or list
+            The color of the particles. Can be a string with the name of any
+            matplotlib color or a list with 3 RGV values (range 0 to 1). This
+            parameter is ignore if color_according_to is not None. In this
+            case a colormap is intead used.
+
+        cmap : str
+            Colormap to apply to the particles. Only used if color_according_to
+            is not None. Possible values are the same as those availabe
+            in matplotlib.
+
+        vmin, vmax : float
+            Define the minimum and the maximum of the range of field values
+            that the colormap covers.
+
+        xtrim, ytrim, ztrim : list
+            Allow to downselect the particles to be displayed by trimming
+            off the those out of the range defined by these parameters. The
+            provided value should be a list of two values containing the
+            minimum and maximum of the spatial range to be displayed along the
+            desired axis. These values should be between -1 and 1, which
+            correspond to the minimum and the maximum of the simulation box.
+            For example xtrim=[-1, 1] will cut any particle out of the
+            simulation box. xtrim=[0, 1] would lead to showing only the
+            particles along the positive x within the simulation box.
+
+        size : float
+            Size of the particles.
+
+        color_according_to : str
+            Name of a particle component according to which the particles
+            should be colored. The colors follow the specified colormap.
+
+        scale_with_charge : bool
+            If true, the size of the particles will be proportional to their
+            charge, where those with the maximum charge will have the size
+            specified by the size parameter.
+
+        """
+        sp_comps = species.get_list_of_available_components()
+        if ('x' in sp_comps) and ('y' in sp_comps) and ('z' in sp_comps):
+            # check if this species has already been added to a ScatterSpecies
+            name_suffix = None
+            sp_repeated_idx = 0
+            for sc_species in self.scatter_species_list:
+                if sc_species.field == species:
+                    sp_repeated_idx += 1
+                    name_suffix = str(sp_repeated_idx)
+            scatter_species = ScatterSpecies(species, color, cmap, vmax,
+                                             vmin, xtrim, ytrim, ztrim,
+                                             size, color_according_to,
+                                             scale_with_charge, name_suffix)
+            self.scatter_species_list.append(scatter_species)
+            self.renderer.AddActor(scatter_species.get_actor())
+            self.available_time_steps = self.get_possible_timesteps()
+            if color_according_to is not None:
+                self._add_colorbar(scatter_species.get_colorbar(5))
 
     def render_to_file(self, timestep, file_path, resolution=None,
                        ts_is_index=True):
@@ -345,10 +419,12 @@ class VTKVisualizer():
         Returns a numpy array with all the time steps commonly available
         to all fields in the visualizer.
         """
-        fld_list = []
+        data_list = []
         for volume in self.volume_field_list:
-            fld_list.append(volume.field)
-        return get_common_timesteps(fld_list)
+            data_list.append(volume.field)
+        for species in self.scatter_species_list:
+            data_list.append(species.species)
+        return get_common_timesteps(data_list)
 
     def set_color_window(self, value):
         """
@@ -546,6 +622,7 @@ class VTKVisualizer():
             self._load_data_into_single_volume(self.current_time_step)
         else:
             self._load_data_into_multi_volume(self.current_time_step)
+        self._render_species(self.current_time_step)
         self._setup_cube_axes_and_bbox()
         self._setup_camera()
 
@@ -579,32 +656,17 @@ class VTKVisualizer():
             volume_data_list.append(vol_field.get_data(timestep))
         self._data_all_volumes = np.concatenate(
             [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
-        ax_orig, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
+        ax_origin, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
             timestep)
-        max_spacing = max(ax_spacing)
-        max_cell_size = 0.1
-        norm_factor = max_cell_size/max_spacing
-        ax_orig *= norm_factor
-        ax_spacing *= norm_factor
+
+        # Normalize volume spacing
+        ax_spacing, ax_origin = self._normalize_volume_spacing(
+                ax_spacing, ax_origin)
 
         # Put data in VTK format
-        vtk_data_import = vtk.vtkImageImport()
-        vtk_data_import.SetImportVoidPointer(self._data_all_volumes)
-        vtk_data_import.SetDataScalarTypeToFloat()
-        vtk_data_import.SetNumberOfScalarComponents(
-            len(self.volume_field_list))
-        vtk_data_import.SetDataExtent(0, self._data_all_volumes.shape[2]-1,
-                                      0, self._data_all_volumes.shape[1]-1,
-                                      0, self._data_all_volumes.shape[0]-1)
-        vtk_data_import.SetWholeExtent(0, self._data_all_volumes.shape[2]-1,
-                                       0, self._data_all_volumes.shape[1]-1,
-                                       0, self._data_all_volumes.shape[0]-1)
-        vtk_data_import.SetDataSpacing(ax_spacing[0],
-                                       ax_spacing[2],
-                                       ax_spacing[1])
-        # data origin is also changed by the normalization
-        vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
-        vtk_data_import.Update()
+        vtk_data_import = self._create_vtk_image_import(
+            self._data_all_volumes, ax_origin, ax_spacing,
+            num_comps=len(self.volume_field_list))
         return vtk_data_import
 
     def _load_data_into_multi_volume(self, timestep):
@@ -661,31 +723,47 @@ class VTKVisualizer():
             vol_data = vol_field.get_data(timestep)
             vol_list.append(vtk_vol)
 
-            ax_orig, ax_spacing, *_ = vol_field.get_axes_data(timestep)
-            max_spacing = max(ax_spacing)
-            max_cell_size = 0.1
-            norm_factor = max_cell_size/max_spacing
-            ax_orig *= norm_factor
-            ax_spacing *= norm_factor
+            # Normalize volume spacing
+            ax_origin, ax_spacing, *_ = vol_field.get_axes_data(timestep)
+            ax_spacing, ax_origin = self._normalize_volume_spacing(
+                ax_spacing, ax_origin)
 
             # Put data in VTK format
-            vtk_data_import = vtk.vtkImageImport()
-            vtk_data_import.SetImportVoidPointer(vol_data)
-            vtk_data_import.SetDataScalarTypeToFloat()
-            vtk_data_import.SetDataExtent(0, vol_data.shape[2]-1,
-                                          0, vol_data.shape[1]-1,
-                                          0, vol_data.shape[0]-1)
-            vtk_data_import.SetWholeExtent(0, vol_data.shape[2]-1,
-                                           0, vol_data.shape[1]-1,
-                                           0, vol_data.shape[0]-1)
-            vtk_data_import.SetDataSpacing(ax_spacing[0],
-                                           ax_spacing[2],
-                                           ax_spacing[1])
-            # data origin is also changed by the normalization
-            vtk_data_import.SetDataOrigin(ax_orig[0], ax_orig[2], ax_orig[1])
-            vtk_data_import.Update()
-            imports_list.append(vtk_data_import)
+            imports_list.append(
+                self._create_vtk_image_import(vol_data, ax_origin, ax_spacing))
         return vol_list, imports_list
+
+    def _normalize_volume_spacing(self, ax_spacing, ax_origin):
+        max_spacing = max(ax_spacing)
+        max_cell_size = 0.1
+        self._volume_norm_factor = max_cell_size/max_spacing
+        ax_origin *= self._volume_norm_factor
+        ax_spacing *= self._volume_norm_factor
+        return ax_spacing, ax_origin
+
+    def _create_vtk_image_import(self, volume_data, ax_origin, ax_spacing,
+                                 num_comps=1):
+        vtk_data_import = vtk.vtkImageImport()
+        vtk_data_import.SetImportVoidPointer(volume_data)
+        vtk_data_import.SetDataScalarTypeToFloat()
+        vtk_data_import.SetNumberOfScalarComponents(num_comps)
+        vtk_data_import.SetDataExtent(0, volume_data.shape[2]-1,
+                                      0, volume_data.shape[1]-1,
+                                      0, volume_data.shape[0]-1)
+        vtk_data_import.SetWholeExtent(0, volume_data.shape[2]-1,
+                                       0, volume_data.shape[1]-1,
+                                       0, volume_data.shape[0]-1)
+        vtk_data_import.SetDataSpacing(ax_spacing[0],
+                                       ax_spacing[2],
+                                       ax_spacing[1])
+        # data origin is also changed by the normalization
+        vtk_data_import.SetDataOrigin(ax_origin[0], ax_origin[2], ax_origin[1])
+        vtk_data_import.Update()
+        return vtk_data_import
+
+    def _render_species(self, timestep):
+        for species in self.scatter_species_list:
+            species.update_data(timestep, self._volume_norm_factor)
 
     def _setup_cube_axes_and_bbox(self):
         # Get axes range of all volumes
@@ -758,8 +836,7 @@ class VTKVisualizer():
         else:
             self.renderer.GradientBackgroundOff()
 
-    def _add_colorbar(self, volume_field):
-        cbar = volume_field.get_colorbar(5)
+    def _add_colorbar(self, cbar):
         cbar_widget = vtk.vtkScalarBarWidget()
         cbar_widget.SetInteractor(self.interactor)
         cbar_widget.SetScalarBarActor(cbar)
@@ -771,7 +848,9 @@ class VTKVisualizer():
         else:
             cbar_widget.Off()
         self.colorbar_widgets.append(cbar_widget)
-        # (re)position colorbars
+        self._draw_colorbars()
+
+    def _draw_colorbars(self):
         min_x = 0.87
         max_x = 0.93
         min_y = 0.12
@@ -844,7 +923,7 @@ class VolumetricField():
             self.cbar.SetTextPositionToPrecedeScalarBar()
         self.cbar_ticks = n_ticks
         if self._loaded_timestep is not None:
-            self.update_colorbar(self._loaded_timestep)
+            self._update_colorbar(self._loaded_timestep)
         return self.cbar
 
     def get_axes_data(self, timestep):
@@ -1148,3 +1227,275 @@ class VolumetricField():
             y = zoom(y, y_zoom)
             z = zoom(z, z_zoom)
         return x, y, z
+
+
+class ScatterSpecies():
+
+    """Class for the particle species to be displayed"""
+
+    def __init__(self, species, color='w', cmap='viridis',  vmax=None,
+                 vmin=None, xtrim=None, ytrim=None, ztrim=None, size=1,
+                 color_according_to=None, scale_with_charge=False,
+                 name_suffix=None):
+        self.species = species
+        self.color = color
+        self.cmap = cmap
+        self.vmax = vmax
+        self.vmin = vmin
+        self.xtrim = xtrim
+        self.ytrim = ytrim
+        self.ztrim = ztrim
+        self.size = size
+        self.color_according_to = color_according_to
+        self.scale_with_charge = scale_with_charge
+        self.name_suffix = name_suffix
+        self._setup_vtk_elements()
+
+    def get_name(self):
+        sp_name = self.species.species_name
+        if self.name_suffix is not None:
+            sp_name += ' ({})'.format(self.name_suffix)
+        return sp_name
+
+    def get_actor(self):
+        return self.species_actor
+
+    def get_colorbar(self, n_ticks):
+        self.cbar_ticks = n_ticks
+        return self.cbar
+
+    def update_data(self, timestep, norm_factor):
+        # Get data
+        data_arr, color_arr, scale_arr = self._get_data(timestep)
+        data_arr *= norm_factor
+        # Create vtkPolyData
+        poly_data = pv.PolyData(data_arr)
+        if self.color_according_to is not None:
+            self._normalize_color_variable(color_arr)
+            poly_data.point_arrays['color'] = color_arr
+        if self.scale_with_charge:
+            self._normalize_scale(scale_arr, max_size=self.size * 0.02)
+            poly_data.point_arrays['scale'] = scale_arr
+        # Update mapper
+        self.map.SetInputData(poly_data)
+
+    def set_scale_with_charge(self, value):
+        self.scale_with_charge = value
+        self._set_mapper_scaling()
+
+    def set_color_according_to(self, var):
+        self.color_according_to = var
+        self._set_mapper_color_mode()
+
+    def get_color(self):
+        return self.color
+
+    def set_color(self, color):
+        if isinstance(color, str):
+            r, g, b = self.style_handler.get_mpl_color_rgb(color)
+        elif isinstance(color, list):
+            r, g, b = color
+        self.species_actor.GetProperty().SetColor(r, g, b)
+
+    def get_colormap(self):
+        if isinstance(self.cmap, Colormap):
+            cmap = self.cmap
+        else:
+            if self.style_handler.cmap_exists(self.cmap):
+                cmap = self.style_handler.get_cmap(self.cmap)
+            else:
+                raise ValueError(
+                    "Colormap '{}' does not exist.".format(self.cmap))
+        return cmap
+
+    def set_colormap(self, cmap):
+        self.cmap = cmap
+        self._set_vtk_colormap()
+
+    def _setup_vtk_elements(self):
+        self.vtk_cmap = vtk.vtkColorTransferFunction()
+        self.map = vtk.vtkOpenGLSphereMapper()
+        self.map.SetLookupTable(self.vtk_cmap)
+        self.species_actor = vtk.vtkActor()
+        self.species_actor.SetMapper(self.map)
+        self.style_handler = VolumeStyleHandler()
+        self.set_color(self.color)
+        self._create_colorbar()
+        self._set_vtk_colormap()
+        self._set_mapper_scaling()
+        self._set_mapper_color_mode()
+
+    def _create_colorbar(self):
+        self.cbar = vtk.vtkScalarBarActor()
+        self.cbar.SetLookupTable(self.vtk_cmap)
+        self.cbar.DrawTickLabelsOff()
+        self.cbar.AnnotationTextScalingOn()
+        self.cbar.GetAnnotationTextProperty().SetFontSize(6)
+        self.cbar.GetTitleTextProperty().SetFontSize(6)
+        self.cbar.SetTextPositionToPrecedeScalarBar()
+        
+    def _set_vtk_colormap(self):
+        cmap = self.get_colormap()
+        fld_val, r_val, g_val, b_val = cmap.get_cmap_values()
+        points = list(np.column_stack((fld_val, r_val, g_val, b_val)).flat)
+        self.vtk_cmap.RemoveAllPoints()
+        self.vtk_cmap.FillFromDataPointer(int(len(points)/4), points)
+
+    def _set_mapper_scaling(self):
+        if self.scale_with_charge:
+            self.map.SetScaleArray('scale')
+        else:
+            self.map.SetScaleArray(None)
+            self.map.SetRadius(self.size * 0.02)
+
+    def _set_mapper_color_mode(self):
+        if self.color_according_to is not None:
+            self.map.SetScalarModeToUsePointFieldData()
+            self.map.SelectColorArray('color')
+        else:
+            self.map.SetScalarModeToDefault()
+
+    def _get_data(self, timestep):
+        # Determine components to read
+        comp_to_read = ['x', 'y', 'z']
+        color_var = self.color_according_to
+        scale_var = 'q'
+        if color_var is not None:
+            if color_var not in comp_to_read:
+                comp_to_read.append(color_var)
+        if self.scale_with_charge:
+            if scale_var not in comp_to_read:
+                comp_to_read.append(scale_var)
+        # Read data
+        data = self.species.get_data(timestep, comp_to_read)
+        metadata = data['x'][1]
+        x_arr = data['x'][0]
+        y_arr = data['y'][0]
+        z_arr = data['z'][0]
+        if color_var is not None:
+            color_arr = data[color_var][0]
+            color_var_units = data[color_var][1]['units']
+            color_var_range = [np.min(color_arr), np.max(color_arr)]
+            self._update_colorbar(color_var, color_var_units, color_var_range)
+        else:
+            color_arr = np.array([])
+        if self.scale_with_charge:
+            scale_arr = np.abs(data[scale_var][0])
+        else:
+            scale_arr = np.array([])
+        part_arr = np.vstack((z_arr, y_arr, x_arr)).T
+        # trim distribution
+        if any(el is not None for el in [self.xtrim, self.ytrim, self.ztrim]):
+            part_arr, color_arr, scale_arr = self._trim_particle_distribution(
+                part_arr, color_arr, scale_arr, metadata)
+        return part_arr, color_arr, scale_arr
+
+    def _trim_particle_distribution(self, part_arr, color_arr, scale_arr,
+                                    metadata):
+        sim_grid_size = metadata['grid']['size']
+        sim_grid_range = metadata['grid']['range']
+        z_arr = part_arr[:, 0]
+        y_arr = part_arr[:, 1]
+        x_arr = part_arr[:, 2]
+        if sim_grid_size is not None:
+            if len(sim_grid_size) == 2:
+                z_range, r_range = sim_grid_range
+                x_range = [-r_range[1], r_range[1]]
+                y_range = x_range
+            elif len(sim_grid_size) == 3:
+                z_range, x_range, y_range = sim_grid_range
+        else:
+            warnings.warn('Could not determine dimesions of simulation box.'
+                          'Range of trimming will be determined from maximum'
+                          'extension of particle distribution.',
+                          RuntimeWarning)
+            z_range = [np.min(z_arr), np.max(z_arr)]
+            y_range = [np.min(y_arr), np.max(y_arr)]
+            x_range = [np.min(x_arr), np.max(x_arr)]
+        elements_to_keep = np.ones_like(x_arr)
+        if self.xtrim is not None:
+            x_trim_range = self._determine_trimming_range(self.xtrim, x_range)
+            elements_to_keep = np.where((x_arr > x_trim_range[0]) &
+                                        (x_arr < x_trim_range[1]),
+                                         elements_to_keep, 0)
+        if self.ytrim is not None:
+            y_trim_range = self._determine_trimming_range(self.ytrim, y_range)
+            elements_to_keep = np.where((y_arr > y_trim_range[0]) &
+                                        (y_arr < y_trim_range[1]),
+                                        elements_to_keep, 0)
+        if self.ztrim is not None:
+            z_trim_range = self._determine_trimming_range(self.ztrim, z_range)
+            elements_to_keep = np.where((z_arr > z_trim_range[0]) &
+                                        (z_arr < z_trim_range[1]),
+                                        elements_to_keep, 0)
+        elements_to_keep = np.array(elements_to_keep, dtype=bool)
+        part_arr = part_arr[elements_to_keep]
+        if self.color_according_to is not None:
+            color_arr = color_arr[elements_to_keep]
+        if self.scale_with_charge:
+            scale_arr = scale_arr[elements_to_keep]
+        return part_arr, color_arr, scale_arr
+
+    def _determine_trimming_range(self, x_trim, x_range):
+        x_trim_norm = np.array(x_trim)
+        x_min, x_max = x_range
+        a = 2 / (x_max - x_min)
+        b = -1 - 2*x_min / (x_max - x_min)
+        x_trim_real = (x_trim_norm - b) / a
+        return x_trim_real
+
+    def _normalize_color_variable(self, part_data):
+        if len(part_data) > 0:
+            if self.vmax is None:
+                max_value = np.max(part_data)
+            else:
+                max_value = self.vmax
+            if self.vmin is None:
+                min_value = np.min(part_data)
+            else:
+                min_value = self.vmin
+            part_data -= min_value
+            if np.abs(max_value-min_value) > 0:
+                part_data *= 255 / (max_value-min_value)
+
+    def _normalize_scale(self, part_data, max_size):
+        if len(part_data) > 0:
+            max_value = np.max(part_data)
+            min_value = np.min(part_data)
+            part_data -= min_value
+            if np.abs(max_value-min_value) > 0:
+                part_data *= max_size / (max_value-min_value)
+        
+    def _update_colorbar(self, var_name, var_units, var_range):
+        self.vtk_cmap.ResetAnnotations()
+        cbar_range = self._get_colorbar_range(var_range)
+        max_val = np.max(np.abs(cbar_range))
+        try:
+            ord = int(np.log10(max_val))  # get order of magnitude
+        except:
+            ord = 1
+        cbar_range = cbar_range/10**ord
+        norm_var_vals = np.linspace(0, 255, self.cbar_ticks)
+        real_var_vals = np.linspace(
+            cbar_range[0], cbar_range[1], self.cbar_ticks)
+        for j in np.arange(self.cbar_ticks):
+            self.vtk_cmap.SetAnnotation(norm_var_vals[j],
+                                        format(real_var_vals[j], '.2f'))
+        if ord != 0:
+            order_str = '10^' + str(ord) + ' '
+        else:
+            order_str = ''
+        title = var_name + '\n['
+        if order_str != '':
+            title += order_str + '\n'
+        title += var_units + ']'
+        self.cbar.SetTitle(title)
+
+    def _get_colorbar_range(self, original_range):
+        if (self.vmin is None) or (self.vmax is None):
+            vmin, vmax = original_range
+        if self.vmin is not None:
+            vmin = self.vmin
+        if self.vmax is not None:
+            vmax = self.vmax
+        return np.array([vmin, vmax])
