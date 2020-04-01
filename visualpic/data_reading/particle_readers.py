@@ -10,6 +10,10 @@ License: GNU GPL-3.0.
 from h5py import File as H5F
 import numpy as np
 import scipy.constants as ct
+from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
+    read_openPMD_params)
+from openpmd_viewer.openpmd_timeseries.data_reader.field_reader import (
+    get_grid_parameters)
 
 from visualpic.helper_functions import join_infile_path
 
@@ -20,26 +24,19 @@ class ParticleReader():
 
     def read_particle_data(self, file_path, species_name,
                            component_list=[]):
-        file = self._get_file_handle(file_path)
         data_dict = {}
         for component in component_list:
-            metadata = self._read_component_metadata(file, species_name,
+            metadata = self._read_component_metadata(file_path, species_name,
                                                      component)
-            data = self._read_component_data(file, species_name, component)
-            data_dict[component] = (np.array(data), metadata)
-        # self._release_file_handle(file)
+            data = self._read_component_data(file_path, species_name,
+                                             component)
+            data_dict[component] = (data, metadata)
         return data_dict
 
-    def _get_file_handle(self, file_path):
+    def _read_component_metadata(self, file_path, species, component):
         raise NotImplementedError()
 
-    def _release_file_handle(self, file_handle):
-        raise NotImplementedError()
-
-    def _read_component_metadata(self, file_handle, species, component):
-        raise NotImplementedError()
-
-    def _read_component_data(self, file_handle, species, component):
+    def _read_component_data(self, file_path, species, component):
         raise NotImplementedError()
 
 
@@ -56,36 +53,37 @@ class OsirisParticleReader(ParticleReader):
                                'tag': 'tag'}
         return super().__init__(*args, **kwargs)
 
-    def _get_file_handle(self, file_path):
-        return H5F(file_path, 'r')
+    def _read_component_data(self, file_path, species, component):
+        with H5F(file_path, 'r') as file_handle:
+            data = file_handle[self.name_relations[component]]
+            if component == 'tag':
+                # Apply Cantor pairing function
+                print(data)
+                a = data[:, 0]
+                b = data[:, 1]
+                data = 1/2*(a+b)*(a+b+1)+b
+            return np.array(data)
 
-    def _release_file_handle(self, file_handle):
-        file_handle.close()
-
-    def _read_component_data(self, file_handle, species, component):
-        data = file_handle[self.name_relations[component]]
-        if component == 'tag':
-            # Apply Cantor pairing function
-            print(data)
-            a = data[:, 0]
-            b = data[:, 1]
-            data = 1/2*(a+b)*(a+b+1)+b
-        return data
-
-    def _read_component_metadata(self, file_handle, species, component):
+    def _read_component_metadata(self, file_path, species, component):
         metadata = {}
-        if component != 'tag':
-            metadata['units'] = self._numpy_bytes_to_string(
-                file_handle[self.name_relations[component]].attrs['UNITS'][0])
-        metadata['time'] = {}
-        metadata['time']['value'] = file_handle.attrs['TIME'][0]
-        metadata['time']['units'] = self._numpy_bytes_to_string(
-            file_handle.attrs['TIME UNITS'][0])
-        metadata['grid'] = {}
-        metadata['grid']['resolution'] = file_handle.attrs['NX']
-        metadata['grid']['size'] = (file_handle.attrs['XMAX']
-                                    - file_handle.attrs['XMIN'])
-        metadata['grid']['size_units'] = '\\omega_p/c'
+        with H5F(file_path, 'r') as file_handle:
+            if component != 'tag':
+                metadata['units'] = self._numpy_bytes_to_string(file_handle[
+                    self.name_relations[component]].attrs['UNITS'][0])
+            metadata['time'] = {}
+            metadata['time']['value'] = file_handle.attrs['TIME'][0]
+            metadata['time']['units'] = self._numpy_bytes_to_string(
+                file_handle.attrs['TIME UNITS'][0])
+            metadata['grid'] = {}
+            metadata['grid']['resolution'] = file_handle.attrs['NX']
+            max_range = file_handle.attrs['XMAX']
+            min_range = file_handle.attrs['XMIN']
+            metadata['grid']['size'] = max_range - min_range
+            grid_range = []
+            for x_min, x_max in zip(min_range, max_range):
+                grid_range.append([x_min, x_max])
+            metadata['grid']['range'] = grid_range
+            metadata['grid']['size_units'] = '\\omega_p/c'
         return metadata
 
     def _numpy_bytes_to_string(self, npbytes):
@@ -105,44 +103,45 @@ class HiPACEParticleReader(ParticleReader):
                                'tag': 'tag'}
         return super().__init__(*args, **kwargs)
 
-    def _get_file_handle(self, file_path):
-        return H5F(file_path, 'r')
+    def _read_component_data(self, file_path, species, component):
+        with H5F(file_path, 'r') as file_handle:
+            data = file_handle[self.name_relations[component]]
+            if component == 'tag':
+                # Apply Cantor pairing function
+                print(data)
+                a = data[:, 0]
+                b = data[:, 1]
+                data = 1/2*(a+b)*(a+b+1)+b
+            if component == 'q':
+                n_cells = file_handle.attrs['NX']
+                sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
+                cell_vol = np.prod(sim_size/n_cells)
+                data *= cell_vol
+            return np.array(data)
 
-    def _release_file_handle(self, file_handle):
-        file_handle.close()
-
-    def _read_component_data(self, file_handle, species, component):
-        data = file_handle[self.name_relations[component]]
-        if component == 'tag':
-            # Apply Cantor pairing function
-            print(data)
-            a = data[:, 0]
-            b = data[:, 1]
-            data = 1/2*(a+b)*(a+b+1)+b
-        if component == 'q':
-            n_cells = file_handle.attrs['NX']
-            sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
-            cell_vol = np.prod(sim_size/n_cells)
-            data *= cell_vol
-        return data
-
-    def _read_component_metadata(self, file_handle, species, component):
+    def _read_component_metadata(self, file_path, species, component):
         metadata = {}
-        if component in ['x', 'y', 'z']:
-            units = 'c/ \omega_p'
-        elif component in ['px', 'py', 'pz']:
-            units = 'm_e c'
-        elif component == 'q':
-            units = 'e n_p c^3 / \\omega_p^3'
-        metadata['units'] = units
-        metadata['time'] = {}
-        metadata['time']['value'] = file_handle.attrs['TIME'][0]
-        metadata['time']['units'] = '1/ \\omega_p'
-        metadata['grid'] = {}
-        metadata['grid']['resolution'] = file_handle.attrs['NX']
-        metadata['grid']['size'] = (file_handle.attrs['XMAX']
-                                    - file_handle.attrs['XMIN'])
-        metadata['grid']['size_units'] = '\\omega_p/c'
+        with H5F(file_path, 'r') as file_handle:
+            if component in ['x', 'y', 'z']:
+                units = 'c/ \omega_p'
+            elif component in ['px', 'py', 'pz']:
+                units = 'm_e c'
+            elif component == 'q':
+                units = 'e n_p c^3 / \\omega_p^3'
+            metadata['units'] = units
+            metadata['time'] = {}
+            metadata['time']['value'] = file_handle.attrs['TIME'][0]
+            metadata['time']['units'] = '1/ \\omega_p'
+            metadata['grid'] = {}
+            metadata['grid']['resolution'] = file_handle.attrs['NX']
+            max_range = file_handle.attrs['XMAX']
+            min_range = file_handle.attrs['XMIN']
+            metadata['grid']['size'] = max_range - min_range
+            grid_range = []
+            for x_min, x_max in zip(min_range, max_range):
+                grid_range.append([x_min, x_max])
+            metadata['grid']['range'] = grid_range
+            metadata['grid']['size_units'] = '\\omega_p/c'
         return metadata
 
 
@@ -157,40 +156,35 @@ class OpenPMDParticleReader(ParticleReader):
                                'q': 'charge'}
         return super().__init__(*args, **kwargs)
 
-    def _get_file_handle(self, file_path):
-        return H5F(file_path, 'r')
+    def _read_component_data(self, file_path, species, component):
+        with H5F(file_path, 'r') as file_handle:
+            # get base path in file
+            iteration = list(file_handle['/data'].keys())[0]
+            base_path = '/data/{}'.format(iteration)
+            # get path under which particle data is stored
+            particles_path = file_handle.attrs['particlesPath'].decode()
+            # get species
+            beam_species = file_handle[
+                join_infile_path(base_path, particles_path, species)]
+            component_to_read = self.name_relations[component]
+            if 'position' in component_to_read:
+                data = beam_species[component_to_read]
+                coord = component_to_read[-1]
+                data += beam_species['positionOffset/'+coord].attrs['value']
+            elif 'momentum' in component_to_read:
+                data = beam_species[component_to_read]
+                m = beam_species['mass'].attrs['value']
+                data = data / (m*ct.c)
+            elif component_to_read == 'charge':
+                data = beam_species[component_to_read].attrs['value']
+                w = beam_species['weighting'][:]
+                data = data * w
+            return data
 
-    def _release_file_handle(self, file_handle):
-        file_handle.close()
-
-    def _read_component_data(self, file_handle, species, component):
-        # get base path in file
-        iteration = list(file_handle['/data'].keys())[0]
-        base_path = '/data/{}'.format(iteration)
-        # get path under which particle data is stored
-        particles_path = file_handle.attrs['particlesPath'].decode()
-        # get species
-        beam_species = file_handle[
-            join_infile_path(base_path, particles_path, species)]
-        component_to_read = self.name_relations[component]
-        if 'position' in component_to_read:
-            data = beam_species[component_to_read]
-            coord = component_to_read[-1]
-            data += beam_species['positionOffset/'+coord].attrs['value']
-        elif 'momentum' in component_to_read:
-            data = beam_species[component_to_read]
-            m = beam_species['mass'].attrs['value']
-            data = data / (m*ct.c)
-        elif component_to_read == 'charge':
-            data = beam_species[component_to_read].attrs['value']
-            w = beam_species['weighting'][:]
-            data = data * w
-        return data
-
-    def _read_component_metadata(self, file_handle, species, component):
-        # get base path in file
-        iteration = list(file_handle['/data'].keys())[0]
-        base_path = '/data/{}'.format(iteration)
+    def _read_component_metadata(self, file_path, species, component):
+        t, params = read_openPMD_params(file_path, extract_parameters=True)
+        fields_metadata = params['fields_metadata']
+        avail_fields = params['avail_fields']
         component_to_read = self.name_relations[component]
         metadata = {}
         if 'position' in component_to_read:
@@ -200,10 +194,42 @@ class OpenPMDParticleReader(ParticleReader):
         elif component_to_read == 'charge':
             metadata['units'] = 'C'
         metadata['time'] = {}
-        metadata['time']['value'] = file_handle[base_path].attrs['time']
+        metadata['time']['value'] = t
         metadata['time']['units'] = 's'
         metadata['grid'] = {}
-        metadata['grid']['resolution'] = None
-        metadata['grid']['size'] = None
-        metadata['grid']['size_units'] = None
+        if len(avail_fields) > 0:
+            with H5F(file_path, 'r') as file_handle:
+                grid_size_dict, grid_range_dict = get_grid_parameters(
+                        file_handle, avail_fields, fields_metadata)
+                resolution = []
+                grid_size = []
+                grid_range = []
+                if 'z' in grid_size_dict:
+                    resolution.append(grid_size_dict['z'])
+                    grid_size.append(grid_range_dict['z'][1] -
+                                     grid_range_dict['z'][0])
+                    grid_range.append(grid_range_dict['z'])
+                if 'r' in grid_size_dict:
+                    resolution.append(grid_size_dict['r'])
+                    grid_size.append(grid_range_dict['r'][1] -
+                                     grid_range_dict['r'][0])
+                    grid_range.append(grid_range_dict['r'])
+                if 'x' in grid_size_dict:
+                    resolution.append(grid_size_dict['x'])
+                    grid_size.append(grid_range_dict['x'][1] -
+                                     grid_range_dict['x'][0])
+                    grid_range.append(grid_range_dict['x'])
+                if 'y' in grid_size_dict:
+                    resolution.append(grid_size_dict['y'])
+                    grid_size.append(grid_range_dict['y'][1] -
+                                     grid_range_dict['y'][0])
+                    grid_range.append(grid_range_dict['y'])
+            metadata['grid']['resolution'] = resolution
+            metadata['grid']['size'] = grid_size
+            metadata['grid']['range'] = grid_range
+            metadata['grid']['size_units'] = 'm'
+        else:
+            metadata['grid']['resolution'] = None
+            metadata['grid']['size'] = None
+            metadata['grid']['size_units'] = None
         return metadata
