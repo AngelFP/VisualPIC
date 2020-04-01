@@ -14,6 +14,7 @@ from pkg_resources import resource_filename
 
 import numpy as np
 from h5py import File as H5File
+import matplotlib.colors as mcolors
 
 
 class VolumeStyleHandler():
@@ -131,6 +132,13 @@ class VolumeStyleHandler():
                     self.get_cmaps_in_default_folder())
             else:
                 self.default_cmaps.append(self.create_fallback_cmap())
+            self.mpl_colors = self.get_mpl_colors()
+
+        def get_mpl_colors(self, only_basic=False):
+            if only_basic:
+                return list(mcolors.BASE_COLORS) + list(mcolors.TABLEAU_COLORS)
+            else:
+                return list(mcolors.get_named_colors_mapping())
 
         def get_cmaps_in_default_folder(self):
             files_in_folder = os.listdir(self.cmaps_folder_path)
@@ -164,12 +172,16 @@ class VolumeStyleHandler():
             for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
                     return True
+                if cmap_name in self.mpl_colors:
+                    return True
             return False
 
         def get_cmap(self, cmap_name):
             for cmap in self.default_cmaps + self.other_cmaps:
                 if cmap.get_name() == cmap_name:
                     return cmap
+            if cmap_name in self.mpl_colors:
+                return self._create_cmap_from_mpl_color(cmap_name)
 
         def get_cmap_values(self, cmap_name):
             for cmap in self.default_cmaps + self.other_cmaps:
@@ -204,6 +216,20 @@ class VolumeStyleHandler():
 
         def add_cmap_from_file(self, file_path):
             self.other_cmaps.append(Colormap(file_path))
+
+        def get_mpl_color_rgb(self, mpl_color):
+            r, g, b = mcolors.to_rgb(mpl_color)
+            return r, g, b
+
+        def _create_cmap_from_mpl_color(self, mpl_color):
+            r, g, b = self.get_mpl_color_rgb(mpl_color)
+            base_arr = np.ones(11)
+            r_vals = r * base_arr
+            g_vals = g * base_arr
+            b_vals = b * base_arr
+            fld_vals = np.linspace(0, 255, 11)
+            return Colormap(name=mpl_color, r_values=r_vals, g_values=g_vals,
+                            b_values=b_vals, fld_values=fld_vals)
 
         """Common"""
 
