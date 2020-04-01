@@ -4,6 +4,7 @@ pyqt5
 pillow
 h5py
 matplotlib
-vtk
 openpmd-viewer>=1.0.0
 aptools
+vtk
+pyvista
