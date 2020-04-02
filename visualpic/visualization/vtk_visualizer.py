@@ -34,7 +34,8 @@ class VTKVisualizer():
 
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
-                 background='default gradient', use_qt=True):
+                 background='default gradient', forced_norm_factor=None,
+                 use_qt=True):
         """
         Initialize the 3D visualizer.
 
@@ -79,11 +80,14 @@ class VTKVisualizer():
                            'show_bounding_box': show_bounding_box,
                            'show_colorbars': show_colorbars,
                            'use_qt': use_qt}
+        self._unit_norm_factors = {'m': 1e5,
+                                   'um': 0.1,
+                                   'c/\\omega_p': 1}
+        self.forced_norm_factor = forced_norm_factor
         self.camera_props = {'zoom': 1}
         self.volume_field_list = []
         self.scatter_species_list = []
         self.colorbar_widgets = []
-        self._volume_norm_factor = 1
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
@@ -224,10 +228,10 @@ class VTKVisualizer():
                 if sc_species.field == species:
                     sp_repeated_idx += 1
                     name_suffix = str(sp_repeated_idx)
-            scatter_species = ScatterSpecies(species, color, cmap, vmax,
-                                             vmin, xtrim, ytrim, ztrim,
-                                             size, color_according_to,
-                                             scale_with_charge, name_suffix)
+            scatter_species = ScatterSpecies(
+                species, color, cmap, vmax, vmin, xtrim, ytrim, ztrim, size,
+                color_according_to, scale_with_charge, self._unit_norm_factors,
+                self.forced_norm_factor, name_suffix)
             self.scatter_species_list.append(scatter_species)
             self.renderer.AddActor(scatter_species.get_actor())
             self.available_time_steps = self.get_possible_timesteps()
@@ -660,12 +664,12 @@ class VTKVisualizer():
             volume_data_list.append(vol_field.get_data(timestep))
         self._data_all_volumes = np.concatenate(
             [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
-        ax_origin, ax_spacing, *_ = self.volume_field_list[0].get_axes_data(
-            timestep)
+        axes_data = self.volume_field_list[0].get_axes_data(timestep)
+        ax_origin, ax_spacing, ax_range, ax_units = axes_data
 
         # Normalize volume spacing
         ax_spacing, ax_origin = self._normalize_volume_spacing(
-                ax_spacing, ax_origin)
+                ax_spacing, ax_origin, ax_units)
 
         # Put data in VTK format
         vtk_data_import = self._create_vtk_image_import(
@@ -728,21 +732,23 @@ class VTKVisualizer():
             vol_list.append(vtk_vol)
 
             # Normalize volume spacing
-            ax_origin, ax_spacing, *_ = vol_field.get_axes_data(timestep)
+            ax_origin, ax_spacing, ax_range, ax_units = vol_field.get_axes_data(
+                timestep)
             ax_spacing, ax_origin = self._normalize_volume_spacing(
-                ax_spacing, ax_origin)
+                ax_spacing, ax_origin, ax_units)
 
             # Put data in VTK format
             imports_list.append(
                 self._create_vtk_image_import(vol_data, ax_origin, ax_spacing))
         return vol_list, imports_list
 
-    def _normalize_volume_spacing(self, ax_spacing, ax_origin):
-        max_spacing = max(ax_spacing)
-        max_cell_size = 0.1
-        self._volume_norm_factor = max_cell_size/max_spacing
-        ax_origin *= self._volume_norm_factor
-        ax_spacing *= self._volume_norm_factor
+    def _normalize_volume_spacing(self, ax_spacing, ax_origin, ax_units):
+        if self.forced_norm_factor is not None:
+            norm_factor = self.forced_norm_factor
+        else:
+            norm_factor = self._unit_norm_factors[ax_units[0]]
+        ax_origin *= norm_factor
+        ax_spacing *= norm_factor
         return ax_spacing, ax_origin
 
     def _create_vtk_image_import(self, volume_data, ax_origin, ax_spacing,
@@ -767,21 +773,30 @@ class VTKVisualizer():
 
     def _render_species(self, timestep):
         for species in self.scatter_species_list:
-            species.update_data(timestep, self._volume_norm_factor)
+            species.update_data(timestep)
 
     def _setup_cube_axes_and_bbox(self):
-        # Get axes range of all volumes
-        for i, volume in enumerate(self.volume_field_list):
-            ax_data = volume.get_axes_data(self.current_time_step)
-            ax_range = ax_data[2]
-            ax_units = ax_data[3]
-            z_range = ax_range[0]
-            x_range = ax_range[2]
-            y_range = ax_range[1]
-            if i == 0:
+        # Determine axes range of all volumes and species
+        z_range_all = []
+        x_range_all = []
+        y_range_all = []
+        ax_units_all = []
+        for element in self.volume_field_list + self.scatter_species_list:
+            if isinstance(element, VolumetricField):
+                ax_data = element.get_axes_data(self.current_time_step)
+                ax_range = ax_data[2]
+                z_range = ax_range[0]
+                x_range = ax_range[2]
+                y_range = ax_range[1]
+                ax_units = ax_data[3]
+            elif isinstance(element, ScatterSpecies):
+                z_range, y_range, x_range, ax_units = element.get_data_range(
+                    self.current_time_step)
+            if len(z_range_all) == 0:
                 z_range_all = z_range
                 x_range_all = x_range
                 y_range_all = y_range
+                ax_units_all = ax_units
             else:
                 z_range_all = [np.min((z_range_all[0], z_range[0])),
                                np.max((z_range_all[1], z_range[1]))]
@@ -789,17 +804,33 @@ class VTKVisualizer():
                                np.max((x_range_all[1], x_range[1]))]
                 y_range_all = [np.min((y_range_all[0], y_range[0])),
                                np.max((y_range_all[1], y_range[1]))]
-        self.vtk_cube_axes_edges.SetBounds(self.vtk_volume.GetBounds())
-        self.vtk_cube_axes.SetBounds(self.vtk_volume.GetBounds())
-        self.vtk_cube_axes.SetXTitle('z')
-        self.vtk_cube_axes.SetYTitle('y')
-        self.vtk_cube_axes.SetZTitle('x')
-        self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
-        self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
-        self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
-        self.vtk_cube_axes.SetXUnits(ax_units[0])
-        self.vtk_cube_axes.SetYUnits(ax_units[2])
-        self.vtk_cube_axes.SetZUnits(ax_units[1])
+        # Determine bounds in vtk coordinates
+        bounds = np.zeros(6)
+        if len(self.volume_field_list) > 0:
+            vol_bounds = np.array(self.vtk_volume.GetBounds())
+            bounds = np.where(
+                (np.abs(vol_bounds) > np.abs(bounds)), vol_bounds, bounds)
+        for species in self.scatter_species_list:
+            sp_bounds = np.array(species.get_actor().GetBounds())
+            bounds = np.where(
+                (np.abs(sp_bounds) > np.abs(bounds)), sp_bounds, bounds)
+        # If bounds are 0 (i.e. no data is displayed) hide cube axes and bbox
+        if all(bounds == 0):
+            self.show_cube_axes(False)
+            self.show_bounding_box(False)
+        else:
+            bounds = list(bounds)
+            self.vtk_cube_axes_edges.SetBounds(bounds)
+            self.vtk_cube_axes.SetBounds(bounds)
+            self.vtk_cube_axes.SetXTitle('z')
+            self.vtk_cube_axes.SetYTitle('y')
+            self.vtk_cube_axes.SetZTitle('x')
+            self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
+            self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
+            self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
+            self.vtk_cube_axes.SetXUnits(ax_units[0])
+            self.vtk_cube_axes.SetYUnits(ax_units[2])
+            self.vtk_cube_axes.SetZUnits(ax_units[1])
 
     def _setup_camera(self):
         self.renderer.ResetCamera()
@@ -1240,6 +1271,7 @@ class ScatterSpecies():
     def __init__(self, species, color='w', cmap='viridis',  vmax=None,
                  vmin=None, xtrim=None, ytrim=None, ztrim=None, size=1,
                  color_according_to=None, scale_with_charge=False,
+                 unit_norm_factors=None, forced_norm_factor=None,
                  name_suffix=None):
         self.species = species
         self.color = color
@@ -1252,6 +1284,8 @@ class ScatterSpecies():
         self.size = size
         self.color_according_to = color_according_to
         self.scale_with_charge = scale_with_charge
+        self._unit_norm_factors = unit_norm_factors
+        self.forced_norm_factor = forced_norm_factor
         self.name_suffix = name_suffix
         self._setup_vtk_elements()
 
@@ -1268,9 +1302,23 @@ class ScatterSpecies():
         self.cbar_ticks = n_ticks
         return self.cbar
 
-    def update_data(self, timestep, norm_factor):
+    def get_data_range(self, timestep):
+        data_arr, color_arr, scale_arr, data_units = self._get_data(timestep)
+        z_arr = data_arr[:, 0]
+        y_arr = data_arr[:, 1]
+        x_arr = data_arr[:, 2]
+        z_range = [np.min(z_arr), np.max(z_arr)]
+        y_range = [np.min(y_arr), np.max(y_arr)]
+        x_range = [np.min(x_arr), np.max(x_arr)]
+        return z_range, y_range, x_range, data_units
+
+    def update_data(self, timestep):
         # Get data
-        data_arr, color_arr, scale_arr = self._get_data(timestep)
+        data_arr, color_arr, scale_arr, data_units = self._get_data(timestep)
+        if self.forced_norm_factor is not None:
+            norm_factor = self.forced_norm_factor
+        else:
+            norm_factor = self._unit_norm_factors[data_units[0]]
         data_arr *= norm_factor
         # Create vtkPolyData
         poly_data = pv.PolyData(data_arr)
@@ -1376,6 +1424,8 @@ class ScatterSpecies():
         x_arr = data['x'][0]
         y_arr = data['y'][0]
         z_arr = data['z'][0]
+        data_units = [data['z'][1]['units'], data['y'][1]['units'],
+                      data['x'][1]['units']]
         if color_var is not None:
             color_arr = data[color_var][0]
             color_var_units = data[color_var][1]['units']
@@ -1392,7 +1442,7 @@ class ScatterSpecies():
         if any(el is not None for el in [self.xtrim, self.ytrim, self.ztrim]):
             part_arr, color_arr, scale_arr = self._trim_particle_distribution(
                 part_arr, color_arr, scale_arr, metadata)
-        return part_arr, color_arr, scale_arr
+        return part_arr, color_arr, scale_arr, data_units
 
     def _trim_particle_distribution(self, part_arr, color_arr, scale_arr,
                                     metadata):
