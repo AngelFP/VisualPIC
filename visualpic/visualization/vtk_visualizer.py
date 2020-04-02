@@ -130,7 +130,7 @@ class VTKVisualizer():
             Allow to downselect the field volume to be displayed by trimming
             off the parts out of the range defined by these parameters. The
             provided value should be a list of two values containing the
-            minimum and maximum of the spatial range to be displayes along the
+            minimum and maximum of the spatial range to be displayed along the
             desired axis. These values should be between -1 and 1, which
             correspond to the minimum and the maximum of the original data. For
             example xtrim=[-1, 1] wont have any effect, as it preserves all
@@ -139,8 +139,9 @@ class VTKVisualizer():
 
         resolution : list
             This allows rendering the field with a different 3D resolution than
-            that of the original data. A list of 3 integers shoud be provided
-            contaning the resoltion along z (longitudinal), x and y (transv.).
+            that of the original data. A list of 3 integers should be provided
+            contaning the resolution along z (longitudinal), x and y
+            (transverse).
 
         max_resolution_3d_tm : list
             Maximum longitudinal and transverse resolution (eg. [1000, 500])
@@ -184,7 +185,7 @@ class VTKVisualizer():
             The color of the particles. Can be a string with the name of any
             matplotlib color or a list with 3 RGV values (range 0 to 1). This
             parameter is ignore if color_according_to is not None. In this
-            case a colormap is intead used.
+            case a colormap is instead used.
 
         cmap : str
             Colormap to apply to the particles. Only used if color_according_to
@@ -248,9 +249,9 @@ class VTKVisualizer():
         ----------
 
         timestep : int
-            Time step of the fiels to be rendered. Can be the index of a
+            Time step of the fields to be rendered. Can be the index of a
             time step in self.available_time_steps or directly the numerical
-            value of a time step. This is indicated by the 'ts_is_insex'
+            value of a time step. This is indicated by the 'ts_is_index'
             parameter.
 
         file_path : str
@@ -260,10 +261,11 @@ class VTKVisualizer():
             List containing the horizontal and vertical resolution of the
             rendered image.
 
-        ts_is_index : Bools
+        ts_is_index : bool
             Indicates whether the value provided in 'timestep' is the index of
             the time step (True) or the numerical value of the time step
             (False).
+
         """
         self.window.SetOffScreenRendering(1)
         if resolution is not None:
@@ -288,15 +290,16 @@ class VTKVisualizer():
         ----------
 
         timestep : int
-            Time step of the fiels to be rendered. Can be the index of a
+            Time step of the fields to be rendered. Can be the index of a
             time step in self.available_time_steps or directly the numerical
-            value of a time step. This is indicated by the 'ts_is_insex'
+            value of a time step. This is indicated by the 'ts_is_index'
             parameter.
 
-        ts_is_index : Bools
+        ts_is_index : bool
             Indicates whether the value provided in 'timestep' is the index of
             the time step (True) or the numerical value of the time step
             (False).
+
         """
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
