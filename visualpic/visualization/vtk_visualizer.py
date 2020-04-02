@@ -1402,9 +1402,11 @@ class ScatterSpecies():
 
     def _set_mapper_color_mode(self):
         if self.color_according_to is not None:
+            self.map.SetScalarVisibility(True)
             self.map.SetScalarModeToUsePointFieldData()
             self.map.SelectColorArray('color')
         else:
+            self.map.SetScalarVisibility(False)
             self.map.SetScalarModeToDefault()
 
     def _get_data(self, timestep):
