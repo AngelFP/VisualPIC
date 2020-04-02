@@ -8,6 +8,7 @@ License: GNU GPL-3.0.
 """
 
 
+import os
 import sys
 from pkg_resources import resource_filename
 import warnings
