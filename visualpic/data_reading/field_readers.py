@@ -438,10 +438,13 @@ class OpenPMDFieldReader(FieldReader):
                     excess_z = int(np.round(nz/max_res_lon))
                     Fcirc = Fcirc[:, :, ::excess_z]
                     info.z = info.z[::excess_z]
+                    info.dz = info.z[1] - info.z[0]
                 if nr > max_res_transv/2:
                     excess_r = int(np.round(nr/(max_res_transv/2)))
                     Fcirc = Fcirc[:, ::excess_r, :]
                     info.r = info.r[::excess_r]
+                    info.dr = info.r[1] - info.r[0]
+                    inv_dr = 1./info.dr
                     nr = Fcirc.shape[1]
                 #fld_zoom = np.array([1., 1., 1.])
                 # if nr > max_res_transv/2:
