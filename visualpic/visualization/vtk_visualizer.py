@@ -23,7 +23,8 @@ except:
     qt_installed = False
 
 from visualpic.helper_functions import get_common_timesteps
-from visualpic.visualization.volume_appearance import *
+from visualpic.visualization.volume_appearance import (VolumeStyleHandler,
+                                                       Colormap, Opacity)
 if qt_installed:
     from visualpic.ui.basic_render_window import BasicRenderWindow
 
@@ -663,12 +664,14 @@ class VTKVisualizer():
     def _import_single_volume_data(self, timestep):
         # Get data
         volume_data_list = list()
-        for i, vol_field in enumerate(self.volume_field_list):
+        for vol_field in self.volume_field_list:
             volume_data_list.append(vol_field.get_data(timestep))
         self._data_all_volumes = np.concatenate(
             [aux[..., np.newaxis] for aux in volume_data_list], axis=3)
-        axes_data = self.volume_field_list[0].get_axes_data(timestep)
-        ax_origin, ax_spacing, ax_range, ax_units = axes_data
+        ax_data = self.volume_field_list[0].get_axes_data(timestep)
+        ax_origin = ax_data[0]
+        ax_spacing = ax_data[1]
+        ax_units = ax_data[3]
 
         # Normalize volume spacing
         ax_spacing, ax_origin = self._normalize_volume_spacing(
@@ -720,7 +723,7 @@ class VTKVisualizer():
     def _create_volumes(self, timestep):
         vol_list = list()
         imports_list = list()
-        for i, vol_field in enumerate(self.volume_field_list):
+        for vol_field in self.volume_field_list:
             vtk_vol = vtk.vtkVolume()
             vtk_volume_prop = vtk.vtkVolumeProperty()
             vtk_volume_prop.SetInterpolationTypeToLinear()
@@ -735,8 +738,10 @@ class VTKVisualizer():
             vol_list.append(vtk_vol)
 
             # Normalize volume spacing
-            ax_origin, ax_spacing, ax_range, ax_units = vol_field.get_axes_data(
-                timestep)
+            ax_data = vol_field.get_axes_data(timestep)
+            ax_origin = ax_data[0]
+            ax_spacing = ax_data[1]
+            ax_units = ax_data[3]
             ax_spacing, ax_origin = self._normalize_volume_spacing(
                 ax_spacing, ax_origin, ax_units)
 
@@ -831,9 +836,9 @@ class VTKVisualizer():
             self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
             self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
             self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
-            self.vtk_cube_axes.SetXUnits(ax_units[0])
-            self.vtk_cube_axes.SetYUnits(ax_units[2])
-            self.vtk_cube_axes.SetZUnits(ax_units[1])
+            self.vtk_cube_axes.SetXUnits(ax_units_all[0])
+            self.vtk_cube_axes.SetYUnits(ax_units_all[2])
+            self.vtk_cube_axes.SetZUnits(ax_units_all[1])
 
     def _setup_camera(self):
         self.renderer.ResetCamera()
@@ -1306,7 +1311,9 @@ class ScatterSpecies():
         return self.cbar
 
     def get_data_range(self, timestep):
-        data_arr, color_arr, scale_arr, data_units = self._get_data(timestep)
+        part_data = self._get_data(timestep)
+        data_arr = part_data[0]
+        data_units = part_data[3]
         z_arr = data_arr[:, 0]
         y_arr = data_arr[:, 1]
         x_arr = data_arr[:, 2]
