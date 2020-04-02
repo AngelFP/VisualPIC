@@ -35,8 +35,8 @@ class VTKVisualizer():
 
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
-                 background='default gradient', forced_norm_factor=None,
-                 use_qt=True):
+                 background='default gradient', scale_x=1, scale_y=1,
+                 scale_z=1, forced_norm_factor=None, use_qt=True):
         """
         Initialize the 3D visualizer.
 
@@ -68,8 +68,30 @@ class VTKVisualizer():
             background will be a linear gradient between the two specified
             colors.
 
+        scale_x : float
+            Scaling factor of the horizontal direction. A value < 1 will lead
+            to a shrinking of the x-axis, while a value > 1 will magnify it.
+
+        scale_y : float
+            Scaling factor of the vertical direction. A value < 1 will lead
+            to a shrinking of the y-axis, while a value > 1 will magnify it.
+
+        scale_z : float
+            Scaling factor of the longitudinal direction. A value < 1 will lead
+            to a shrinking of the z-axis, while a value > 1 will magnify it.
+
+        forced_norm_factor : float
+            Normalization factor between the data units and the vtk units. By
+            default, visualpic applies a scaling factor to the visualized data
+            (its value depends on the data units) to normalize its spatial
+            dimesions in order to make sure that it has a reasonable size in
+            spatial units. If for some reason the automatic scaling leads to
+            issues, a custom scaling can be forced by specifying this
+            parameter.
+
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
+
         """
         if use_qt and not qt_installed:
             print('Qt is not installed. Default VTK windows will be used.')
@@ -80,6 +102,7 @@ class VTKVisualizer():
                            'show_cube_axes': show_cube_axes,
                            'show_bounding_box': show_bounding_box,
                            'show_colorbars': show_colorbars,
+                           'axes_scale': [scale_z, scale_y, scale_x],
                            'use_qt': use_qt}
         self._unit_norm_factors = {'m': 1e5,
                                    'um': 0.1,
@@ -149,6 +172,7 @@ class VTKVisualizer():
             that the 3d field generated from thetaMode data should have. This
             allows for faster reconstruction of the 3d field and less memory
             usage.
+
         """
         if field.get_geometry() in ['thetaMode', '3dcartesian']:
             # check if this field has already been added to a volume
@@ -408,6 +432,7 @@ class VTKVisualizer():
 
         elevation : float
             The elevation angle in degrees.
+
         """
         self.camera.Azimuth(azimuth)
         self.camera.Elevation(elevation)
@@ -422,6 +447,7 @@ class VTKVisualizer():
         zoom : float
             The zoom value of the camera. A value greater than 1 is a zoom-in,
             a value less than 1 is a zoom-out.
+
         """
         self.camera_props['zoom'] = zoom
         self.camera.Zoom(zoom)
@@ -452,6 +478,7 @@ class VTKVisualizer():
         value : float
             Default window value is 1.0. The value can also be <0, leading to a
             'negative' effect in the color.
+
         """
         self.vtk_volume_mapper.SetFinalColorWindow(value)
 
@@ -470,6 +497,7 @@ class VTKVisualizer():
             Default level value is 0.5. The final color window will be centered
             at the final color level, and together represent a linear
             remapping of color values.
+
         """
         self.vtk_volume_mapper.SetFinalColorLevel(value)
 
@@ -484,6 +512,7 @@ class VTKVisualizer():
         value : float
             A float between -1 (minimum contrast) and 1 (maximum contrast).
             The default contrast is 0.
+
         """
         if value < -1:
             value = -1
@@ -505,6 +534,7 @@ class VTKVisualizer():
         value : float
             A float between -1 (minimum brightness) and 1 (maximum brightness).
             The default brightness is 0.
+
         """
         if value < -1:
             value = -1
@@ -629,6 +659,7 @@ class VTKVisualizer():
             self.current_time_step = timestep
         self._render_volumes(self.current_time_step)
         self._render_species(self.current_time_step)
+        self._scale_actors()
         self._setup_cube_axes_and_bbox()
         self._setup_camera()
 
@@ -783,6 +814,12 @@ class VTKVisualizer():
         for species in self.scatter_species_list:
             species.update_data(timestep)
 
+    def _scale_actors(self):
+        scale = self.vis_config['axes_scale']
+        self.vtk_volume.SetScale(*scale)
+        for species in self.scatter_species_list:
+            species.get_actor().SetScale(*scale)
+
     def _setup_cube_axes_and_bbox(self):
         # Determine axes range of all volumes and species
         z_range_all = []
@@ -813,17 +850,22 @@ class VTKVisualizer():
                 y_range_all = [np.min((y_range_all[0], y_range[0])),
                                np.max((y_range_all[1], y_range[1]))]
         # Determine bounds in vtk coordinates
-        bounds = np.zeros(6)
+        bounds = None
         if len(self.volume_field_list) > 0:
-            vol_bounds = np.array(self.vtk_volume.GetBounds())
-            bounds = np.where(
-                (np.abs(vol_bounds) > np.abs(bounds)), vol_bounds, bounds)
+            bounds = np.array(self.vtk_volume.GetBounds())
         for species in self.scatter_species_list:
             sp_bounds = np.array(species.get_actor().GetBounds())
-            bounds = np.where(
-                (np.abs(sp_bounds) > np.abs(bounds)), sp_bounds, bounds)
-        # If bounds are 0 (i.e. no data is displayed) hide cube axes and bbox
-        if all(bounds == 0):
+            if bounds is None:
+                bounds = sp_bounds
+            else:
+                bounds[[0, 2, 4]] = np.where(
+                    sp_bounds[[0, 2, 4]] < bounds[[0, 2, 4]],
+                    sp_bounds[[0, 2, 4]], bounds[[0, 2, 4]])
+                bounds[[1, 3, 5]] = np.where(
+                    sp_bounds[[1, 3, 5]] > bounds[[1, 3, 5]],
+                    sp_bounds[[1, 3, 5]], bounds[[1, 3, 5]])
+        # If there are no bounds (i.e. no data is displayed) hide axes and bbox
+        if bounds is None:
             self.show_cube_axes(False)
             self.show_bounding_box(False)
         else:
@@ -839,7 +881,7 @@ class VTKVisualizer():
             self.vtk_cube_axes.SetXUnits(ax_units_all[0])
             self.vtk_cube_axes.SetYUnits(ax_units_all[2])
             self.vtk_cube_axes.SetZUnits(ax_units_all[1])
-
+        
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
@@ -859,6 +901,7 @@ class VTKVisualizer():
             If specified, a linear gradient backround is set where 'color_2'
             is the second color of the gradient. Possible values are 'black',
             'white' or a list of 3 floats with the RGB values.
+
         """
         if isinstance(color, str):
             if color == 'white':
