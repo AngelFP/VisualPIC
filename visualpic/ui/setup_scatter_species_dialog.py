@@ -1,7 +1,8 @@
 """
 This file is part of VisualPIC.
 
-The module contains the class for the Qt dialog for the render settings.
+The module contains the class for the Qt dialog for editting the visual settings
+of a particle species.
 
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
