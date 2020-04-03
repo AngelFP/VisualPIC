@@ -264,6 +264,9 @@ class VTKVisualizer():
             self.available_time_steps = self.get_possible_timesteps()
             if color_according_to is not None:
                 self._add_colorbar(scatter_species.get_colorbar(5))
+        else:
+            raise ValueError(
+                'Particle species cannot be added because it is not 3D.')
 
     def render_to_file(self, timestep, file_path, resolution=None,
                        ts_is_index=True):
