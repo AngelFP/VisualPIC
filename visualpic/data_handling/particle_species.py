@@ -135,11 +135,14 @@ class ParticleSpecies():
         data = {**folder_data, **derived_data}
         return data
 
-    def get_list_of_available_components(self):
+    def get_list_of_available_components(self, include_tags=False):
         """
         Returns a list of strings with the names of all available components.
         """
-        return self.components_in_file + self.derived_components
+        all_components = self.components_in_file + self.derived_components
+        if not include_tags and 'tag' in all_components:
+            all_components.remove('tag')
+        return all_components
 
     def _get_file_path(self, time_step):
         """Get the file path corresponding to the specified time step."""
