@@ -254,7 +254,7 @@ class VTKVisualizer():
             name_suffix = None
             sp_repeated_idx = 0
             for sc_species in self.scatter_species_list:
-                if sc_species.field == species:
+                if sc_species.species == species:
                     sp_repeated_idx += 1
                     name_suffix = str(sp_repeated_idx)
             scatter_species = ScatterSpecies(
