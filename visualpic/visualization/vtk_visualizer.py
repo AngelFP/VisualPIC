@@ -112,7 +112,9 @@ class VTKVisualizer():
         self.camera_props = {'zoom': 1}
         self.volume_field_list = []
         self.scatter_species_list = []
+        self.colorbar_list = []
         self.colorbar_widgets = []
+        self._colorbar_visibility = []
         self.current_time_step = -1
         self.available_time_steps = None
         self._initialize_base_vtk_elements()
@@ -188,7 +190,7 @@ class VTKVisualizer():
                 field, cmap, opacity, gradient_opacity, vmax, vmin, xtrim,
                 ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix)
             self.volume_field_list.append(volume_field)
-            self._add_colorbar(volume_field.get_colorbar(5))
+            self.colorbar_list.append(volume_field.get_colorbar(5))
             self.available_time_steps = self.get_possible_timesteps()
         else:
             fld_geom = field.get_geometry()
@@ -262,8 +264,7 @@ class VTKVisualizer():
             self.scatter_species_list.append(scatter_species)
             self.renderer.AddActor(scatter_species.get_actor())
             self.available_time_steps = self.get_possible_timesteps()
-            if color_according_to is not None:
-                self._add_colorbar(scatter_species.get_colorbar(5))
+            self.colorbar_list.append(scatter_species.get_colorbar(5))
         else:
             raise ValueError(
                 'Particle species cannot be added because it is not 3D.')
@@ -422,6 +423,13 @@ class VTKVisualizer():
             fld_list.append(vol_field.get_name())
         return fld_list
 
+    def get_list_of_species(self):
+        """Returns a list with the names of all available species."""
+        sp_list = []
+        for species in self.scatter_species_list:
+            sp_list.append(species.get_name())
+        return sp_list
+
     def set_camera_angles(self, azimuth, elevation):
         """
         Set the azimuth and elevation angles of the camera. This values are
@@ -567,6 +575,20 @@ class VTKVisualizer():
         w = self.vtk_volume_mapper.GetFinalColorWindow()
         return (1 - 2*l) / (1 + np.abs(w))
 
+    def draw_colorbars(self):
+        cbar_visibility = [True] * len(self.colorbar_list)
+        for species in self.scatter_species_list:
+            if species.get_color_according_to() is None:
+                cbar_idx = self.colorbar_list.index(species.cbar)
+                cbar_visibility[cbar_idx] = False
+        if cbar_visibility != self._colorbar_visibility:
+            self._colorbar_visibility = cbar_visibility
+            self.colorbar_widgets.clear()
+            for cbar, cbar_vis in zip(self.colorbar_list, cbar_visibility):
+                if cbar_vis:
+                    self._add_colorbar_widget(cbar)
+            self._position_colorbars()
+
     def _initialize_base_vtk_elements(self):
         try:
             # vtkMultiVolume class available only in vtk >= 8.2.0
@@ -663,6 +685,7 @@ class VTKVisualizer():
             self.current_time_step = timestep
         self._render_volumes(self.current_time_step)
         self._render_species(self.current_time_step)
+        self.draw_colorbars()
         self._scale_actors()
         self._setup_cube_axes_and_bbox()
         self._setup_camera()
@@ -926,7 +949,7 @@ class VTKVisualizer():
         else:
             self.renderer.GradientBackgroundOff()
 
-    def _add_colorbar(self, cbar):
+    def _add_colorbar_widget(self, cbar):
         cbar_widget = vtk.vtkScalarBarWidget()
         cbar_widget.SetInteractor(self.interactor)
         cbar_widget.SetScalarBarActor(cbar)
@@ -938,9 +961,8 @@ class VTKVisualizer():
         else:
             cbar_widget.Off()
         self.colorbar_widgets.append(cbar_widget)
-        self._draw_colorbars()
 
-    def _draw_colorbars(self):
+    def _position_colorbars(self):
         min_x = 0.87
         max_x = 0.93
         min_y = 0.12
@@ -1343,6 +1365,10 @@ class ScatterSpecies():
         self.forced_norm_factor = forced_norm_factor
         self.name_suffix = name_suffix
         self._setup_vtk_elements()
+        self._current_timestep = None
+        self._current_color_variable = None
+        self._current_scaling_with_charge = None
+        self._current_forced_colormap_range = [vmin, vmax]
 
     def get_name(self):
         sp_name = self.species.species_name
@@ -1371,30 +1397,37 @@ class ScatterSpecies():
 
     def update_data(self, timestep):
         # Get data
-        data_arr, color_arr, scale_arr, data_units = self._get_data(timestep)
-        if self.forced_norm_factor is not None:
-            norm_factor = self.forced_norm_factor
-        else:
-            norm_factor = self._unit_norm_factors[data_units[0]]
-        data_arr *= norm_factor
-        # Create vtkPolyData
-        poly_data = pv.PolyData(data_arr)
-        if self.color_according_to is not None:
+        (data_arr, color_arr, scale_arr, data_units, update_data, update_color,
+         update_scale) = self._get_data(timestep)
+        if update_data:
+            if self.forced_norm_factor is not None:
+                norm_factor = self.forced_norm_factor
+            else:
+                norm_factor = self._unit_norm_factors[data_units[0]]
+            data_arr *= norm_factor
+            # Create vtkPolyData
+            self.poly_data = pv.PolyData(data_arr)
+            self.map.SetInputData(self.poly_data)
+        if update_color and self.color_according_to is not None:
             self._normalize_color_variable(color_arr)
-            poly_data.point_arrays['color'] = color_arr
-        if self.scale_with_charge:
+            self.poly_data.point_arrays['color'] = color_arr
+        if update_scale and self.scale_with_charge:
             self._normalize_scale(scale_arr, max_size=self.size * 0.02)
-            poly_data.point_arrays['scale'] = scale_arr
-        # Update mapper
-        self.map.SetInputData(poly_data)
+            self.poly_data.point_arrays['scale'] = scale_arr
 
     def set_scale_with_charge(self, value):
         self.scale_with_charge = value
         self._set_mapper_scaling()
 
+    def get_scale_with_charge(self):
+        return self.scale_with_charge
+
     def set_color_according_to(self, var):
         self.color_according_to = var
         self._set_mapper_color_mode()
+
+    def get_color_according_to(self):
+        return self.color_according_to
 
     def get_color(self):
         return self.color
@@ -1405,6 +1438,7 @@ class ScatterSpecies():
         elif isinstance(color, list):
             r, g, b = color
         self.species_actor.GetProperty().SetColor(r, g, b)
+        self.color = color
 
     def get_colormap(self):
         if isinstance(self.cmap, Colormap):
@@ -1420,6 +1454,40 @@ class ScatterSpecies():
     def set_colormap(self, cmap):
         self.cmap = cmap
         self._set_vtk_colormap()
+
+    def get_colormap_range(self):
+        color_var = self.color_according_to
+        if color_var is not None and color_var in self._timestep_data:
+            color_arr = self._timestep_data[color_var][0]
+            color_arr_range = [np.min(color_arr), np.max(color_arr)]
+            vmin, vmax = self._get_colorbar_range(color_arr_range)
+        else:
+            warnings.warn('Colormap data not yet specified or loaded.'
+                          ' Range values might not be accurate.',
+                          RuntimeWarning)
+            vmin = self.vmin
+            vmax = self.vmax
+        return vmin, vmax
+
+    def set_colormap_range(self, vmin=None, vmax=None):
+        self.vmin = vmin
+        self.vmax = vmax
+
+    def get_size(self):
+        return self.size
+
+    def set_size(self, size):
+        self.size = size
+        if self.scale_with_charge and self._current_timestep is not None:
+            part_data = self._get_data(self._current_timestep)
+            scale_arr = part_data[2]
+            self._normalize_scale(scale_arr, max_size=self.size * 0.02)
+            self.poly_data.point_arrays['scale'] = scale_arr
+        else:
+            self.map.SetRadius(self.size * 0.02)
+
+    def get_current_timestep(self):
+        return self._current_timestep
 
     def _setup_vtk_elements(self):
         self.vtk_cmap = vtk.vtkColorTransferFunction()
@@ -1468,40 +1536,76 @@ class ScatterSpecies():
 
     def _get_data(self, timestep):
         # Determine components to read
-        comp_to_read = ['x', 'y', 'z']
+        comp_to_read = []
         color_var = self.color_according_to
         scale_var = 'q'
-        if color_var is not None:
-            if color_var not in comp_to_read:
-                comp_to_read.append(color_var)
-        if self.scale_with_charge:
-            if scale_var not in comp_to_read:
-                comp_to_read.append(scale_var)
+        update_data = self._current_timestep != timestep
+        update_color = (update_data or
+                        color_var != self._current_color_variable)
+        update_scale = (
+            update_data or
+            self.scale_with_charge != self._current_scaling_with_charge
+            )
+        if update_data:
+            comp_to_read += ['x', 'y', 'z']
+            self._current_timestep = timestep
+        if update_color:
+            self._current_color_variable = color_var
+        if update_scale:
+            self._current_scaling_with_charge = self.scale_with_charge
+        if (update_color and
+            color_var is not None and
+            color_var not in comp_to_read):
+            comp_to_read.append(color_var)
+        if (update_scale and
+            self.scale_with_charge and
+            scale_var not in comp_to_read):
+            comp_to_read.append(scale_var)
         # Read data
-        data = self.species.get_data(timestep, comp_to_read)
-        metadata = data['x'][1]
-        x_arr = data['x'][0]
-        y_arr = data['y'][0]
-        z_arr = data['z'][0]
-        data_units = [data['z'][1]['units'], data['y'][1]['units'],
-                      data['x'][1]['units']]
+        if len(comp_to_read) > 0:
+            data = self.species.get_data(timestep, comp_to_read)
+            if update_data:
+                self._timestep_data = data
+            elif update_color:
+                self._timestep_data[color_var] = data[color_var]
+            elif update_scale:
+                self._timestep_data[scale_var] = data[scale_var]
+        # Create particle array
+        x_arr = self._timestep_data['x'][0]
+        y_arr = self._timestep_data['y'][0]
+        z_arr = self._timestep_data['z'][0]
+        part_arr = np.vstack((z_arr, y_arr, x_arr)).T
+        # Create color array and update colorbar
         if color_var is not None:
-            color_arr = data[color_var][0]
-            color_var_units = data[color_var][1]['units']
-            color_var_range = [np.min(color_arr), np.max(color_arr)]
-            self._update_colorbar(color_var, color_var_units, color_var_range)
+            color_arr = self._timestep_data[color_var][0]
+            cmap_range_changed = (self._current_forced_colormap_range !=
+                                  [self.vmin, self.vmax])
+            # Make it true now also if the range has been changed
+            update_color = update_color or cmap_range_changed
+            if update_color:
+                color_var_units = self._timestep_data[color_var][1]['units']
+                color_var_range = [np.min(color_arr), np.max(color_arr)]
+                self._update_colorbar(color_var, color_var_units,
+                                      color_var_range)
         else:
             color_arr = np.array([])
+        # Create scale array
         if self.scale_with_charge:
-            scale_arr = np.abs(data[scale_var][0])
+            scale_arr = np.abs(self._timestep_data[scale_var][0])
         else:
             scale_arr = np.array([])
-        part_arr = np.vstack((z_arr, y_arr, x_arr)).T
-        # trim distribution
+        # Trim distribution
+        metadata = self._timestep_data['x'][1]
         if any(el is not None for el in [self.xtrim, self.ytrim, self.ztrim]):
             part_arr, color_arr, scale_arr = self._trim_particle_distribution(
                 part_arr, color_arr, scale_arr, metadata)
-        return part_arr, color_arr, scale_arr, data_units
+        # Get data units
+        data_units = [self._timestep_data['z'][1]['units'],
+                      self._timestep_data['y'][1]['units'],
+                      self._timestep_data['x'][1]['units']]
+        # Return data
+        return (part_arr, color_arr, scale_arr, data_units, update_data,
+                update_color, update_scale)
 
     def _trim_particle_distribution(self, part_arr, color_arr, scale_arr,
                                     metadata):
