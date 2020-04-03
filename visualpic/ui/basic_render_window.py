@@ -22,6 +22,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from visualpic.ui.controls.qt.QVTKRenderWindowInteractor import (
     QVTKRenderWindowInteractor)
 from visualpic.ui.setup_field_volume_window import SetupFieldVolumeWindow
+from visualpic.ui.setup_scatter_species_dialog import SetupScatterSpeciesDialog
 from visualpic.ui.render_settings_dialog import RenderSettingsDialog
 from visualpic.helper_functions import (
     get_closest_timestep, get_previous_timestep, get_next_timestep)
@@ -141,16 +142,23 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
 
     def edit_fields_button_clicked(self):
         fld_list = self.vtk_vis.get_list_of_fields()
-        fld_name, ok_pressed = QtWidgets.QInputDialog.getItem(
-            self, 'Edit field properties', 'Select field:', fld_list, 0, False)
+        sp_list = self.vtk_vis.get_list_of_species()
+        element_name, ok_pressed = QtWidgets.QInputDialog.getItem(
+            self, 'Edit visual properties', 'Select field or species:',
+            fld_list + sp_list, 0, False)
         if ok_pressed:
-            if fld_name in self.dialog_dict:
-                setup_window = self.dialog_dict[fld_name]
+            if element_name in self.dialog_dict:
+                setup_window = self.dialog_dict[element_name]
             else:
-                fld_idx = fld_list.index(fld_name)
-                setup_window = SetupFieldVolumeWindow(
-                    self.vtk_vis.volume_field_list[fld_idx], self)
-                self.dialog_dict[fld_name] = setup_window
+                if element_name in fld_list:
+                    fld_idx = fld_list.index(element_name)
+                    setup_window = SetupFieldVolumeWindow(
+                        self.vtk_vis.volume_field_list[fld_idx], self)
+                else:
+                    sp_idx = sp_list.index(element_name)
+                    setup_window = SetupScatterSpeciesDialog(
+                        self.vtk_vis.scatter_species_list[sp_idx], self)
+                self.dialog_dict[element_name] = setup_window
             setup_window.show()
 
     def settings_button_clicked(self):
