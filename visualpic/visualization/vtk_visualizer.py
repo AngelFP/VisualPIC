@@ -1577,7 +1577,8 @@ class ScatterSpecies():
         part_arr = np.vstack((z_arr, y_arr, x_arr)).T
         # Create color array and update colorbar
         if color_var is not None:
-            color_arr = self._timestep_data[color_var][0]
+            # Make copy of array to prevent modifying stored data in any way
+            color_arr = np.array(self._timestep_data[color_var][0])
             cmap_range_changed = (self._current_forced_colormap_range !=
                                   [self.vmin, self.vmax])
             # Make it true now also if the range has been changed
