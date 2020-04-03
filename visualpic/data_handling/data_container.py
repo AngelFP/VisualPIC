@@ -80,7 +80,7 @@ class DataContainer():
             fields_list.append(fld_name)
         return fields_list
 
-    def get_list_of_particle_species(self):
+    def get_list_of_species(self):
         """Returns a list with the names of all available particle species."""
         species_list = []
         for species in self.particle_species:
@@ -116,7 +116,7 @@ class DataContainer():
         raise ValueError("Field '{}' not found. ".format(field_name) +
                          "Available fields are {}.".format(available_fields))
 
-    def get_particle_species(self, species_name):
+    def get_species(self, species_name):
         """
         Get a specified particle species from the available ones.
 
@@ -134,7 +134,7 @@ class DataContainer():
             if species_name == species.species_name:
                 return species
         # raise error if no species has been found
-        available_species = self.get_list_of_particle_species()
+        available_species = self.get_list_of_species()
         raise ValueError("Species '{}' not found. ".format(species_name) +
                          "Available species are {}.".format(available_species))
 
