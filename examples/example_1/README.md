@@ -1,6 +1,6 @@
 # Example 1 - Basic 3D render
 
-This first example showcases the basic procedure to visualize the 3D fields in a simulation using VisualPIC. To do this, the sample datasets from the `openPMD` repository will be used (download here https://github.com/openPMD/openPMD-example-datasets), but any data in either `openPMD` or `OSIRIS` format can in principle be used as long at it is in 3D cartesian geometry or in cylindrical geometry with azimuthal mode decomposition (so-called `thetaMode` geometry), such as in `FBPIC`. For your convenience, all the code shown in this example is included as a Python script in [basic_3d_rendering.py](basic_3d_rendering.py).
+This first example showcases the basic procedure to visualize the 3D fields in a simulation using VisualPIC. To do this, the sample datasets from the `openPMD` repository will be used (download here https://github.com/openPMD/openPMD-example-datasets), but any data in either `openPMD` or `OSIRIS` format can in principle be used as long at it is in 3D cartesian geometry or in cylindrical geometry with azimuthal mode decomposition (so-called `thetaMode` geometry), such as in `FBPIC`. For your convenience, all the code shown in this example is included as a `Python` script in [basic_3d_rendering.py](basic_3d_rendering.py).
 
 To start, simply import VisualPIC:
 
@@ -20,7 +20,7 @@ Once the data container has been created, the data is loaded into it by calling:
 dc.load_data()
 ```
 
-Before actually visualizing any of the fields, it might be useful to check which fields are available for this simulation. This can be done by doing:
+Before actually visualizing any of the fields, it might be useful to check which fields are available for this simulation. This can be done by typing:
 ```python
 print(dc.get_list_of_fields())
 ```
