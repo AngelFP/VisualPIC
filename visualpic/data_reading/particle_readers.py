@@ -153,7 +153,10 @@ class OpenPMDParticleReader(ParticleReader):
                                'pz': 'momentum/z',
                                'px': 'momentum/x',
                                'py': 'momentum/y',
-                               'q': 'charge'}
+                               'q': 'charge',
+                               'm': 'mass',
+                               'tag': 'id',
+                               'w': 'weighting'}
         return super().__init__(*args, **kwargs)
 
     def _read_component_data(self, file_path, species, component):
@@ -179,6 +182,12 @@ class OpenPMDParticleReader(ParticleReader):
                 data = beam_species[component_to_read].attrs['value']
                 w = beam_species['weighting'][:]
                 data = data * w
+            elif component_to_read == 'mass':
+                data = beam_species[component_to_read].attrs['value']
+                w = beam_species['weighting'][:]
+                data = data * w
+            else:
+                data = beam_species[component_to_read][:]
             return data
 
     def _read_component_metadata(self, file_path, species, component):
@@ -193,6 +202,10 @@ class OpenPMDParticleReader(ParticleReader):
             metadata['units'] = 'm_e*c'
         elif component_to_read == 'charge':
             metadata['units'] = 'C'
+        elif component_to_read == 'mass':
+            metadata['units'] = 'kg'
+        else:
+            metadata['units'] = ''
         metadata['time'] = {}
         metadata['time']['value'] = t
         metadata['time']['units'] = 's'
