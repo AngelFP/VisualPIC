@@ -858,8 +858,8 @@ class VTKVisualizer():
                 ax_data = element.get_axes_data(self.current_time_step)
                 ax_range = ax_data[2]
                 z_range = ax_range[0]
-                x_range = ax_range[2]
-                y_range = ax_range[1]
+                x_range = ax_range[1]
+                y_range = ax_range[2]
                 ax_units = ax_data[3]
             elif isinstance(element, ScatterSpecies):
                 z_range, y_range, x_range, ax_units = element.get_data_range(
@@ -903,8 +903,8 @@ class VTKVisualizer():
             self.vtk_cube_axes.SetYTitle('y')
             self.vtk_cube_axes.SetZTitle('x')
             self.vtk_cube_axes.SetXAxisRange(z_range_all[0], z_range_all[1])
-            self.vtk_cube_axes.SetYAxisRange(x_range_all[0], x_range_all[1])
-            self.vtk_cube_axes.SetZAxisRange(y_range_all[0], y_range_all[1])
+            self.vtk_cube_axes.SetYAxisRange(y_range_all[0], y_range_all[1])
+            self.vtk_cube_axes.SetZAxisRange(x_range_all[0], x_range_all[1])
             self.vtk_cube_axes.SetXUnits(ax_units_all[0])
             self.vtk_cube_axes.SetYUnits(ax_units_all[2])
             self.vtk_cube_axes.SetZUnits(ax_units_all[1])
@@ -1579,6 +1579,7 @@ class ScatterSpecies():
         if color_var is not None:
             # Make copy of array to prevent modifying stored data in any way
             color_arr = np.array(self._timestep_data[color_var][0])
+            color_arr = color_arr.astype(np.float32, copy=False)
             cmap_range_changed = (self._current_forced_colormap_range !=
                                   [self.vmin, self.vmax])
             # Make it true now also if the range has been changed
@@ -1593,6 +1594,7 @@ class ScatterSpecies():
         # Create scale array
         if self.scale_with_charge:
             scale_arr = np.abs(self._timestep_data[scale_var][0])
+            scale_arr = scale_arr.astype(np.float32, copy=False)
         else:
             scale_arr = np.array([])
         # Trim distribution
