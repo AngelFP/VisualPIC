@@ -16,7 +16,7 @@ This branch contains the latest developments in the new redesign and gives you a
 
 <p align="center">
   <img alt="Sample image" src="images/sample_image_3d_renderer.png" width="450px" />
-  <img alt="Sample image" src="images/sample_image_3d_renderer_2.png" width="450px" />
+  <img alt="Sample image" src="images/sample_image_3d_renderer_6.png" width="450px" />
 </p>
 
 If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/general_redesign/examples/example_1).
