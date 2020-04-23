@@ -109,10 +109,24 @@ class OpenPMDFolderScanner(FolderScanner):
                                         iterations, self.field_reader,
                                         self.unit_converter))
                 else:
+                    # This might be specific for FBPIC. Check with other codes.
+                    if '_' in field:
+                        name_parts = field.split('_')
+                        field_name = name_parts[0]
+                        if len(name_parts) > 2:
+                            species_name = '_'.join(name_parts[1:])
+                        else:
+                            species_name = name_parts[1]
+                    else:
+                        field_name = field
+                        species_name = None
+                    field_name = self._get_standard_visualpic_name(field_name)
+                    field_path = field
                     field_list.append(
-                        FolderField(field, field, h5_files, iterations,
-                                    self.field_reader,
-                                    self.unit_converter))
+                        FolderField(
+                            field_name, field_path, h5_files, iterations,
+                            self.field_reader, self.unit_converter,
+                            species_name=species_name))
         return field_list
 
     def get_list_of_species(self, folder_path):
