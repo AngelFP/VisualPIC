@@ -72,7 +72,7 @@ class UnitConverter():
                                    'J*s/m': momentum_conversion,
                                    'W/m^2': intensity_conversion}
 
-        self.si_units = self.conversion_factors.keys()
+        self.si_units = list(self.conversion_factors.keys())
 
     def convert_field_units(self, field_data, field_md,
                             target_field_units=None, target_axes_units=None,
