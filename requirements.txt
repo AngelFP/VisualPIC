@@ -8,3 +8,4 @@ openpmd-viewer>=1.0.0
 aptools
 vtk
 pyvista
+tqdm
