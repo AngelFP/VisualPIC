@@ -1,7 +1,8 @@
 """
 This file is part of VisualPIC.
 
-The module contains a colletion of command-line methods for data analysis.
+The module contains methods for analyzing the beam evolution within the
+simulation.
 
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
