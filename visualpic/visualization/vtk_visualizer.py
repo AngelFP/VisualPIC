@@ -854,6 +854,7 @@ class VTKVisualizer():
         y_range_all = []
         ax_units_all = []
         for element in self.volume_field_list + self.scatter_species_list:
+            el_has_range = False
             if isinstance(element, VolumetricField):
                 ax_data = element.get_axes_data(self.current_time_step)
                 ax_range = ax_data[2]
@@ -861,36 +862,41 @@ class VTKVisualizer():
                 x_range = ax_range[1]
                 y_range = ax_range[2]
                 ax_units = ax_data[3]
-            elif isinstance(element, ScatterSpecies):
+                el_has_range = True
+            elif (isinstance(element, ScatterSpecies) and
+                  not element.is_empty(self.current_time_step)):
                 z_range, y_range, x_range, ax_units = element.get_data_range(
                     self.current_time_step)
-            if len(z_range_all) == 0:
-                z_range_all = z_range
-                x_range_all = x_range
-                y_range_all = y_range
-                ax_units_all = ax_units
-            else:
-                z_range_all = [np.min((z_range_all[0], z_range[0])),
-                               np.max((z_range_all[1], z_range[1]))]
-                x_range_all = [np.min((x_range_all[0], x_range[0])),
-                               np.max((x_range_all[1], x_range[1]))]
-                y_range_all = [np.min((y_range_all[0], y_range[0])),
-                               np.max((y_range_all[1], y_range[1]))]
+                el_has_range = True
+            if el_has_range:
+                if len(z_range_all) == 0:
+                    z_range_all = z_range
+                    x_range_all = x_range
+                    y_range_all = y_range
+                    ax_units_all = ax_units
+                else:
+                    z_range_all = [np.min((z_range_all[0], z_range[0])),
+                                np.max((z_range_all[1], z_range[1]))]
+                    x_range_all = [np.min((x_range_all[0], x_range[0])),
+                                np.max((x_range_all[1], x_range[1]))]
+                    y_range_all = [np.min((y_range_all[0], y_range[0])),
+                                np.max((y_range_all[1], y_range[1]))]
         # Determine bounds in vtk coordinates
         bounds = None
         if len(self.volume_field_list) > 0:
             bounds = np.array(self.vtk_volume.GetBounds())
         for species in self.scatter_species_list:
-            sp_bounds = np.array(species.get_actor().GetBounds())
-            if bounds is None:
-                bounds = sp_bounds
-            else:
-                bounds[[0, 2, 4]] = np.where(
-                    sp_bounds[[0, 2, 4]] < bounds[[0, 2, 4]],
-                    sp_bounds[[0, 2, 4]], bounds[[0, 2, 4]])
-                bounds[[1, 3, 5]] = np.where(
-                    sp_bounds[[1, 3, 5]] > bounds[[1, 3, 5]],
-                    sp_bounds[[1, 3, 5]], bounds[[1, 3, 5]])
+            if not species.is_empty(self.current_time_step):
+                sp_bounds = np.array(species.get_actor().GetBounds())
+                if bounds is None:
+                    bounds = sp_bounds
+                else:
+                    bounds[[0, 2, 4]] = np.where(
+                        sp_bounds[[0, 2, 4]] < bounds[[0, 2, 4]],
+                        sp_bounds[[0, 2, 4]], bounds[[0, 2, 4]])
+                    bounds[[1, 3, 5]] = np.where(
+                        sp_bounds[[1, 3, 5]] > bounds[[1, 3, 5]],
+                        sp_bounds[[1, 3, 5]], bounds[[1, 3, 5]])
         # If there are no bounds (i.e. no data is displayed) hide axes and bbox
         if bounds is None:
             self.show_cube_axes(False)
@@ -1383,16 +1389,29 @@ class ScatterSpecies():
         self.cbar_ticks = n_ticks
         return self.cbar
 
+    def is_empty(self, timestep):
+        part_data = self._get_data(timestep)
+        data_arr = part_data[0]
+        if len(data_arr) == 0:
+            return True
+        else:
+            return False
+
     def get_data_range(self, timestep):
         part_data = self._get_data(timestep)
         data_arr = part_data[0]
         data_units = part_data[3]
-        z_arr = data_arr[:, 0]
-        y_arr = data_arr[:, 1]
-        x_arr = data_arr[:, 2]
-        z_range = [np.min(z_arr), np.max(z_arr)]
-        y_range = [np.min(y_arr), np.max(y_arr)]
-        x_range = [np.min(x_arr), np.max(x_arr)]
+        if len(data_arr) > 0:
+            z_arr = data_arr[:, 0]
+            y_arr = data_arr[:, 1]
+            x_arr = data_arr[:, 2]
+            z_range = [np.min(z_arr), np.max(z_arr)]
+            y_range = [np.min(y_arr), np.max(y_arr)]
+            x_range = [np.min(x_arr), np.max(x_arr)]
+        else:
+            z_range = None
+            y_range = None
+            x_range = None
         return z_range, y_range, x_range, data_units
 
     def update_data(self, timestep):
