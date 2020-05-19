@@ -94,6 +94,7 @@ Temporary Items
 /build/lib/VisualPIC
 /dist
 /visualPIC.egg-info
+/VisualPIC.egg-info
 /VisualPIC/tests.py
 /.vscode
 /VisualPIC_old
@@ -104,3 +105,4 @@ Temporary Items
 /images/highlight_image_base.png
 /old_code
 /gimp_stuff
+build/*
