@@ -36,14 +36,14 @@ or simply download the code from [here](https://github.com/AngelFP/VisualPIC/arc
 git checkout general_redesign
 ```
 
-4) In principle, `VisualPIC` should be automatically installed by executing the `setup.py` file. However, this might currently fail in some platforms due to a bug in the current version of `PyQt5` (5.14.1) in the PyPI repository. To avoid this, simply begin by installing the previous version with
-```bash
-pip install pyqt5==5.14
-```
-
-5) After this, perform the installation with
+4) After this, perform the installation with
 ```bash
 python setup.py install
+```
+
+5) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
+```bash
+pip install vtk, pyvista, pyqt5
 ```
 
 6) To get access to some of the 3D visualization features, `vtk 8.2` or higher is required. However, the latest version available on `PyPI` is `8.1.2`. To fix this, you can install version `8.2` from the `conda-forge` repository with
