@@ -103,9 +103,7 @@ class VTKVisualizer():
 
         """
         self._check_dependencies()
-        if use_qt and not qt_installed:
-            print('Qt is not installed. Default VTK windows will be used.')
-            use_qt = False
+        use_qt = self._check_qt(use_qt)
         self.vis_config = {'background': background,
                            'show_logo': show_logo,
                            'show_axes': show_axes,
@@ -1006,8 +1004,16 @@ class VTKVisualizer():
         if len(missing_dependencies) > 0:
             dep_str = ', '.join(missing_dependencies)
             raise ImportError(
-                "Missing required dependencies: {}.\n".format(dep_str) +
+                "Missing required dependencies: {}.".format(dep_str) +
                 "Install by running 'pip install {}'.".format(dep_str))
+
+    def _check_qt(self, use_qt):
+        if use_qt and not qt_installed:
+            warnings.warn(
+                "Qt is not installed. Default VTK windows will be used. "
+                "Install by running 'pip install pyqt5'.")
+            use_qt = False
+        return use_qt
 
 class VolumetricField():
 
