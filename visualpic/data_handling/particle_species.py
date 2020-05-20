@@ -76,7 +76,7 @@ class ParticleSpecies():
 
         data_units : list
             (Optional) List of strings containing the desired unis in which to
-            return the data. If specified, it should have the same lenght as
+            return the data. If specified, it should have the same length as
             'components_list'. If not, the data will be returned in the same
             units as in the file.
 
@@ -98,7 +98,7 @@ class ParticleSpecies():
             len_comp = len(components_list)
             len_units = len(data_units)
             raise ValueError(
-                'Lenght of components list ({})'.format(len_comp) +
+                'Length of components list ({})'.format(len_comp) +
                 ' and data units list ({}) do not match.'.format(len_units))
         # Separate components to read from file from those which are derived
         comp_to_read = []
@@ -160,7 +160,7 @@ class ParticleSpecies():
 
     def _calculate_derived_data(self, file_path, data_list, target_data_units,
                                 time_units):
-        """Calculate the specifield derived components."""
+        """Calculate the specified derived components."""
         derived_data_dict = {}
         for name in data_list:
             data_def = get_definition(name)
