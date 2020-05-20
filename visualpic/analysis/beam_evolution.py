@@ -25,14 +25,15 @@ from visualpic.helper_functions import print_progress_bar
 
 
 def analyze_beam_evolution(
-        sim_path, sim_code, species_name, t_step_range=None, n_slices=10,
-        slice_len=None, filter_min=[None, None, None, None, None, None, None],
+        sim_path, sim_code, species_name, plasma_density=None,
+        t_step_range=None, n_slices=10, slice_len=None,
+        filter_min=[None, None, None, None, None, None, None],
         filter_max=[None, None, None, None, None, None, None],
         filter_sigma=[None, None, None, None, None, None, None], save_to=None,
         saved_file_name='beam_params.h5', parallel=False, n_proc=None):
     # Load data.
     print('Scanning simulation folder... ', end='', flush=True)
-    dc = DataContainer(sim_code, sim_path)
+    dc = DataContainer(sim_code, sim_path, plasma_density)
     dc.load_data()
     print('Done.')
     beam = dc.get_species(species_name)
@@ -89,7 +90,8 @@ def analyze_beam_evolution(
 
 def _analyze_beam_timestep(time_step, beam, n_slices, slice_len, filter_min,
                            filter_max, filter_sigma):
-    data = beam.get_data(time_step, ['x', 'y', 'z', 'px', 'py', 'pz', 'q'])
+    data = beam.get_data(time_step, ['x', 'y', 'z', 'px', 'py', 'pz', 'q'],
+                         data_units=['SI', 'SI', 'SI', 'SI', 'SI', 'SI', 'SI'])
     x, *_ = data['x']
     y, *_ = data['y']
     z, *_ = data['z']
