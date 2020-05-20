@@ -91,7 +91,7 @@ def analyze_beam_evolution(
 def _analyze_beam_timestep(time_step, beam, n_slices, slice_len, filter_min,
                            filter_max, filter_sigma):
     data = beam.get_data(time_step, ['x', 'y', 'z', 'px', 'py', 'pz', 'q'],
-                         data_units=['SI', 'SI', 'SI', 'SI', 'SI', 'SI', 'SI'])
+                         data_units='SI')
     x, *_ = data['x']
     y, *_ = data['y']
     z, *_ = data['z']

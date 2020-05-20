@@ -74,11 +74,12 @@ class ParticleSpecies():
         components_list : list
             List of strings containing the names of the components to be read.
 
-        data_units : list
-            (Optional) List of strings containing the desired unis in which to
-            return the data. If specified, it should have the same length as
-            'components_list'. If not, the data will be returned in the same
-            units as in the file.
+        data_units : list or str
+            (Optional) String or list of strings indicating the desired unis in
+            which to return the data. If a list is given, it should have the
+            same length as 'components_list'. If a string is given, it will be
+            applied to all components. If this parameter is not specified, the
+            data will be returned in the same units as in the file.
 
         time_units : str
             (Optional) Units in which to return the time information of the
@@ -92,8 +93,11 @@ class ParticleSpecies():
         where the first element is the data array and the second is the 
         metadata dictionary.
         """
-        # Check that the length of components_list and data_units match
         units_are_specified = data_units is not None
+        # If units are a string, assume all components should have these units
+        if isinstance(data_units, str):
+            data_units = [data_units] * len(components_list)
+        # Check that the length of components_list and data_units match
         if (units_are_specified and (len(components_list) != len(data_units))):
             len_comp = len(components_list)
             len_units = len(data_units)
