@@ -1,11 +1,7 @@
 numpy
 scipy
-pyqt5
-pillow
 h5py
 matplotlib
 openpmd-viewer>=1.0.0
 aptools
-vtk
-pyvista
 tqdm
