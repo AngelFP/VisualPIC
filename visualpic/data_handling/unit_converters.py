@@ -27,8 +27,8 @@ time_conversion = {'ms': 1e3,
                    'as': 1e18}
 
 
-momentum_conversion = {'MeV/c': 1e-6 * ct.c/ct.e,
-                       'GeV/c': 1e-9 * ct.c/ct.e}
+momentum_conversion = {'MeV/c': 1e-6 * ct.m_e*ct.c**2/ct.e,
+                       'GeV/c': 1e-9 * ct.m_e*ct.c**2/ct.e}
 
 
 angle_conversion = {'mrad': 1e3,
@@ -69,7 +69,7 @@ class UnitConverter():
                                    'T': bfield_conversion,
                                    'V/m^2': efieldgradient_conversion,
                                    'T/m': bfieldgradient_conversion,
-                                   'J*s/m': momentum_conversion,
+                                   'm_e*c': momentum_conversion,
                                    'W/m^2': intensity_conversion}
 
         self.si_units = list(self.conversion_factors.keys())
@@ -218,12 +218,12 @@ class OsirisUnitConverter(UnitConverter):
             w_p = ge.plasma_frequency(plasma_density*1e-6)
             E_0 = ge.plasma_cold_non_relativisct_wave_breaking_field(
                 plasma_density*1e-6)
-            self.osiris_unit_conversion = {'1/\\omega_p': [1/w_p, 's'],
-                                           'c/\\omega_p': [ct.c/w_p, 'm'],
-                                           'm_ec\\omega_pe^{-1}': [E_0, 'V/m'],
-                                           'e\\omega_p^3/c^3': [(w_p/ct.c)**3,
-                                                                '1/m^3'],
-                                           'm_ec': [ct.m_e*ct.c, 'J*s/m']}
+            self.osiris_unit_conversion = {
+                '1/\\omega_p': [1./w_p, 's'],
+                'c/\\omega_p': [ct.c/w_p, 'm'],
+                'm_ec\\omega_pe^{-1}': [E_0, 'V/m'],
+                'e\\omega_p^3/c^3': [(w_p/ct.c)**3, '1/m^3'],
+                'm_ec': [1., 'm_e*c']}
         else:
             self.osiris_unit_conversion = None
         super().__init__()
