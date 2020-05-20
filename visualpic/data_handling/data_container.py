@@ -30,7 +30,7 @@ class DataContainer():
 
         simulation_code : str
             Name of the simulation code from which the data comes from.
-            Possible values are 'Osiris, 'HiPACE' or 'openPMD' for any
+            Possible values are 'osiris, 'hipace' or 'openpmd' for any
             openPMD-compliant code.
 
         data_folder_path : str
@@ -38,19 +38,18 @@ class DataContainer():
 
         plasma_density : float
             (Optional) Value of the plasma density in m^{-3}. Needed only for
-            'Osiris' and 'HiPACE' data to allow for conversion to
+            'osiris' and 'hipace' data to allow for conversion to
             non-normalized units.
 
         laser_wavelength : float
             Wavelength (in metres) of the laser in the simulation. Needed for
             computing the normalized vector potential.
         """
-        self.simulation_code = simulation_code
+        self.simulation_code = simulation_code.lower()
         self.data_folder_path = data_folder_path
         self.sim_params = {'n_p': plasma_density,
                            'lambda_0': laser_wavelength}
-        self.folder_scanner = self._get_folder_scanner(simulation_code,
-                                                       plasma_density)
+        self._set_folder_scanner()
         self.folder_fields = []
         self.particle_species = []
         self.derived_fields = []
@@ -138,18 +137,21 @@ class DataContainer():
         raise ValueError("Species '{}' not found. ".format(species_name) +
                          "Available species are {}.".format(available_species))
 
-    def _get_folder_scanner(self, simulation_code, plasma_density=None):
+    def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
-        if simulation_code == 'Osiris':
-            return OsirisFolderScanner(plasma_density=plasma_density)
-        elif simulation_code == 'HiPACE':
-            return HiPACEFolderScanner(plasma_density=plasma_density)
-        elif simulation_code == 'openPMD':
-            return OpenPMDFolderScanner()
+        plasma_density = self.sim_params['n_p']
+        sim_code = self.simulation_code
+        if sim_code == 'osiris':
+            fs = OsirisFolderScanner(plasma_density=plasma_density)
+        elif sim_code == 'hipace':
+            fs = HiPACEFolderScanner(plasma_density=plasma_density)
+        elif sim_code == 'openpmd':
+            fs = OpenPMDFolderScanner()
         else:
-            raise ValueError("Unsupported code '{}'.".format(simulation_code) +
-                             " Possible values are 'Osiris', 'HiPACE' or " +
-                             "'openPMD'.")
+            raise ValueError("Unsupported code '{}'.".format(sim_code) +
+                             " Possible values are 'osiris', 'hipace' or " +
+                             "'openpmd'.")
+        self.folder_scanner = fs
 
     def _generate_derived_fields(self):
         """Returns a list with the available derived fields."""
