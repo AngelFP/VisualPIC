@@ -13,10 +13,18 @@ import sys
 from pkg_resources import resource_filename
 import warnings
 
-import vtk
-import pyvista as pv
 import numpy as np
 from scipy.ndimage import zoom
+try:
+    import vtk
+    vtk_installed = True
+except:
+    vtk_installed = False
+try:
+    import pyvista as pv
+    pyvista_installed = True
+except:
+    pyvista_installed = False
 try:
     from PyQt5 import QtWidgets
     qt_installed = True
@@ -94,6 +102,7 @@ class VTKVisualizer():
             Whether to use Qt for the windows opened by the visualizer.
 
         """
+        self._check_dependencies()
         if use_qt and not qt_installed:
             print('Qt is not installed. Default VTK windows will be used.')
             use_qt = False
@@ -988,6 +997,17 @@ class VTKVisualizer():
             rep.SetPosition(x_1, y_1)
             rep.SetPosition2(x_2, y_2)
 
+    def _check_dependencies(self):
+        missing_dependencies = []
+        if not vtk_installed:
+            missing_dependencies.append('vtk')
+        if not pyvista_installed:
+            missing_dependencies.append('pyvista')
+        if len(missing_dependencies) > 0:
+            dep_str = ', '.join(missing_dependencies)
+            raise ImportError(
+                "Missing required dependencies: {}.\n".format(dep_str) +
+                "Install by running 'pip install {}'.".format(dep_str))
 
 class VolumetricField():
 
