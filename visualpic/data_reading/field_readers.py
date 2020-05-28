@@ -76,10 +76,13 @@ class FieldReader():
             field_metadata['axis']['x'] = r_md
             field_metadata['axis']['y'] = r_md
             del field_metadata['axis']['r']
+            field_metadata['field']['axis_labels'] = ['x', 'y', 'z']
         if slice_dir_i is not None:
             del field_metadata['axis'][slice_dir_i]
+            field_metadata['field']['axis_labels'].remove(slice_dir_i)
         if slice_dir_j is not None:
             del field_metadata['axis'][slice_dir_j]
+            field_metadata['field']['axis_labels'].remove(slice_dir_j)
 
     def _read_field_1d(self, file_path, field_path):
         raise NotImplementedError
@@ -159,6 +162,16 @@ class OsirisFieldReader(FieldReader):
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
+        if field_geometry == "3dcartesian":
+            axis_labels = ['x', 'y', 'z']
+        elif field_geometry == "2dcartesian":
+            axis_labels = ['x', 'z']
+        elif field_geometry == "1d":
+            axis_labels = ['z']
+        else:
+            raise NotImplementedError('Geometry {} '.format(field_geometry) +
+                                      'not yet supported.')
+        md['field']['axis_labels'] = axis_labels
         md['axis'] = self._get_axis_data(file, field_path, field_geometry,
                                          field_shape)
         md['time'] = self._get_time_data(file)
@@ -387,7 +400,10 @@ class OpenPMDFieldReader(FieldReader):
                                           theta, max_resolution_3d_tm)
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = ['r', 'z']
+            if theta is None:
+                axis_order = ['x', 'y', 'z']
+            else:
+                axis_order = ['r', 'z']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i]
@@ -489,7 +505,7 @@ class OpenPMDFieldReader(FieldReader):
                                                F, axes=(0, 0))[::-1, :]
             elif m == 0:
                 # Extract mode 0
-                F = get_data(dset, 0, 0)
+                F = opmd_fr.get_data(dset, 0, 0)
                 F_total[Nr:, :] = F[:, :]
                 F_total[:Nr, :] = F[::-1, :]
             else:
@@ -539,10 +555,12 @@ class OpenPMDFieldReader(FieldReader):
         md['time']['value'] = t
         md['time']['units'] = 's'
         field_geometry = params['fields_metadata'][field]['geometry']
+        axis_labels = params['fields_metadata'][field]['axis_labels']
         field_units = self._determine_field_units(field)
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
+        md['field']['axis_labels'] = axis_labels
         ax_el, ax_lims = opmd_fr.get_grid_parameters(file, [field],
                                                      params['fields_metadata'])
         axes = ax_el.keys()
