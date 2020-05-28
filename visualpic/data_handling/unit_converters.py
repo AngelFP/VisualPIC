@@ -35,6 +35,11 @@ angle_conversion = {'mrad': 1e3,
                     'urad': 1e6}
 
 
+charge_conversion = {'nC': 1e9,
+                     'pC': 1e12,
+                     'fC': 1e15}
+
+
 efield_conversion = {'GV/m': 1e-9,
                      'MV/m': 1e-6,
                      'T': 1/ct.c}
@@ -65,6 +70,7 @@ class UnitConverter():
         self.conversion_factors = {'m': length_conversion,
                                    's': time_conversion,
                                    'rad': angle_conversion,
+                                   'C': charge_conversion,
                                    'V/m': efield_conversion,
                                    'T': bfield_conversion,
                                    'V/m^2': efieldgradient_conversion,
