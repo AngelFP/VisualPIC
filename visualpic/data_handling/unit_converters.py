@@ -82,6 +82,19 @@ class UnitConverter():
         convert_axes = target_axes_units is not None
         convert_time = target_time_units is not None
 
+        if convert_axes:
+            field_axes = field_md['field']['axis_labels']
+            # If no particular axes are specified, assume all.
+            if axes_to_convert is None:
+                axes_to_convert = field_axes
+            # It units are not a list, assume they apply to all axes.
+            if not isinstance(target_axes_units, list):
+                target_axes_units = [target_axes_units] * len(axes_to_convert)
+            # Check that length of axes to convert and units match.
+            if len(target_axes_units) != len(axes_to_convert):
+                raise ValueError("Length of 'target_axes_units' and "
+                                 "'axes_to_convert' do not match")
+
         # convert to SI units the desired data (field and/or axis and/or time)
         if convert_field or convert_axes or convert_time:
             field_data, field_md = self.convert_field_to_si_units(
@@ -95,6 +108,7 @@ class UnitConverter():
             field_data = self.convert_data(field_data, field_units,
                                            target_field_units)
             field_md['field']['units'] = target_field_units
+
         # convert axes data to desired units
         if convert_axes and (target_axes_units != 'SI' and
                              target_axes_units not in self.si_units):
@@ -105,6 +119,7 @@ class UnitConverter():
                                               target_units)
                 field_md['axis'][axis]['units'] = target_units
                 field_md['axis'][axis]['array'] = axis_data
+
         # convert time data to desired units
         if convert_time and (target_time_units != 'SI' and
                              target_time_units not in self.si_units):
