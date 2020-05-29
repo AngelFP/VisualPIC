@@ -1631,7 +1631,10 @@ class ScatterSpecies():
             update_color = update_color or cmap_range_changed
             if update_color:
                 color_var_units = self._timestep_data[color_var][1]['units']
-                color_var_range = [np.min(color_arr), np.max(color_arr)]
+                if len(color_arr) > 0:
+                    color_var_range = [np.min(color_arr), np.max(color_arr)]
+                else:
+                    color_var_range = [0, 1]
                 self._update_colorbar(color_var, color_var_units,
                                       color_var_range)
         else:
