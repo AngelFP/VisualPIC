@@ -57,8 +57,8 @@ class FieldReader():
             if max_resolution_3d_tm is not None:
                 z = field_metadata['axis']['z']['array']
                 r = r_md['array']
-                nr = len(r)
-                nz = len(z)
+                nr = len(r) - 1
+                nz = len(z) - 1
                 max_res_lon, max_res_transv = max_resolution_3d_tm
                 if nz > max_res_lon:
                     excess_z = int(np.round(nz/max_res_lon))
