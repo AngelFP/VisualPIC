@@ -125,11 +125,14 @@ def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
     elif sim_geometry == 'thetaMode':
         Ez, Er, Et = data_list
         E2 = Ez**2 + Er**2 + Et**2
-    return np.sqrt(7.3e-11 * l_0**2 * ct.c * ct.epsilon_0 / 2 * E2)
-
+    # return np.sqrt(7.3e-11 * l_0**2 * ct.c * ct.epsilon_0 / 2 * E2)
+    k_0 = 2. * np.pi / l_0
+    # return (ct.e / ct.m_e / ct.c**2) * np.sqrt(E2) / k_0
+    return np.sqrt(E2) / k_0
 
 norm_vector_pot = {'name': 'a',
-                   'units': 'm_e*c^2/e',
+                   # 'units': 'm_e*c^2/e',
+                   'units': 'V',
                    'requirements': {'1d': ['Ez'],
                                     '2dcartesian': ['Ez', 'Ex'],
                                     '3dcartesian': ['Ez', 'Ex', 'Ey'],

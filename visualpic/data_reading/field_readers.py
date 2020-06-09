@@ -274,9 +274,9 @@ class HiPACEFieldReader(FieldReader):
         # HiPACE does not store unit information in data files
         file = os.path.split(file_path)[-1]
         if 'field' in file:
-            return 'm_e c \\omega_p e^{-1}'
+            return 'E_0'
         elif 'density' in file:
-            'e \\omega_p^3/ c^3'
+            return 'n_0'
         else:
             return ''
 
