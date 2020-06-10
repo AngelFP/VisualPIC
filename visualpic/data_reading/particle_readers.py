@@ -75,9 +75,12 @@ class OsirisParticleReader(ParticleReader):
             metadata['time']['units'] = self._numpy_bytes_to_string(
                 file_handle.attrs['TIME UNITS'][0])
             metadata['grid'] = {}
-            metadata['grid']['resolution'] = file_handle.attrs['NX']
-            max_range = file_handle.attrs['XMAX']
-            min_range = file_handle.attrs['XMIN']
+            simdata_path = '/SIMULATION'
+            if simdata_path not in file_handle.keys():
+                simdata_path = '/'
+            metadata['grid']['resolution'] = file_handle[simdata_path].attrs['NX']
+            max_range = file_handle[simdata_path].attrs['XMAX']
+            min_range = file_handle[simdata_path].attrs['XMIN']
             metadata['grid']['size'] = max_range - min_range
             grid_range = []
             for x_min, x_max in zip(min_range, max_range):
@@ -113,28 +116,28 @@ class HiPACEParticleReader(ParticleReader):
                 b = data[:, 1]
                 data = 1/2*(a+b)*(a+b+1)+b
             """
-            # This block is inconsistent with how is done in OsirisParticleReader
+            # This block is inconsistent with how is done in OSIRIS (above)
             if component == 'q':
                 n_cells = file_handle.attrs['NX']
                 sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
                 cell_vol = np.prod(sim_size/n_cells)
                 data *= cell_vol
-            return np.array(data)
             """
-            
+            return np.array(data)
+
     def _read_component_metadata(self, file_path, species, component):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
             if component in ['x', 'y', 'z']:
-                units = 'c/ \omega_p'
+                units = 'c/\\omega_p'
             elif component in ['px', 'py', 'pz']:
-                units = 'm_e c'
+                units = 'm_ec'
             elif component == 'q':
-                units = 'e n_p c^3 / \\omega_p^3'
+                units = 'qnorm'
             metadata['units'] = units
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
-            metadata['time']['units'] = '1/ \\omega_p'
+            metadata['time']['units'] = '1/\\omega_p'
             metadata['grid'] = {}
             metadata['grid']['resolution'] = file_handle.attrs['NX']
             max_range = file_handle.attrs['XMAX']
@@ -144,7 +147,7 @@ class HiPACEParticleReader(ParticleReader):
             for x_min, x_max in zip(min_range, max_range):
                 grid_range.append([x_min, x_max])
             metadata['grid']['range'] = grid_range
-            metadata['grid']['size_units'] = '\\omega_p/c'
+            metadata['grid']['size_units'] = 'c/\\omega_p'
         return metadata
 
 
