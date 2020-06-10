@@ -116,7 +116,7 @@ class HiPACEParticleReader(ParticleReader):
                 b = data[:, 1]
                 data = 1/2*(a+b)*(a+b+1)+b
             """
-            # This block is inconsistent with how is done in OSIRIS
+            # This block is inconsistent with how is done in OSIRIS (above)
             if component == 'q':
                 n_cells = file_handle.attrs['NX']
                 sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
