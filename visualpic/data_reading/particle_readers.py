@@ -112,13 +112,16 @@ class HiPACEParticleReader(ParticleReader):
                 a = data[:, 0]
                 b = data[:, 1]
                 data = 1/2*(a+b)*(a+b+1)+b
+            """
+            # This block is inconsistent with how is done in OsirisParticleReader
             if component == 'q':
                 n_cells = file_handle.attrs['NX']
                 sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
                 cell_vol = np.prod(sim_size/n_cells)
                 data *= cell_vol
             return np.array(data)
-
+            """
+            
     def _read_component_metadata(self, file_path, species, component):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
