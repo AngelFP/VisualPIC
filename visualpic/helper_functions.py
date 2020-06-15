@@ -81,13 +81,28 @@ def get_common_timesteps(data_list):
     --------
     An array containing only the common time steps.
     """
-    timesteps = np.array([])
-    for i, data_element in enumerate(data_list):
+    common_ts = np.array([])
+    ts_list = []
+    for data_element in data_list:
+        ts_list.append(data_element.timesteps)
+    if len(ts_list) > 0:
+        common_ts = get_common_array_elements(ts_list)
+    return common_ts
+
+
+def get_common_array_elements(array_list):
+    """
+    Returns an array containing only the common elements between all the
+    arrays in 'array_list'
+    
+    """
+    for i, array in enumerate(array_list):
         if i == 0:
-            timesteps = data_element.timesteps
+            common_els = array
         else:
-            timesteps = np.intersect1d(timesteps, data_element.timesteps)
-    return timesteps
+            common_els = np.intersect1d(common_els, array)
+    return common_els
+        
 
 
 def get_closest_timestep(time_step, time_steps):
