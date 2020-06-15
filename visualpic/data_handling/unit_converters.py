@@ -65,7 +65,10 @@ bfieldgradient_conversion = {'MT/m': 1e-6,
 
 intensity_conversion = {'W/cm^2': 1e-4}
 
-potential_conversion = {'V': 1}
+
+potential_conversion = {'kV': 1e-3,
+                        'MV': 1e-6}
+
 
 class UnitConverter():
     def __init__(self):
