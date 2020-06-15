@@ -13,8 +13,7 @@ import scipy.constants as ct
 import aptools.plasma_accel.general_equations as ge
 
 
-length_conversion = {'m': 1.,
-                     'km': 1e-3,
+length_conversion = {'km': 1e-3,
                      'mm': 1e3,
                      'um': 1e6,
                      'nm': 1e9}
