@@ -21,6 +21,12 @@ class Field():
         self.species_name = species_name
         self.unit_converter = unit_converter
 
+    def get_name(self):
+        fld_name = self.field_name
+        if self.species_name is not None:
+            fld_name += ' [{}]'.format(self.species_name)
+        return fld_name
+
     def get_data(self, time_step, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
@@ -93,8 +99,7 @@ class DerivedField(Field):
         field_data = []
         for field in self.base_fields:
             fld, fld_md = field.get_data(
-                time_step, field_units='SI', axes_units=axes_units,
-                axes_to_convert=axes_to_convert, time_units=time_units,
+                time_step, field_units='SI',
                 slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
                 slice_dir_j=slice_dir_j, m=m, theta=theta,
                 max_resolution_3d_tm=max_resolution_3d_tm,
