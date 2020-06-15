@@ -1,3 +1,12 @@
+"""
+This file is part of VisualPIC.
+
+The module contains the classes for 2D visualization with matplotlib.
+
+Copyright 2016-2020, Angel Ferran Pousa.
+License: GNU GPL-3.0.
+"""
+
 import sys
 from functools import partial
 
