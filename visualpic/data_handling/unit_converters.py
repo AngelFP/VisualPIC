@@ -284,11 +284,13 @@ class HiPACEUnitConverter(UnitConverter):
             w_p = ge.plasma_frequency(plasma_density*1e-6)
             E_0 = ge.plasma_cold_non_relativisct_wave_breaking_field(
                 plasma_density*1e-6)
-            self.hipace_unit_conversion = {'1/\\omega_p': [1/w_p, 's'],
-                                           'c/\\omega_p': [ct.c/w_p, 'm'],
-                                           'E_0': [E_0, 'V/m'],
-                                           'n_0': [ct.e * self.plasma_density, 'C/m^3'],
-                                           'm_ec': [ct.m_e*ct.c, 'J*s/m']}
+            self.hipace_unit_conversion = {
+                '1/\\omega_p': [1/w_p, 's'],
+                'c/\\omega_p': [ct.c/w_p, 'm'],
+                'E_0': [E_0, 'V/m'],
+                'n_0': [ct.e * self.plasma_density, 'C/m^3'],
+                'm_ec': [ct.m_e*ct.c, 'J*s/m']
+                }
         else:
             self.hipace_unit_conversion = None
         super().__init__()
