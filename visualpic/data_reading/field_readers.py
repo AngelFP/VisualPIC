@@ -162,6 +162,7 @@ class OsirisFieldReader(FieldReader):
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
+        # TODO: check correct order of labels
         if field_geometry == "3dcartesian":
             axis_labels = ['x', 'y', 'z']
         elif field_geometry == "2dcartesian":
@@ -264,6 +265,8 @@ class HiPACEFieldReader(FieldReader):
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = '3dcartesian'
+        # TODO: check correct order of labels
+        md['field']['axis_labels'] = ['x', 'y', 'z']
         md['axis'] = self._get_axis_data(file, field_shape)
         md['time'] = self._get_time_data(file)
         file.close()
