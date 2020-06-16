@@ -67,17 +67,35 @@ class OsirisParticleReader(ParticleReader):
     def _read_component_metadata(self, file_path, species, component):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
+            # Read units.
             if component != 'tag':
-                metadata['units'] = self._numpy_bytes_to_string(file_handle[
-                    self.name_relations[component]].attrs['UNITS'][0])
+                osiris_name = self.name_relations[component]
+                # In new Osiris versions, the units are in a list in '/'.
+                if 'QUANTS' in file_handle.attrs:
+                    units_path = '/'
+                    quantlist = [self._numpy_bytes_to_string(q)
+                                 for q in file_handle.attrs['QUANTS']]
+                    idx = quantlist.index(osiris_name)
+                else:
+                    units_path = osiris_name
+                    idx = 0
+                metadata['units'] = self._numpy_bytes_to_string(
+                    file_handle[units_path].attrs['UNITS'][idx])
+            # Read time data.
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
             metadata['time']['units'] = self._numpy_bytes_to_string(
                 file_handle.attrs['TIME UNITS'][0])
+            # Read grid parameters.
+            simdata_path = '/SIMULATION'
+            # In older Osiris versions the simulation parameters are in '/'.
+            if simdata_path not in file_handle.keys():
+                simdata_path = '/'
+            sim_data = file_handle[simdata_path]
             metadata['grid'] = {}
-            metadata['grid']['resolution'] = file_handle.attrs['NX']
-            max_range = file_handle.attrs['XMAX']
-            min_range = file_handle.attrs['XMIN']
+            metadata['grid']['resolution'] = sim_data.attrs['NX']
+            max_range = sim_data.attrs['XMAX']
+            min_range = sim_data.attrs['XMIN']
             metadata['grid']['size'] = max_range - min_range
             grid_range = []
             for x_min, x_max in zip(min_range, max_range):
@@ -112,26 +130,21 @@ class HiPACEParticleReader(ParticleReader):
                 a = data[:, 0]
                 b = data[:, 1]
                 data = 1/2*(a+b)*(a+b+1)+b
-            if component == 'q':
-                n_cells = file_handle.attrs['NX']
-                sim_size = (file_handle.attrs['XMAX'] - file_handle.attrs['XMIN'])
-                cell_vol = np.prod(sim_size/n_cells)
-                data *= cell_vol
             return np.array(data)
 
     def _read_component_metadata(self, file_path, species, component):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
             if component in ['x', 'y', 'z']:
-                units = 'c/ \omega_p'
+                units = 'c/\\omega_p'
             elif component in ['px', 'py', 'pz']:
-                units = 'm_e c'
+                units = 'm_ec'
             elif component == 'q':
-                units = 'e n_p c^3 / \\omega_p^3'
+                units = 'qnorm'
             metadata['units'] = units
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
-            metadata['time']['units'] = '1/ \\omega_p'
+            metadata['time']['units'] = '1/\\omega_p'
             metadata['grid'] = {}
             metadata['grid']['resolution'] = file_handle.attrs['NX']
             max_range = file_handle.attrs['XMAX']
@@ -141,7 +154,7 @@ class HiPACEParticleReader(ParticleReader):
             for x_min, x_max in zip(min_range, max_range):
                 grid_range.append([x_min, x_max])
             metadata['grid']['range'] = grid_range
-            metadata['grid']['size_units'] = '\\omega_p/c'
+            metadata['grid']['size_units'] = 'c/\\omega_p'
         return metadata
 
 

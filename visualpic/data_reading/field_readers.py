@@ -162,6 +162,7 @@ class OsirisFieldReader(FieldReader):
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
+        # TODO: check correct order of labels
         if field_geometry == "3dcartesian":
             axis_labels = ['x', 'y', 'z']
         elif field_geometry == "2dcartesian":
@@ -180,7 +181,11 @@ class OsirisFieldReader(FieldReader):
 
     def _get_field_units(self, file, field_path):
         """ Returns the field units"""
-        return self._numpy_bytes_to_string(file[field_path].attrs["UNITS"][0])
+        attr_path = '/'
+        # In older Osiris versions the units are in field_path.
+        if "UNITS" in file[field_path].attrs:
+            attr_path = field_path
+        return self._numpy_bytes_to_string(file[attr_path].attrs["UNITS"][0])
 
     def _get_field_shape(self, file, field_path):
         """ Returns shape of field array"""
@@ -197,26 +202,31 @@ class OsirisFieldReader(FieldReader):
 
     def _get_axis_data(self, file, field_path, field_geometry, field_shape):
         """ Returns dictionary with the array and units of each field axis """
+        simdata_path = '/SIMULATION'
+        # In older Osiris versions the simulation parameters are in '/'.
+        if simdata_path not in file.keys():
+            simdata_path = '/'
+        sim_data = file[simdata_path]
         axis_data = {}
         axis_data['z'] = {}
         axis_data["z"]["units"] = self._numpy_bytes_to_string(
             file['/AXIS/AXIS1'].attrs["UNITS"][0])
-        axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
-                                              file.attrs['XMAX'][0],
+        axis_data["z"]["array"] = np.linspace(sim_data.attrs['XMIN'][0],
+                                              sim_data.attrs['XMAX'][0],
                                               field_shape[-1]+1)
         if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
             axis_data["x"]["units"] = self._numpy_bytes_to_string(
                 file['/AXIS/AXIS2'].attrs["UNITS"][0])
-            axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
-                                                  file.attrs['XMAX'][1],
+            axis_data["x"]["array"] = np.linspace(sim_data.attrs['XMIN'][1],
+                                                  sim_data.attrs['XMAX'][1],
                                                   field_shape[0]+1)
         if field_geometry == "3dcartesian":
             axis_data['y'] = {}
             axis_data["y"]["units"] = self._numpy_bytes_to_string(
                 file['/AXIS/AXIS3'].attrs["UNITS"][0])
-            axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
-                                                  file.attrs['XMAX'][2],
+            axis_data["y"]["array"] = np.linspace(sim_data.attrs['XMIN'][2],
+                                                  sim_data.attrs['XMAX'][2],
                                                   field_shape[1]+1)
         return axis_data
 
@@ -264,6 +274,8 @@ class HiPACEFieldReader(FieldReader):
         md['field'] = {}
         md['field']['units'] = field_units
         md['field']['geometry'] = '3dcartesian'
+        # TODO: check correct order of labels
+        md['field']['axis_labels'] = ['x', 'y', 'z']
         md['axis'] = self._get_axis_data(file, field_shape)
         md['time'] = self._get_time_data(file)
         file.close()
@@ -274,9 +286,9 @@ class HiPACEFieldReader(FieldReader):
         # HiPACE does not store unit information in data files
         file = os.path.split(file_path)[-1]
         if 'field' in file:
-            return 'm_e c \\omega_p e^{-1}'
+            return 'E_0'
         elif 'density' in file:
-            'e \\omega_p^3/ c^3'
+            return 'n_0'
         else:
             return ''
 
@@ -288,17 +300,17 @@ class HiPACEFieldReader(FieldReader):
         """ Returns dictionary with the array and units of each field axis """
         axis_data = {}
         axis_data['z'] = {}
-        axis_data["z"]["units"] = 'c/ \\omega_p'
+        axis_data["z"]["units"] = 'c/\\omega_p'
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
                                               field_shape[0]+1)
         axis_data['x'] = {}
-        axis_data["x"]["units"] = 'c/ \\omega_p'
+        axis_data["x"]["units"] = 'c/\\omega_p'
         axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                               file.attrs['XMAX'][1],
                                               field_shape[1]+1)
         axis_data['y'] = {}
-        axis_data["y"]["units"] = 'c/ \\omega_p'
+        axis_data["y"]["units"] = 'c/\\omega_p'
         axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
                                               file.attrs['XMAX'][2],
                                               field_shape[2]+1)
@@ -308,7 +320,7 @@ class HiPACEFieldReader(FieldReader):
         """ Returns dictionary with value and units of the simulation time """
         time_data = {}
         time_data["value"] = file.attrs["TIME"][0]
-        time_data["units"] = '1/ \\omega_p'
+        time_data["units"] = '1/\\omega_p'
         return time_data
 
 
