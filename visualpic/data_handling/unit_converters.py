@@ -75,8 +75,7 @@ class UnitConverter():
     def __init__(self):
         """ Initialize unit converter. """
         # For convenience, due to their common use, the momentum units 'm_e*c'
-        # and the normalized potential units 'm_e*c^2/e' are also considered SI
-        # units.
+        # are also considered SI units.
         self.conversion_factors = {'m': length_conversion,
                                    's': time_conversion,
                                    'rad': angle_conversion,
@@ -94,8 +93,8 @@ class UnitConverter():
     def convert_field_units(self, field_data, field_md,
                             target_field_units=None, target_axes_units=None,
                             axes_to_convert=None, target_time_units=None):
-        # Dimmensionless fields will not be converted.
         convert_field = target_field_units is not None
+        # Dimmensionless fields will not be converted.
         if convert_field and field_md['field']['units'] == '':
             convert_field = False
             warnings.warn('Field is dimmensionless. '
