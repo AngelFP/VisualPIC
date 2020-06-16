@@ -149,7 +149,7 @@ def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
 
 
 norm_vector_pot = {'name': 'a',
-                   'units': 'm_e*c^2/e',
+                   'units': '',
                    'requirements': {'1d': ['Ez'],
                                     '2dcartesian': ['Ez', 'Ex'],
                                     '3dcartesian': ['Ez', 'Ex', 'Ey'],

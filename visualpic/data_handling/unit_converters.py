@@ -7,6 +7,7 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
+import warnings
 
 import numpy as np
 import scipy.constants as ct
@@ -70,11 +71,6 @@ potential_conversion = {'m_e*c^2/e': 1 / ((ct.m_e * ct.c**2) / ct.e),
                         'MV': 1e-6}
 
 
-norm_potential_conversion = {'V': ct.m_e * ct.c**2 / ct.e,
-                             'kV': ct.m_e * ct.c**2 / ct.e * 1e-3,
-                             'MV': ct.m_e * ct.c**2 / ct.e * 1e-6}
-
-
 class UnitConverter():
     def __init__(self):
         """ Initialize unit converter. """
@@ -91,16 +87,19 @@ class UnitConverter():
                                    'T/m': bfieldgradient_conversion,
                                    'm_e*c': momentum_conversion,
                                    'W/m^2': intensity_conversion,
-                                   'V': potential_conversion,
-                                   'm_e*c^2/e': norm_potential_conversion}
+                                   'V': potential_conversion}
 
         self.si_units = list(self.conversion_factors.keys())
 
     def convert_field_units(self, field_data, field_md,
                             target_field_units=None, target_axes_units=None,
                             axes_to_convert=None, target_time_units=None):
-
+        # Dimmensionless fields will not be converted.
         convert_field = target_field_units is not None
+        if convert_field and field_md['field']['units'] == '':
+            convert_field = False
+            warnings.warn('Field is dimmensionless. '
+                          'No field unit conversion will be performed.')
         convert_axes = target_axes_units is not None
         convert_time = target_time_units is not None
 
