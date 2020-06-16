@@ -127,7 +127,6 @@ class UnitConverter():
         field_units = field_md['field']['units']
         if convert_field and (target_field_units != 'SI' and
                               target_field_units != field_units):
-            field_units = field_md['field']['units']
             field_data = self.convert_data(field_data, field_units,
                                            target_field_units)
             field_md['field']['units'] = target_field_units
