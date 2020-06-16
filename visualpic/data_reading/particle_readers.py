@@ -67,25 +67,35 @@ class OsirisParticleReader(ParticleReader):
     def _read_component_metadata(self, file_path, species, component):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
+            # Read units.
             if component != 'tag':
+                osiris_name = self.name_relations[component]
+                # In new Osiris versions, the units are in a list in '/'.
                 if 'QUANTS' in file_handle.attrs:
-                    quantlist = [self._numpy_bytes_to_string(q) for q in file_handle.attrs['QUANTS']]
-                    idx = quantlist.index(self.name_relations[component])
-                    metadata['units'] = self._numpy_bytes_to_string(file_handle.attrs['UNITS'][idx])
+                    units_path = '/'
+                    quantlist = [self._numpy_bytes_to_string(q)
+                                 for q in file_handle.attrs['QUANTS']]
+                    idx = quantlist.index(osiris_name)
                 else:
-                    metadata['units'] = self._numpy_bytes_to_string(file_handle[self.name_relations[component]].attrs['UNITS'][0])
-                    
+                    units_path = osiris_name
+                    idx = 0
+                metadata['units'] = self._numpy_bytes_to_string(
+                    file_handle[units_path].attrs['UNITS'][idx])
+            # Read time data.
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
             metadata['time']['units'] = self._numpy_bytes_to_string(
                 file_handle.attrs['TIME UNITS'][0])
-            metadata['grid'] = {}
+            # Read grid parameters.
             simdata_path = '/SIMULATION'
+            # In older Osiris versions the simulation parameters are in '/'.
             if simdata_path not in file_handle.keys():
                 simdata_path = '/'
-            metadata['grid']['resolution'] = file_handle[simdata_path].attrs['NX']
-            max_range = file_handle[simdata_path].attrs['XMAX']
-            min_range = file_handle[simdata_path].attrs['XMIN']
+            sim_data = file_handle[simdata_path]
+            metadata['grid'] = {}
+            metadata['grid']['resolution'] = sim_data.attrs['NX']
+            max_range = sim_data.attrs['XMAX']
+            min_range = sim_data.attrs['XMIN']
             metadata['grid']['size'] = max_range - min_range
             grid_range = []
             for x_min, x_max in zip(min_range, max_range):
