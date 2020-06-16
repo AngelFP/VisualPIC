@@ -123,9 +123,9 @@ class UnitConverter():
                 axes_to_convert, convert_time)
 
         # convert field data to desired units
-        field_units = field_md['field']['units']
         if convert_field and (target_field_units != 'SI' and
-                              target_field_units != field_units):
+                              target_field_units not in self.si_units):
+            field_units = field_md['field']['units']
             field_data = self.convert_data(field_data, field_units,
                                            target_field_units)
             field_md['field']['units'] = target_field_units
