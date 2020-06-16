@@ -65,12 +65,22 @@ bfieldgradient_conversion = {'MT/m': 1e-6,
 intensity_conversion = {'W/cm^2': 1e-4}
 
 
-potential_conversion = {'kV': 1e-3,
+potential_conversion = {'m_e*c^2/e': 1 / ((ct.m_e * ct.c**2) / ct.e),
+                        'kV': 1e-3,
                         'MV': 1e-6}
+
+
+norm_potential_conversion = {'V': ct.m_e * ct.c**2 / ct.e,
+                             'kV': ct.m_e * ct.c**2 / ct.e * 1e-3,
+                             'MV': ct.m_e * ct.c**2 / ct.e * 1e-6}
 
 
 class UnitConverter():
     def __init__(self):
+        """ Initialize unit converter. """
+        # For convenience, due to their common use, the momentum units 'm_e*c'
+        # and the normalized potential units 'm_e*c^2/e' are also considered SI
+        # units.
         self.conversion_factors = {'m': length_conversion,
                                    's': time_conversion,
                                    'rad': angle_conversion,
@@ -81,7 +91,8 @@ class UnitConverter():
                                    'T/m': bfieldgradient_conversion,
                                    'm_e*c': momentum_conversion,
                                    'W/m^2': intensity_conversion,
-                                   'V': potential_conversion}
+                                   'V': potential_conversion,
+                                   'm_e*c^2/e': norm_potential_conversion}
 
         self.si_units = list(self.conversion_factors.keys())
 
@@ -113,8 +124,9 @@ class UnitConverter():
                 axes_to_convert, convert_time)
 
         # convert field data to desired units
+        field_units = field_md['field']['units']
         if convert_field and (target_field_units != 'SI' and
-                              target_field_units not in self.si_units):
+                              target_field_units != field_units):
             field_units = field_md['field']['units']
             field_data = self.convert_data(field_data, field_units,
                                            target_field_units)
@@ -250,8 +262,7 @@ class OsirisUnitConverter(UnitConverter):
                 'm_ec\\omega_pe^{-1}': [E_0, 'V/m'],
                 # 'e\\omega_p^3/c^3': [(w_p/ct.c)**3, '1/m^3'],
                 'e\\omega_p^3/c^3': [ct.e * self.plasma_density, 'C/m^3'],
-                'm_ec': [1., 'm_e*c'],
-                'm_e*c^2/e': [ct.m_e*ct.c**2/ct.e, 'V']
+                'm_ec': [1., 'm_e*c']
             }
         else:
             self.osiris_unit_conversion = None
