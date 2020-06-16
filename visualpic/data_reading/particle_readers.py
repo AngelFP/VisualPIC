@@ -68,8 +68,13 @@ class OsirisParticleReader(ParticleReader):
         metadata = {}
         with H5F(file_path, 'r') as file_handle:
             if component != 'tag':
-                metadata['units'] = self._numpy_bytes_to_string(file_handle[
-                    self.name_relations[component]].attrs['UNITS'][0])
+                if 'QUANTS' in file_handle.attrs:
+                    quantlist = [self._numpy_bytes_to_string(q) for q in file_handle.attrs['QUANTS']]
+                    idx = quantlist.index(self.name_relations[component])
+                    metadata['units'] = self._numpy_bytes_to_string(file_handle.attrs['UNITS'][idx])
+                else:
+                    metadata['units'] = self._numpy_bytes_to_string(file_handle[self.name_relations[component]].attrs['UNITS'][0])
+                    
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
             metadata['time']['units'] = self._numpy_bytes_to_string(
