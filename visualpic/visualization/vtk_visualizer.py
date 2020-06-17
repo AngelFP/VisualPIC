@@ -1254,10 +1254,13 @@ class VolumetricField():
             order_str = '10^' + str(ord) + ' '
         else:
             order_str = ''
-        title = self.get_name() + '\n['
+        title = self.get_name()
+        units_str = ''
         if order_str != '':
-            title += order_str + '\n'
-        title += self.get_field_units() + ']'
+            units_str += order_str + '\n'
+        units_str += self.get_field_units()
+        if units_str != '':
+            title += '\n[' + units_str + ']'
         self.cbar.SetTitle(title)
 
     def _get_opacity_instance(self, opacity, gradient_opacity=False,
