@@ -56,6 +56,7 @@ class ParticleSpecies():
         self.species_files = species_files
         self.data_reader = data_reader
         self.unit_converter = unit_converter
+        self.associated_fields = []
 
     def get_data(self, time_step, components_list, data_units=None,
                  time_units=None):
@@ -147,6 +148,54 @@ class ParticleSpecies():
         if not include_tags and 'tag' in all_components:
             all_components.remove('tag')
         return all_components
+
+    def add_associated_field(self, field):
+        """Add a Field object associated to this species."""
+        if self.species_name == field.species_name:
+            self.associated_fields.append(field)
+        else:
+            raise ValueError(
+                "Field species '{}' does not match species '{}'.".format(
+                    field.species_name, self.species_name))
+
+    def get_field(self, field_name):
+        """Returns the specified Field from the list of associated fields."""
+        for field in self.associated_fields:
+            if field.field_name == field_name:
+                return field
+
+    def get_list_of_associated_fields(self):
+        """Returns the list of associated fields (only the names)."""
+        fields_list = []
+        for field in self.associated_fields:
+            fields_list.append(field.field_name)
+        return fields_list
+
+    def contains(self, data):
+        """
+        Check whether the species contains the specified data.
+        
+        Parameters
+        ----------
+
+        data : str or list
+            A string or a list of strings with the names of the data elements
+            that should be checked (can be both particle components and
+            associated fields).
+
+        Returns
+        -------
+        True if the species contains all data elements specified in 'data'.
+        False otherwise.
+
+        """
+        if not isinstance(data, list):
+            data = [data]
+        data = set(data)
+        comps = self.get_list_of_available_components()
+        flds = self.get_list_of_associated_fields()
+        av_data = set(comps + flds)
+        return data.issubset(av_data)
 
     def _get_file_path(self, time_step):
         """Get the file path corresponding to the specified time step."""

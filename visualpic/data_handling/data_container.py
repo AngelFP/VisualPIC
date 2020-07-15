@@ -11,6 +11,7 @@ License: GNU GPL-3.0.
 from visualpic.data_handling.derived_field_definitions import (
     derived_field_definitions)
 from visualpic.data_handling.fields import DerivedField
+from visualpic.data_handling.particle_species import ParticleSpecies
 from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
                                                     OpenPMDFolderScanner,
                                                     HiPACEFolderScanner)
@@ -62,6 +63,7 @@ class DataContainer():
         if not self.particle_species or force_reload:
             self.particle_species = self.folder_scanner.get_list_of_species(
                 self.data_folder_path)
+            self._add_associated_species_fields()
         if not self.derived_fields or force_reload:
             self.derived_fields = self._generate_derived_fields()
 
@@ -79,11 +81,23 @@ class DataContainer():
             fields_list.append(fld_name)
         return fields_list
 
-    def get_list_of_species(self):
-        """Returns a list with the names of all available particle species."""
+    def get_list_of_species(self, required_data=[]):
+        """
+        Returns a list with the names of all available particle species.
+        
+        Parameters
+        ----------
+
+        required_data : str or list of strings
+            String or list of strings with the names of the particle components
+            and/or fields that the species should contain. If specified,
+            only the species containing the required data will be returned.
+            
+        """
         species_list = []
         for species in self.particle_species:
-            species_list.append(species.species_name)
+            if species.contains(required_data):
+                species_list.append(species.species_name)
         return species_list
 
     def get_field(self, field_name, species_name=None):
@@ -174,3 +188,23 @@ class DataContainer():
             time_steps = self.folder_fields[0].timesteps
             fld_md = self.folder_fields[0].get_only_metadata(time_steps[0])
             return fld_md['field']['geometry']
+
+    def _add_associated_species_fields(self):
+        """
+        Checks if any field in the data container is associated to a particle
+        species. If so, the field is added to the species. In case that no
+        ParticleSpecies object exists (because no particle data is available
+        for this species), a new instance of ParticleSpecies is created
+        containing only the associated field.
+
+        """
+        for field in self.folder_fields + self.derived_fields:
+            if field.species_name is not None:
+                try:
+                    species = self.get_species(field.species_name)
+                except:
+                    species = ParticleSpecies(
+                        field.species_name, [], [], [], None, None)
+                    self.particle_species.append(species)
+                species.add_associated_field(field)
+                
