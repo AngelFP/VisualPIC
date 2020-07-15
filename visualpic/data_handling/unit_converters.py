@@ -179,15 +179,16 @@ class UnitConverter():
                 time_value = var_md['time']['value']
                 # Convert to SI
                 if time_units not in self.si_units:
-                    time_value = self.convert_data_to_si(
+                    time_value, time_units = self.convert_data_to_si(
                         time_value, time_units)
+                    var_md['time']['units'] = time_units
                 # convert to desired units
                 if (target_time_units != 'SI' and
                     target_time_units not in self.si_units):
                     time_value = self.convert_data(time_value, time_units,
                                                    target_time_units)
+                    var_md['time']['units'] = target_time_units
                 var_md['time']['value'] = time_value
-                var_md['time']['units'] = target_time_units
         return data_dict
 
     def convert_data(self, data, si_units, target_units):
