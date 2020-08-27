@@ -100,20 +100,20 @@ def _analyze_beam_timestep(time_step, beam, n_slices, slice_len, filter_min,
     pz, *_ = data['pz']
     q, *_ = data['q']
 
-    if len(x) == 0:
+    if len(x) <= 1:
         return None
 
     # Apply filters
     if any(el is not None for el in filter_min + filter_max):
         x, y, z, px, py, pz, q = bf.filter_beam(
             np.array([x, y, z, px, py, pz, q]), filter_min, filter_max)
-        if len(x) == 0:
+        if len(x) <= 1:
             return None
 
     if any(el is not None for el in filter_sigma):
         x, y, z, px, py, pz, q = bf.filter_beam_sigma(
             np.array([x, y, z, px, py, pz, q]), filter_sigma, w=q)
-        if len(x) == 0:
+        if len(x) <= 1:
             return None
 
     # Analyze beam
