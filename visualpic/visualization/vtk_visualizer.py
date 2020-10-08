@@ -1224,11 +1224,11 @@ class VolumetricField():
             max_fld = np.max(fld_data)
             self._original_data_range = [min_fld, max_fld]
             fld_data = self._normalize_field(fld_data)
-            # Making fld_data a new numpy array fixes a crash in
-            # vtk_data_import.SetImportVoidPointer in some cases when trimming
-            # in the y or z planes is applied. It is not clear why this
-            # happens.
-            self._field_data = np.array(fld_data)
+            # Make sure the array is contiguous, otherwise this can lead to 
+            # errors in vtk_data_import.SetImportVoidPointer in some cases when
+            # trimming in the y or z planes is applied, or when the array has
+            # been rearranged in the FieldReader (such as for HiPACE data).
+            self._field_data = np.ascontiguousarray(fld_data)
             self._field_metadata = fld_md
             if not only_metadata:
                 self._loaded_timestep = timestep
