@@ -469,7 +469,7 @@ class HiPACEFolderScanner(FolderScanner):
         for file in files_in_folder:
             if file.endswith('.h5'):
                 if 'density' in file:
-                    species_name = file.split('_')[1]
+                    species_name = '_'.join(file.split('_')[1:-1])
                     if species_name not in species_names:
                         species_names.append(species_name)
                 elif 'field' in file:
