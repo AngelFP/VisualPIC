@@ -123,7 +123,11 @@ class HiPACEParticleReader(ParticleReader):
 
     def _read_component_data(self, file_path, species, component):
         with H5F(file_path, 'r') as file_handle:
-            data = file_handle[self.name_relations[component]]
+            if component in self.name_relations:
+                hp_name = self.name_relations[component]
+            else:
+                hp_name = component
+            data = file_handle[hp_name]
             if component == 'tag':
                 # Apply Cantor pairing function
                 print(data)
@@ -141,6 +145,8 @@ class HiPACEParticleReader(ParticleReader):
                 units = 'm_ec'
             elif component == 'q':
                 units = 'qnorm'
+            else:
+                units = ''
             metadata['units'] = units
             metadata['time'] = {}
             metadata['time']['value'] = file_handle.attrs['TIME'][0]
