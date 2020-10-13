@@ -250,9 +250,10 @@ class HiPACEFieldReader(FieldReader):
                             slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
+        fld = np.moveaxis(fld, 0, 2)
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = ['z', 'x', 'y']
+            axis_order = ['x', 'y', 'z']
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i]
