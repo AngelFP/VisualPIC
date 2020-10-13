@@ -653,7 +653,8 @@ class HiPACEFolderScanner(FolderScanner):
         A tuple with a an array of file paths and and array of timesteps.
         """
         field_files = [os.path.join(folder_path, file) for file in
-                       files_in_folder if (prefix in file) and (name in file)]
+                       files_in_folder if ((prefix in file) and (name in file)
+                                           and (file.endswith('.h5')))]
         time_steps = np.zeros(len(field_files))
         for i, file in enumerate(field_files):
             time_step = int(file.split('_')[-1].split('.')[0])
