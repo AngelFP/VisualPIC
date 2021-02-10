@@ -51,12 +51,17 @@ class Field():
 
 
 class FolderField(Field):
-    def __init__(self, field_name, field_path, field_files, field_timesteps,
-                 field_reader, unit_converter, species_name=None):
+    def __init__(
+            self, field_name, field_path, timestep_to_files, field_timesteps,
+            field_reader, unit_converter, species_name=None):
         super().__init__(field_name, field_timesteps, unit_converter,
                          species_name)
         self.field_path = field_path
-        self.field_files = field_files
+        if type(timestep_to_files) is list:
+            if len(timestep_to_files) == len(field_timesteps):
+                timestep_to_files = dict(
+                    zip(field_timesteps, timestep_to_files))
+        self.timestep_to_files = timestep_to_files
         self.field_reader = field_reader
 
     def get_data(self, time_step, field_units=None, axes_units=None,
@@ -65,8 +70,9 @@ class FolderField(Field):
                  theta=0, max_resolution_3d_tm=None, only_metadata=False):
         file_path = self._get_file_path(time_step)
         fld, fld_md = self.field_reader.read_field(
-            file_path, self.field_path, slice_i, slice_j, slice_dir_i,
-            slice_dir_j, m, theta, max_resolution_3d_tm, only_metadata)
+            file_path, time_step, self.field_path, slice_i, slice_j,
+            slice_dir_i, slice_dir_j, m, theta, max_resolution_3d_tm,
+            only_metadata)
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
@@ -77,8 +83,7 @@ class FolderField(Field):
         return fld, fld_md
 
     def _get_file_path(self, time_step):
-        ts_i = self.timesteps.tolist().index(time_step)
-        return self.field_files[ts_i]
+        return self.timestep_to_files[time_step]
 
 
 class DerivedField(Field):
