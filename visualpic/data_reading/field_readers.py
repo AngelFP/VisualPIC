@@ -13,39 +13,41 @@ from h5py import File as H5F
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.ndimage import zoom
-from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
-    read_openPMD_params)
-import openpmd_viewer.openpmd_timeseries.data_reader.field_reader as opmd_fr
+from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
+    read_openPMD_params, field_reader as opmd_fr)
 
 
 class FieldReader():
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def read_field(self, file_path, field_path, slice_i=0.5, slice_j=0.5,
-                   slice_dir_i=None, slice_dir_j=None, m='all', theta=0,
-                   max_resolution_3d_tm=None, only_metadata=False):
-        fld_metadata = self._read_field_metadata(file_path, field_path)
+    def read_field(
+            self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
+            slice_dir_i=None, slice_dir_j=None, m='all', theta=0,
+            max_resolution_3d_tm=None, only_metadata=False):
+        fld_metadata = self._read_field_metadata(
+            file_path, iteration, field_path)
         self._readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j, theta,
                                 max_resolution_3d_tm)
         if only_metadata:
             return np.array([]), fld_metadata
         geom = fld_metadata['field']['geometry']
         if geom == "1d":
-            fld = self._read_field_1d(file_path, field_path)
+            fld = self._read_field_1d(file_path, iteration, field_path)
         elif geom == "2dcartesian":
-            fld = self._read_field_2d_cart(file_path, field_path, slice_i,
-                                           slice_dir_i)
+            fld = self._read_field_2d_cart(
+                file_path, iteration, field_path, slice_i, slice_dir_i)
         elif geom == "3dcartesian":
-            fld = self._read_field_3d_cart(file_path, field_path, slice_i,
-                                           slice_j, slice_dir_i, slice_dir_j)
-        elif geom == "2dcylindrical":
-            fld = self._read_field_2d_cyl(file_path, field_path, slice_i,
-                                          slice_dir_i)
+            fld = self._read_field_3d_cart(
+                file_path, iteration, field_path, slice_i, slice_j,
+                slice_dir_i, slice_dir_j)
+        elif geom == "cylindrical":
+            fld = self._read_field_2d_cyl(
+                file_path, iteration, field_path, slice_i, slice_dir_i)
         elif geom == "thetaMode":
-            fld = self._read_field_theta(file_path, field_path, m, theta,
-                                         slice_i, slice_dir_i,
-                                         max_resolution_3d_tm)
+            fld = self._read_field_theta(
+                file_path, iteration, field_path, m, theta,
+                slice_i, slice_dir_i, max_resolution_3d_tm)
         return fld, fld_metadata
 
     def _readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
@@ -84,27 +86,30 @@ class FieldReader():
             del field_metadata['axis'][slice_dir_j]
             field_metadata['field']['axis_labels'].remove(slice_dir_j)
 
-    def _read_field_1d(self, file_path, field_path):
+    def _read_field_1d(self, file_path, iteration, field_path):
         raise NotImplementedError
 
-    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_dir_i='z'):
+    def _read_field_2d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5,
+            slice_dir_i='z'):
         raise NotImplementedError
 
-    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
+            slice_dir_i=None, slice_dir_j=None):
         raise NotImplementedError
 
-    def _read_field_2d_cyl(self, file_path, field_path, slice_i=0.5,
-                           slice_dir_i=None):
+    def _read_field_2d_cyl(
+            self, file_path, iteration, field_path, slice_i=0.5,
+            slice_dir_i=None):
         raise NotImplementedError
 
-    def _read_field_theta(self, file_path, field_path, m='all', theta=0,
-                          slice_i=0.5, slice_dir_i=None,
-                          max_resolution_3d_tm=None):
+    def _read_field_theta(
+            self, file_path, iteration, field_path, m='all', theta=0,
+            slice_i=0.5, slice_dir_i=None, max_resolution_3d_tm=None):
         raise NotImplementedError
 
-    def _read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, iteration, field_path):
         raise NotImplementedError
 
 
@@ -112,12 +117,13 @@ class OsirisFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def _read_field_1d(self, file_path, field_path):
+    def _read_field_1d(self, file_path, iteration, field_path):
         file = H5F(file_path, 'r')
         return file[field_path]
 
-    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_dir_i=None):
+    def _read_field_2d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5,
+            slice_dir_i=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         if slice_dir_i is not None:
@@ -131,8 +137,9 @@ class OsirisFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
+            slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         if slice_dir_i is not None:
@@ -153,7 +160,7 @@ class OsirisFieldReader(FieldReader):
             fld = fld[:]
         return fld
 
-    def _read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, iteration, field_path):
         file = H5F(file_path, 'r')
         md = {}
         field_units = self._get_field_units(file, field_path)
@@ -246,8 +253,9 @@ class HiPACEFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
+            slice_dir_i=None, slice_dir_j=None):
         file = H5F(file_path, 'r')
         fld = file[field_path]
         fld = np.moveaxis(fld, 0, 2)
@@ -267,7 +275,7 @@ class HiPACEFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def _read_field_metadata(self, file_path, field_path):
+    def _read_field_metadata(self, file_path, iteration, field_path):
         file = H5F(file_path, 'r')
         md = {}
         field_units = self._get_field_units(file_path)
@@ -329,13 +337,14 @@ class OpenPMDFieldReader(FieldReader):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def _read_field_1d(self, file_path, field_path):
+    def _read_field_1d(self, file_path, iteration, field_path):
         fld, _ = opmd_fr.read_field_cartesian(file_path, field_path, ['z'],
                                               None, None)
         return fld
 
-    def _read_field_2d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_dir_i=None):
+    def _read_field_2d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5,
+            slice_dir_i=None):
         fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
                                               ['z', 'x'], None, None)
         if slice_dir_i is not None:
@@ -349,8 +358,9 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def _read_field_3d_cart(self, file_path, field_path, slice_i=0.5,
-                            slice_j=0.5, slice_dir_i=None, slice_dir_j=None):
+    def _read_field_3d_cart(
+            self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
+            slice_dir_i=None, slice_dir_j=None):
         if slice_dir_i is not None:
             slicing = -1. + 2*slice_i
         else:
@@ -370,9 +380,21 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def _read_field_theta(self, file_path, field_path, m='all', theta=0,
-                          slice_i=0.5, slice_dir_i=None,
-                          max_resolution_3d_tm=None):
+    def _read_field_2d_cyl(
+            self, file_path, iteration, field_path, slice_i, slice_dir_i):
+        field, *comp = field_path.split('/')
+        if len(comp) > 0:
+            comp = comp[0]
+        else:
+            comp = None
+        fld, _ = opmd_fr.read_field_circ(
+            file_path, iteration, field, comp, None, None)
+        return fld
+
+
+    def _read_field_theta(
+            self, file_path, iteration, field_path, m='all', theta=0,
+            slice_i=0.5, slice_dir_i=None, max_resolution_3d_tm=None):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
@@ -381,10 +403,10 @@ class OpenPMDFieldReader(FieldReader):
             #                                   None, m, theta)
             # fld_t, _ = opmd_fr.read_field_circ(file_path, field + '/t', None,
             #                                   None, m, theta)
-            fld_r, info = self.read_field_circ(file_path, field + '/r', None,
+            fld_r, info = self.read_field_circ(file_path, iteration, field + '/r', None,
                                                None, m, theta,
                                                max_resolution_3d_tm)
-            fld_t, *_ = self.read_field_circ(file_path, field + '/t', None,
+            fld_t, *_ = self.read_field_circ(file_path, iteration, field + '/t', None,
                                              None, m, theta,
                                              max_resolution_3d_tm)
             if theta is None:
@@ -409,8 +431,9 @@ class OpenPMDFieldReader(FieldReader):
         else:
             # fld, _ = opmd_fr.read_field_circ(file_path, field_path, None,
             #                                 None, m, theta)
-            fld, _ = self.read_field_circ(file_path, field_path, None, None, m,
-                                          theta, max_resolution_3d_tm)
+            fld, _ = self.read_field_circ(
+                file_path, iteration, field_path, None, None, m,
+                theta, max_resolution_3d_tm)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             if theta is None:
@@ -425,17 +448,17 @@ class OpenPMDFieldReader(FieldReader):
             fld = fld[tuple(slice_list)]
         return fld
 
-    def read_field_circ(self, filename, field_path, slice_relative_position,
-                        slice_across, m=0, theta=0.,
-                        max_resolution_3d_tm=None):
+    def read_field_circ(
+            self, filename, iteration, field_path, slice_relative_position,
+            slice_across, m=0, theta=0., max_resolution_3d_tm=None):
         """
-        Adapted from openpmd_viewer to test reduded resolution in reconstructed
+        Adapted from openpmd_viewer to test reduced resolution in reconstructed
         3d fields from thetaMode data.
         """
         # Open the HDF5 file
         dfile = opmd_fr.h5py.File(filename, 'r')
         # Extract the dataset and and corresponding group
-        group, dset = opmd_fr.find_dataset(dfile, field_path)
+        group, dset = opmd_fr.find_dataset(dfile, iteration, field_path)
 
         # Extract the metainformation
         Nm, Nr, Nz = opmd_fr.get_shape(dset)
@@ -557,13 +580,12 @@ class OpenPMDFieldReader(FieldReader):
 
         return(F_total, info)
 
-    def _read_field_metadata(self, file_path, field_path):
-        file = H5F(file_path, 'r')
+    def _read_field_metadata(self, file_path, iteration, field_path):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
         md = {}
-        t, params = read_openPMD_params(file_path)
+        t, params = read_openPMD_params(file_path, iteration)
         md['time'] = {}
         md['time']['value'] = t
         md['time']['units'] = 's'
@@ -574,8 +596,8 @@ class OpenPMDFieldReader(FieldReader):
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
         md['field']['axis_labels'] = axis_labels
-        ax_el, ax_lims = opmd_fr.get_grid_parameters(file, [field],
-                                                     params['fields_metadata'])
+        ax_el, ax_lims = opmd_fr.get_grid_parameters(
+            file_path, iteration, [field], params['fields_metadata'])
         axes = ax_el.keys()
         md['axis'] = {}
         for axis in axes:
