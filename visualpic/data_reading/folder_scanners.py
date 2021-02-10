@@ -12,9 +12,9 @@ import os
 
 import numpy as np
 from h5py import File as H5F
-from openpmd_viewer.openpmd_timeseries.utilities import list_h5_files
-from openpmd_viewer.openpmd_timeseries.data_reader.params_reader import (
-    read_openPMD_params)
+# from openpmd_viewer.openpmd_timeseries.utilities import list_h5_files
+from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
+    list_files, read_openPMD_params)
 
 import visualpic.data_reading.field_readers as fr
 import visualpic.data_reading.particle_readers as pr
@@ -90,43 +90,74 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of FolderField objects
         """
         field_list = []
-        h5_files, iterations = list_h5_files(folder_path)
-        t, opmd_params = read_openPMD_params(h5_files[0])
-        avail_fields = opmd_params['avail_fields']
-        if avail_fields is not None:
-            for field in avail_fields:
-                field_metadata = opmd_params['fields_metadata'][field]
-                if field_metadata['type'] == 'vector':
-                    field_comps = field_metadata['axis_labels']
-                    if field_metadata['geometry'] == 'thetaMode':
-                        field_comps += ['x', 'y', 't']
-                    for comp in field_comps:
-                        field_path = field + '/' + comp
-                        field_name = self._get_standard_visualpic_name(
-                            field_path)
-                        field_list.append(
-                            FolderField(field_name, field_path, h5_files,
-                                        iterations, self.field_reader,
-                                        self.unit_converter))
-                else:
-                    # This might be specific for FBPIC. Check with other codes.
-                    if '_' in field:
-                        name_parts = field.split('_')
-                        field_name = name_parts[0]
-                        if len(name_parts) > 2:
-                            species_name = '_'.join(name_parts[1:])
-                        else:
-                            species_name = name_parts[1]
+        iterations, iteration_to_file = list_files(folder_path)
+
+        # Create dictionary with the necessary data of each field.
+        fields = {}
+        for it in iterations:
+            file = iteration_to_file[it]
+            t, opmd_params = read_openPMD_params(file, it)
+            avail_fields = opmd_params['avail_fields']
+            if avail_fields is not None:
+                for field in avail_fields:
+                    field_metadata = opmd_params['fields_metadata'][field]
+                    if field_metadata['type'] == 'vector':
+                        field_comps = field_metadata['axis_labels']
+                        if field_metadata['geometry'] == 'thetaMode':
+                            field_comps += ['x', 'y', 't']
+                        for comp in field_comps:
+                            field_path = field + '/' + comp
+                            field_name = self._get_standard_visualpic_name(
+                                field_path)
+                            
+                            if field_name not in fields:
+                                field_dict = {}
+                                field_dict['path'] = field_path
+                                field_dict['files'] = [file]
+                                field_dict['iterations'] = [it]
+                                field_dict['species_name'] = None
+                                fields[field_name] = field_dict
+                            else:
+                                fields[field_name]['files'].append(file)
+                                fields[field_name]['iterations'].append(it)
+
                     else:
-                        field_name = field
-                        species_name = None
-                    field_name = self._get_standard_visualpic_name(field_name)
-                    field_path = field
-                    field_list.append(
-                        FolderField(
-                            field_name, field_path, h5_files, iterations,
-                            self.field_reader, self.unit_converter,
-                            species_name=species_name))
+                        # This might be specific for FBPIC. Check other codes.
+                        if '_' in field:
+                            name_parts = field.split('_')
+                            field_name = name_parts[0]
+                            if len(name_parts) > 2:
+                                species_name = '_'.join(name_parts[1:])
+                            else:
+                                species_name = name_parts[1]
+                        else:
+                            field_name = field
+                            species_name = None
+                        field_name = self._get_standard_visualpic_name(
+                            field_name)
+                        if field_name not in fields:
+                            field_dict = {}
+                            field_dict['path'] = field
+                            field_dict['files'] = [file]
+                            field_dict['iterations'] = [it]
+                            field_dict['species_name'] = species_name
+                            fields[field_name] = field_dict
+                        else:
+                            fields[field_name]['files'].append(file)
+                            fields[field_name]['iterations'].append(it)
+
+        # Create all fields.
+        for field_name in fields.keys():
+            field_list.append(
+                FolderField(
+                    field_name,
+                    fields[field_name]['path'],
+                    fields[field_name]['files'],
+                    np.array(fields[field_name]['iterations']),
+                    self.field_reader,
+                    self.unit_converter,
+                    species_name=fields[field_name]['species_name'])
+                    )
         return field_list
 
     def get_list_of_species(self, folder_path):
@@ -144,18 +175,40 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of ParticleSpecies objects
         """
         species_list = []
-        h5_files, iterations = list_h5_files(folder_path)
-        t, opmd_params = read_openPMD_params(h5_files[0])
-        avail_species = opmd_params['avail_species']
-        if avail_species is not None:
-            for species in avail_species:
-                species_comps = opmd_params['avail_record_components'][species]
-                for i, comp in enumerate(species_comps):
-                    species_comps[i] = self._get_standard_visualpic_name(comp)
-                species_list.append(
-                    ParticleSpecies(species, species_comps, iterations,
-                                    h5_files, self.particle_reader,
-                                    self.unit_converter))
+        iterations, iteration_to_file = list_files(folder_path)
+
+        # Create dictionary with the necessary data of each species.
+        found_species = {}
+        for it in iterations:
+            file = iteration_to_file[it]
+            t, opmd_params = read_openPMD_params(file, it)
+            avail_species = opmd_params['avail_species']
+            if avail_species is not None:
+                for species in avail_species:
+                    if species not in found_species:
+                        species_dict = {}
+                        comps = opmd_params['avail_record_components'][species]
+                        for i, comp in enumerate(comps):
+                            comps[i] = self._get_standard_visualpic_name(comp)
+                        species_dict['comps'] = comps
+                        species_dict['files'] = [file]
+                        species_dict['iterations'] = [it]
+                        found_species[species] = species_dict
+                    else:
+                        found_species[species]['files'].append(file)
+                        found_species[species]['iterations'].append(it)
+
+    	# Create all species.
+        for species_name in found_species.keys():
+            species_list.append(
+                ParticleSpecies(
+                    species_name,
+                    found_species[species_name]['comps'],
+                    np.array(found_species[species_name]['iterations']),
+                    found_species[species_name]['files'],
+                    self.particle_reader,
+                    self.unit_converter)
+                    )
         return species_list
 
     def _get_standard_visualpic_name(self, opmd_name):
@@ -421,13 +474,11 @@ class OsirisFolderScanner(FolderScanner):
         for file in all_files:
             if file.endswith(".h5"):
                 h5_files.append(os.path.join(field_folder_path, file))
+        h5_files = sorted(h5_files)
         time_steps = np.zeros(len(h5_files))
         for i, file in enumerate(h5_files):
             time_step = int(file[-9:-3])
             time_steps[i] = time_step
-        sort_i = np.argsort(time_steps)
-        time_steps = time_steps[sort_i]
-        h5_files = np.array(h5_files)[sort_i]
         return h5_files, time_steps
 
 
@@ -655,11 +706,9 @@ class HiPACEFolderScanner(FolderScanner):
         field_files = [os.path.join(folder_path, file) for file in
                        files_in_folder if ((prefix in file) and (name in file)
                                            and (file.endswith('.h5')))]
+        field_files = sorted(field_files)
         time_steps = np.zeros(len(field_files))
         for i, file in enumerate(field_files):
             time_step = int(file.split('_')[-1].split('.')[0])
             time_steps[i] = time_step
-        sort_i = np.argsort(time_steps)
-        time_steps = time_steps[sort_i]
-        field_files = np.array(field_files)[sort_i]
         return field_files, time_steps
