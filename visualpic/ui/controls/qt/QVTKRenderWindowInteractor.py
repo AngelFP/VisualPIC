@@ -56,7 +56,6 @@ try:
 except ImportError:
     pass
 
-from vtk.vtkRenderingCore import vtkGenericRenderWindowInteractor, vtkRenderWindow
 
 if PyQtImpl is None:
     # Autodetect the PyQt implementation to use
