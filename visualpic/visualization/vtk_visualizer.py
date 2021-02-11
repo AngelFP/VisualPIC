@@ -184,7 +184,7 @@ class VTKVisualizer():
             usage.
 
         """
-        if field.get_geometry() in ['thetaMode', '3dcartesian']:
+        if field.get_geometry() in ['cylindrical', 'thetaMode', '3dcartesian']:
             # check if this field has already been added to a volume
             name_suffix = None
             fld_repeated_idx = 0

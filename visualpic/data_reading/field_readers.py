@@ -43,7 +43,8 @@ class FieldReader():
                 slice_dir_i, slice_dir_j)
         elif geom == "cylindrical":
             fld = self._read_field_2d_cyl(
-                file_path, iteration, field_path, slice_i, slice_dir_i)
+                file_path, iteration, field_path, theta, slice_i, slice_dir_i,
+                max_resolution_3d_tm)
         elif geom == "thetaMode":
             fld = self._read_field_theta(
                 file_path, iteration, field_path, m, theta,
@@ -52,8 +53,8 @@ class FieldReader():
 
     def _readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
                            theta, max_resolution_3d_tm):
-        if (field_metadata['field']['geometry'] == 'thetaMode' and
-                theta is None):
+        geom = field_metadata['field']['geometry']
+        if geom in ['cylindrical', 'thetaMode'] and theta is None:
             r_md = field_metadata['axis']['r']
             # Check if resolution should be reduced
             if max_resolution_3d_tm is not None:
@@ -100,8 +101,8 @@ class FieldReader():
         raise NotImplementedError
 
     def _read_field_2d_cyl(
-            self, file_path, iteration, field_path, slice_i=0.5,
-            slice_dir_i=None):
+            self, file_path, iteration, field_path, theta=0, slice_i=0.5,
+            slice_dir_i=None, max_resolution_3d_tm=None):
         raise NotImplementedError
 
     def _read_field_theta(
@@ -381,14 +382,16 @@ class OpenPMDFieldReader(FieldReader):
         return fld
 
     def _read_field_2d_cyl(
-            self, file_path, iteration, field_path, slice_i, slice_dir_i):
+            self, file_path, iteration, field_path, theta, slice_i,
+            slice_dir_i, max_resolution_3d_tm):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
         else:
             comp = None
         fld, _ = opmd_fr.read_field_circ(
-            file_path, iteration, field, comp, None, None)
+            file_path, iteration, field, comp, None, None, theta=theta,
+            max_resolution_3d=max_resolution_3d_tm)
         return fld
 
 
@@ -606,7 +609,7 @@ class OpenPMDFieldReader(FieldReader):
             ax_min = ax_lims[axis][0]
             ax_max = ax_lims[axis][1]
             ax_els = ax_el[axis]+1
-            if field_geometry == 'thetaMode' and axis == 'r':
+            if field_geometry in ['cylindrical', 'thetaMode'] and axis == 'r':
                 ax_min = -ax_max
                 ax_els += ax_el[axis]
             md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
