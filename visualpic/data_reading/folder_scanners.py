@@ -101,9 +101,9 @@ class OpenPMDFolderScanner(FolderScanner):
                 for field in avail_fields:
                     field_metadata = opmd_params['fields_metadata'][field]
                     if field_metadata['type'] == 'vector':
-                        field_comps = field_metadata['axis_labels']
+                        field_comps = field_metadata['avail_components']
                         if field_metadata['geometry'] == 'thetaMode':
-                            field_comps += ['x', 'y', 't']
+                            field_comps += ['x', 'y']
                         for comp in field_comps:
                             field_path = field + '/' + comp
                             field_name = self._get_standard_visualpic_name(
