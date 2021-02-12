@@ -179,9 +179,9 @@ class VTKVisualizer():
 
         max_resolution_3d : list
             Maximum longitudinal and transverse resolution (eg. [1000, 500])
-            that the 3d field generated from thetaMode data should have. This
-            allows for faster reconstruction of the 3d field and less memory
-            usage.
+            that the 3d field generated from thetaMode cylindrical data should
+            have. This allows for faster reconstruction of the 3d field and
+            less memory usage.
 
         """
         if field.get_geometry() in ['cylindrical', 'thetaMode', '3dcartesian']:
