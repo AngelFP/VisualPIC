@@ -24,11 +24,11 @@ class FieldReader():
     def read_field(
             self, file_path, iteration, field_path, slice_i=0.5, slice_j=0.5,
             slice_dir_i=None, slice_dir_j=None, m='all', theta=0,
-            max_resolution_3d_tm=None, only_metadata=False):
+            max_resolution_3d=None, only_metadata=False):
         fld_metadata = self._read_field_metadata(
             file_path, iteration, field_path)
         self._readjust_metadata(fld_metadata, slice_dir_i, slice_dir_j, theta,
-                                max_resolution_3d_tm)
+                                max_resolution_3d)
         if only_metadata:
             return np.array([]), fld_metadata
         geom = fld_metadata['field']['geometry']
@@ -44,25 +44,25 @@ class FieldReader():
         elif geom == "cylindrical":
             fld = self._read_field_2d_cyl(
                 file_path, iteration, field_path, theta, slice_i, slice_dir_i,
-                max_resolution_3d_tm)
+                max_resolution_3d)
         elif geom == "thetaMode":
             fld = self._read_field_theta(
                 file_path, iteration, field_path, m, theta,
-                slice_i, slice_dir_i, max_resolution_3d_tm)
+                slice_i, slice_dir_i, max_resolution_3d)
         return fld, fld_metadata
 
     def _readjust_metadata(self, field_metadata, slice_dir_i, slice_dir_j,
-                           theta, max_resolution_3d_tm):
+                           theta, max_resolution_3d):
         geom = field_metadata['field']['geometry']
         if geom in ['cylindrical', 'thetaMode'] and theta is None:
             r_md = field_metadata['axis']['r']
             # Check if resolution should be reduced
-            if max_resolution_3d_tm is not None:
+            if max_resolution_3d is not None:
                 z = field_metadata['axis']['z']['array']
                 r = r_md['array']
                 nr = len(r) - 1
                 nz = len(z) - 1
-                max_res_lon, max_res_transv = max_resolution_3d_tm
+                max_res_lon, max_res_transv = max_resolution_3d
                 if nz > max_res_lon:
                     excess_z = int(np.round(nz/max_res_lon))
                     field_metadata['axis']['z']['array'] = z[::excess_z]
@@ -102,12 +102,12 @@ class FieldReader():
 
     def _read_field_2d_cyl(
             self, file_path, iteration, field_path, theta=0, slice_i=0.5,
-            slice_dir_i=None, max_resolution_3d_tm=None):
+            slice_dir_i=None, max_resolution_3d=None):
         raise NotImplementedError
 
     def _read_field_theta(
             self, file_path, iteration, field_path, m='all', theta=0,
-            slice_i=0.5, slice_dir_i=None, max_resolution_3d_tm=None):
+            slice_i=0.5, slice_dir_i=None, max_resolution_3d=None):
         raise NotImplementedError
 
     def _read_field_metadata(self, file_path, iteration, field_path):
@@ -383,7 +383,7 @@ class OpenPMDFieldReader(FieldReader):
 
     def _read_field_2d_cyl(
             self, file_path, iteration, field_path, theta, slice_i,
-            slice_dir_i, max_resolution_3d_tm):
+            slice_dir_i, max_resolution_3d):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
@@ -391,13 +391,13 @@ class OpenPMDFieldReader(FieldReader):
             comp = None
         fld, _ = self._opmd_reader.read_field_circ(
             iteration, field, comp, None, None, theta=theta,
-            max_resolution_3d=max_resolution_3d_tm)
+            max_resolution_3d=max_resolution_3d)
         return fld
 
 
     def _read_field_theta(
             self, file_path, iteration, field_path, m='all', theta=0,
-            slice_i=0.5, slice_dir_i=None, max_resolution_3d_tm=None):
+            slice_i=0.5, slice_dir_i=None, max_resolution_3d=None):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
@@ -406,10 +406,10 @@ class OpenPMDFieldReader(FieldReader):
         if comp in ['x', 'y']:
             fld_r, info = self._opmd_reader.read_field_circ(
                 iteration, field, '/r', None, None, m, theta,
-                max_resolution_3d_tm)
+                max_resolution_3d)
             fld_t, *_ = self._opmd_reader.read_field_circ(
                 iteration, field, '/t', None, None, m, theta,
-                max_resolution_3d_tm)
+                max_resolution_3d)
             if theta is None:
                 # This reconstruction leads to problems on axis
                 nx, ny, nz = len(info.x), len(info.y), len(info.z)
@@ -432,7 +432,7 @@ class OpenPMDFieldReader(FieldReader):
         else:
             fld, _ = self._opmd_reader.read_field_circ(
                 iteration, field, comp, None, None, m, theta,
-                max_resolution_3d_tm)
+                max_resolution_3d)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             if theta is None:
