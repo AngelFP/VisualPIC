@@ -13,7 +13,7 @@ from h5py import File as H5F
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.ndimage import zoom
-from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
+from openpmd_viewer.openpmd_timeseries.data_reader.io_reader import (
     read_openPMD_params, field_reader as opmd_fr)
 
 
@@ -335,19 +335,20 @@ class HiPACEFieldReader(FieldReader):
 
 
 class OpenPMDFieldReader(FieldReader):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, opmd_reader,  *args, **kwargs):
+        self._opmd_reader = opmd_reader
         return super().__init__(*args, **kwargs)
 
     def _read_field_1d(self, file_path, iteration, field_path):
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path, ['z'],
-                                              None, None)
+        fld, _ = self._opmd_reader.read_field_cartesian(
+            iteration, field_path, ['z'], None, None)
         return fld
 
     def _read_field_2d_cart(
             self, file_path, iteration, field_path, slice_i=0.5,
             slice_dir_i=None):
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
-                                              ['z', 'x'], None, None)
+        fld, _ = self._opmd_reader.read_field_cartesian(
+            iteration, field_path, ['z', 'x'], None, None)
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'z']
@@ -366,9 +367,8 @@ class OpenPMDFieldReader(FieldReader):
             slicing = -1. + 2*slice_i
         else:
             slicing = None
-        fld, _ = opmd_fr.read_field_cartesian(file_path, field_path,
-                                              ['z', 'x', 'y'], slicing,
-                                              slice_dir_i)
+        fld, _ = self._opmd_reader.read_field_cartesian(
+            iteration, field_path, ['z', 'x', 'y'], slicing, slice_dir_i)
         if slice_dir_i is not None and slice_dir_j is not None:
             fld_shape = fld.shape
             axis_order = ['x', 'y', 'z']
@@ -389,8 +389,8 @@ class OpenPMDFieldReader(FieldReader):
             comp = comp[0]
         else:
             comp = None
-        fld, _ = opmd_fr.read_field_circ(
-            file_path, iteration, field, comp, None, None, theta=theta,
+        fld, _ = self._opmd_reader.read_field_circ(
+            iteration, field, comp, None, None, theta=theta,
             max_resolution_3d=max_resolution_3d_tm)
         return fld
 
@@ -588,7 +588,7 @@ class OpenPMDFieldReader(FieldReader):
         if len(comp) > 0:
             comp = comp[0]
         md = {}
-        t, params = read_openPMD_params(file_path, iteration)
+        t, params = self._opmd_reader.read_openPMD_params(iteration)
         md['time'] = {}
         md['time']['value'] = t
         md['time']['units'] = 's'
@@ -599,8 +599,8 @@ class OpenPMDFieldReader(FieldReader):
         md['field']['units'] = field_units
         md['field']['geometry'] = field_geometry
         md['field']['axis_labels'] = axis_labels
-        ax_el, ax_lims = opmd_fr.get_grid_parameters(
-            file_path, iteration, [field], params['fields_metadata'])
+        ax_el, ax_lims = self._opmd_reader.get_grid_parameters(
+            iteration, [field], params['fields_metadata'])
         axes = ax_el.keys()
         md['axis'] = {}
         for axis in axes:

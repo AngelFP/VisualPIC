@@ -12,9 +12,7 @@ import os
 
 import numpy as np
 from h5py import File as H5F
-# from openpmd_viewer.openpmd_timeseries.utilities import list_h5_files
-from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
-    list_files, read_openPMD_params)
+from openpmd_viewer.openpmd_timeseries.data_reader import DataReader
 
 import visualpic.data_reading.field_readers as fr
 import visualpic.data_reading.particle_readers as pr
@@ -71,8 +69,9 @@ class OpenPMDFolderScanner(FolderScanner):
         Initialize the folder scanner and assign corresponding data readers
         and unit converter.
         """
-        self.field_reader = fr.OpenPMDFieldReader()
-        self.particle_reader = pr.OpenPMDParticleReader()
+        self.opmd_reader = DataReader('h5py')
+        self.field_reader = fr.OpenPMDFieldReader(self.opmd_reader)
+        self.particle_reader = pr.OpenPMDParticleReader(self.opmd_reader)
         self.unit_converter = uc.OpenPMDUnitConverter()
 
     def get_list_of_fields(self, folder_path):
@@ -90,13 +89,13 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of FolderField objects
         """
         field_list = []
-        iterations, iteration_to_file = list_files(folder_path)
+        iterations = self.opmd_reader.list_iterations(folder_path)
 
         # Create dictionary with the necessary data of each field.
         fields = {}
         for it in iterations:
-            file = iteration_to_file[it]
-            t, opmd_params = read_openPMD_params(file, it)
+            file = None  # Not needed for openPMD data.
+            t, opmd_params = self.opmd_reader.read_openPMD_params(it)
             avail_fields = opmd_params['avail_fields']
             if avail_fields is not None:
                 for field in avail_fields:
@@ -175,13 +174,13 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of ParticleSpecies objects
         """
         species_list = []
-        iterations, iteration_to_file = list_files(folder_path)
+        iterations = self.opmd_reader.list_iterations(folder_path)
 
         # Create dictionary with the necessary data of each species.
         found_species = {}
         for it in iterations:
-            file = iteration_to_file[it]
-            t, opmd_params = read_openPMD_params(file, it)
+            file = None  # Not needed for openPMD data.
+            t, opmd_params = self.opmd_reader.read_openPMD_params(it)
             avail_species = opmd_params['avail_species']
             if avail_species is not None:
                 for species in avail_species:
