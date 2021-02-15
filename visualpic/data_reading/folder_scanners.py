@@ -64,12 +64,20 @@ class OpenPMDFolderScanner(FolderScanner):
 
     "Folder scanner class for openPMD data."
 
-    def __init__(self):
+    def __init__(self, opmd_backend='h5py'):
         """
         Initialize the folder scanner and assign corresponding data readers
         and unit converter.
+
+        Parameters
+        ----------
+
+        opmd_backend : str
+            The backend to be used by the DataReader of the openPMD-viewer.
+            Possible values are 'h5py' or 'openpmd-api'.
+
         """
-        self.opmd_reader = DataReader('h5py')
+        self.opmd_reader = DataReader(opmd_backend)
         self.field_reader = fr.OpenPMDFieldReader(self.opmd_reader)
         self.particle_reader = pr.OpenPMDParticleReader(self.opmd_reader)
         self.unit_converter = uc.OpenPMDUnitConverter()
