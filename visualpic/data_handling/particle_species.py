@@ -198,8 +198,8 @@ class ParticleSpecies():
             data = [data]
         data = set(data)
         comps = self.get_list_of_available_components()
-        flds = self.get_list_of_associated_fields()
-        av_data = set(comps + flds)
+        fields = self.get_list_of_associated_fields()
+        av_data = set(comps + fields)
         return data.issubset(av_data)
 
     def _get_file_path(self, time_step):

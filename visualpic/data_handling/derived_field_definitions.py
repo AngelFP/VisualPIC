@@ -18,7 +18,7 @@ derived_field_definitions = []
 '''
 -------------------------------------------------------------------------------
 Template for adding new derived fields. Copy the code below, uncomment and
-substitude 'Field name' and 'field_name' with the appropiate name.
+substitute 'Field name' and 'field_name' with the appropriate name.
 -------------------------------------------------------------------------------
 
 # Field name
