@@ -8,8 +8,6 @@ License: GNU GPL-3.0.
 """
 
 
-from copy import copy
-
 from visualpic.helper_functions import get_common_timesteps
 
 
