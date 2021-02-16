@@ -11,10 +11,6 @@ import os
 
 from h5py import File as H5F
 import numpy as np
-from scipy.interpolate import interp2d
-from scipy.ndimage import zoom
-from openpmd_viewer.openpmd_timeseries.data_reader.io_reader import (
-    read_openPMD_params, field_reader as opmd_fr)
 
 
 class FieldReader():
