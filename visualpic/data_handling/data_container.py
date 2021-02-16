@@ -12,9 +12,8 @@ from visualpic.data_handling.derived_field_definitions import (
     derived_field_definitions)
 from visualpic.data_handling.fields import DerivedField
 from visualpic.data_handling.particle_species import ParticleSpecies
-from visualpic.data_reading.folder_scanners import (OsirisFolderScanner,
-                                                    OpenPMDFolderScanner,
-                                                    HiPACEFolderScanner)
+from visualpic.data_reading.folder_scanners import (
+    OsirisFolderScanner, OpenPMDFolderScanner, HiPACEFolderScanner)
 
 
 class DataContainer():
