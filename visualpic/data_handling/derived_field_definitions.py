@@ -18,7 +18,7 @@ derived_field_definitions = []
 '''
 -------------------------------------------------------------------------------
 Template for adding new derived fields. Copy the code below, uncomment and
-substitude 'Field name' and 'field_name' with the appropiate name.
+substitute 'Field name' and 'field_name' with the appropriate name.
 -------------------------------------------------------------------------------
 
 # Field name
@@ -52,7 +52,7 @@ def calculate_field_name(data_list, sim_geometry, sim_params):
         raise NotImplementedError
     elif sim_geometry == '3dcartesian':
         raise NotImplementedError
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         raise NotImplementedError
@@ -66,7 +66,7 @@ field_name = {'name': 'F',
               'requirements': {'1d': [],
                                '2dcartesian': [],
                                '3dcartesian': [],
-                               '2dcylindrical': [],
+                               'cylindrical': [],
                                'thetaMode': []},
               'recipe': calculate_field_name}
 
@@ -87,7 +87,7 @@ def calculate_intensity(data_list, sim_geometry, sim_params):
     elif sim_geometry == '3dcartesian':
         Ez, Ex, Ey = data_list
         E2 = Ez**2 + Ex**2 + Ey**2
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         Ez, Er, Et = data_list
@@ -100,7 +100,7 @@ intensity = {'name': 'I',
              'requirements': {'1d': ['Ez'],
                               '2dcartesian': ['Ez', 'Ex'],
                               '3dcartesian': ['Ez', 'Ex', 'Ey'],
-                              '2dcylindrical': [],
+                              'cylindrical': ['Ez', 'Er'],
                               'thetaMode': ['Ez', 'Er', 'Et']},
              'recipe': calculate_intensity}
 
@@ -120,7 +120,7 @@ def calculate_vector_pot(data_list, sim_geometry, sim_params):
     elif sim_geometry == '3dcartesian':
         Ez, Ex, Ey = data_list
         E2 = Ez**2 + Ex**2 + Ey**2
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         Ez, Er, Et = data_list
@@ -134,7 +134,7 @@ vector_pot = {'name': 'A',
               'requirements': {'1d': ['Ez'],
                                '2dcartesian': ['Ez', 'Ex'],
                                '3dcartesian': ['Ez', 'Ex', 'Ey'],
-                               '2dcylindrical': [],
+                               'cylindrical': ['Ez', 'Er'],
                                'thetaMode': ['Ez', 'Er', 'Et']},
               'recipe': calculate_vector_pot}
 
@@ -153,7 +153,7 @@ norm_vector_pot = {'name': 'a',
                    'requirements': {'1d': ['Ez'],
                                     '2dcartesian': ['Ez', 'Ex'],
                                     '3dcartesian': ['Ez', 'Ex', 'Ey'],
-                                    '2dcylindrical': [],
+                                    'cylindrical': ['Ez', 'Er'],
                                     'thetaMode': ['Ez', 'Er', 'Et']},
                    'recipe': calculate_norm_vector_pot}
 
