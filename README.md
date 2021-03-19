@@ -15,8 +15,8 @@ VisualPIC is currently undergoing a major rewrite of its codebase. Certain limit
 This branch contains the latest developments in the new redesign and gives you a preview of what is ahead for `VisualPIC 0.5`. At the time of writing, the main features of the APIs for  data reading and 3D visualization have been implemented. The images below (as well the render on top) showcase some of the possibilities offered by this new version.
 
 <p align="center">
-  <img alt="Sample image" src="images/sample_image_3d_renderer.png" width="350px" />
-  <img alt="Sample image" src="images/sample_image_3d_renderer_6.png" width="350px" />
+  <img alt="Sample image" src="images/sample_image_3d_renderer.png" width="400px" />
+  <img alt="Sample image" src="images/sample_image_3d_renderer_6.png" width="400px" />
 </p>
 
 If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/general_redesign/examples/example_1).
