@@ -217,21 +217,21 @@ class OsirisFieldReader(FieldReader):
             file['/AXIS/AXIS1'].attrs["UNITS"][0])
         axis_data["z"]["array"] = np.linspace(sim_data.attrs['XMIN'][0],
                                               sim_data.attrs['XMAX'][0],
-                                              field_shape[-1]+1)
+                                              field_shape[-1])
         if field_geometry in ["2dcartesian", "3dcartesian"]:
             axis_data['x'] = {}
             axis_data["x"]["units"] = self._numpy_bytes_to_string(
                 file['/AXIS/AXIS2'].attrs["UNITS"][0])
             axis_data["x"]["array"] = np.linspace(sim_data.attrs['XMIN'][1],
                                                   sim_data.attrs['XMAX'][1],
-                                                  field_shape[0]+1)
+                                                  field_shape[0])
         if field_geometry == "3dcartesian":
             axis_data['y'] = {}
             axis_data["y"]["units"] = self._numpy_bytes_to_string(
                 file['/AXIS/AXIS3'].attrs["UNITS"][0])
             axis_data["y"]["array"] = np.linspace(sim_data.attrs['XMIN'][2],
                                                   sim_data.attrs['XMAX'][2],
-                                                  field_shape[1]+1)
+                                                  field_shape[1])
         return axis_data
 
     def _get_time_data(self, file):
@@ -309,17 +309,17 @@ class HiPACEFieldReader(FieldReader):
         axis_data["z"]["units"] = 'c/\\omega_p'
         axis_data["z"]["array"] = np.linspace(file.attrs['XMIN'][0],
                                               file.attrs['XMAX'][0],
-                                              field_shape[0]+1)
+                                              field_shape[0])
         axis_data['x'] = {}
         axis_data["x"]["units"] = 'c/\\omega_p'
         axis_data["x"]["array"] = np.linspace(file.attrs['XMIN'][1],
                                               file.attrs['XMAX'][1],
-                                              field_shape[1]+1)
+                                              field_shape[1])
         axis_data['y'] = {}
         axis_data["y"]["units"] = 'c/\\omega_p'
         axis_data["y"]["array"] = np.linspace(file.attrs['XMIN'][2],
                                               file.attrs['XMAX'][2],
-                                              field_shape[2]+1)
+                                              field_shape[2])
         return axis_data
 
     def _get_time_data(self, file):
@@ -468,10 +468,13 @@ class OpenPMDFieldReader(FieldReader):
             md['axis'][axis]['units'] = 'm'
             ax_min = ax_lims[axis][0]
             ax_max = ax_lims[axis][1]
-            ax_els = ax_el[axis]+1
+            ax_els = ax_el[axis]
             if field_geometry in ['cylindrical', 'thetaMode'] and axis == 'r':
                 ax_min = -ax_max
                 ax_els += ax_el[axis]
+            # FIXME this does not differentiate between
+            # node-centered / cell-centered fields. FieldMetaInformation
+            # does it properly
             md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
         return md
 
