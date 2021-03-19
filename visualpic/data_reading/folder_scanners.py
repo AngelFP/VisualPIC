@@ -110,7 +110,8 @@ class OpenPMDFolderScanner(FolderScanner):
                     field_metadata = opmd_params['fields_metadata'][field]
                     if field_metadata['type'] == 'vector':
                         field_comps = field_metadata['avail_components']
-                        if field_metadata['geometry'] == 'thetaMode':
+                        if ((field_metadata['geometry'] == 'thetaMode') and
+                            (set(['r', 't']).issubset(field_comps))):
                             field_comps += ['x', 'y']
                         for comp in field_comps:
                             field_path = field + '/' + comp
