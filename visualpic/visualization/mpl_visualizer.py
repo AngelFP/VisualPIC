@@ -8,15 +8,14 @@ License: GNU GPL-3.0.
 """
 
 import sys
-from functools import partial
 
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 from matplotlib.figure import Figure
 from matplotlib import ticker
 from matplotlib.colorbar import Colorbar
 from matplotlib.style import library
-import numpy as np
 from PyQt5 import QtWidgets
 from aptools.plotting.plot_types import scatter_histogram
 
