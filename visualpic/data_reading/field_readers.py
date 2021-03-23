@@ -345,18 +345,30 @@ class OpenPMDFieldReader(FieldReader):
         return super().__init__(*args, **kwargs)
 
     def _read_field_1d(self, file_path, iteration, field_path, field_md):
+        field, *comp = field_path.split('/')
+        if len(comp) > 0:
+            comp = comp[0]
+        else:
+            comp = None
+        axis_labels = field_md['field']['axis_labels']
         fld, _ = self._opmd_reader.read_field_cartesian(
-            iteration, field_path, ['z'], None, None)
+            iteration, field, comp, axis_labels, None, None)
         return fld
 
     def _read_field_2d_cart(
             self, file_path, iteration, field_path, field_md, slice_i=0.5,
             slice_dir_i=None):
+        field, *comp = field_path.split('/')
+        if len(comp) > 0:
+            comp = comp[0]
+        else:
+            comp = None
+        axis_labels = field_md['field']['axis_labels']
         fld, _ = self._opmd_reader.read_field_cartesian(
-            iteration, field_path, ['z', 'x'], None, None)
+            iteration, field, comp, axis_labels, None, None)
         if slice_dir_i is not None:
             fld_shape = fld.shape
-            axis_order = ['x', 'z']
+            axis_order = axis_labels
             slice_list = [slice(None)] * fld.ndim
             axis_idx_i = axis_order.index(slice_dir_i)
             axis_elements_i = fld_shape[axis_idx_i]
