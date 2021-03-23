@@ -17,7 +17,7 @@ class ParticleSpecies():
     """Class providing access to the data of a particle species"""
 
     def __init__(self, species_name, components_in_file, species_timesteps,
-                 species_files, data_reader, unit_converter):
+                 timestep_to_files, data_reader, unit_converter):
         """
         Initialize the particle species.
 
@@ -36,9 +36,10 @@ class ParticleSpecies():
             A sorted numpy array numbering all the timesteps containing data
             of this particle species.
 
-        species_file : list
-            A sorted list of strings (same orders as species_timesteps)
-            containing the path to each data file of this species.
+        timestep_to_files : dict or list
+            A dictionary relating each time step to a data file. Alternatively,
+            a list with the same length and order as species_timesteps
+            containing the path to each data file can also be provided.
 
         data_reader : ParticleReader
             An instance of a ParticleReader of the corresponding simulation
@@ -53,9 +54,14 @@ class ParticleSpecies():
         self.derived_components = self._determine_available_derived_components(
             components_in_file)
         self.timesteps = species_timesteps
-        self.species_files = species_files
+        if type(timestep_to_files) is list:
+            if len(timestep_to_files) == len(species_timesteps):
+                timestep_to_files = dict(
+                    zip(species_timesteps, timestep_to_files))
+        self.timestep_to_files = timestep_to_files
         self.data_reader = data_reader
         self.unit_converter = unit_converter
+        self.associated_fields = []
 
     def get_data(self, time_step, components_list, data_units=None,
                  time_units=None):
@@ -129,11 +135,11 @@ class ParticleSpecies():
                     "Available components are {}.".format(available_comps))
         # Read data from file
         file_path = self._get_file_path(time_step)
-        folder_data = self._get_file_data(file_path, comp_to_read,
-                                          comp_to_read_units, time_units)
+        folder_data = self._get_file_data(
+            file_path, time_step, comp_to_read, comp_to_read_units, time_units)
         # Compute derived data
         derived_data = self._calculate_derived_data(
-            file_path, derived_components, derived_components_units,
+            file_path, time_step, derived_components, derived_components_units,
             time_units)
         # Join in a single dictionary
         data = {**folder_data, **derived_data}
@@ -148,22 +154,70 @@ class ParticleSpecies():
             all_components.remove('tag')
         return all_components
 
+    def add_associated_field(self, field):
+        """Add a Field object associated to this species."""
+        if self.species_name == field.species_name:
+            self.associated_fields.append(field)
+        else:
+            raise ValueError(
+                "Field species '{}' does not match species '{}'.".format(
+                    field.species_name, self.species_name))
+
+    def get_field(self, field_name):
+        """Returns the specified Field from the list of associated fields."""
+        for field in self.associated_fields:
+            if field.field_name == field_name:
+                return field
+
+    def get_list_of_associated_fields(self):
+        """Returns the list of associated fields (only the names)."""
+        fields_list = []
+        for field in self.associated_fields:
+            fields_list.append(field.field_name)
+        return fields_list
+
+    def contains(self, data):
+        """
+        Check whether the species contains the specified data.
+        
+        Parameters
+        ----------
+
+        data : str or list
+            A string or a list of strings with the names of the data elements
+            that should be checked (can be both particle components and
+            associated fields).
+
+        Returns
+        -------
+        True if the species contains all data elements specified in 'data'.
+        False otherwise.
+
+        """
+        if not isinstance(data, list):
+            data = [data]
+        data = set(data)
+        comps = self.get_list_of_available_components()
+        fields = self.get_list_of_associated_fields()
+        av_data = set(comps + fields)
+        return data.issubset(av_data)
+
     def _get_file_path(self, time_step):
         """Get the file path corresponding to the specified time step."""
-        ts_i = self.timesteps.tolist().index(time_step)
-        return self.species_files[ts_i]
+        return self.timestep_to_files[time_step]
 
-    def _get_file_data(self, file_path, components_list, data_units,
+    def _get_file_data(self, file_path, iteration, components_list, data_units,
                        time_units):
         """Read the specified components from a data file."""
         data = self.data_reader.read_particle_data(
-            file_path, self.species_name, components_list)
+            file_path, iteration, self.species_name, components_list)
         data = self._convert_data_units(data, components_list, data_units,
                                         time_units)
         return data
 
-    def _calculate_derived_data(self, file_path, data_list, target_data_units,
-                                time_units):
+    def _calculate_derived_data(
+            self, file_path, iteration, data_list, target_data_units,
+            time_units):
         """Calculate the specified derived components."""
         derived_data_dict = {}
         for name in data_list:
@@ -173,7 +227,8 @@ class ParticleSpecies():
             required_data_list = data_def['requirements']
             required_data_units = ['SI'] * len(required_data_list)
             required_data = self._get_file_data(
-                file_path, required_data_list, required_data_units, time_units)
+                file_path, iteration, required_data_list, required_data_units,
+                time_units)
             derived_data = data_def['recipe'](required_data)
             derived_data_md = required_data[required_data_list[0]][1]
             derived_data_md['units'] = data_units

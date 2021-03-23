@@ -130,7 +130,7 @@ class VTKVisualizer():
     def add_field(self, field, cmap='viridis', opacity='auto',
                   gradient_opacity='uniform opaque', vmax=None, vmin=None,
                   xtrim=None, ytrim=None, ztrim=None, resolution=None,
-                  max_resolution_3d_tm=[100, 100]):
+                  max_resolution_3d=[100, 100]):
         """
         Add a field to the 3D visualization.
 
@@ -177,14 +177,14 @@ class VTKVisualizer():
             contaning the resolution along z (longitudinal), x and y
             (transverse).
 
-        max_resolution_3d_tm : list
+        max_resolution_3d : list
             Maximum longitudinal and transverse resolution (eg. [1000, 500])
-            that the 3d field generated from thetaMode data should have. This
-            allows for faster reconstruction of the 3d field and less memory
-            usage.
+            that the 3d field generated from thetaMode cylindrical data should
+            have. This allows for faster reconstruction of the 3d field and
+            less memory usage.
 
         """
-        if field.get_geometry() in ['thetaMode', '3dcartesian']:
+        if field.get_geometry() in ['cylindrical', 'thetaMode', '3dcartesian']:
             # check if this field has already been added to a volume
             name_suffix = None
             fld_repeated_idx = 0
@@ -195,7 +195,7 @@ class VTKVisualizer():
             # add to volume list
             volume_field = VolumetricField(
                 field, cmap, opacity, gradient_opacity, vmax, vmin, xtrim,
-                ytrim, ztrim, resolution, max_resolution_3d_tm, name_suffix)
+                ytrim, ztrim, resolution, max_resolution_3d, name_suffix)
             self.volume_field_list.append(volume_field)
             self.colorbar_list.append(volume_field.get_colorbar(5))
             self.available_time_steps = self.get_possible_timesteps()
@@ -1022,7 +1022,7 @@ class VolumetricField():
     def __init__(self, field, cmap='viridis', opacity='auto',
                  gradient_opacity='uniform opaque', vmax=None, vmin=None,
                  xtrim=None, ytrim=None, ztrim=None, resolution=None,
-                 max_resolution_3d_tm=None, name_suffix=None):
+                 max_resolution_3d=None, name_suffix=None):
         self.field = field
         self.style_handler = VolumeStyleHandler()
         self.cmap = cmap
@@ -1035,7 +1035,7 @@ class VolumetricField():
         self.ztrim = ztrim
         self.resolution = resolution
         self.name_suffix = name_suffix
-        self.max_resolution_3d_tm = max_resolution_3d_tm
+        self.max_resolution_3d = max_resolution_3d
         self.vtk_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_gradient_opacity = vtk.vtkPiecewiseFunction()
         self.vtk_cmap = vtk.vtkColorTransferFunction()
@@ -1217,18 +1217,18 @@ class VolumetricField():
         if self._loaded_timestep != timestep:
             fld_data, fld_md = self.field.get_data(
                 timestep, theta=None,
-                max_resolution_3d_tm=self.max_resolution_3d_tm)
+                max_resolution_3d=self.max_resolution_3d)
             fld_data = self._trim_field(fld_data)
             fld_data = self._change_resolution(fld_data)
             min_fld = np.min(fld_data)
             max_fld = np.max(fld_data)
             self._original_data_range = [min_fld, max_fld]
             fld_data = self._normalize_field(fld_data)
-            # Making fld_data a new numpy array fixes a crash in
-            # vtk_data_import.SetImportVoidPointer in some cases when trimming
-            # in the y or z planes is applied. It is not clear why this
-            # happens.
-            self._field_data = np.array(fld_data)
+            # Make sure the array is contiguous, otherwise this can lead to 
+            # errors in vtk_data_import.SetImportVoidPointer in some cases when
+            # trimming in the y or z planes is applied, or when the array has
+            # been rearranged in the FieldReader (such as for HiPACE data).
+            self._field_data = np.ascontiguousarray(fld_data)
             self._field_metadata = fld_md
             if not only_metadata:
                 self._loaded_timestep = timestep
@@ -1254,10 +1254,13 @@ class VolumetricField():
             order_str = '10^' + str(ord) + ' '
         else:
             order_str = ''
-        title = self.get_name() + '\n['
+        title = self.get_name()
+        units_str = ''
         if order_str != '':
-            title += order_str + '\n'
-        title += self.get_field_units() + ']'
+            units_str += order_str + '\n'
+        units_str += self.get_field_units()
+        if units_str != '':
+            title += '\n[' + units_str + ']'
         self.cbar.SetTitle(title)
 
     def _get_opacity_instance(self, opacity, gradient_opacity=False,

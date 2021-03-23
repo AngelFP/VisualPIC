@@ -7,6 +7,7 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
+import warnings
 
 import numpy as np
 import scipy.constants as ct
@@ -65,8 +66,16 @@ bfieldgradient_conversion = {'MT/m': 1e-6,
 intensity_conversion = {'W/cm^2': 1e-4}
 
 
+potential_conversion = {'m_e*c^2/e': 1 / ((ct.m_e * ct.c**2) / ct.e),
+                        'kV': 1e-3,
+                        'MV': 1e-6}
+
+
 class UnitConverter():
     def __init__(self):
+        """ Initialize unit converter. """
+        # For convenience, due to their common use, the momentum units 'm_e*c'
+        # are also considered SI units.
         self.conversion_factors = {'m': length_conversion,
                                    's': time_conversion,
                                    'rad': angle_conversion,
@@ -76,15 +85,20 @@ class UnitConverter():
                                    'V/m^2': efieldgradient_conversion,
                                    'T/m': bfieldgradient_conversion,
                                    'm_e*c': momentum_conversion,
-                                   'W/m^2': intensity_conversion}
+                                   'W/m^2': intensity_conversion,
+                                   'V': potential_conversion}
 
         self.si_units = list(self.conversion_factors.keys())
 
     def convert_field_units(self, field_data, field_md,
                             target_field_units=None, target_axes_units=None,
                             axes_to_convert=None, target_time_units=None):
-
         convert_field = target_field_units is not None
+        # Dimmensionless fields will not be converted.
+        if convert_field and field_md['field']['units'] == '':
+            convert_field = False
+            warnings.warn('Field is dimmensionless. '
+                          'No field unit conversion will be performed.')
         convert_axes = target_axes_units is not None
         convert_time = target_time_units is not None
 
@@ -165,15 +179,16 @@ class UnitConverter():
                 time_value = var_md['time']['value']
                 # Convert to SI
                 if time_units not in self.si_units:
-                    time_value = self.convert_data_to_si(
+                    time_value, time_units = self.convert_data_to_si(
                         time_value, time_units)
+                    var_md['time']['units'] = time_units
                 # convert to desired units
                 if (target_time_units != 'SI' and
                     target_time_units not in self.si_units):
                     time_value = self.convert_data(time_value, time_units,
                                                    target_time_units)
+                    var_md['time']['units'] = target_time_units
                 var_md['time']['value'] = time_value
-                var_md['time']['units'] = target_time_units
         return data_dict
 
     def convert_data(self, data, si_units, target_units):
@@ -243,8 +258,10 @@ class OsirisUnitConverter(UnitConverter):
                 '1/\\omega_p': [1./w_p, 's'],
                 'c/\\omega_p': [ct.c/w_p, 'm'],
                 'm_ec\\omega_pe^{-1}': [E_0, 'V/m'],
-                'e\\omega_p^3/c^3': [(w_p/ct.c)**3, '1/m^3'],
-                'm_ec': [1., 'm_e*c']}
+                # 'e\\omega_p^3/c^3': [(w_p/ct.c)**3, '1/m^3'],
+                'e\\omega_p^3/c^3': [ct.e * self.plasma_density, 'C/m^3'],
+                'm_ec': [1., 'm_e*c']
+            }
         else:
             self.osiris_unit_conversion = None
         super().__init__()
@@ -272,7 +289,36 @@ class OsirisUnitConverter(UnitConverter):
 class HiPACEUnitConverter(UnitConverter):
     def __init__(self, plasma_density=None):
         self.plasma_density = plasma_density
+        if plasma_density is not None:
+            w_p = ge.plasma_frequency(plasma_density*1e-6)
+            E_0 = ge.plasma_cold_non_relativisct_wave_breaking_field(
+                plasma_density*1e-6)
+            self.hipace_unit_conversion = {
+                '1/\\omega_p': [1/w_p, 's'],
+                'c/\\omega_p': [ct.c/w_p, 'm'],
+                'E_0': [E_0, 'V/m'],
+                'n_0': [ct.e * self.plasma_density, 'C/m^3'],
+                'm_ec': [ct.m_e*ct.c, 'J*s/m']
+                }
+        else:
+            self.hipace_unit_conversion = None
+        super().__init__()
 
     def convert_data_to_si(self, data, data_units, metadata=None):
-        raise NotImplementedError(
-            'HiPACE unit conversion not yet implemented.')
+        if self.hipace_unit_conversion is not None:
+            if data_units in self.hipace_unit_conversion:
+                conv_factor, si_units = self.hipace_unit_conversion[data_units]
+            elif data_units == 'qnorm':
+                n_cells = metadata['grid']['resolution']
+                sim_size = metadata['grid']['size']
+                cell_vol = np.prod(sim_size/n_cells)
+                s_d = ge.plasma_skin_depth(self.plasma_density*1e-6)
+                conv_factor = cell_vol * self.plasma_density * s_d**3 * ct.e
+                si_units = 'C'
+            else:
+                raise ValueError('Unsupported units: {}.'.format(data_units))
+            return data*conv_factor, si_units
+
+        else:
+            raise ValueError('Could not perform unit conversion.'
+                             ' Plasma density value not provided.')

@@ -18,7 +18,7 @@ derived_field_definitions = []
 '''
 -------------------------------------------------------------------------------
 Template for adding new derived fields. Copy the code below, uncomment and
-substitude 'Field name' and 'field_name' with the appropiate name.
+substitute 'Field name' and 'field_name' with the appropriate name.
 -------------------------------------------------------------------------------
 
 # Field name
@@ -52,7 +52,7 @@ def calculate_field_name(data_list, sim_geometry, sim_params):
         raise NotImplementedError
     elif sim_geometry == '3dcartesian':
         raise NotImplementedError
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         raise NotImplementedError
@@ -66,7 +66,7 @@ field_name = {'name': 'F',
               'requirements': {'1d': [],
                                '2dcartesian': [],
                                '3dcartesian': [],
-                               '2dcylindrical': [],
+                               'cylindrical': [],
                                'thetaMode': []},
               'recipe': calculate_field_name}
 
@@ -87,7 +87,7 @@ def calculate_intensity(data_list, sim_geometry, sim_params):
     elif sim_geometry == '3dcartesian':
         Ez, Ex, Ey = data_list
         E2 = Ez**2 + Ex**2 + Ey**2
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         Ez, Er, Et = data_list
@@ -100,7 +100,7 @@ intensity = {'name': 'I',
              'requirements': {'1d': ['Ez'],
                               '2dcartesian': ['Ez', 'Ex'],
                               '3dcartesian': ['Ez', 'Ex', 'Ey'],
-                              '2dcylindrical': [],
+                              'cylindrical': ['Ez', 'Er'],
                               'thetaMode': ['Ez', 'Er', 'Et']},
              'recipe': calculate_intensity}
 
@@ -108,8 +108,8 @@ intensity = {'name': 'I',
 derived_field_definitions.append(intensity)
 
 
-# Normalized vector potential
-def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
+# Vector potential
+def calculate_vector_pot(data_list, sim_geometry, sim_params):
     l_0 = sim_params['lambda_0']
     if sim_geometry == '1d':
         Ez = data_list[0]
@@ -120,20 +120,40 @@ def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
     elif sim_geometry == '3dcartesian':
         Ez, Ex, Ey = data_list
         E2 = Ez**2 + Ex**2 + Ey**2
-    elif sim_geometry == '2dcylindrical':
+    elif sim_geometry == 'cylindrical':
         raise NotImplementedError
     elif sim_geometry == 'thetaMode':
         Ez, Er, Et = data_list
         E2 = Ez**2 + Er**2 + Et**2
-    return np.sqrt(7.3e-11 * l_0**2 * ct.c * ct.epsilon_0 / 2 * E2)
+    k_0 = 2. * np.pi / l_0
+    return np.sqrt(E2) / k_0
+
+
+vector_pot = {'name': 'A',
+              'units': 'V',
+              'requirements': {'1d': ['Ez'],
+                               '2dcartesian': ['Ez', 'Ex'],
+                               '3dcartesian': ['Ez', 'Ex', 'Ey'],
+                               'cylindrical': ['Ez', 'Er'],
+                               'thetaMode': ['Ez', 'Er', 'Et']},
+              'recipe': calculate_vector_pot}
+
+
+derived_field_definitions.append(vector_pot)
+
+
+# Normalized vector potential
+def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
+    A = calculate_vector_pot(data_list, sim_geometry, sim_params)
+    return  A / ((ct.m_e * ct.c**2) / ct.e)
 
 
 norm_vector_pot = {'name': 'a',
-                   'units': 'm_e*c^2/e',
+                   'units': '',
                    'requirements': {'1d': ['Ez'],
                                     '2dcartesian': ['Ez', 'Ex'],
                                     '3dcartesian': ['Ez', 'Ex', 'Ey'],
-                                    '2dcylindrical': [],
+                                    'cylindrical': ['Ez', 'Er'],
                                     'thetaMode': ['Ez', 'Er', 'Et']},
                    'recipe': calculate_norm_vector_pot}
 

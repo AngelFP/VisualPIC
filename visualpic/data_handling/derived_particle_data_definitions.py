@@ -24,7 +24,7 @@ def get_definition(data_name):
 '''
 -------------------------------------------------------------------------------
 Template for adding new derived particle components. Copy the code below,
-and substitude 'Component name' and 'component_name' with the appropiate name.
+and substitute 'Component name' and 'component_name' with the appropriate name.
 -------------------------------------------------------------------------------
 
 # Component name
