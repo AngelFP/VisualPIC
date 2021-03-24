@@ -9,30 +9,13 @@ License: GNU GPL-3.0.
 
 import sys
 
-from matplotlib.style import library
 from PyQt5 import QtWidgets
 
 from visualpic.ui.basic_plot_window import BasicPlotWindow
 from .figure import VPFigure
 from .field_subplot import FieldSubplot
 from .particle_subplot import ParticlePlot
-
-
-aptools_rc_params = {'axes.linewidth': 0.5,
-                     'axes.labelsize': 8,
-                     'xtick.major.size': 2,
-                     'ytick.major.size': 2,
-                     'xtick.major.width': 0.5,
-                     'ytick.major.width': 0.5,
-                     'xtick.labelsize': 8,
-                     'ytick.labelsize': 8,
-                     'xtick.direction': 'in',
-                     'ytick.direction': 'in',
-                     'xtick.top': True,
-                     'ytick.right': True,
-                     'legend.borderaxespad': 1}#,
-                    #  'figure.constrained_layout.use': True}
-rc_dark = {**library['dark_background'], **aptools_rc_params}
+from .rc_params import rc_params, rc_params_dark
 
 
 class MplVisualizer():
@@ -45,7 +28,7 @@ class MplVisualizer():
         if fig_idx is not None:
             fig = self._figure_list[fig_idx]
         else:
-            fig = VPFigure()
+            fig = VPFigure(rc_params=rc_params_dark)
             self._figure_list.append(fig)
         self._set_current_figure(fig)
         return fig
