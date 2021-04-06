@@ -28,7 +28,7 @@ class MplVisualizer():
         if fig_idx is not None:
             fig = self._figure_list[fig_idx]
         else:
-            fig = VPFigure(rc_params=rc_params_dark)
+            fig = VPFigure(rc_params=rc_params)
             self._figure_list.append(fig)
         self._set_current_figure(fig)
         return fig
