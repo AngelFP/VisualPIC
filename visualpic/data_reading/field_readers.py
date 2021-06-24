@@ -519,3 +519,5 @@ class OpenPMDFieldReader(FieldReader):
             return 'C/m^3'
         elif field == 'J':
             return 'A'
+        else:
+            return ''
