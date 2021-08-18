@@ -63,7 +63,9 @@ class SetupFieldVolumeWindow(QSetupFieldVolumeWindow,
         time_step = self.main_window.vtk_vis.current_time_step
         fld_name = self.volume.get_name()
         fld_units = self.volume.get_field_units()
-        xlabel = fld_name + " [$" + fld_units + "$]"
+        xlabel = fld_name
+        if len(fld_units) > 0:
+            xlabel += " [$" + fld_units + "$]"
 
         # Scalar opacity
         hist, hist_edges = self.volume.get_field_data_histogram(

@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 from h5py import File as H5F
-from openpmd_viewer.openpmd_timeseries.data_reader import DataReader
+from .openpmd_data_reader import OpenPMDDataReader
 
 import visualpic.data_reading.field_readers as fr
 import visualpic.data_reading.particle_readers as pr
@@ -77,7 +77,7 @@ class OpenPMDFolderScanner(FolderScanner):
             Possible values are 'h5py' or 'openpmd-api'.
 
         """
-        self.opmd_reader = DataReader(opmd_backend)
+        self.opmd_reader = OpenPMDDataReader(opmd_backend)
         self.field_reader = fr.OpenPMDFieldReader(self.opmd_reader)
         self.particle_reader = pr.OpenPMDParticleReader(self.opmd_reader)
         self.unit_converter = uc.OpenPMDUnitConverter()
