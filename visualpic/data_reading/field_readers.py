@@ -55,19 +55,24 @@ class FieldReader():
         geom = field_metadata['field']['geometry']
         if geom in ['cylindrical', 'thetaMode'] and theta is None:
             r_md = field_metadata['axis']['r']
+            z_md = field_metadata['axis']['z']
             # Check if resolution should be reduced
             if max_resolution_3d is not None:
-                z = field_metadata['axis']['z']['array']
+                z = z_md['array']
                 r = r_md['array']
                 nr = len(r) - 1
                 nz = len(z) - 1
                 max_res_lon, max_res_transv = max_resolution_3d
                 if nz > max_res_lon:
                     excess_z = int(np.round(nz/max_res_lon))
-                    field_metadata['axis']['z']['array'] = z[::excess_z]
+                    z_md['array'] = z[::excess_z]
+                    z_md['min'] = z_md['array'][0]
+                    z_md['max'] = z_md['array'][-1]
                 if nr > max_res_transv:
                     excess_r = int(np.round(nr/max_res_transv))
                     r_md['array'] = r[::excess_r]
+                    r_md['min'] = z_md['array'][0]
+                    r_md['max'] = z_md['array'][-1]
                 # if nr > max_res_transv:
                 #    r = zoom(r, max_res_transv/nr, order=1)
                 #    r_md['array'] = r
@@ -476,7 +481,11 @@ class OpenPMDFieldReader(FieldReader):
         return fld
 
     def _read_field_metadata(self, file_path, iteration, field_path):
+        # Get name of field and component.
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
+        else:
+            comp = None
+        # Read metadata.
         return self._opmd_reader.read_field_metadata(iteration, field, comp)
