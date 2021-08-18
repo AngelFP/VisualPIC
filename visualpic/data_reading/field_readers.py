@@ -371,6 +371,11 @@ class OpenPMDFieldReader(FieldReader):
         axis_labels = field_md['field']['axis_labels']
         fld, _ = self._opmd_reader.read_field_cartesian(
             iteration, field, comp, axis_labels, None, None)
+
+        # Make sure the array indices are ordered as ['x' (or 'y'), 'z']
+        axes_sort = np.argsort(np.array(axis_labels))
+        fld = np.moveaxis(fld, axes_sort, [0, 1])
+
         if slice_dir_i is not None:
             fld_shape = fld.shape
             axis_order = axis_labels
