@@ -55,19 +55,24 @@ class FieldReader():
         geom = field_metadata['field']['geometry']
         if geom in ['cylindrical', 'thetaMode'] and theta is None:
             r_md = field_metadata['axis']['r']
+            z_md = field_metadata['axis']['z']
             # Check if resolution should be reduced
             if max_resolution_3d is not None:
-                z = field_metadata['axis']['z']['array']
+                z = z_md['array']
                 r = r_md['array']
                 nr = len(r) - 1
                 nz = len(z) - 1
                 max_res_lon, max_res_transv = max_resolution_3d
                 if nz > max_res_lon:
                     excess_z = int(np.round(nz/max_res_lon))
-                    field_metadata['axis']['z']['array'] = z[::excess_z]
+                    z_md['array'] = z[::excess_z]
+                    z_md['min'] = z_md['array'][0]
+                    z_md['max'] = z_md['array'][-1]
                 if nr > max_res_transv:
                     excess_r = int(np.round(nr/max_res_transv))
                     r_md['array'] = r[::excess_r]
+                    r_md['min'] = z_md['array'][0]
+                    r_md['max'] = z_md['array'][-1]
                 # if nr > max_res_transv:
                 #    r = zoom(r, max_res_transv/nr, order=1)
                 #    r_md['array'] = r
@@ -476,48 +481,11 @@ class OpenPMDFieldReader(FieldReader):
         return fld
 
     def _read_field_metadata(self, file_path, iteration, field_path):
+        # Get name of field and component.
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
-        md = {}
-        t, params = self._opmd_reader.read_openPMD_params(iteration)
-        md['time'] = {}
-        md['time']['value'] = t
-        md['time']['units'] = 's'
-        field_geometry = params['fields_metadata'][field]['geometry']
-        axis_labels = params['fields_metadata'][field]['axis_labels']
-        field_units = self._determine_field_units(field)
-        md['field'] = {}
-        md['field']['units'] = field_units
-        md['field']['geometry'] = field_geometry
-        md['field']['axis_labels'] = axis_labels
-        ax_el, ax_lims = self._opmd_reader.get_grid_parameters(
-            iteration, [field], params['fields_metadata'])
-        axes = ax_el.keys()
-        md['axis'] = {}
-        for axis in axes:
-            md['axis'][axis] = {}
-            md['axis'][axis]['units'] = 'm'
-            ax_min = ax_lims[axis][0]
-            ax_max = ax_lims[axis][1]
-            ax_els = ax_el[axis]
-            if field_geometry in ['cylindrical', 'thetaMode'] and axis == 'r':
-                ax_min = -ax_max
-                ax_els += ax_el[axis]
-            # FIXME this does not differentiate between
-            # node-centered / cell-centered fields. FieldMetaInformation
-            # does it properly
-            md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
-        return md
-
-    def _determine_field_units(self, field):
-        if field == 'E':
-            return 'V/m'
-        elif field == 'B':
-            return 'T'
-        elif field == 'rho':
-            return 'C/m^3'
-        elif field == 'J':
-            return 'A'
         else:
-            return ''
+            comp = None
+        # Read metadata.
+        return self._opmd_reader.read_field_metadata(iteration, field, comp)
