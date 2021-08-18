@@ -406,7 +406,7 @@ class OpenPMDFieldReader(FieldReader):
         # Make sure the array indices are ordered as ['x', 'y', 'z']
         axes_sort = np.argsort(np.array(axis_labels))
         fld = np.moveaxis(fld, axes_sort, [0, 1, 2])
-        
+
         if slice_dir_i is not None and slice_dir_j is not None:
             fld_shape = fld.shape
             axis_order = axis_labels
@@ -431,7 +431,6 @@ class OpenPMDFieldReader(FieldReader):
             iteration, field, comp, None, None, theta=theta,
             max_resolution_3d=max_resolution_3d)
         return fld
-
 
     def _read_field_theta(
             self, file_path, iteration, field_path, field_md, m='all', theta=0,
