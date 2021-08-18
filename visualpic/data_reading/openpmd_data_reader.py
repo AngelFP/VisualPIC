@@ -1,3 +1,12 @@
+"""
+This module contains the `OpenPMDDataReader`, a class derived from the
+openPMD-viewer `DataReader` which has been expanded with a method for returning
+only the field metadata.
+
+Some of the methods below include code from openPMD-viewer (see at
+https://github.com/openPMD/openPMD-viewer).
+"""
+
 import h5py
 from openpmd_viewer.openpmd_timeseries.data_reader import DataReader
 from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
