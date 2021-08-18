@@ -479,45 +479,4 @@ class OpenPMDFieldReader(FieldReader):
         field, *comp = field_path.split('/')
         if len(comp) > 0:
             comp = comp[0]
-        md = {}
-        t, params = self._opmd_reader.read_openPMD_params(iteration)
-        md['time'] = {}
-        md['time']['value'] = t
-        md['time']['units'] = 's'
-        field_geometry = params['fields_metadata'][field]['geometry']
-        axis_labels = params['fields_metadata'][field]['axis_labels']
-        field_units = self._determine_field_units(field)
-        md['field'] = {}
-        md['field']['units'] = field_units
-        md['field']['geometry'] = field_geometry
-        md['field']['axis_labels'] = axis_labels
-        ax_el, ax_lims = self._opmd_reader.get_grid_parameters(
-            iteration, [field], params['fields_metadata'])
-        axes = ax_el.keys()
-        md['axis'] = {}
-        for axis in axes:
-            md['axis'][axis] = {}
-            md['axis'][axis]['units'] = 'm'
-            ax_min = ax_lims[axis][0]
-            ax_max = ax_lims[axis][1]
-            ax_els = ax_el[axis]
-            if field_geometry in ['cylindrical', 'thetaMode'] and axis == 'r':
-                ax_min = -ax_max
-                ax_els += ax_el[axis]
-            # FIXME this does not differentiate between
-            # node-centered / cell-centered fields. FieldMetaInformation
-            # does it properly
-            md['axis'][axis]['array'] = np.linspace(ax_min, ax_max, ax_els)
-        return md
-
-    def _determine_field_units(self, field):
-        if field == 'E':
-            return 'V/m'
-        elif field == 'B':
-            return 'T'
-        elif field == 'rho':
-            return 'C/m^3'
-        elif field == 'J':
-            return 'A'
-        else:
-            return ''
+        return self._opmd_reader.read_field_metadata(iteration, field, comp)
