@@ -63,7 +63,7 @@ class ParticleSpecies():
         self.unit_converter = unit_converter
         self.associated_fields = []
 
-    def get_data(self, time_step, components_list, data_units=None,
+    def get_data(self, time_step, components_list=[], data_units=None,
                  time_units=None):
         """
         Get the species data of the requested components and time step and in
@@ -99,6 +99,9 @@ class ParticleSpecies():
         where the first element is the data array and the second is the 
         metadata dictionary.
         """
+        # By default, if no list is specified, get all components.
+        if len(components_list) == 0:
+            components_list = self.get_list_of_available_components()
         units_are_specified = data_units is not None
         # If units are a string, assume all components should have these units
         if isinstance(data_units, str):
