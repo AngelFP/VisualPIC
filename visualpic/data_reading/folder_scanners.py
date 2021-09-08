@@ -130,17 +130,24 @@ class OpenPMDFolderScanner(FolderScanner):
                                 fields[field_name]['iterations'].append(it)
 
                     else:
-                        # This might be specific for FBPIC. Check other codes.
-                        if '_' in field:
-                            name_parts = field.split('_')
-                            field_name = name_parts[0]
-                            if len(name_parts) > 2:
-                                species_name = '_'.join(name_parts[1:])
-                            else:
-                                species_name = name_parts[1]
-                        else:
-                            field_name = field
-                            species_name = None
+                        # The code below tries to identify whether the field is
+                        # associated with a particle species. The
+                        # implementation was only valid for FBPIC and could
+                        # lead to problems in other cases. A better way of
+                        # doing this will be implemented once openPMD 2.0 is
+                        # released, which adds this feature to the standard.
+                        # if '_' in field:
+                        #     name_parts = field.split('_')
+                        #     field_name = name_parts[0]
+                        #     if len(name_parts) > 2:
+                        #         species_name = '_'.join(name_parts[1:])
+                        #     else:
+                        #         species_name = name_parts[1]
+                        # else:
+                        #     field_name = field
+                        #     species_name = None
+                        field_name = field
+                        species_name = None
                         field_name = self._get_standard_visualpic_name(
                             field_name)
                         if field_name not in fields:
