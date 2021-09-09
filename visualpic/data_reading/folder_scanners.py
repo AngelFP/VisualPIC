@@ -9,6 +9,7 @@ License: GNU GPL-3.0.
 
 
 import os
+from warnings import warn
 
 import numpy as np
 from h5py import File as H5F
@@ -264,7 +265,7 @@ class OpenPMDFolderScanner(FolderScanner):
         try:
             return name_relations[opmd_name]
         except KeyError:
-            print('Unknown data name {}.'.format(opmd_name))
+            warn('Unknown data name {}.'.format(opmd_name))
             return opmd_name
 
 
@@ -453,7 +454,7 @@ class OsirisFolderScanner(FolderScanner):
         try:
             return name_relations[osiris_name]
         except KeyError:
-            print('Unknown data name {}.'.format(osiris_name))
+            warn('Unknown data name {}.'.format(osiris_name))
             return osiris_name
 
     def _get_osiris_field_name(self, field_folder_name):
@@ -685,7 +686,7 @@ class HiPACEFolderScanner(FolderScanner):
         try:
             return name_relations[hipace_name]
         except KeyError:
-            print('Unknown data name {}.'.format(hipace_name))
+            warn('Unknown data name {}.'.format(hipace_name))
             return hipace_name
 
     def _get_files_and_timesteps(self, folder_path, files_in_folder, prefix,
