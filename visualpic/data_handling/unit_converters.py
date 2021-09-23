@@ -133,12 +133,13 @@ class UnitConverter():
         if convert_axes:
             for axis, target_units in zip(axes_to_convert, target_axes_units):
                 if target_units != 'SI' and target_units not in self.si_units:
-                    axis_data = field_md['axis'][axis]['array']
-                    axis_units = field_md['axis'][axis]['units']
-                    axis_data = self.convert_data(axis_data, axis_units,
-                                                target_units)
-                    field_md['axis'][axis]['units'] = target_units
-                    field_md['axis'][axis]['array'] = axis_data
+                    axis_md = field_md['axis'][axis]
+                    axis_units = axis_md['units']
+                    for data in ['array', 'spacing', 'min', 'max']:
+                        if data in axis_md:
+                            axis_md[data] = self.convert_data(
+                                axis_md[data], axis_units, target_units)
+                    axis_md['units'] = target_units
 
         # convert time data to desired units
         if convert_time and (target_time_units != 'SI' and
