@@ -217,13 +217,14 @@ class UnitConverter():
 
         if convert_axes:
             for axis in axes_to_convert:
-                axis_data = field_md['axis'][axis]['array']
-                axis_units = field_md['axis'][axis]['units']
+                axis_md = field_md['axis'][axis]
+                axis_units = axis_md['units']
                 if axis_units not in self.si_units:
-                    axis_data, axis_units = self.convert_data_to_si(
-                        axis_data, axis_units, field_md)
-                    field_md['axis'][axis]['units'] = axis_units
-                    field_md['axis'][axis]['array'] = axis_data
+                    for data in ['array', 'spacing', 'min', 'max']:
+                        if data in axis_md:
+                            axis_md[data], new_units = self.convert_data_to_si(
+                        axis_md[data], axis_units, field_md)
+                    field_md['axis'][axis]['units'] = new_units
 
         if convert_time:
             time_units = field_md['time']['units']
