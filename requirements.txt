@@ -2,6 +2,6 @@ numpy
 scipy
 h5py
 matplotlib
-openpmd-viewer>=1.1.0
-aptools
+openpmd-viewer>=1.2.0
+aptools>=0.1.23
 tqdm
