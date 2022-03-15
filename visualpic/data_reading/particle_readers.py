@@ -190,8 +190,6 @@ class OpenPMDParticleReader(ParticleReader):
     def _read_component_metadata(
             self, file_path, iteration, species, component):
         t, params = self._opmd_reader.read_openPMD_params(iteration)
-        fields_metadata = params['fields_metadata']
-        avail_fields = params['avail_fields']
         component_to_read = self.name_relations[component]
         metadata = {}
         if component_to_read in ['x', 'y', 'z']:
@@ -208,7 +206,9 @@ class OpenPMDParticleReader(ParticleReader):
         metadata['time']['value'] = t
         metadata['time']['units'] = 's'
         metadata['grid'] = {}
-        if len(avail_fields) > 0:
+        avail_fields = params['avail_fields']
+        if avail_fields is not None:
+            fields_metadata = params['fields_metadata']
             grid_params = self._opmd_reader.get_grid_parameters(
                     iteration, avail_fields, fields_metadata)
             grid_size_dict, grid_range_dict = grid_params
