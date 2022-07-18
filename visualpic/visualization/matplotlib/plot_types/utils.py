@@ -4,7 +4,10 @@ import matplotlib.gridspec as gs
 from matplotlib import ticker
 from matplotlib.colorbar import Colorbar
 
-def add_projection(x, bins, main_ax, subplot_spec, fig, orientation='horizontal'):
+
+def add_projection(x, bins, main_ax, subplot_spec, fig,
+        orientation='horizontal'):
+    """Add an axis projection to a particle plot."""
     x_proj, x_bins = np.histogram(x, bins=bins)
     x_pos = x_bins[1:] - (x_bins[1]-x_bins[0])
 
@@ -52,10 +55,9 @@ def add_projection(x, bins, main_ax, subplot_spec, fig, orientation='horizontal'
     #     label.set_verticalalignment('bottom')
 
 
-
-
-def create_vertical_colorbars(images, labels, subplot_spec, fig=None, n_ticks=3,
-                              **kwargs):
+def create_vertical_colorbars(images, labels, subplot_spec, fig=None,
+        n_ticks=3, **kwargs):
+    """Create vertical colorbars in existing subplot spec."""
     if not isinstance(images, list):
         images = [images]
     if not isinstance(labels, list):
