@@ -1,5 +1,5 @@
 from .subplot import Subplot
-from .plots import field_plot
+from visualpic.visualization.matplotlib.plot_types import field_plot
 
 
 class FieldSubplot(Subplot):

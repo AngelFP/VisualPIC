@@ -1,8 +1,8 @@
 from .subplot import Subplot
-from .plots import particle_plot
+from visualpic.visualization.matplotlib.plot_types import particle_plot
 
 
-class ParticlePlot(Subplot):
+class ParticleSubplot(Subplot):
 
     def __init__(
         self, species, x='x', y='y', x_units=None, y_units=None,

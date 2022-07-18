@@ -12,9 +12,7 @@ import sys
 from PyQt5 import QtWidgets
 
 from visualpic.ui.basic_plot_window import BasicPlotWindow
-from .figure import VPFigure
-from .field_subplot import FieldSubplot
-from .particle_subplot import ParticlePlot
+from .plot_containers import VPFigure, FieldSubplot, ParticleSubplot
 from .rc_params import rc_params, rc_params_dark
 
 
@@ -49,7 +47,7 @@ class MplVisualizer():
             self, species, x='x', y='y', x_units=None, y_units=None,
             q_units=None, time_units=None, cbar=True):
         fig = self._get_current_figure()
-        subplot = ParticlePlot(
+        subplot = ParticleSubplot(
             species, x=x, y=y, x_units=x_units, y_units=y_units,
             q_units=q_units, time_units=time_units, cbar=cbar)
         fig.add_subplot(subplot)
