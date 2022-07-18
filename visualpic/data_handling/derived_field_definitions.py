@@ -145,7 +145,7 @@ derived_field_definitions.append(vector_pot)
 # Normalized vector potential
 def calculate_norm_vector_pot(data_list, sim_geometry, sim_params):
     A = calculate_vector_pot(data_list, sim_geometry, sim_params)
-    return  A / ((ct.m_e * ct.c**2) / ct.e)
+    return A / ((ct.m_e * ct.c**2) / ct.e)
 
 
 norm_vector_pot = {'name': 'a',

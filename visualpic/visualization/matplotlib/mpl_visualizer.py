@@ -13,7 +13,7 @@ from PyQt5 import QtWidgets
 
 from visualpic.ui.basic_plot_window import BasicPlotWindow
 from .plot_containers import VPFigure, FieldSubplot, ParticleSubplot
-from .rc_params import rc_params, rc_params_dark
+from .rc_params import rc_params
 
 
 class MplVisualizer():

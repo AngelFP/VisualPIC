@@ -64,5 +64,5 @@ class SaveColormapDialog(QSaveColormapDialog, Ui_SaveColormapDialog):
         folder_path = self.location_lineEdit.text()
         if self.vs_handler.save_cmap(cmap_name, self.fld_val, self.r_val,
                                      self.g_val, self.b_val, folder_path):
-            success_message = QMessageBox.information(
+            QMessageBox.information(
                 self, 'Save colormap', 'Colormap succesfully saved to file.')

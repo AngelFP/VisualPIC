@@ -61,5 +61,5 @@ class SaveOpacityDialog(QSaveOpacityDialog, Ui_SaveOpacityDialog):
         folder_path = self.location_lineEdit.text()
         if self.vs_handler.save_opacity(op_name, self.fld_val, self.op_val,
                                         folder_path):
-            success_message = QMessageBox.information(
+            QMessageBox.information(
                 self, 'Save opacity', 'Opacity succesfully saved to file.')

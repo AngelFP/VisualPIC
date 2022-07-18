@@ -16,7 +16,7 @@ import ctypes
 import vtk
 import numpy as np
 from PyQt5.Qt import Qt, QStyleFactory
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui
 
 # use custom QVTKRenderWindowInteractor to fix crash
 from visualpic.ui.controls.qt.QVTKRenderWindowInteractor import (
@@ -217,7 +217,7 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
             writer.Write()
 
     def closeEvent(self, *args, **kwargs):
-        """ This fixes bug described in 
+        """ This fixes bug described in
         (http://vtk.1045678.n5.nabble.com/Multiple-vtkRenderWindows-Error-
         during-cleanup-wglMakeCurrent-failed-in-Clean-tt5747036.html)
         """

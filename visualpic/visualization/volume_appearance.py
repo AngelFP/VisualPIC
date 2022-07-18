@@ -101,10 +101,8 @@ class VolumeStyleHandler():
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
-                opacity_dataset = file.create_dataset(
-                    "opacity", data=opacity_values)
-                field_dataset = file.create_dataset("field",
-                                                    data=field_values)
+                file.create_dataset("opacity", data=opacity_values)
+                file.create_dataset("field", data=field_values)
                 file.attrs["opacity_name"] = name
                 file.close()
                 # Add to available opacities
@@ -198,10 +196,10 @@ class VolumeStyleHandler():
                 file_path = self.create_file_path(name, folder_path)
                 # Create H5 file
                 file = H5File(file_path,  "w")
-                r_dataset = file.create_dataset("r", data=r_val)
-                g_dataset = file.create_dataset("g", data=g_val)
-                b_dataset = file.create_dataset("b", data=b_val)
-                fld_dataset = file.create_dataset("field", data=fld_val)
+                file.create_dataset("r", data=r_val)
+                file.create_dataset("g", data=g_val)
+                file.create_dataset("b", data=b_val)
+                file.create_dataset("field", data=fld_val)
                 file.attrs["cmap_name"] = name
                 file.close()
                 # Add to available colormaps

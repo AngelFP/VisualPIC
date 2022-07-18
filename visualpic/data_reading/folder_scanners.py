@@ -112,13 +112,13 @@ class OpenPMDFolderScanner(FolderScanner):
                     if field_metadata['type'] == 'vector':
                         field_comps = field_metadata['avail_components']
                         if ((field_metadata['geometry'] == 'thetaMode') and
-                            (set(['r', 't']).issubset(field_comps))):
+                                (set(['r', 't']).issubset(field_comps))):
                             field_comps += ['x', 'y']
                         for comp in field_comps:
                             field_path = field + '/' + comp
                             field_name = self._get_standard_visualpic_name(
                                 field_path)
-                            
+
                             if field_name not in fields:
                                 field_dict = {}
                                 field_dict['path'] = field_path
@@ -173,7 +173,7 @@ class OpenPMDFolderScanner(FolderScanner):
                     self.field_reader,
                     self.unit_converter,
                     species_name=fields[field_name]['species_name'])
-                    )
+            )
         return field_list
 
     def get_list_of_species(self, folder_path):
@@ -214,7 +214,7 @@ class OpenPMDFolderScanner(FolderScanner):
                         found_species[species]['files'].append(file)
                         found_species[species]['iterations'].append(it)
 
-    	# Create all species.
+        # Create all species.
         for species_name in found_species.keys():
             species_list.append(
                 ParticleSpecies(
@@ -224,7 +224,7 @@ class OpenPMDFolderScanner(FolderScanner):
                     found_species[species_name]['files'],
                     self.particle_reader,
                     self.unit_converter)
-                    )
+            )
         return species_list
 
     def _get_standard_visualpic_name(self, opmd_name):
@@ -357,7 +357,7 @@ class OsirisFolderScanner(FolderScanner):
                 for species in available_species:
                     species_folder = os.path.join(subdir, species)
                     if os.path.isdir(species_folder):
-                        species_fields = os.listdir(species_folder)
+                        # species_fields = os.listdir(species_folder)
                         species_list.append(self._create_species(
                             species, species_folder))
         return species_list

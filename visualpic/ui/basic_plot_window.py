@@ -15,7 +15,7 @@ import ctypes
 
 import numpy as np
 from PyQt5.Qt import Qt, QStyleFactory
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from visualpic.helper_functions import (
@@ -90,7 +90,6 @@ class BasicPlotWindow(QtWidgets.QMainWindow):
         else:
             self.timestep_slider.setEnabled(False)
         self.hl.addWidget(self.timestep_slider)
-        
 
         self.vl.addLayout(self.hl)
         self.frame.setLayout(self.vl)

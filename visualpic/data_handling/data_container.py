@@ -90,7 +90,7 @@ class DataContainer():
     def get_list_of_species(self, required_data=[]):
         """
         Returns a list with the names of all available particle species.
-        
+
         Parameters
         ----------
 
@@ -98,7 +98,7 @@ class DataContainer():
             String or list of strings with the names of the particle components
             and/or fields that the species should contain. If specified,
             only the species containing the required data will be returned.
-            
+
         """
         species_list = []
         for species in self.particle_species:
@@ -217,4 +217,3 @@ class DataContainer():
                         field.species_name, [], [], [], None, None)
                     self.particle_species.append(species)
                 species.add_associated_field(field)
-                

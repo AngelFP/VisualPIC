@@ -16,7 +16,6 @@ from pathlib import Path
 import numpy as np
 from PyQt5.uic import loadUiType
 from PyQt5.QtWidgets import QDialogButtonBox, QFileDialog
-import matplotlib.patches as patches
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 

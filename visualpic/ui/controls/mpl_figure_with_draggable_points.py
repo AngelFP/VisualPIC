@@ -9,7 +9,6 @@ License: GNU GPL-3.0.
 """
 
 
-import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from matplotlib.lines import Line2D
 from matplotlib.figure import Figure
@@ -56,7 +55,8 @@ class FigureWithDraggablePoints(Figure):
                     if ylabels is not None:
                         ax.set_ylabel(ylabels[n-1])
                 if (share_x_axis
-                        and n not in np.arange(ncols*nrows-ncols, ncols*nrows)+1):
+                        and n not in np.arange(
+                            ncols * nrows - ncols, ncols * nrows) + 1):
                     ax.tick_params(axis='x', which='both', labelbottom=False)
                 elif share_x_axis:
                     if xlabels is not None:
@@ -128,7 +128,8 @@ class DraggablePoint(Ellipse):
 
     lock = None  # only one can be animated at a time
 
-    def __init__(self, parent_figure, naxes, x=0.1, y=0.1, size_y=2, color='r'):
+    def __init__(self, parent_figure, naxes, x=0.1, y=0.1, size_y=2,
+                 color='r'):
         self.parent_figure = parent_figure
         self.naxes = naxes
         self.x = x

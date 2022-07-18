@@ -1,7 +1,7 @@
 """
 This file is part of VisualPIC.
 
-The module contains the class for the Qt dialog for editting the visual settings
+The module contains the class for the Qt dialog for editing the visual settings
 of a particle species.
 
 Copyright 2016-2020, Angel Ferran Pousa.
@@ -9,7 +9,6 @@ License: GNU GPL-3.0.
 """
 
 
-from PyQt5.Qt import Qt
 from PyQt5 import QtWidgets
 
 
@@ -34,7 +33,8 @@ class SetupScatterSpeciesDialog(QtWidgets.QDialog):
         super(SetupScatterSpeciesDialog, self).closeEvent(*args, **kwargs)
 
     def setup_interface(self):
-        self.setWindowTitle('Edit species ({})'.format(self.species.get_name()))
+        self.setWindowTitle(
+            'Edit species ({})'.format(self.species.get_name()))
         self.vl = QtWidgets.QVBoxLayout()
 
         # Color
@@ -230,4 +230,3 @@ class SetupScatterSpeciesDialog(QtWidgets.QDialog):
     def unregister_time_step_events(self):
         self.main_window.remove_timestep_change_callback(
             self.set_range_lineedits)
-
