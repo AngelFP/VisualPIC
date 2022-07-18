@@ -6,7 +6,7 @@ from matplotlib.colorbar import Colorbar
 
 
 def add_projection(x, bins, main_ax, subplot_spec, fig,
-        orientation='horizontal'):
+                   orientation='horizontal'):
     """Add an axis projection to a particle plot."""
     x_proj, x_bins = np.histogram(x, bins=bins)
     x_pos = x_bins[1:] - (x_bins[1]-x_bins[0])
@@ -25,7 +25,7 @@ def add_projection(x, bins, main_ax, subplot_spec, fig,
     if orientation == 'horizontal':
         ax_p.plot(x_pos, x_proj, c='k', lw=0.5, alpha=0.5)
         ax_p.fill_between(x_pos, x_proj, facecolor='tab:gray',
-                            alpha=0.3)
+                          alpha=0.3)
         xlim = main_ax.get_xlim()
         ax_p.set_xlim(xlim)
         ylim = list(ax_p.get_ylim())
@@ -34,7 +34,7 @@ def add_projection(x, bins, main_ax, subplot_spec, fig,
     elif orientation == 'vertical':
         ax_p.plot(x_proj, x_pos, c='k', lw=0.5, alpha=0.5)
         ax_p.fill_betweenx(x_pos, x_proj, facecolor='tab:gray',
-                            alpha=0.3)
+                           alpha=0.3)
         ylim = main_ax.get_ylim()
         ax_p.set_ylim(ylim)
         xlim = list(ax_p.get_xlim())
@@ -56,7 +56,7 @@ def add_projection(x, bins, main_ax, subplot_spec, fig,
 
 
 def create_vertical_colorbars(images, labels, subplot_spec, fig=None,
-        n_ticks=3, **kwargs):
+                              n_ticks=3, **kwargs):
     """Create vertical colorbars in existing subplot spec."""
     if not isinstance(images, list):
         images = [images]

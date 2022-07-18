@@ -6,8 +6,8 @@ class ParticleSubplot(Subplot):
     """Class defining a particle subplot.
     """
     def __init__(
-        self, species, x='x', y='y', x_units=None, y_units=None,
-        q_units=None, time_units=None, cbar=False):
+            self, species, x='x', y='y', x_units=None, y_units=None,
+            q_units=None, time_units=None, cbar=False):
         self._components = [x, y, 'q']
         self._component_units = [x_units, y_units, q_units]
         self._species_parameters = {
