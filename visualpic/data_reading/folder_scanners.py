@@ -258,6 +258,8 @@ class OpenPMDFolderScanner(FolderScanner):
                           'J/r': 'Jr',
                           'J/t': 'Jt',
                           'rho': 'rho',
+                          'a_mod': 'a_mod',
+                          'a_phase': 'a_phase',
                           'z': 'z',
                           'x': 'x',
                           'y': 'y',
