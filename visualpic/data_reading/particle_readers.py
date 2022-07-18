@@ -207,7 +207,7 @@ class OpenPMDParticleReader(ParticleReader):
         metadata['time']['units'] = 's'
         metadata['grid'] = {}
         avail_fields = params['avail_fields']
-        if avail_fields is not None:
+        if avail_fields is not None and len(avail_fields) > 0:
             fields_metadata = params['fields_metadata']
             grid_params = self._opmd_reader.get_grid_parameters(
                     iteration, avail_fields, fields_metadata)
