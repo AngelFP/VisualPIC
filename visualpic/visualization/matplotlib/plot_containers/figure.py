@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+
 from visualpic.helper_functions import get_common_array_elements
 
 
 class VPFigure():
-
+    """
+    Class defining a VisualPIC figure. Mainly a wrapper around a matplotlib
+    Figure.
+    """
     def __init__(self, rc_params={}, **kwargs):
         self._subplot_list = []
         with plt.rc_context(rc_params):

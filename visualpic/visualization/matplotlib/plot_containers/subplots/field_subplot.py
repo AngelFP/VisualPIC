@@ -3,7 +3,8 @@ from visualpic.visualization.matplotlib.plot_types import field_plot
 
 
 class FieldSubplot(Subplot):
-
+    """Class defining a field subplot.
+    """
     def __init__(
             self, fields, field_units=None, axes_units=None, time_units=None,
             slice_dir=None, slice_pos=0.5, m='all', theta=0, vmin=None,

@@ -3,7 +3,8 @@ from visualpic.helper_functions import get_common_timesteps
 
 
 class Subplot():
-
+    """Base class for a figure subplots.
+    """
     def __init__(self, datasets, rc_params={}):
         if not isinstance(datasets, list):
             datasets = [datasets]
