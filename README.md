@@ -19,7 +19,7 @@ This branch contains the latest developments in the new redesign and gives you a
   <img alt="Sample image" src="images/sample_image_3d_renderer_6.png" width="400px" />
 </p>
 
-If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/general_redesign/examples/example_1).
+If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/dev/examples/example_1).
 
 ## How to install this new version
 
@@ -31,7 +31,7 @@ pip install git+https://github.com/openPMD/openPMD-viewer@dev
 
 2) Install this branch of VisualPIC:
 ```bash
-pip install git+https://github.com/AngelFP/VisualPIC.git@general_redesign
+pip install git+https://github.com/AngelFP/VisualPIC.git@dev
 ```
 
 3) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
