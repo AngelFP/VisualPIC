@@ -36,7 +36,7 @@ pip install git+https://github.com/AngelFP/VisualPIC.git@general_redesign
 
 3) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
 ```bash
-pip install vtk, pyvista, pyqt5
+pip install vtk pyvista pyqt5
 ```
 
 

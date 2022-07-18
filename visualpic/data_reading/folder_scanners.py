@@ -9,6 +9,7 @@ License: GNU GPL-3.0.
 
 
 import os
+from warnings import warn
 
 import numpy as np
 from h5py import File as H5F
@@ -130,17 +131,24 @@ class OpenPMDFolderScanner(FolderScanner):
                                 fields[field_name]['iterations'].append(it)
 
                     else:
-                        # This might be specific for FBPIC. Check other codes.
-                        if '_' in field:
-                            name_parts = field.split('_')
-                            field_name = name_parts[0]
-                            if len(name_parts) > 2:
-                                species_name = '_'.join(name_parts[1:])
-                            else:
-                                species_name = name_parts[1]
-                        else:
-                            field_name = field
-                            species_name = None
+                        # The code below tries to identify whether the field is
+                        # associated with a particle species. The
+                        # implementation was only valid for FBPIC and could
+                        # lead to problems in other cases. A better way of
+                        # doing this will be implemented once openPMD 2.0 is
+                        # released, which adds this feature to the standard.
+                        # if '_' in field:
+                        #     name_parts = field.split('_')
+                        #     field_name = name_parts[0]
+                        #     if len(name_parts) > 2:
+                        #         species_name = '_'.join(name_parts[1:])
+                        #     else:
+                        #         species_name = name_parts[1]
+                        # else:
+                        #     field_name = field
+                        #     species_name = None
+                        field_name = field
+                        species_name = None
                         field_name = self._get_standard_visualpic_name(
                             field_name)
                         if field_name not in fields:
@@ -264,7 +272,7 @@ class OpenPMDFolderScanner(FolderScanner):
         try:
             return name_relations[opmd_name]
         except KeyError:
-            print('Unknown data name {}.'.format(opmd_name))
+            warn('Unknown data name {}.'.format(opmd_name))
             return opmd_name
 
 
@@ -453,7 +461,7 @@ class OsirisFolderScanner(FolderScanner):
         try:
             return name_relations[osiris_name]
         except KeyError:
-            print('Unknown data name {}.'.format(osiris_name))
+            warn('Unknown data name {}.'.format(osiris_name))
             return osiris_name
 
     def _get_osiris_field_name(self, field_folder_name):
@@ -685,7 +693,7 @@ class HiPACEFolderScanner(FolderScanner):
         try:
             return name_relations[hipace_name]
         except KeyError:
-            print('Unknown data name {}.'.format(hipace_name))
+            warn('Unknown data name {}.'.format(hipace_name))
             return hipace_name
 
     def _get_files_and_timesteps(self, folder_path, files_in_folder, prefix,

@@ -177,23 +177,27 @@ class DataContainer():
         """Returns a list with the available derived fields."""
         derived_field_list = []
         sim_geometry = self._get_simulation_geometry()
-        folder_field_names = self.get_list_of_fields(include_derived=False)
-        for derived_field in derived_field_definitions:
-            if set(derived_field['requirements'][sim_geometry]).issubset(
-                    folder_field_names):
-                base_fields = []
-                for field_name in derived_field['requirements'][sim_geometry]:
-                    base_fields.append(self.get_field(field_name))
-                derived_field_list.append(DerivedField(
-                    derived_field, sim_geometry, self.sim_params, base_fields))
-        return derived_field_list
+        if sim_geometry is not None:
+            folder_field_names = self.get_list_of_fields(include_derived=False)
+            for derived_field in derived_field_definitions:
+                required_fields = derived_field['requirements'][sim_geometry]
+                if set(required_fields).issubset(folder_field_names):
+                    base_fields = []
+                    for field_name in required_fields:
+                        base_fields.append(self.get_field(field_name))
+                    derived_field_list.append(DerivedField(
+                        derived_field, sim_geometry, self.sim_params,
+                        base_fields))
+            return derived_field_list
 
     def _get_simulation_geometry(self):
         """Returns a string with the geometry used in the simulation."""
-        if self.folder_fields is not None:
+        if len(self.folder_fields) > 0:
             time_steps = self.folder_fields[0].timesteps
             fld_md = self.folder_fields[0].get_only_metadata(time_steps[0])
             return fld_md['field']['geometry']
+        else:
+            return None
 
     def _add_associated_species_fields(self):
         """
