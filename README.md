@@ -21,20 +21,14 @@ This branch contains the latest developments in the new redesign and gives you a
 
 If you want to test it by yourself, follow the instructions below and check out the provided example [here](https://github.com/AngelFP/VisualPIC/tree/dev/examples/example_1).
 
-## How to install this new version
+## How to install
 
-1) For using with openPMD data, the latest `dev` version of [`openPMD-viewer`](https://github.com/openPMD/openPMD-viewer) is required (some needed features are not yet available on the PyPI package):
-
-```bash
-pip install git+https://github.com/openPMD/openPMD-viewer@dev
-```
-
-2) Install this branch of VisualPIC:
+1) Install this branch of VisualPIC:
 ```bash
 pip install git+https://github.com/AngelFP/VisualPIC.git@dev
 ```
 
-3) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
+2) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
 ```bash
 pip install vtk pyvista pyqt5
 ```
