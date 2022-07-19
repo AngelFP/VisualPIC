@@ -6,7 +6,7 @@ import argparse
 from visualpic import DataContainer, MplVisualizer
 
 
-def vpic():    
+def vpic():
     """
     Command-line utility for quick visualization of simulation data using
     the matplotlib backend.
@@ -74,7 +74,7 @@ def parse_arguments(possible_fields, possible_species_components):
     parser = argparse.ArgumentParser(
         description='Visualize a field or particle species'
     )
-    
+
     # Add simulation path as optional positional argument.
     parser.add_argument(
         'path',

@@ -6,7 +6,7 @@ import argparse
 from visualpic import DataContainer, VTKVisualizer
 
 
-def vpic3d():    
+def vpic3d():
     """
     Command-line utility for quick visualization of simulation data using
     the VTK backend.
@@ -59,7 +59,7 @@ def parse_arguments(possible_fields):
     parser = argparse.ArgumentParser(
         description='Visualize a field or particle species'
     )
-    
+
     # Add simulation path as optional positional argument.
     parser.add_argument(
         'path',
