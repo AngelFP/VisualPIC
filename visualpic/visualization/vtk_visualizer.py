@@ -71,7 +71,7 @@ class VTKVisualizer():
             Background of the render. Possible string values are
             'default gradient', 'white' and 'black'. A list of 3 floats
             containing the RGB components (range 0 to 1) of any color can
-            also be provided (e.g. background=[1, 1, 0.5]). Alternatively, 
+            also be provided (e.g. background=[1, 1, 0.5]). Alternatively,
             a list of two colors can also be given
             (e.g. background=['black', [1, 1, 0.5]]). In this case, the
             background will be a linear gradient between the two specified
@@ -344,7 +344,7 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            window = BasicRenderWindow(self)
+            BasicRenderWindow(self)
             app.exec_()
         else:
             self.window.Render()
@@ -368,7 +368,7 @@ class VTKVisualizer():
 
     def show_bounding_box(self, value):
         """
-        Show (for value=True) or hide (for value=False) the bounding box 
+        Show (for value=True) or hide (for value=False) the bounding box
         around the 3D volume.
         """
         self.vis_config['show_bounding_box'] = value
@@ -578,9 +578,9 @@ class VTKVisualizer():
 
     def get_brightness(self):
         """Return the brightness value"""
-        l = self.vtk_volume_mapper.GetFinalColorLevel()
-        w = self.vtk_volume_mapper.GetFinalColorWindow()
-        return (1 - 2*l) / (1 + np.abs(w))
+        color_level = self.vtk_volume_mapper.GetFinalColorLevel()
+        color_window = self.vtk_volume_mapper.GetFinalColorWindow()
+        return (1 - 2*color_level) / (1 + np.abs(color_window))
 
     def draw_colorbars(self):
         cbar_visibility = [True] * len(self.colorbar_list)
@@ -740,7 +740,7 @@ class VTKVisualizer():
 
         # Normalize volume spacing
         ax_spacing, ax_origin = self._normalize_volume_spacing(
-                ax_spacing, ax_origin, ax_units)
+            ax_spacing, ax_origin, ax_units)
 
         # Put data in VTK format
         vtk_data_import = self._create_vtk_image_import(
@@ -883,11 +883,11 @@ class VTKVisualizer():
                     ax_units_all = ax_units
                 else:
                     z_range_all = [np.min((z_range_all[0], z_range[0])),
-                                np.max((z_range_all[1], z_range[1]))]
+                                   np.max((z_range_all[1], z_range[1]))]
                     x_range_all = [np.min((x_range_all[0], x_range[0])),
-                                np.max((x_range_all[1], x_range[1]))]
+                                   np.max((x_range_all[1], x_range[1]))]
                     y_range_all = [np.min((y_range_all[0], y_range[0])),
-                                np.max((y_range_all[1], y_range[1]))]
+                                   np.max((y_range_all[1], y_range[1]))]
         # Determine bounds in vtk coordinates
         bounds = None
         if len(self.volume_field_list) > 0:
@@ -921,7 +921,7 @@ class VTKVisualizer():
             self.vtk_cube_axes.SetXUnits(ax_units_all[0])
             self.vtk_cube_axes.SetYUnits(ax_units_all[2])
             self.vtk_cube_axes.SetZUnits(ax_units_all[1])
-        
+
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
@@ -1014,6 +1014,7 @@ class VTKVisualizer():
                 "Install by running 'pip install pyqt5'.")
             use_qt = False
         return use_qt
+
 
 class VolumetricField():
 
@@ -1224,7 +1225,7 @@ class VolumetricField():
             max_fld = np.max(fld_data)
             self._original_data_range = [min_fld, max_fld]
             fld_data = self._normalize_field(fld_data)
-            # Make sure the array is contiguous, otherwise this can lead to 
+            # Make sure the array is contiguous, otherwise this can lead to
             # errors in vtk_data_import.SetImportVoidPointer in some cases when
             # trimming in the y or z planes is applied, or when the array has
             # been rearranged in the FieldReader (such as for HiPACE data).
@@ -1558,7 +1559,7 @@ class ScatterSpecies():
         self.cbar.GetAnnotationTextProperty().SetFontSize(6)
         self.cbar.GetTitleTextProperty().SetFontSize(6)
         self.cbar.SetTextPositionToPrecedeScalarBar()
-        
+
     def _set_vtk_colormap(self):
         cmap = self.get_colormap()
         fld_val, r_val, g_val, b_val = cmap.get_cmap_values()
@@ -1593,7 +1594,7 @@ class ScatterSpecies():
         update_scale = (
             update_data or
             self.scale_with_charge != self._current_scaling_with_charge
-            )
+        )
         if update_data:
             comp_to_read += ['x', 'y', 'z']
             self._current_timestep = timestep
@@ -1603,11 +1604,11 @@ class ScatterSpecies():
             self._current_scaling_with_charge = self.scale_with_charge
         if (update_color and
             color_var is not None and
-            color_var not in comp_to_read):
+                color_var not in comp_to_read):
             comp_to_read.append(color_var)
         if (update_scale and
             self.scale_with_charge and
-            scale_var not in comp_to_read):
+                scale_var not in comp_to_read):
             comp_to_read.append(scale_var)
         # Read data
         if len(comp_to_read) > 0:
@@ -1688,7 +1689,7 @@ class ScatterSpecies():
             x_trim_range = self._determine_trimming_range(self.xtrim, x_range)
             elements_to_keep = np.where((x_arr > x_trim_range[0]) &
                                         (x_arr < x_trim_range[1]),
-                                         elements_to_keep, 0)
+                                        elements_to_keep, 0)
         if self.ytrim is not None:
             y_trim_range = self._determine_trimming_range(self.ytrim, y_range)
             elements_to_keep = np.where((y_arr > y_trim_range[0]) &
@@ -1736,7 +1737,7 @@ class ScatterSpecies():
             part_data -= min_value
             if np.abs(max_value-min_value) > 0:
                 part_data *= max_size / (max_value-min_value)
-        
+
     def _update_colorbar(self, var_name, var_units, var_range):
         self.vtk_cmap.ResetAnnotations()
         cbar_range = self._get_colorbar_range(var_range)

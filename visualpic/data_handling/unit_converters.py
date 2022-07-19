@@ -169,9 +169,9 @@ class UnitConverter():
                         var_md['units'] = var_units
                     # convert to desired units
                     if (var_target_units != 'SI' and
-                        var_target_units not in self.si_units):
+                            var_target_units not in self.si_units):
                         var_data = self.convert_data(var_data, var_units,
-                                                        var_target_units)
+                                                     var_target_units)
                         var_md['units'] = var_target_units
                     data_dict[var_name] = (var_data, var_md)
             # Convert time units
@@ -185,7 +185,7 @@ class UnitConverter():
                     var_md['time']['units'] = time_units
                 # convert to desired units
                 if (target_time_units != 'SI' and
-                    target_time_units not in self.si_units):
+                        target_time_units not in self.si_units):
                     time_value = self.convert_data(time_value, time_units,
                                                    target_time_units)
                     var_md['time']['units'] = target_time_units
@@ -224,7 +224,7 @@ class UnitConverter():
                     for data in ['array', 'spacing', 'min', 'max']:
                         if data in axis_md:
                             axis_md[data], new_units = self.convert_data_to_si(
-                        axis_md[data], axis_units, field_md)
+                                axis_md[data], axis_units, field_md)
                     field_md['axis'][axis]['units'] = new_units
 
         if convert_time:
@@ -301,7 +301,7 @@ class HiPACEUnitConverter(UnitConverter):
                 'E_0': [E_0, 'V/m'],
                 'n_0': [ct.e * self.plasma_density, 'C/m^3'],
                 'm_ec': [ct.m_e*ct.c, 'J*s/m']
-                }
+            }
         else:
             self.hipace_unit_conversion = None
         super().__init__()

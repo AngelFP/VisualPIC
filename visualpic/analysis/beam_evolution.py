@@ -8,7 +8,6 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
-
 import os
 from functools import partial
 from multiprocessing import cpu_count
@@ -21,7 +20,6 @@ import aptools.data_analysis.beam_diagnostics as bd
 import aptools.data_processing.beam_filtering as bf
 
 from visualpic.data_handling.data_container import DataContainer
-from visualpic.helper_functions import print_progress_bar
 
 
 def analyze_beam_evolution(
@@ -168,4 +166,3 @@ def _first_true(iterable, default=False, pred=None):
 
     """
     return next(filter(pred, iterable), default)
-

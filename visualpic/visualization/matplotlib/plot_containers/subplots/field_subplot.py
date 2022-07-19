@@ -5,6 +5,7 @@ from visualpic.visualization.matplotlib.plot_types import field_plot
 class FieldSubplot(Subplot):
     """Class defining a field subplot.
     """
+
     def __init__(
             self, fields, field_units=None, axes_units=None, time_units=None,
             slice_dir=None, slice_pos=0.5, m='all', theta=0, vmin=None,
@@ -62,6 +63,6 @@ class FieldSubplot(Subplot):
         y_min = fld_md['axis'][axis_labels[1]]['array'][0]
         y_max = fld_md['axis'][axis_labels[1]]['array'][-1]
         field_plot(field_data, field_name=field_name, field_units=field_units,
-                extent=[x_min, x_max, y_min, y_max], xlabel=x_label,
-                ylabel=y_label,
-                subplot_spec=subplot_spec, fig=fig, **self._plot_arguments)
+                   extent=[x_min, x_max, y_min, y_max], xlabel=x_label,
+                   ylabel=y_label,
+                   subplot_spec=subplot_spec, fig=fig, **self._plot_arguments)

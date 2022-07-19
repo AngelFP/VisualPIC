@@ -16,6 +16,6 @@ rc_params = {
     'ytick.right': True,
     'legend.borderaxespad': 1
     #  'figure.constrained_layout.use': True
-    }
-                    
+}
+
 rc_params_dark = {**library['dark_background'], **rc_params}

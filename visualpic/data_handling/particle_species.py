@@ -96,7 +96,7 @@ class ParticleSpecies():
         -------
         A dictionary containing the particle data. The keys correspond to the
         names of each of the requested components. Each key stores a tuple
-        where the first element is the data array and the second is the 
+        where the first element is the data array and the second is the
         metadata dictionary.
         """
         # By default, if no list is specified, get all components.
@@ -182,7 +182,7 @@ class ParticleSpecies():
     def contains(self, data):
         """
         Check whether the species contains the specified data.
-        
+
         Parameters
         ----------
 

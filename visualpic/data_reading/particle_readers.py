@@ -210,7 +210,7 @@ class OpenPMDParticleReader(ParticleReader):
         if avail_fields is not None and len(avail_fields) > 0:
             fields_metadata = params['fields_metadata']
             grid_params = self._opmd_reader.get_grid_parameters(
-                    iteration, avail_fields, fields_metadata)
+                iteration, avail_fields, fields_metadata)
             grid_size_dict, grid_range_dict = grid_params
             resolution = []
             grid_size = []
@@ -218,22 +218,22 @@ class OpenPMDParticleReader(ParticleReader):
             if 'z' in grid_size_dict:
                 resolution.append(grid_size_dict['z'])
                 grid_size.append(grid_range_dict['z'][1] -
-                                    grid_range_dict['z'][0])
+                                 grid_range_dict['z'][0])
                 grid_range.append(grid_range_dict['z'])
             if 'r' in grid_size_dict:
                 resolution.append(grid_size_dict['r'])
                 grid_size.append(grid_range_dict['r'][1] -
-                                    grid_range_dict['r'][0])
+                                 grid_range_dict['r'][0])
                 grid_range.append(grid_range_dict['r'])
             if 'x' in grid_size_dict:
                 resolution.append(grid_size_dict['x'])
                 grid_size.append(grid_range_dict['x'][1] -
-                                    grid_range_dict['x'][0])
+                                 grid_range_dict['x'][0])
                 grid_range.append(grid_range_dict['x'])
             if 'y' in grid_size_dict:
                 resolution.append(grid_size_dict['y'])
                 grid_size.append(grid_range_dict['y'][1] -
-                                    grid_range_dict['y'][0])
+                                 grid_range_dict['y'][0])
                 grid_range.append(grid_range_dict['y'])
             metadata['grid']['resolution'] = resolution
             metadata['grid']['size'] = grid_size

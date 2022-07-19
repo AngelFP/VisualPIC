@@ -94,7 +94,7 @@ def get_common_array_elements(array_list):
     """
     Returns an array containing only the common elements between all the
     arrays in 'array_list'
-    
+
     """
     for i, array in enumerate(array_list):
         if i == 0:
@@ -102,7 +102,6 @@ def get_common_array_elements(array_list):
         else:
             common_els = np.intersect1d(common_els, array)
     return common_els
-        
 
 
 def get_closest_timestep(time_step, time_steps):
