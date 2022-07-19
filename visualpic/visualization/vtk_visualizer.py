@@ -344,7 +344,7 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            BasicRenderWindow(self)
+            self.qt_window = BasicRenderWindow(self)
             app.exec_()
         else:
             self.window.Render()
