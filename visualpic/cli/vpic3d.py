@@ -54,7 +54,7 @@ def vpic3d():
 
 
 def parse_arguments(possible_fields):
-    """ Parse input arguments for `vpic` """
+    """ Parse input arguments for `vpic3d` """
     # Initialize parser.
     parser = argparse.ArgumentParser(
         description='Visualize a field or particle species'
