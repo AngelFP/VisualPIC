@@ -124,17 +124,21 @@ class MplVisualizer():
             q_units=q_units, time_units=time_units, cbar=cbar)
         fig.add_subplot(subplot)
 
-    def show(self, timestep=0):
+    def show(self, timestep=0, ts_is_index=True):
         """Show figure(s).
 
         Parameters
         ----------
         timestep : int, optional
             Time step at which to show the data, by default 0
+        ts_is_index : bool
+            Indicates whether the value provided in 'timestep' is the index of
+            the time step (True) or the numerical value of the time step
+            (False).
         """
         app = QtWidgets.QApplication(sys.argv)
         for figure in self._figure_list:
-            figure.generate(timestep)
+            figure.generate(timestep, ts_is_index)
         self.windows = []
         for figure in self._figure_list:
             self.windows.append(BasicPlotWindow(figure, self))

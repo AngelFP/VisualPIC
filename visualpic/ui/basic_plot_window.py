@@ -108,7 +108,7 @@ class BasicPlotWindow(QtWidgets.QMainWindow):
         prev_ts = get_previous_timestep(current_ts, self.available_timesteps)
         if prev_ts != current_ts:
             self.timestep_slider.setValue(prev_ts)
-        self.vp_figure.generate(prev_ts)
+        self.vp_figure.generate(prev_ts, False)
         self.figure_canvas.draw()
         # self.render_timestep(prev_ts)
 
@@ -117,7 +117,7 @@ class BasicPlotWindow(QtWidgets.QMainWindow):
         next_ts = get_next_timestep(current_ts, self.available_timesteps)
         if next_ts != current_ts:
             self.timestep_slider.setValue(next_ts)
-        self.vp_figure.generate(next_ts)
+        self.vp_figure.generate(next_ts, False)
         self.figure_canvas.draw()
         # self.render_timestep(next_ts)
 
@@ -125,7 +125,7 @@ class BasicPlotWindow(QtWidgets.QMainWindow):
         value = self.timestep_slider.value()
         value = get_closest_timestep(value, self.available_timesteps)
         self.timestep_slider.setValue(value)
-        self.vp_figure.generate(value)
+        self.vp_figure.generate(value, False)
         self.figure_canvas.draw()
         # self.render_timestep(value)
 
