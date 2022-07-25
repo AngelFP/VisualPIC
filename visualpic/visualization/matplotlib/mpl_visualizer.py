@@ -9,9 +9,14 @@ License: GNU GPL-3.0.
 
 import sys
 
-from PyQt5 import QtWidgets
+try:
+    from PyQt5 import QtWidgets
+    qt_installed = True
+except:
+    qt_installed = False
 
-from visualpic.ui.basic_plot_window import BasicPlotWindow
+if qt_installed:
+    from visualpic.ui.basic_plot_window import BasicPlotWindow
 from .plot_containers import VPFigure, FieldSubplot, ParticleSubplot
 from .rc_params import rc_params
 
@@ -136,6 +141,12 @@ class MplVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
         """
+        # Check if pyqt5 is installed.
+        if not qt_installed:
+            raise ModuleNotFoundError(
+                "Cannot show visualizer because PyQt5 is not installed. "
+                "Please install by running `pip install pyqt5`.")
+        # Show window.
         app = QtWidgets.QApplication(sys.argv)
         for figure in self._figure_list:
             figure.generate(timestep, ts_is_index)
