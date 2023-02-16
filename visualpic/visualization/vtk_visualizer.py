@@ -34,7 +34,7 @@ except:
 from visualpic.helper_functions import get_common_timesteps
 from visualpic.visualization.volume_appearance import (VolumeStyleHandler,
                                                        Colormap, Opacity)
-if qt_installed:
+if qt_installed and vtk_installed:
     from visualpic.ui.basic_render_window import BasicRenderWindow
 
 
