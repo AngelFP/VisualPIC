@@ -23,14 +23,14 @@ If you want to test it by yourself, follow the instructions below and check out 
 
 ## How to install
 
-1) Install this branch of VisualPIC:
+1) Install the development branch of VisualPIC:
 ```bash
-pip install git+https://github.com/AngelFP/VisualPIC.git@dev
+python3 -m pip install git+https://github.com/AngelFP/VisualPIC.git@dev
 ```
 
 2) If you want to use the 3D rendering features and GUI, you will also need to install `VTK`, `pyvista` and `PyQt5`:
 ```bash
-pip install vtk pyvista pyqt5
+python3 -m pip install vtk pyvista pyqt5
 ```
 
 

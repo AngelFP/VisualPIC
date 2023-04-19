@@ -1005,13 +1005,14 @@ class VTKVisualizer():
             dep_str = ', '.join(missing_dependencies)
             raise ImportError(
                 "Missing required dependencies: {}.".format(dep_str) +
-                "Install by running 'pip install {}'.".format(dep_str))
+                "Install by running " +
+                "'python3 -m pip install {}'.".format(dep_str))
 
     def _check_qt(self, use_qt):
         if use_qt and not qt_installed:
             warnings.warn(
                 "Qt is not installed. Default VTK windows will be used. "
-                "Install by running 'pip install pyqt5'.")
+                "Install by running 'python3 -m pip install pyqt5'.")
             use_qt = False
         return use_qt
 

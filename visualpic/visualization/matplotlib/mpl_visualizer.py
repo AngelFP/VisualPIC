@@ -145,7 +145,7 @@ class MplVisualizer():
         if not qt_installed:
             raise ModuleNotFoundError(
                 "Cannot show visualizer because PyQt5 is not installed. "
-                "Please install by running `pip install pyqt5`.")
+                "Please install by running `python3 -m pip install pyqt5`.")
         # Show window.
         app = QtWidgets.QApplication(sys.argv)
         for figure in self._figure_list:
