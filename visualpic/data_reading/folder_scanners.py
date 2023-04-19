@@ -26,7 +26,7 @@ class FolderScanner():
 
     "Base class for all folder scanners."
 
-    def get_list_of_fields(self, folder_path):
+    def get_list_of_fields(self, folder_path, iterations=None):
         """
         Get list of fields in the specified path. Should be implemented in the
         FolderScanner subclass for each simulation code.
@@ -43,7 +43,7 @@ class FolderScanner():
         """
         raise NotImplementedError
 
-    def get_list_of_species(self, folder_path):
+    def get_list_of_species(self, folder_path, iterations=None):
         """
         Get list of species in the specified path. Should be implemented in the
         FolderScanner subclass for each simulation code.
@@ -83,7 +83,7 @@ class OpenPMDFolderScanner(FolderScanner):
         self.particle_reader = pr.OpenPMDParticleReader(self.opmd_reader)
         self.unit_converter = uc.OpenPMDUnitConverter()
 
-    def get_list_of_fields(self, folder_path):
+    def get_list_of_fields(self, folder_path, iterations=None):
         """
         Get list of fields in the specified path.
 
@@ -98,7 +98,9 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of FolderField objects
         """
         field_list = []
-        iterations = self.opmd_reader.list_iterations(folder_path)
+        all_iterations = self.opmd_reader.list_iterations(folder_path)
+        if iterations is None:
+            iterations = all_iterations
 
         # Create dictionary with the necessary data of each field.
         fields = {}
@@ -176,7 +178,7 @@ class OpenPMDFolderScanner(FolderScanner):
             )
         return field_list
 
-    def get_list_of_species(self, folder_path):
+    def get_list_of_species(self, folder_path, iterations=None):
         """
         Get list of species in the specified path.
 
@@ -191,7 +193,9 @@ class OpenPMDFolderScanner(FolderScanner):
         A list of ParticleSpecies objects
         """
         species_list = []
-        iterations = self.opmd_reader.list_iterations(folder_path)
+        all_iterations = self.opmd_reader.list_iterations(folder_path)
+        if iterations is None:
+            iterations = all_iterations
 
         # Create dictionary with the necessary data of each species.
         found_species = {}
@@ -295,7 +299,7 @@ class OsirisFolderScanner(FolderScanner):
         self.particle_reader = pr.OsirisParticleReader()
         self.unit_converter = uc.OsirisUnitConverter(plasma_density)
 
-    def get_list_of_fields(self, folder_path):
+    def get_list_of_fields(self, folder_path, iterations=None):
         """
         Get list of fields in the specified path.
 
@@ -334,7 +338,7 @@ class OsirisFolderScanner(FolderScanner):
                             self._create_field(field, field_folder))
         return field_list
 
-    def get_list_of_species(self, folder_path):
+    def get_list_of_species(self, folder_path, iterations=None):
         """
         Get list of species in the specified path.
 
@@ -517,7 +521,7 @@ class HiPACEFolderScanner(FolderScanner):
         self.particle_reader = pr.HiPACEParticleReader()
         self.unit_converter = uc.HiPACEUnitConverter(plasma_density)
 
-    def get_list_of_fields(self, folder_path):
+    def get_list_of_fields(self, folder_path, iterations=None):
         """
         Get list of fields in the specified path.
 
@@ -557,7 +561,7 @@ class HiPACEFolderScanner(FolderScanner):
                                    field))
         return available_fields
 
-    def get_list_of_species(self, folder_path):
+    def get_list_of_species(self, folder_path, iterations=None):
         """
         Get list of species in the specified path.
 
