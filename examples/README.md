@@ -11,3 +11,8 @@ This folder contains examples covering the basic use of the code:
 <p align="center">
   <img alt="Basic render window" src="example_2/image_5.png" width="400px" />
 </p>
+
+* Example 3: Use the command line tools
+
+  * `vpic3d -h`: 3D scenes (VTK)
+  * `vpic -h`: 2D scenes (matplotlib)
