@@ -21,7 +21,7 @@ class DataContainer():
     """Class containing a providing access to all the simulation data"""
 
     def __init__(self, simulation_code, data_folder_path, plasma_density=None,
-                 laser_wavelength=0.8e-6, opmd_backend='h5py'):
+                 laser_wavelength=0.8e-6, opmd_backend='openpmd-api'):
         """
         Initialize the data container.
 
