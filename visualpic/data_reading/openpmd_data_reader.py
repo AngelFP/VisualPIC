@@ -94,7 +94,7 @@ class OpenPMDDataReader(DataReader):
                     self.series, iteration, field, comp)
             elif geometry in ["1dcartesian", "2dcartesian", "3dcartesian"]:
                 return read_cartesian_field_metadata_io(
-                    self.series, iteration, field, comp)
+                    self.series, iteration, field, comp, axis_labels)
 
 
 def read_cartesian_field_metadata_h5py(filename, iteration, field_name,
