@@ -1460,10 +1460,10 @@ class ScatterSpecies():
             self.map.SetInputData(self.poly_data)
         if update_color and self.color_according_to is not None:
             self._normalize_color_variable(color_arr)
-            self.poly_data.point_arrays['color'] = color_arr
+            self.poly_data.point_data['color'] = color_arr
         if update_scale and self.scale_with_charge:
             self._normalize_scale(scale_arr, max_size=self.size * 0.02)
-            self.poly_data.point_arrays['scale'] = scale_arr
+            self.poly_data.point_data['scale'] = scale_arr
 
     def set_scale_with_charge(self, value):
         self.scale_with_charge = value
@@ -1532,7 +1532,7 @@ class ScatterSpecies():
             part_data = self._get_data(self._current_timestep)
             scale_arr = part_data[2]
             self._normalize_scale(scale_arr, max_size=self.size * 0.02)
-            self.poly_data.point_arrays['scale'] = scale_arr
+            self.poly_data.point_data['scale'] = scale_arr
         else:
             self.map.SetRadius(self.size * 0.02)
 
