@@ -1002,17 +1002,17 @@ class VTKVisualizer():
         if not pyvista_installed:
             missing_dependencies.append('pyvista')
         if len(missing_dependencies) > 0:
-            dep_str = ', '.join(missing_dependencies)
+            dep_str = ' '.join(missing_dependencies)
             raise ImportError(
                 "Missing required dependencies: {}.".format(dep_str) +
                 "Install by running " +
-                "'python3 -m pip install {}'.".format(dep_str))
+                "'python -m pip install {}'.".format(dep_str))
 
     def _check_qt(self, use_qt):
         if use_qt and not qt_installed:
             warnings.warn(
                 "Qt is not installed. Default VTK windows will be used. "
-                "Install by running 'python3 -m pip install pyqt5'.")
+                "Install by running 'python -m pip install pyqt5'.")
             use_qt = False
         return use_qt
 
