@@ -94,8 +94,10 @@ class VolumeStyleHandler():
 
         def save_opacity(self, name, field_values, opacity_values,
                          folder_path):
+            # Make sure opacity is within bounds.
+            opacity_values[opacity_values < 0.] = 0.
+            opacity_values[opacity_values > 1] = 1.
             if (field_values.min() >= 0 and field_values.max() <= 255
-                and opacity_values.min() >= 0 and opacity_values.max() <= 1
                 and len(field_values) == len(opacity_values)
                     and len(opacity_values) <= self.max_len):
                 file_path = self.create_file_path(name, folder_path)
