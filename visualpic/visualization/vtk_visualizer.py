@@ -411,7 +411,7 @@ class VTKVisualizer():
             colors.
 
         """
-        if (type(background) == list) and (len(background) == 2):
+        if isinstance(background, list) and (len(background) == 2):
             self._set_background_colors(*background)
         elif background == 'default gradient':
             self._set_background_colors('black', [0.12, 0.3, 0.475])
@@ -753,7 +753,7 @@ class VTKVisualizer():
         # only a single volume. The fix replaces the 'vtkMultiVolume' for a
         # 'vtkVolume' and then calls '_load_data_into_single_volume'.
         if len(self.volume_field_list) == 1:
-            if type(self.vtk_volume) != vtk.vtkVolume:
+            if not isinstance(self.vtk_volume, vtk.vtkVolume):
                 self.renderer.RemoveVolume(self.vtk_volume)
                 self.vtk_volume = vtk.vtkVolume()
                 self.renderer.AddVolume(self.vtk_volume)
@@ -761,7 +761,7 @@ class VTKVisualizer():
             return self._load_data_into_single_volume(timestep)
         # If the 'vtkMultiVolume' was replaced by a 'vtkVolume' but now the
         # number of volumes is >1, go back to having a 'vtkMultiVolume'.
-        if type(self.vtk_volume) != vtk.vtkMultiVolume:
+        if not isinstance(self.vtk_volume, vtk.vtkMultiVolume):
             self.renderer.RemoveVolume(self.vtk_volume)
             self.vtk_volume = vtk.vtkMultiVolume()
             self.renderer.AddVolume(self.vtk_volume)
