@@ -19,7 +19,7 @@ class DataContainer():
 
     """Class containing a providing access to all the simulation data"""
 
-    def __init__(self, simulation_code, data_folder_path, plasma_density=None,
+    def __init__(self, data_folder_path,
                  laser_wavelength=0.8e-6, opmd_backend='openpmd-api'):
         """
         Initialize the data container.
@@ -50,10 +50,8 @@ class DataContainer():
             are 'h5py' or 'openpmd-api'.
 
         """
-        self.simulation_code = simulation_code.lower()
         self.data_folder_path = data_folder_path
-        self.sim_params = {'n_p': plasma_density,
-                           'lambda_0': laser_wavelength}
+        self.sim_params = {'lambda_0': laser_wavelength}
         self.opmd_backend = opmd_backend
         self._set_folder_scanner()
         self.folder_fields = []
