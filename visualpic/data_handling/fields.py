@@ -22,6 +22,10 @@ class Field():
     @property
     def iterations(self):
         return self.timesteps
+    
+    @property
+    def geometry(self):
+        return self._get_geometry()
 
     def get_name(self):
         fld_name = self.field_name
@@ -44,9 +48,8 @@ class Field():
             only_metadata=True)
         return fld_md
 
-    def get_geometry(self):
-        field_md = self.get_only_metadata(self.timesteps[0])
-        return field_md['field']['geometry']
+    def _get_geometry(self):
+        raise NotImplementedError
 
 
 class FolderField(Field):
@@ -79,6 +82,9 @@ class FolderField(Field):
             max_resolution_3d=max_resolution_3d
         )
         return fld, fld_md
+    
+    def _get_geometry(self):
+        return self.timeseries.fields_metadata[self.field_name]['geometry']
 
 
 class DerivedField(Field):
