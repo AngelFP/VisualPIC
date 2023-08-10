@@ -45,10 +45,6 @@ class ParticleSpecies():
         data_reader : ParticleReader
             An instance of a ParticleReader of the corresponding simulation
             code.
-
-        unit_converter : UnitConverter
-            An instance of a UnitConverter of the corresponding simulation
-            code.
         """
         self.species_name = species_name
         self.timeseries = timeseries
@@ -64,8 +60,7 @@ class ParticleSpecies():
 
     def get_data(self, iteration, components_list=[]):
         """
-        Get the species data of the requested components and time step and in
-        the specified units.
+        Get the species data of the requested components and time step.
 
         Parameters
         ----------

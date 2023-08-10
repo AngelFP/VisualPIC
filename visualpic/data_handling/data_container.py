@@ -14,7 +14,6 @@ from visualpic.data_handling.fields import DerivedField, FolderField
 from visualpic.data_handling.particle_species import ParticleSpecies
 from visualpic.data_reading.folder_scanners import OpenPMDFolderScanner
 from openpmd_viewer import OpenPMDTimeSeries
-from .unit_converters import OpenPMDUnitConverter
 
 
 class DataContainer():
@@ -147,7 +146,6 @@ class DataContainer():
             field_name=name,
             component=component,
             timeseries=self._ts,
-            unit_converter=OpenPMDUnitConverter(),
             species_name=species_name
         )
 
