@@ -10,10 +10,11 @@ License: GNU GPL-3.0.
 
 from visualpic.data_handling.derived_field_definitions import (
     derived_field_definitions)
-from visualpic.data_handling.fields import DerivedField
+from visualpic.data_handling.fields import DerivedField, FolderField
 from visualpic.data_handling.particle_species import ParticleSpecies
 from visualpic.data_reading.folder_scanners import OpenPMDFolderScanner
 from openpmd_viewer import OpenPMDTimeSeries
+from .unit_converters import OpenPMDUnitConverter
 
 
 class DataContainer():
@@ -91,17 +92,7 @@ class DataContainer():
 
     def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
-        fields_list = []
-        available_fields = self.folder_fields
-        if include_derived:
-            available_fields = available_fields + self.derived_fields
-        for field in available_fields:
-            fld_name = field.field_name
-            fld_species = field.species_name
-            if fld_species is not None:
-                fld_name += ' [{}]'.format(fld_species)
-            fields_list.append(fld_name)
-        return fields_list
+        return self.available_fields
 
     def get_list_of_species(self, required_data=[]):
         """
@@ -117,12 +108,12 @@ class DataContainer():
 
         """
         species_list = []
-        for species in self.particle_species:
-            if species.contains(required_data):
-                species_list.append(species.species_name)
+        for species, components in self.available_species_components.items():
+            if set(required_data) <= set(components):
+                species_list.append(species)
         return species_list
 
-    def get_field(self, field_name, species_name=None):
+    def get_field(self, name, component=None, species_name=None):
         """
         Get a specified field from the available ones.
 
@@ -140,16 +131,25 @@ class DataContainer():
         -------
         A FolderField object containing the specified field.
         """
-        for field in self.folder_fields + self.derived_fields:
-            if (field_name == field.field_name and
-                    species_name == field.species_name):
-                return field
-        # raise error if no field has been found
-        if species_name is not None:
-            field_name = field_name + species_name
-        available_fields = self.get_list_of_fields()
-        raise ValueError("Field '{}' not found. ".format(field_name) +
-                         "Available fields are {}.".format(available_fields))
+        assert name in self.available_fields, (
+            f"Field {name} not found. "
+            f"Available fields are {self.available_fields}."
+        )
+        available_components = self.available_field_components[name]
+        if component is None:
+            assert not available_components
+        else:
+            assert component in available_components, (
+                f"Component {component} not found in field {name}. "
+                f"Available components are {available_components}."
+        )
+        return FolderField(
+            field_name=name,
+            component=component,
+            timeseries=self._ts,
+            unit_converter=OpenPMDUnitConverter(),
+            species_name=species_name
+        )
 
     def get_species(self, species_name):
         """
