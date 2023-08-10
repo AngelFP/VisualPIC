@@ -13,6 +13,7 @@ from visualpic.data_handling.derived_field_definitions import (
 from visualpic.data_handling.fields import DerivedField
 from visualpic.data_handling.particle_species import ParticleSpecies
 from visualpic.data_reading.folder_scanners import OpenPMDFolderScanner
+from openpmd_viewer import OpenPMDTimeSeries
 
 
 class DataContainer():
@@ -60,15 +61,28 @@ class DataContainer():
 
     def load_data(self, force_reload=False):
         """Load the data into the data container."""
-        if not self.folder_fields or force_reload:
-            self.folder_fields = self.folder_scanner.get_list_of_fields(
-                self.data_folder_path)
-        if not self.particle_species or force_reload:
-            self.particle_species = self.folder_scanner.get_list_of_species(
-                self.data_folder_path)
-            self._add_associated_species_fields()
-        if not self.derived_fields or force_reload:
-            self.derived_fields = self._generate_derived_fields()
+        self._ts = OpenPMDTimeSeries(
+            self.data_folder_path,
+            check_all_files=True,
+            backend=self.opmd_backend
+        )
+
+    @property
+    def available_fields(self):
+        return self._ts.avail_fields
+    
+    @property
+    def available_field_components(self):
+        return {field: self._ts.fields_metadata[field]['avail_components']
+                for field in self.available_fields}
+
+    @property
+    def available_species(self):
+        return self._ts.avail_species
+    
+    @property
+    def available_species_components(self):
+        return self._ts.avail_record_components
 
     def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
