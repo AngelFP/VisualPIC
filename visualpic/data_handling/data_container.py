@@ -21,8 +21,8 @@ class DataContainer():
 
     """Class containing a providing access to all the simulation data"""
 
-    def __init__(self, data_folder_path,
-                 laser_wavelength=0.8e-6, opmd_backend='openpmd-api',
+    def __init__(self, path,
+                 laser_wavelength=0.8e-6, backend='openpmd-api',
                  load_data=True):
         """
         Initialize the data container.
@@ -35,7 +35,7 @@ class DataContainer():
             Possible values are 'osiris, 'hipace' or 'openpmd' for any
             openPMD-compliant code.
 
-        data_folder_path : str
+        path : str
             Path to the folder containing the simulation data.
 
         plasma_density : float
@@ -47,15 +47,15 @@ class DataContainer():
             Wavelength (in metres) of the laser in the simulation. Needed for
             computing the normalized vector potential.
 
-        opmd_backend : str
+        backend : str
             Used only if `simulation_code='openpmd'`. Specifies the backend to
             be used by the DataReader of the openPMD-viewer. Possible values
             are 'h5py' or 'openpmd-api'.
 
         """
-        self.data_folder_path = data_folder_path
+        self.path = path
         self.sim_params = {'lambda_0': laser_wavelength}
-        self.opmd_backend = opmd_backend
+        self.backend = backend
         self._set_folder_scanner()
         self.folder_fields = []
         self.particle_species = []
@@ -68,9 +68,9 @@ class DataContainer():
         """Load the data into the data container."""
         if self._ts is None or force_reload:
             self._ts = OpenPMDTimeSeries(
-                self.data_folder_path,
+                self.path,
                 check_all_files=True,
-                backend=self.opmd_backend
+                backend=self.backend
             )
 
     @property
@@ -175,7 +175,7 @@ class DataContainer():
 
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
-        self.folder_scanner = OpenPMDFolderScanner(opmd_backend=self.opmd_backend)
+        self.folder_scanner = OpenPMDFolderScanner(backend=self.backend)
 
     def _generate_derived_fields(self):
         """Returns a list with the available derived fields."""
