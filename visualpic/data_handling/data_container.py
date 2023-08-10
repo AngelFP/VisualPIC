@@ -21,7 +21,8 @@ class DataContainer():
     """Class containing a providing access to all the simulation data"""
 
     def __init__(self, data_folder_path,
-                 laser_wavelength=0.8e-6, opmd_backend='openpmd-api'):
+                 laser_wavelength=0.8e-6, opmd_backend='openpmd-api',
+                 load_data=True):
         """
         Initialize the data container.
 
@@ -58,14 +59,18 @@ class DataContainer():
         self.folder_fields = []
         self.particle_species = []
         self.derived_fields = []
+        self._ts = None
+        if load_data:
+            self.load_data()
 
     def load_data(self, force_reload=False):
         """Load the data into the data container."""
-        self._ts = OpenPMDTimeSeries(
-            self.data_folder_path,
-            check_all_files=True,
-            backend=self.opmd_backend
-        )
+        if self._ts is None or force_reload:
+            self._ts = OpenPMDTimeSeries(
+                self.data_folder_path,
+                check_all_files=True,
+                backend=self.opmd_backend
+            )
 
     @property
     def available_fields(self):
