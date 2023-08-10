@@ -12,8 +12,7 @@ from visualpic.data_handling.derived_field_definitions import (
     derived_field_definitions)
 from visualpic.data_handling.fields import DerivedField
 from visualpic.data_handling.particle_species import ParticleSpecies
-from visualpic.data_reading.folder_scanners import (
-    OsirisFolderScanner, OpenPMDFolderScanner, HiPACEFolderScanner)
+from visualpic.data_reading.folder_scanners import OpenPMDFolderScanner
 
 
 class DataContainer():
@@ -159,19 +158,7 @@ class DataContainer():
 
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
-        plasma_density = self.sim_params['n_p']
-        sim_code = self.simulation_code
-        if sim_code == 'osiris':
-            fs = OsirisFolderScanner(plasma_density=plasma_density)
-        elif sim_code == 'hipace':
-            fs = HiPACEFolderScanner(plasma_density=plasma_density)
-        elif sim_code == 'openpmd':
-            fs = OpenPMDFolderScanner(opmd_backend=self.opmd_backend)
-        else:
-            raise ValueError("Unsupported code '{}'.".format(sim_code) +
-                             " Possible values are 'osiris', 'hipace' or " +
-                             "'openpmd'.")
-        self.folder_scanner = fs
+        self.folder_scanner = OpenPMDFolderScanner(opmd_backend=self.opmd_backend)
 
     def _generate_derived_fields(self):
         """Returns a list with the available derived fields."""
