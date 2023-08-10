@@ -38,16 +38,6 @@ class Field():
                  theta=0, max_resolution_3d=None, only_metadata=False):
         raise NotImplementedError
 
-    def get_only_metadata(self, iteration,
-                          slice_dir_i=None, slice_dir_j=None, m='all',
-                          theta=0, max_resolution_3d=None):
-        fld, fld_md = self.get_data(
-            iteration,
-            slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
-            theta=theta, max_resolution_3d=max_resolution_3d,
-            only_metadata=True)
-        return fld_md
-
     def _get_geometry(self):
         raise NotImplementedError
 
