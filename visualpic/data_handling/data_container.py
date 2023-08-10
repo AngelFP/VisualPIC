@@ -165,17 +165,18 @@ class DataContainer():
         -------
         A ParticleSpecies object containing the specified species.
         """
-        for species in self.particle_species:
-            if species_name == species.species_name:
-                return species
-        # raise error if no species has been found
-        available_species = self.get_list_of_species()
-        raise ValueError("Species '{}' not found. ".format(species_name) +
-                         "Available species are {}.".format(available_species))
+        assert species_name in self.available_species, (
+            f"Species '{species_name}' not found. "
+            f"Available species are {self.available_species}."
+        )
+        return ParticleSpecies(
+            species_name=species_name,
+            timeseries=self._ts
+        )
 
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
-        self.folder_scanner = OpenPMDFolderScanner(backend=self.backend)
+        self.folder_scanner = OpenPMDFolderScanner(opmd_backend=self.backend)
 
     def _generate_derived_fields(self):
         """Returns a list with the available derived fields."""
