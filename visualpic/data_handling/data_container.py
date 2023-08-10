@@ -55,10 +55,6 @@ class DataContainer():
         self.path = path
         self.sim_params = {'lambda_0': laser_wavelength}
         self.backend = backend
-        self._set_folder_scanner()
-        self.folder_fields = []
-        self.particle_species = []
-        self.derived_fields = []
         self._ts = None
         if load_data:
             self.load_data()
@@ -171,7 +167,3 @@ class DataContainer():
             species_name=species_name,
             timeseries=self._ts
         )
-
-    def _set_folder_scanner(self):
-        """Return the folder scanner corresponding to the simulation code."""
-        self.folder_scanner = OpenPMDFolderScanner(opmd_backend=self.backend)
