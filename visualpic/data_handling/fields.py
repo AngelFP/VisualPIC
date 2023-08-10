@@ -7,8 +7,10 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
+from openpmd_viewer import OpenPMDTimeSeries
 
 from visualpic.helper_functions import get_common_timesteps
+from .unit_converters import OpenPMDUnitConverter
 
 
 class Field():
@@ -19,24 +21,28 @@ class Field():
         self.species_name = species_name
         self.unit_converter = unit_converter
 
+    @property
+    def iterations(self):
+        return self.timesteps
+
     def get_name(self):
         fld_name = self.field_name
         if self.species_name is not None:
             fld_name += ' [{}]'.format(self.species_name)
         return fld_name
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
+    def get_data(self, iteration, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
                  theta=0, max_resolution_3d=None, only_metadata=False):
         raise NotImplementedError
 
-    def get_only_metadata(self, time_step, field_units=None, axes_units=None,
+    def get_only_metadata(self, iteration, field_units=None, axes_units=None,
                           axes_to_convert=None, time_units=None,
                           slice_dir_i=None, slice_dir_j=None, m='all',
                           theta=0, max_resolution_3d=None):
         fld, fld_md = self.get_data(
-            time_step, field_units=field_units, axes_units=axes_units,
+            iteration, field_units=field_units, axes_units=axes_units,
             axes_to_convert=axes_to_convert, time_units=time_units,
             slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
             theta=theta, max_resolution_3d=max_resolution_3d,
@@ -50,27 +56,36 @@ class Field():
 
 class FolderField(Field):
     def __init__(
-            self, field_name, field_path, timestep_to_files, field_timesteps,
-            field_reader, unit_converter, species_name=None):
-        super().__init__(field_name, field_timesteps, unit_converter,
-                         species_name)
-        self.field_path = field_path
-        if type(timestep_to_files) is list:
-            if len(timestep_to_files) == len(field_timesteps):
-                timestep_to_files = dict(
-                    zip(field_timesteps, timestep_to_files))
-        self.timestep_to_files = timestep_to_files
-        self.field_reader = field_reader
+        self,
+        field_name: str,
+        component: str,
+        timeseries: OpenPMDTimeSeries,
+        unit_converter: OpenPMDUnitConverter,
+        species_name: str = None
+    ):
+        super().__init__(
+            field_name=field_name,
+            field_timesteps=timeseries.iterations,
+            unit_converter=unit_converter,
+            species_name=species_name
+        )
+        self.component = component
+        self.timeseries = timeseries
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
+    def get_data(self, iteration, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
                  theta=0, max_resolution_3d=None, only_metadata=False):
-        file_path = self._get_file_path(time_step)
-        fld, fld_md = self.field_reader.read_field(
-            file_path, time_step, self.field_path, slice_i, slice_j,
-            slice_dir_i, slice_dir_j, m, theta, max_resolution_3d,
-            only_metadata)
+        fld, fld_md = self.timeseries.get_field(
+            field=self.field_name,
+            coord=self.component,
+            iteration=iteration,
+            m=m,
+            theta=theta,
+            slice_across=slice_dir_i,
+            slice_relative_position=slice_i,
+            max_resolution_3d=max_resolution_3d
+        )
         # perform unit conversion
         unit_list = [field_units, axes_units, time_units]
         if any(unit is not None for unit in unit_list):
@@ -79,9 +94,6 @@ class FolderField(Field):
                 target_axes_units=axes_units, axes_to_convert=axes_to_convert,
                 target_time_units=time_units)
         return fld, fld_md
-
-    def _get_file_path(self, time_step):
-        return self.timestep_to_files[time_step]
 
 
 class DerivedField(Field):
@@ -95,14 +107,14 @@ class DerivedField(Field):
         unit_converter = base_fields[0].unit_converter
         super().__init__(field_name, field_timesteps, unit_converter)
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
+    def get_data(self, iteration, field_units=None, axes_units=None,
                  axes_to_convert=None, time_units=None, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
                  theta=0, max_resolution_3d=None, only_metadata=False):
         field_data = []
         for field in self.base_fields:
             fld, fld_md = field.get_data(
-                time_step, field_units='SI',
+                iteration, field_units='SI',
                 slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
                 slice_dir_j=slice_dir_j, m=m, theta=theta,
                 max_resolution_3d=max_resolution_3d,
