@@ -6,8 +6,10 @@ The module contains the definitions of the ParticleSpecies class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
-
+import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
+
+from .particle_data import ParticleData
 
 
 class ParticleSpecies():
@@ -84,13 +86,23 @@ class ParticleSpecies():
         if not components_list:
             components_list = self.available_components
         
+        # Get particle data.
         data = self.timeseries.get_particle(
             var_list=components_list,
             species=self.species_name,
             iteration=iteration            
         )
-        
-        return data
+        return ParticleData(
+            components=components_list,
+            arrays=data,
+            iteration=iteration,
+            time=self._get_time(iteration),
+            grid_params=self.timeseries.data_reader.get_grid_parameters(
+                iteration=iteration,
+                avail_fields=self.timeseries.avail_fields,
+                metadata=self.timeseries.fields_metadata
+            )
+        )
 
     def contains(self, data):
         """
@@ -114,3 +126,9 @@ class ParticleSpecies():
             data = [data]
         comps = self.available_components()
         return set(data) <= set(comps)
+
+    def _get_time(self, iteration):
+        """Get time of current iteration."""
+        species_its = self.timeseries.species_iterations[self.species_name]
+        species_t = self.timeseries.species_t[self.species_name]
+        return species_t[np.where(species_its == iteration)[0][0]]
