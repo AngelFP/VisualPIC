@@ -88,7 +88,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def units(self) -> str:
-        raise NotImplementedError
+        return self._get_units()
 
     @property
     def axis_labels(self) -> List[str]:
@@ -168,3 +168,15 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
             'Can only generate `imshow_extent` for 2D data.'
         )
         return self._metadata.imshow_extent
+
+    def _get_units(self):
+        known_units = {
+            'E': 'V/m',
+            'B': 'T',
+            'rho': 'C/m^3',
+            'J': 'A'
+        }
+        if self.name in known_units:
+            return known_units[self.name]
+        else:
+            return ''
