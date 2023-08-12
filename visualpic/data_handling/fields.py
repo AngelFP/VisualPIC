@@ -7,9 +7,11 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
+import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
 
 from visualpic.helper_functions import get_common_timesteps
+from .field_data import FieldData
 
 
 class Field():
@@ -52,7 +54,7 @@ class FolderField(Field):
     ):
         super().__init__(
             field_name=field_name,
-            field_timesteps=timeseries.iterations,
+            field_timesteps=timeseries.fields_iterations[field_name],
             species_name=species_name
         )
         self.component = component
@@ -71,7 +73,20 @@ class FolderField(Field):
             slice_relative_position=slice_i,
             max_resolution_3d=max_resolution_3d
         )
-        return fld, fld_md
+        return FieldData(
+            name=self.field_name,
+            component=self.component,
+            array=fld,
+            metadata=fld_md,
+            geometry=self._get_geometry(),
+            iteration=iteration,
+            time=self._get_time(iteration)
+        )
+    
+    def _get_time(self, iteration):
+        field_its = self.timeseries.fields_iterations[self.field_name]
+        field_t = self.timeseries.fields_t[self.field_name]
+        return field_t[np.where(field_its == iteration)[0][0]]
     
     def _get_geometry(self):
         return self.timeseries.fields_metadata[self.field_name]['geometry']
