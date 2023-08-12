@@ -6,6 +6,7 @@ The module contains the definitions of the ParticleSpecies class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
+from copy import deepcopy
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
 
@@ -82,8 +83,20 @@ class ParticleSpecies():
         where the first element is the data array and the second is the
         metadata dictionary.
         """
+        # Check given names for backward compatibility with old v0.5 API.
+        has_old_names = False
+        if components_list:
+            old_names = components_list
+            components_list = deepcopy(components_list)
+            for i, c in enumerate(components_list):
+                if c not in self.available_components:
+                    new_name = self._check_name_for_backward_compatibility(c)
+                    if new_name:
+                        components_list[i] = new_name
+                        has_old_names = True
+
         # By default, if no list is specified, get all components.
-        if not components_list:
+        else:
             components_list = self.available_components
         
         # Get particle data.
@@ -93,7 +106,7 @@ class ParticleSpecies():
             iteration=iteration            
         )
         return ParticleData(
-            components=components_list,
+            components=components_list if not has_old_names else old_names,
             arrays=data,
             iteration=iteration,
             time=self._get_time(iteration),
@@ -132,3 +145,16 @@ class ParticleSpecies():
         species_its = self.timeseries.species_iterations[self.species_name]
         species_t = self.timeseries.species_t[self.species_name]
         return species_t[np.where(species_its == iteration)[0][0]]
+    
+    def _check_name_for_backward_compatibility(self, component_name):
+        """If the component has a name from the old API, return new name."""
+        old_name_relations = {
+            'pz': 'uz',
+            'px': 'ux',
+            'py': 'uy',
+            'q': 'charge',
+            'm': 'mass',
+            'tag': 'id',
+        }
+        if component_name in old_name_relations:
+            return old_name_relations[component_name]

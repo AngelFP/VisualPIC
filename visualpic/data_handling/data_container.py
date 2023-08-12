@@ -126,6 +126,11 @@ class DataContainer():
         -------
         A FolderField object containing the specified field.
         """
+        # Check if field name follows the old v0.5 API.
+        if (component is None) and (name not in self.available_fields):
+            out = self._check_name_for_backward_compatibility(name)
+            if out:
+                name, component = out
         assert name in self.available_fields, (
             f"Field {name} not found. "
             f"Available fields are {self.available_fields}."
@@ -167,3 +172,27 @@ class DataContainer():
             species_name=species_name,
             timeseries=self._ts
         )
+    
+    def _check_name_for_backward_compatibility(self, field_name):
+        """If field name follows old API, separate into name and component."""
+        old_name_relations = {
+            'e/z': 'Ez',
+            'e/x': 'Ex',
+            'e/y': 'Ey',
+            'e/r': 'Er',
+            'e/t': 'Et',
+            'b/z': 'Bz',
+            'b/x': 'Bx',
+            'b/y': 'By',
+            'b/r': 'Br',
+            'b/t': 'Bt',
+            'j/z': 'Jz',
+            'j/x': 'Jx',
+            'j/y': 'Jy',
+            'j/r': 'Jr',
+            'j/t': 'Jt'
+        }
+        if field_name in old_name_relations.values():
+            name = field_name[0]
+            comp = field_name[1]
+            return name, comp
