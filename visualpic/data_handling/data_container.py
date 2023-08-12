@@ -7,6 +7,7 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 import os
+from typing import Optional, Union, List, Dict
 
 from visualpic.data_handling.fields import FolderField
 from visualpic.data_handling.particle_species import ParticleSpecies
@@ -14,9 +15,20 @@ from openpmd_viewer import OpenPMDTimeSeries
 
 
 class DataContainer():
+    """Class containing a providing access to all the simulation data.    
 
-    """Class containing a providing access to all the simulation data"""
-
+    Parameters
+    ----------
+    data_path : str
+        Path to the folder containing the simulation data.
+    backend : str
+        Used only if `simulation_code='openpmd'`. Specifies the backend to
+        be used by the DataReader of the openPMD-viewer. Possible values
+        are 'h5py' or 'openpmd-api'.
+    load_data : bool
+            Whether to load the data at initialization. If `False`, the
+            `load_data` method must be called manually. By default, True.
+    """
     def __init__(
         self,
         data_path=None,
@@ -25,19 +37,6 @@ class DataContainer():
         *args,
         **kwargs
     ):
-        """
-        Initialize the data container.
-
-        Parameters
-        ----------
-        data_path : str
-            Path to the folder containing the simulation data.
-        backend : str
-            Used only if `simulation_code='openpmd'`. Specifies the backend to
-            be used by the DataReader of the openPMD-viewer. Possible values
-            are 'h5py' or 'openpmd-api'.
-
-        """
         # Check for inputs following the old v0.5 API.
         data_path, backend = self._check_backwards_compatibility(
             data_path, backend, kwargs
@@ -51,8 +50,17 @@ class DataContainer():
         if load_data:
             self.load_data()
 
-    def load_data(self, force_reload=False):
-        """Load the data into the data container."""
+    def load_data(
+        self,
+        force_reload: Optional[bool] = False
+    ) -> None:
+        """Load the data into the data container.
+
+        Parameters
+        ----------
+        force_reload : bool, optional
+            Whether to force the data to be reloaded`, by default False.
+        """
         if self._ts is None or force_reload:
             self._ts = OpenPMDTimeSeries(
                 self._path,
@@ -61,33 +69,38 @@ class DataContainer():
             )
 
     @property
-    def available_fields(self):
+    def available_fields(self) -> Union[List[str], None]:
         return self._ts.avail_fields
 
     @property
-    def available_field_components(self):
+    def available_field_components(self) -> Dict:
         return {field: self._ts.fields_metadata[field]['avail_components']
                 for field in self.available_fields}
 
     @property
-    def available_species(self):
+    def available_species(self) -> List[str]:
         return self._ts.avail_species
 
     @property
-    def available_species_components(self):
+    def available_species_components(self) -> Dict:
         return self._ts.avail_record_components
 
-    def get_list_of_fields(self, include_derived=True):
+    def get_list_of_fields(
+        self,
+        include_derived: Optional[bool] = True
+    ) -> Union[List[str], None]:
         """Returns a list with the names of all available fields."""
         return self.available_fields
 
-    def get_list_of_species(self, required_data=[]):
+    def get_list_of_species(
+        self,
+        required_data: Optional[List] = []
+    ) -> List[str]:
         """
         Returns a list with the names of all available particle species.
 
         Parameters
         ----------
-
         required_data : str or list of strings
             String or list of strings with the names of the particle components
             and/or fields that the species should contain. If specified,
@@ -100,23 +113,26 @@ class DataContainer():
                 species_list.append(species)
         return species_list
 
-    def get_field(self, name, component=None, species_name=None):
+    def get_field(
+        self,
+        name: str,
+        component: Optional[str] = None,
+        species_name: Optional[str] = None,
+    ) -> FolderField:
         """
         Get a specified field from the available ones.
 
         Parameters
         ----------
-
         field_name : str
             Name of the field (in VisualPIC convention).
-
         species_name : str
             (Optional) Name of the particle species to which the field belongs.
             Only needed if the field actually belongs to a species.
 
         Returns
         -------
-        A FolderField object containing the specified field.
+        FolderField
         """
         # Check if field name follows the old v0.5 API.
         if (component is None) and (name not in self.available_fields):
@@ -142,19 +158,21 @@ class DataContainer():
             species_name=species_name
         )
 
-    def get_species(self, species_name):
+    def get_species(
+        self,
+        species_name: str
+    ) -> ParticleSpecies:
         """
         Get a specified particle species from the available ones.
 
         Parameters
         ----------
-
         species_name : str
             Name of the particle species.
 
         Returns
         -------
-        A ParticleSpecies object containing the specified species.
+        ParticleSpecies
         """
         assert species_name in self.available_species, (
             f"Species '{species_name}' not found. "
