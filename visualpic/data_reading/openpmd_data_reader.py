@@ -12,6 +12,10 @@ from openpmd_viewer.openpmd_timeseries.data_reader import DataReader
 from openpmd_viewer.openpmd_timeseries.data_reader.h5py_reader import (
     field_reader as fr)
 from openpmd_viewer.openpmd_timeseries import FieldMetaInformation
+from openpmd_viewer import __version__
+viewer_version = __version__.split('.')
+viewer_version = [int(v) for v in viewer_version]
+new_metainformation = (viewer_version[0] > 1) or (viewer_version[1] >= 8)
 
 
 class OpenPMDDataReader(DataReader):
@@ -128,10 +132,17 @@ def read_cartesian_field_metadata_h5py(filename, iteration, field_name,
     # Extract the metainformation
     shape = list(fr.get_shape(dset))
     axes = {i: axis_labels[i] for i in range(len(axis_labels))}
-    info = FieldMetaInformation(
-        axes, shape, group.attrs['gridSpacing'],
-        group.attrs['gridGlobalOffset'], group.attrs['gridUnitSI'],
-        dset.attrs['position'], t, iteration)
+    
+    if new_metainformation:
+        info = FieldMetaInformation(
+            axes, shape, group.attrs['gridSpacing'],
+            group.attrs['gridGlobalOffset'], group.attrs['gridUnitSI'],
+            dset.attrs['position'], t, iteration)
+    else:
+        info = FieldMetaInformation(
+            axes, shape, group.attrs['gridSpacing'],
+            group.attrs['gridGlobalOffset'], group.attrs['gridUnitSI'],
+            dset.attrs['position'])
     return info
 
 
@@ -165,11 +176,17 @@ def read_cartesian_field_metadata_io(series, iteration, field_name,
     # Extract the metainformation
     shape = component.shape
     axes = {i: axis_labels[i] for i in range(len(axis_labels))}
-    info = FieldMetaInformation(
-        axes, shape,
-        field.grid_spacing, field.grid_global_offset,
-        field.grid_unit_SI, component.position,
-        t, iteration)
+    if new_metainformation:
+        info = FieldMetaInformation(
+            axes, shape,
+            field.grid_spacing, field.grid_global_offset,
+            field.grid_unit_SI, component.position,
+            t, iteration)
+    else:
+        info = FieldMetaInformation(
+            axes, shape,
+            field.grid_spacing, field.grid_global_offset,
+            field.grid_unit_SI, component.position)
     return info
 
 
@@ -200,11 +217,17 @@ def read_circ_field_metadata_h5py(filename, iteration, field_name,
 
     # Extract the metainformation
     Nm, Nr, Nz = fr.get_shape(dset)
-    info = FieldMetaInformation(
-        {0: 'r', 1: 'z'}, (Nr, Nz),
-        group.attrs['gridSpacing'], group.attrs['gridGlobalOffset'],
-        group.attrs['gridUnitSI'], dset.attrs['position'], t, iteration,
-        thetaMode=True)
+    if new_metainformation:
+        info = FieldMetaInformation(
+            {0: 'r', 1: 'z'}, (Nr, Nz),
+            group.attrs['gridSpacing'], group.attrs['gridGlobalOffset'],
+            group.attrs['gridUnitSI'], dset.attrs['position'], t, iteration,
+            thetaMode=True)
+    else:
+        info = FieldMetaInformation(
+            {0: 'r', 1: 'z'}, (Nr, Nz),
+            group.attrs['gridSpacing'], group.attrs['gridGlobalOffset'],
+            group.attrs['gridUnitSI'], dset.attrs['position'], thetaMode=True)
 
     return info
 
@@ -236,11 +259,18 @@ def read_circ_field_metadata_io(series, iteration, field_name, component_name,
 
     # Extract the metainformation
     Nm, Nr, Nz = component.shape
-    info = FieldMetaInformation(
-        {0: 'r', 1: 'z'}, (Nr, Nz),
-        field.grid_spacing, field.grid_global_offset,
-        field.grid_unit_SI, component.position, t, iteration, thetaMode=True)
-    return info
+    if new_metainformation:
+        info = FieldMetaInformation(
+            {0: 'r', 1: 'z'}, (Nr, Nz),
+            field.grid_spacing, field.grid_global_offset,
+            field.grid_unit_SI, component.position, t, iteration, thetaMode=True)
+        return info
+    else:
+        info = FieldMetaInformation(
+            {0: 'r', 1: 'z'}, (Nr, Nz),
+            field.grid_spacing, field.grid_global_offset,
+            field.grid_unit_SI, component.position, thetaMode=True)
+        return info
 
 
 def determine_field_units(field_name):
