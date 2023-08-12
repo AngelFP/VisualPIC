@@ -56,7 +56,7 @@ class ParticleSpecies():
 
     @property
     def iterations(self):
-        return self.timeseries.iterations
+        return self.timeseries.species_iterations[self.species_name]
 
     def get_data(self, iteration, components_list=[]):
         """
