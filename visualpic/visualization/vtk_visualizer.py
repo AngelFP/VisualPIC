@@ -753,7 +753,7 @@ class VTKVisualizer():
         # only a single volume. The fix replaces the 'vtkMultiVolume' for a
         # 'vtkVolume' and then calls '_load_data_into_single_volume'.
         if len(self.volume_field_list) == 1:
-            if not isinstance(self.vtk_volume, vtk.vtkVolume):
+            if isinstance(self.vtk_volume, vtk.vtkMultiVolume):
                 self.renderer.RemoveVolume(self.vtk_volume)
                 self.vtk_volume = vtk.vtkVolume()
                 self.renderer.AddVolume(self.vtk_volume)
