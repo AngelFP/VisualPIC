@@ -54,7 +54,15 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
                     scalars.append(input._array)
                 else:
                     return NotImplemented
-            return self.__class__(ufunc(*scalars, **kwargs), self._metadata)
+            return self.__class__(
+                name='',
+                component='',
+                array=ufunc(*scalars, **kwargs),
+                metadata=self._metadata,
+                geometry=self.geometry,
+                iteration=self.iteration,
+                time=self.time
+            )
         else:
             return NotImplemented
 
@@ -73,6 +81,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def geometry(self) -> str:
         return self._geometry
+    
+    @property
+    def iteration(self) -> int:
+        return self._iteration
 
     @property
     def units(self) -> str:
