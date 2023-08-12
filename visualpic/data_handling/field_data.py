@@ -43,6 +43,27 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         self._iteration = iteration,
         self._time = time
         self.__array_interface__ = array.__array_interface__
+        self._legacy_metadata = self._create_legacy_metadata()
+        self._legacy_api = (self.array, self._legacy_metadata)
+
+    def __iter__(self):
+        """Enables the field data to be unpacked in two items.
+        
+        The first one is the field array and the second one is the legacy
+        dictionary with field metadata. This enables compatibility with the
+        old v0.5 API.
+        """
+        yield self._legacy_api[0]
+        yield self._legacy_api[1]
+
+    def __getitem__(self, index):
+        """Enables the field data to be accessed as a tuple with two items.
+        
+        The first one is the field array and the second one is the legacy
+        dictionary with field metadata. This enables compatibility with the
+        old v0.5 API.
+        """
+        return self._legacy_api[index]
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if method == '__call__':
@@ -92,7 +113,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def axis_labels(self) -> List[str]:
-        return self._metadata.axes
+        return list(self._metadata.axes.values())
 
     @property
     def time(self) -> np.ndarray:
@@ -180,3 +201,24 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
             return known_units[self.name]
         else:
             return ''
+
+    def _create_legacy_metadata(self):
+        """Creates a dictionary with field metadata to enable compatibility
+        with the ond v0.5 API"""
+        md = {}
+        md['time'] = {}
+        md['time']['value'] = self.time
+        md['time']['units'] = self.time_units
+        md['field'] = {}
+        md['field']['geometry'] = self.geometry
+        md['field']['axis_labels'] = self.axis_labels
+        md['field']['units'] = self.units
+        md['axis'] = {}
+        for axis in self.axis_labels:
+            md['axis'][axis] = {}
+            md['axis'][axis]['units'] = 'm'
+            md['axis'][axis]['array'] = getattr(self, axis)
+            md['axis'][axis]['spacing'] = getattr(self, f'd{axis}')
+            md['axis'][axis]['min'] = getattr(self, f'{axis}_min')
+            md['axis'][axis]['max'] = getattr(self, f'{axis}_max')
+        return md
