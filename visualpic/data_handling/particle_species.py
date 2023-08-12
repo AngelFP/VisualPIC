@@ -19,7 +19,7 @@ class ParticleSpecies():
 
     def __init__(
         self,
-        species_name: str,
+        name: str,
         timeseries: OpenPMDTimeSeries
     ):
         """
@@ -28,7 +28,7 @@ class ParticleSpecies():
         Parameters
         ----------
 
-        species_name : str
+        name : str
             Name of the particle species.
 
         components_in_file : list
@@ -49,17 +49,24 @@ class ParticleSpecies():
             An instance of a ParticleReader of the corresponding simulation
             code.
         """
-        self.species_name = species_name
-        self.timeseries = timeseries
-        self.associated_fields = []
+        self._name = name
+        self._ts = timeseries
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def available_components(self):
-        return self.timeseries.avail_record_components[self.species_name]
+        return self._ts.avail_record_components[self._name]
 
     @property
     def iterations(self):
-        return self.timeseries.species_iterations[self.species_name]
+        return self._ts.species_iterations[self._name]
+    
+    @property
+    def timesteps(self):
+        return self.iterations
 
     def get_data(self, iteration, components_list=[]):
         """
@@ -100,9 +107,9 @@ class ParticleSpecies():
             components_list = self.available_components
         
         # Get particle data.
-        data = self.timeseries.get_particle(
+        data = self._ts.get_particle(
             var_list=components_list,
-            species=self.species_name,
+            species=self._name,
             iteration=iteration            
         )
         return ParticleData(
@@ -110,10 +117,10 @@ class ParticleSpecies():
             arrays=data,
             iteration=iteration,
             time=self._get_time(iteration),
-            grid_params=self.timeseries.data_reader.get_grid_parameters(
+            grid_params=self._ts.data_reader.get_grid_parameters(
                 iteration=iteration,
-                avail_fields=self.timeseries.avail_fields,
-                metadata=self.timeseries.fields_metadata
+                avail_fields=self._ts.avail_fields,
+                metadata=self._ts.fields_metadata
             )
         )
 
@@ -142,8 +149,8 @@ class ParticleSpecies():
 
     def _get_time(self, iteration):
         """Get time of current iteration."""
-        species_its = self.timeseries.species_iterations[self.species_name]
-        species_t = self.timeseries.species_t[self.species_name]
+        species_its = self._ts.species_iterations[self._name]
+        species_t = self._ts.species_t[self._name]
         return species_t[np.where(species_its == iteration)[0][0]]
     
     def _check_name_for_backward_compatibility(self, component_name):

@@ -180,7 +180,7 @@ class DataContainer():
             f"Available species are {self.available_species}."
         )
         return ParticleSpecies(
-            species_name=species_name,
+            name=species_name,
             timeseries=self._ts
         )
 
