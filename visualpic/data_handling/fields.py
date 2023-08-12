@@ -14,11 +14,18 @@ from .field_data import FieldData
 
 
 class Field():
-    def __init__(self, field_name, field_timesteps,
-                 species_name=None):
+    def __init__(
+        self,
+        field_name: str,
+        component: str,
+        timeseries: OpenPMDTimeSeries,
+        species_name: str = None
+    ):
         self.field_name = field_name
-        self.timesteps = field_timesteps
+        self.timesteps = timeseries.fields_iterations[field_name]
         self.species_name = species_name
+        self.component = component
+        self.timeseries = timeseries
 
     @property
     def iterations(self):
@@ -33,31 +40,6 @@ class Field():
         if self.species_name is not None:
             fld_name += ' [{}]'.format(self.species_name)
         return fld_name
-
-    def get_data(self, iteration, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        raise NotImplementedError
-
-    def _get_geometry(self):
-        raise NotImplementedError
-
-
-class FolderField(Field):
-    def __init__(
-        self,
-        field_name: str,
-        component: str,
-        timeseries: OpenPMDTimeSeries,
-        species_name: str = None
-    ):
-        super().__init__(
-            field_name=field_name,
-            field_timesteps=timeseries.fields_iterations[field_name],
-            species_name=species_name
-        )
-        self.component = component
-        self.timeseries = timeseries
 
     def get_data(self, iteration, slice_i=0.5,
                  slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',

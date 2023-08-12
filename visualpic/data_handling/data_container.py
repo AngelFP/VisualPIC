@@ -9,7 +9,7 @@ License: GNU GPL-3.0.
 import os
 from typing import Optional, Union, List, Dict
 
-from visualpic.data_handling.fields import FolderField
+from visualpic.data_handling.fields import Field
 from visualpic.data_handling.particle_species import ParticleSpecies
 from openpmd_viewer import OpenPMDTimeSeries
 
@@ -90,6 +90,7 @@ class DataContainer():
         include_derived: Optional[bool] = True
     ) -> Union[List[str], None]:
         """Returns a list with the names of all available fields."""
+        # TODO: deprecate argument.
         return self.available_fields
 
     def get_list_of_species(
@@ -118,7 +119,7 @@ class DataContainer():
         name: str,
         component: Optional[str] = None,
         species_name: Optional[str] = None,
-    ) -> FolderField:
+    ) -> Field:
         """
         Get a specified field from the available ones.
 
@@ -132,7 +133,7 @@ class DataContainer():
 
         Returns
         -------
-        FolderField
+        Field
         """
         # Check if field name follows the old v0.5 API.
         if (component is None) and (name not in self.available_fields):
@@ -151,7 +152,7 @@ class DataContainer():
                 f"Component {component} not found in field {name}. "
                 f"Available components are {available_components}."
         )
-        return FolderField(
+        return Field(
             field_name=name,
             component=component,
             timeseries=self._ts,
