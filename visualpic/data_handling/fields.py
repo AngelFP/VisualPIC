@@ -10,7 +10,6 @@ License: GNU GPL-3.0.
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
 
-from visualpic.helper_functions import get_common_timesteps
 from .field_data import FieldData
 
 
@@ -90,32 +89,3 @@ class FolderField(Field):
     
     def _get_geometry(self):
         return self.timeseries.fields_metadata[self.field_name]['geometry']
-
-
-class DerivedField(Field):
-    def __init__(self, field_dict, sim_geometry, sim_params, base_fields):
-        self.field_dict = field_dict
-        self.sim_geometry = sim_geometry
-        self.sim_params = sim_params
-        self.base_fields = base_fields
-        field_timesteps = get_common_timesteps(base_fields)
-        field_name = field_dict['name']
-        super().__init__(field_name, field_timesteps)
-
-    def get_data(self, iteration, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        field_data = []
-        for field in self.base_fields:
-            fld, fld_md = field.get_data(
-                iteration,
-                slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
-                slice_dir_j=slice_dir_j, m=m, theta=theta,
-                max_resolution_3d=max_resolution_3d,
-                only_metadata=only_metadata)
-            field_data.append(fld)
-        if not only_metadata:
-            fld = self.field_dict['recipe'](field_data, self.sim_geometry,
-                                            self.sim_params)
-        fld_md['field']['units'] = self.field_dict['units']
-        return fld, fld_md
