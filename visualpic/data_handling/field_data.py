@@ -42,9 +42,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         self._geometry = geometry
         self._iteration = iteration,
         self._time = time
-        self.__array_interface__ = array.__array_interface__
         self._legacy_metadata = self._create_legacy_metadata()
         self._legacy_api = (self.array, self._legacy_metadata)
+        # Enable some array-like functionality (such as passing to matplotlib).
+        self.__array_interface__ = array.__array_interface__
 
     def __iter__(self):
         """Enables the field data to be unpacked in two items.
@@ -66,6 +67,13 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         return self._legacy_api[index]
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        """Allow applying numpy ufuncs to this class.
+        
+        The ufuncs will be applied only to the field array. If two
+        instances of this class are added, multiplied, etc., some field
+        metadata is lost (as it is hard to define in general) in the
+        instance created by the operation.
+        """
         if method == '__call__':
             scalars = []
             for input in inputs:
