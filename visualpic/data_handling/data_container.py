@@ -6,6 +6,7 @@ The module contains the DataContainer class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
+import os
 
 from visualpic.data_handling.fields import FolderField
 from visualpic.data_handling.particle_species import ParticleSpecies
@@ -16,40 +17,35 @@ class DataContainer():
 
     """Class containing a providing access to all the simulation data"""
 
-    def __init__(self, path,
-                 laser_wavelength=0.8e-6, backend='openpmd-api',
-                 load_data=True):
+    def __init__(
+        self,
+        data_path=None,
+        backend='openpmd-api',
+        load_data=True,
+        *args,
+        **kwargs
+    ):
         """
         Initialize the data container.
 
         Parameters
         ----------
-
-        simulation_code : str
-            Name of the simulation code from which the data comes from.
-            Possible values are 'osiris, 'hipace' or 'openpmd' for any
-            openPMD-compliant code.
-
-        path : str
+        data_path : str
             Path to the folder containing the simulation data.
-
-        plasma_density : float
-            (Optional) Value of the plasma density in m^{-3}. Needed only for
-            'osiris' and 'hipace' data to allow for conversion to
-            non-normalized units.
-
-        laser_wavelength : float
-            Wavelength (in metres) of the laser in the simulation. Needed for
-            computing the normalized vector potential.
-
         backend : str
             Used only if `simulation_code='openpmd'`. Specifies the backend to
             be used by the DataReader of the openPMD-viewer. Possible values
             are 'h5py' or 'openpmd-api'.
 
         """
-        self.path = path
-        self.sim_params = {'lambda_0': laser_wavelength}
+        # Check for inputs following the old v0.5 API.
+        data_path, backend = self._check_backwards_compatibility(
+            data_path, backend, kwargs
+        )
+        # We need to give a default value to `data_path` due to backwards
+        # compatibility issues. Check however that a value is given.
+        assert data_path is not None, ('Missing argument `data_path`.')
+        self.path = data_path
         self.backend = backend
         self._ts = None
         if load_data:
@@ -67,7 +63,7 @@ class DataContainer():
     @property
     def available_fields(self):
         return self._ts.avail_fields
-    
+
     @property
     def available_field_components(self):
         return {field: self._ts.fields_metadata[field]['avail_components']
@@ -76,7 +72,7 @@ class DataContainer():
     @property
     def available_species(self):
         return self._ts.avail_species
-    
+
     @property
     def available_species_components(self):
         return self._ts.avail_record_components
@@ -168,7 +164,69 @@ class DataContainer():
             species_name=species_name,
             timeseries=self._ts
         )
-    
+
+    def _check_backwards_compatibility(self, data_path, backend, kwargs):
+        """Check for inputs following old v0.5 API
+        
+        If any old inputs are found, this method will notify the user and try
+        to correct them to allow for backwards compatibility.
+        """
+        if data_path is not None:
+            if not os.path.exists(os.path.dirname(data_path)):
+                # `simulation_code` given as arg.
+                if data_path.lower() in ['openpmd', 'osiris', 'hipace']:
+                    self._check_data_format(data_path.lower())
+                    # The code below is only reached if `openpmd` has been
+                    # requested. Thus, no need to handle `plasma_density`.
+                    # `data_folder_path` given as arg.
+                    if os.path.exists(os.path.dirname(backend)):
+                        data_path = backend
+                    # `laser_wavelength` and `opmd_backend` cannot be given as
+                    # args for openPMD data (because they where after
+                    # `plasma_density`).
+        elif 'simulation_code' in kwargs:
+            self._check_data_format(kwargs['simulation_code'].lower())
+        if 'data_folder_path' in kwargs:
+            print(
+                '`data_folder_path` has been renamed to `data_path` '
+                'since v0.6. This name will be fully deprecated in '
+                'future versions. Please update this parameter.'
+            )
+            data_path = kwargs['data_folder_path']
+        if 'laser_wavelength' in kwargs:
+            print(
+                '`laser_wavelength` parameter no longer used since '
+                'v0.6. It will be ignored.'
+            )
+        if 'opmd_backend' in kwargs:
+            print(
+                '`opmd_backend` has been renamed to `backend` since '
+                'v0.6. This name will be fully deprecated in future '
+                'versions. Please update this parameter.'
+            )
+            backend = kwargs['opmd_backend']
+        else:
+            backend = 'openpmd-api'
+        return data_path, backend
+
+    def _check_data_format(self, simulation_code):
+        """Check that no deprecated data format is requested.
+        
+        This is needed to maintain compatibility with the old v0.5 API.
+        The user will be notified and, if an unsupported format is requested,
+        an error will be raised.
+        """
+        print(
+            "For VisualPIC v0.6 and higher only openPMD data is "
+            "supported. The `simulation_code` parameter has "
+            "therefore been removed and should not be provided."
+        )
+        if simulation_code.lower() in ['osiris', 'hipace']:
+            raise ValueError(
+                "From version 0.6, {simulation_code} is no longer "
+                "supported."
+            )
+
     def _check_name_for_backward_compatibility(self, field_name):
         """If field name follows old API, separate into name and component."""
         old_name_relations = {
