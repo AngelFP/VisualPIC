@@ -132,7 +132,7 @@ def read_cartesian_field_metadata_h5py(filename, iteration, field_name,
     # Extract the metainformation
     shape = list(fr.get_shape(dset))
     axes = {i: axis_labels[i] for i in range(len(axis_labels))}
-    
+
     if new_metainformation:
         info = FieldMetaInformation(
             axes, shape, group.attrs['gridSpacing'],
@@ -263,7 +263,8 @@ def read_circ_field_metadata_io(series, iteration, field_name, component_name,
         info = FieldMetaInformation(
             {0: 'r', 1: 'z'}, (Nr, Nz),
             field.grid_spacing, field.grid_global_offset,
-            field.grid_unit_SI, component.position, t, iteration, thetaMode=True)
+            field.grid_unit_SI, component.position, t, iteration,
+            thetaMode=True)
         return info
     else:
         info = FieldMetaInformation(
