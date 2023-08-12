@@ -173,6 +173,9 @@ class ParticleData(np.lib.mixins.NDArrayOperatorsMixin):
         """
         return self._legacy_data[key]
 
+    def __setitem__(self, key, value):
+        self._legacy_data[key] = value
+
     @property
     def x(self) -> ComponentData:
         return self._components_data['x']

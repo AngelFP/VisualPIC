@@ -28,6 +28,10 @@ class Field():
         self._ts = timeseries
 
     @property
+    def name(self) -> str:
+        return self._name
+    
+    @property
     def iterations(self) -> np.ndarray:
         return self._iterations
     
@@ -38,6 +42,16 @@ class Field():
     @property
     def geometry(self) -> str:
         return self._ts.fields_metadata[self._name]['geometry']
+    
+    @property
+    def field_name(self) -> str:
+        # TODO: deprecate
+        return self.name
+    
+    @property
+    def species_name(self) -> str:
+        # TODO: deprecate
+        return None
 
     def get_name(self) -> str:
         fld_name = self._name
@@ -76,6 +90,10 @@ class Field():
             iteration=iteration,
             time=self._get_time(iteration)
         )
+    
+    def get_geometry(self):
+        # TODO: deprecate
+        return self.geometry
     
     def _get_time(self, iteration) -> float:
         field_its = self._ts.fields_iterations[self._name]

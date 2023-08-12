@@ -55,6 +55,11 @@ class ParticleSpecies():
     @property
     def name(self):
         return self._name
+    
+    @property
+    def species_name(self):
+        # TODO: deprecate
+        return self._name
 
     @property
     def available_components(self):
@@ -146,6 +151,10 @@ class ParticleSpecies():
             data = [data]
         comps = self.available_components()
         return set(data) <= set(comps)
+    
+    def get_list_of_available_components(self):
+        # TODO: deprecate
+        return self.available_components
 
     def _get_time(self, iteration):
         """Get time of current iteration."""
