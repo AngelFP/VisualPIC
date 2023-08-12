@@ -16,37 +16,50 @@ from .field_data import FieldData
 class Field():
     def __init__(
         self,
-        field_name: str,
+        name: str,
         component: str,
         timeseries: OpenPMDTimeSeries,
         species_name: str = None
-    ):
-        self.field_name = field_name
-        self.timesteps = timeseries.fields_iterations[field_name]
-        self.species_name = species_name
-        self.component = component
-        self.timeseries = timeseries
+    ) -> None:
+        self._name = name
+        self._iterations = timeseries.fields_iterations[name]
+        self._species_name = species_name
+        self._component = component
+        self._ts = timeseries
 
     @property
-    def iterations(self):
-        return self.timesteps
+    def iterations(self) -> np.ndarray:
+        return self._iterations
     
     @property
-    def geometry(self):
-        return self._get_geometry()
+    def timesteps(self) -> np.ndarray:
+        return self.iterations
+    
+    @property
+    def geometry(self) -> str:
+        return self._ts.fields_metadata[self._name]['geometry']
 
-    def get_name(self):
-        fld_name = self.field_name
-        if self.species_name is not None:
-            fld_name += ' [{}]'.format(self.species_name)
+    def get_name(self) -> str:
+        fld_name = self._name
+        if self._species_name is not None:
+            fld_name += ' [{}]'.format(self._species_name)
         return fld_name
 
-    def get_data(self, iteration, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        fld, fld_md = self.timeseries.get_field(
-            field=self.field_name,
-            coord=self.component,
+    def get_data(
+            self,
+            iteration,
+            slice_i=0.5,
+            slice_j=0.5,
+            slice_dir_i=None,
+            slice_dir_j=None,
+            m='all',
+            theta=0,
+            max_resolution_3d=None,
+            only_metadata=False
+        ) -> FieldData:
+        fld, fld_md = self._ts.get_field(
+            field=self._name,
+            coord=self._component,
             iteration=iteration,
             m=m,
             theta=theta,
@@ -55,19 +68,16 @@ class Field():
             max_resolution_3d=max_resolution_3d
         )
         return FieldData(
-            name=self.field_name,
-            component=self.component,
+            name=self._name,
+            component=self._component,
             array=fld,
             metadata=fld_md,
-            geometry=self._get_geometry(),
+            geometry=self.geometry,
             iteration=iteration,
             time=self._get_time(iteration)
         )
     
-    def _get_time(self, iteration):
-        field_its = self.timeseries.fields_iterations[self.field_name]
-        field_t = self.timeseries.fields_t[self.field_name]
+    def _get_time(self, iteration) -> float:
+        field_its = self._ts.fields_iterations[self._name]
+        field_t = self._ts.fields_t[self._name]
         return field_t[np.where(field_its == iteration)[0][0]]
-    
-    def _get_geometry(self):
-        return self.timeseries.fields_metadata[self.field_name]['geometry']

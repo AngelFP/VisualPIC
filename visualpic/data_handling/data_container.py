@@ -125,7 +125,7 @@ class DataContainer():
 
         Parameters
         ----------
-        field_name : str
+        name : str
             Name of the field (in VisualPIC convention).
         species_name : str
             (Optional) Name of the particle species to which the field belongs.
@@ -153,7 +153,7 @@ class DataContainer():
                 f"Available components are {available_components}."
         )
         return Field(
-            field_name=name,
+            name=name,
             component=component,
             timeseries=self._ts,
             species_name=species_name
