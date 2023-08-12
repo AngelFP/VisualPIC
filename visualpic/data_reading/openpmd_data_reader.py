@@ -66,7 +66,8 @@ class OpenPMDDataReader(DataReader):
         # Axis metadata.
         md['axis'] = {}
         info = self.get_field_meta_info(
-            iteration, field_name, component_name, axis_labels, field_geometry)
+            iteration, field_name, component_name, axis_labels, field_geometry,
+            t)
         for axis in axis_labels:
             md['axis'][axis] = {}
             md['axis'][axis]['units'] = 'm'
@@ -78,27 +79,27 @@ class OpenPMDDataReader(DataReader):
         return md
 
     def get_field_meta_info(self, iteration, field, comp, axis_labels,
-                            geometry):
+                            geometry, t):
         """ Get the `FieldMetaInformation` of the field. """
         if self.backend == 'h5py':
             filename = self.iteration_to_file[iteration]
             if geometry in ['thetaMode']:
                 return read_circ_field_metadata_h5py(
-                    filename, iteration, field, comp)
+                    filename, iteration, field, comp, t)
             elif geometry in ["1dcartesian", "2dcartesian", "3dcartesian"]:
                 return read_cartesian_field_metadata_h5py(
-                    filename, iteration, field, comp, axis_labels)
+                    filename, iteration, field, comp, axis_labels, t)
         elif self.backend == 'openpmd-api':
             if geometry in ['thetaMode']:
                 return read_circ_field_metadata_io(
-                    self.series, iteration, field, comp)
+                    self.series, iteration, field, comp, t)
             elif geometry in ["1dcartesian", "2dcartesian", "3dcartesian"]:
                 return read_cartesian_field_metadata_io(
-                    self.series, iteration, field, comp, axis_labels)
+                    self.series, iteration, field, comp, axis_labels, t)
 
 
 def read_cartesian_field_metadata_h5py(filename, iteration, field_name,
-                                       component_name, axis_labels):
+                                       component_name, axis_labels, t):
     """
     Get `FieldMetaInformation` of cartesian field using `h5py` backend.
 
@@ -130,12 +131,12 @@ def read_cartesian_field_metadata_h5py(filename, iteration, field_name,
     info = FieldMetaInformation(
         axes, shape, group.attrs['gridSpacing'],
         group.attrs['gridGlobalOffset'], group.attrs['gridUnitSI'],
-        dset.attrs['position'])
+        dset.attrs['position'], t, iteration)
     return info
 
 
 def read_cartesian_field_metadata_io(series, iteration, field_name,
-                                     component_name, axis_labels):
+                                     component_name, axis_labels, t):
     """
     Get `FieldMetaInformation` of cartesian field using `io` backend.
 
@@ -167,12 +168,13 @@ def read_cartesian_field_metadata_io(series, iteration, field_name,
     info = FieldMetaInformation(
         axes, shape,
         field.grid_spacing, field.grid_global_offset,
-        field.grid_unit_SI, component.position)
+        field.grid_unit_SI, component.position,
+        t, iteration)
     return info
 
 
 def read_circ_field_metadata_h5py(filename, iteration, field_name,
-                                  component_name):
+                                  component_name, t):
     """
     Get `FieldMetaInformation` of thetaMode field using `h5py` backend.
 
@@ -201,12 +203,14 @@ def read_circ_field_metadata_h5py(filename, iteration, field_name,
     info = FieldMetaInformation(
         {0: 'r', 1: 'z'}, (Nr, Nz),
         group.attrs['gridSpacing'], group.attrs['gridGlobalOffset'],
-        group.attrs['gridUnitSI'], dset.attrs['position'], thetaMode=True)
+        group.attrs['gridUnitSI'], dset.attrs['position'], t, iteration,
+        thetaMode=True)
 
     return info
 
 
-def read_circ_field_metadata_io(series, iteration, field_name, component_name):
+def read_circ_field_metadata_io(series, iteration, field_name, component_name,
+                                t):
     """
     Get `FieldMetaInformation` of thetaMode field using `io` backend.
 
@@ -235,7 +239,7 @@ def read_circ_field_metadata_io(series, iteration, field_name, component_name):
     info = FieldMetaInformation(
         {0: 'r', 1: 'z'}, (Nr, Nz),
         field.grid_spacing, field.grid_global_offset,
-        field.grid_unit_SI, component.position, thetaMode=True)
+        field.grid_unit_SI, component.position, t, iteration, thetaMode=True)
     return info
 
 
