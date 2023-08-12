@@ -45,8 +45,8 @@ class DataContainer():
         # We need to give a default value to `data_path` due to backwards
         # compatibility issues. Check however that a value is given.
         assert data_path is not None, ('Missing argument `data_path`.')
-        self.path = data_path
-        self.backend = backend
+        self._path = data_path
+        self._backend = backend
         self._ts = None
         if load_data:
             self.load_data()
@@ -55,9 +55,9 @@ class DataContainer():
         """Load the data into the data container."""
         if self._ts is None or force_reload:
             self._ts = OpenPMDTimeSeries(
-                self.path,
+                self._path,
                 check_all_files=True,
-                backend=self.backend
+                backend=self._backend
             )
 
     @property
