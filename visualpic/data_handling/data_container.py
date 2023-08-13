@@ -32,12 +32,12 @@ class DataContainer():
     """
     def __init__(
         self,
-        data_path=None,
-        backend='openpmd-api',
-        load_data=True,
+        data_path: str = None,
+        backend: Optional[str] = 'openpmd-api',
+        load_data: Optional[bool] = True,
         *args,
         **kwargs
-    ):
+    ) -> None:
         # Check for inputs following the old v0.5 API.
         data_path, backend = self._check_backwards_compatibility(
             data_path, backend, kwargs
