@@ -16,7 +16,7 @@ from openpmd_viewer import OpenPMDTimeSeries
 
 
 class DataContainer():
-    """Class containing a providing access to all the simulation data.    
+    """Class containing and providing access to all the simulation data.    
 
     Parameters
     ----------
@@ -90,8 +90,10 @@ class DataContainer():
         self,
         include_derived: Optional[bool] = True
     ) -> Union[List[str], None]:
-        """Returns a list with the names of all available fields."""
-        # TODO: deprecate argument.
+        """Returns a list with the names of all available fields.
+        
+        This method is only kept for backward compatibility.
+        """
         return self.available_fields
 
     def get_list_of_species(
@@ -118,8 +120,7 @@ class DataContainer():
     def get_field(
         self,
         name: str,
-        component: Optional[str] = None,
-        species_name: Optional[str] = None,
+        component: Optional[str] = None
     ) -> Field:
         """
         Get a specified field from the available ones.
@@ -127,10 +128,9 @@ class DataContainer():
         Parameters
         ----------
         name : str
-            Name of the field (in VisualPIC convention).
-        species_name : str
-            (Optional) Name of the particle species to which the field belongs.
-            Only needed if the field actually belongs to a species.
+            Name of the field.
+        component : str, optional
+            Component of the field to be read.
 
         Returns
         -------
@@ -147,7 +147,10 @@ class DataContainer():
         )
         available_components = self.available_field_components[name]
         if component is None:
-            assert not available_components
+            assert not available_components, (
+                f"Please specify which field component to read. "
+                f"Available components are {available_components}."
+            )
         else:
             assert component in available_components, (
                 f"Component {component} not found in field {name}. "
@@ -156,8 +159,7 @@ class DataContainer():
         return Field(
             name=name,
             component=component,
-            timeseries=self._ts,
-            species_name=species_name
+            timeseries=self._ts
         )
 
     def get_species(
