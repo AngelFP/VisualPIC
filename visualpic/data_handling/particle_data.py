@@ -51,7 +51,7 @@ class ComponentData():
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Allow applying numpy ufuncs to this class.
-        
+
         The ufuncs will be applied only to the component array. If two
         instances of this class are added, multiplied, etc., the name is
         lost in the instance created by the operation.
@@ -80,7 +80,7 @@ class ComponentData():
 
     @property
     def array(self) -> np.ndarray:
-        return self._array    
+        return self._array
 
     @property
     def units(self) -> str:

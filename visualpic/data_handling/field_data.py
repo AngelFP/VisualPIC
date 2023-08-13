@@ -49,7 +49,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __iter__(self):
         """Enables the field data to be unpacked in two items.
-        
+
         The first one is the field array and the second one is the legacy
         dictionary with field metadata. This enables compatibility with the
         old v0.5 API.
@@ -59,7 +59,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __getitem__(self, index):
         """Enables the field data to be accessed as a tuple with two items.
-        
+
         The first one is the field array and the second one is the legacy
         dictionary with field metadata. This enables compatibility with the
         old v0.5 API.
@@ -68,7 +68,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Allow applying numpy ufuncs to this class.
-        
+
         The ufuncs will be applied only to the field array. If two
         instances of this class are added, multiplied, etc., some field
         metadata is lost (as it is hard to define in general) in the
@@ -106,11 +106,11 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def array(self) -> np.ndarray:
         return self._array
-    
+
     @property
     def geometry(self) -> str:
         return self._geometry
-    
+
     @property
     def iteration(self) -> int:
         return self._iteration

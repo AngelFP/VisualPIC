@@ -16,7 +16,7 @@ from openpmd_viewer import OpenPMDTimeSeries
 
 
 class DataContainer():
-    """Class containing and providing access to all the simulation data.    
+    """Class containing and providing access to all the simulation data.
 
     Parameters
     ----------
@@ -91,7 +91,7 @@ class DataContainer():
         include_derived: Optional[bool] = True
     ) -> Union[List[str], None]:
         """Returns a list with the names of all available fields.
-        
+
         This method is only kept for backward compatibility.
         """
         return self.available_fields
@@ -155,7 +155,7 @@ class DataContainer():
             assert component in available_components, (
                 f"Component {component} not found in field {name}. "
                 f"Available components are {available_components}."
-        )
+            )
         return Field(
             name=name,
             component=component,
@@ -189,7 +189,7 @@ class DataContainer():
 
     def _check_backwards_compatibility(self, data_path, backend, kwargs):
         """Check for inputs following old v0.5 API
-        
+
         If any old inputs are found, this method will notify the user and try
         to correct them to allow for backwards compatibility.
         """
@@ -233,7 +233,7 @@ class DataContainer():
 
     def _check_data_format(self, simulation_code):
         """Check that no deprecated data format is requested.
-        
+
         This is needed to maintain compatibility with the old v0.5 API.
         The user will be notified and, if an unsupported format is requested,
         an error will be raised.

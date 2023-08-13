@@ -36,7 +36,7 @@ class ParticleSpecies():
     @property
     def name(self) -> str:
         return self._name
-    
+
     @property
     def species_name(self) -> str:
         # kept of backward compatibility.
@@ -49,7 +49,7 @@ class ParticleSpecies():
     @property
     def iterations(self) -> np.ndarray:
         return self._ts.species_iterations[self._name]
-    
+
     @property
     def timesteps(self) -> np.ndarray:
         # kept of backward compatibility.
@@ -90,12 +90,12 @@ class ParticleSpecies():
         # By default, if no list is specified, get all components.
         else:
             components_list = self.available_components
-        
+
         # Get particle data.
         data = self._ts.get_particle(
             var_list=components_list,
             species=self._name,
-            iteration=iteration            
+            iteration=iteration
         )
         return ParticleData(
             components=components_list if not has_old_names else old_names,
@@ -133,10 +133,10 @@ class ParticleSpecies():
             data = [data]
         comps = self.available_components()
         return set(data) <= set(comps)
-    
+
     def get_list_of_available_components(self) -> List[str]:
         """Get list of the components available in this species.
-        
+
         This method is kept for backward compatibility.
         """
         return self.available_components
@@ -146,7 +146,7 @@ class ParticleSpecies():
         species_its = self._ts.species_iterations[self._name]
         species_t = self._ts.species_t[self._name]
         return species_t[np.where(species_its == iteration)[0][0]]
-    
+
     def _check_name_for_backward_compatibility(
         self,
         component_name: str
