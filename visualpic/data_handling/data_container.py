@@ -7,6 +7,7 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 import os
+from warnings import warn
 from typing import Optional, Union, List, Dict
 
 from visualpic.data_handling.fields import Field
@@ -206,19 +207,19 @@ class DataContainer():
         elif 'simulation_code' in kwargs:
             self._check_data_format(kwargs['simulation_code'].lower())
         if 'data_folder_path' in kwargs:
-            print(
+            warn(
                 '`data_folder_path` has been renamed to `data_path` '
                 'since v0.6. This name will be fully deprecated in '
                 'future versions. Please update this parameter.'
             )
             data_path = kwargs['data_folder_path']
         if 'laser_wavelength' in kwargs:
-            print(
+            warn(
                 '`laser_wavelength` parameter no longer used since '
                 'v0.6. It will be ignored.'
             )
         if 'opmd_backend' in kwargs:
-            print(
+            warn(
                 '`opmd_backend` has been renamed to `backend` since '
                 'v0.6. This name will be fully deprecated in future '
                 'versions. Please update this parameter.'
@@ -235,7 +236,7 @@ class DataContainer():
         The user will be notified and, if an unsupported format is requested,
         an error will be raised.
         """
-        print(
+        warn(
             "For VisualPIC v0.6 and higher only openPMD data is "
             "supported. The `simulation_code` parameter has "
             "therefore been removed and should not be provided."
