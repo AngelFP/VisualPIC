@@ -19,11 +19,9 @@ class Field():
         name: str,
         component: str,
         timeseries: OpenPMDTimeSeries,
-        species_name: str = None
     ) -> None:
         self._name = name
         self._iterations = timeseries.fields_iterations[name]
-        self._species_name = species_name
         self._component = component
         self._ts = timeseries
 
