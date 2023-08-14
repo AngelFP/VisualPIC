@@ -145,8 +145,6 @@ class Field():
             array=fld,
             metadata=fld_md,
             geometry=self.geometry,
-            iteration=iteration,
-            time=self._get_time(iteration)
         )
 
     def get_geometry(self):
@@ -155,9 +153,3 @@ class Field():
         This method is only kept for backward compatibility.
         """
         return self.geometry
-
-    def _get_time(self, iteration) -> float:
-        """Get time at given iteration."""
-        field_its = self._ts.fields_iterations[self._name]
-        field_t = self._ts.fields_t[self._name]
-        return field_t[np.where(field_its == iteration)[0][0]]

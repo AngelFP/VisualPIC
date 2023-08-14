@@ -31,17 +31,13 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         component: str,
         array: np.ndarray,
         metadata: FieldMetaInformation,
-        geometry: str,
-        iteration: int,
-        time: float
+        geometry: str
     ) -> None:
         self._name = name
         self._component = component
         self._array = array
         self._metadata = metadata
         self._geometry = geometry
-        self._iteration = iteration,
-        self._time = time
         self._legacy_metadata = self._create_legacy_metadata()
         self._legacy_api = (self.array, self._legacy_metadata)
         # Enable some array-like functionality (such as passing to matplotlib).
@@ -89,8 +85,6 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
                 array=ufunc(*scalars, **kwargs),
                 metadata=self._metadata,
                 geometry=self.geometry,
-                iteration=self.iteration,
-                time=self.time
             )
         else:
             return NotImplemented
@@ -113,7 +107,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def iteration(self) -> int:
-        return self._iteration
+        return self._metadata.iteration
 
     @property
     def units(self) -> str:
@@ -125,7 +119,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def time(self) -> np.ndarray:
-        return self._time
+        return self._metadata.time
 
     @property
     def time_units(self) -> np.ndarray:
