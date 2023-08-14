@@ -6,117 +6,150 @@ The module contains the definitions of different field classes.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
+from typing import Optional, Union, List
 
+import numpy as np
+from openpmd_viewer import OpenPMDTimeSeries
 
-from visualpic.helper_functions import get_common_timesteps
+from .field_data import FieldData
 
 
 class Field():
-    def __init__(self, field_name, field_timesteps, unit_converter,
-                 species_name=None):
-        self.field_name = field_name
-        self.timesteps = field_timesteps
-        self.species_name = species_name
-        self.unit_converter = unit_converter
+    """Class representing a field.
 
-    def get_name(self):
-        fld_name = self.field_name
-        if self.species_name is not None:
-            fld_name += ' [{}]'.format(self.species_name)
-        return fld_name
+    It exposes methods to get the field data at any iteration, as well as
+    basic metadata.
 
-    def get_data(self, time_step, field_units=None, axes_units=None,
-                 axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        raise NotImplementedError
+    Parameters
+    ----------
+    name : str
+        Name of the field.
+    component : str or None
+        The component of the field. `None` for scalar fields.
+    timeseries : OpenPMDTimeSeries
+        Reference to the OpenPMDTimeSeries from which to read the data.
+    """
+    def __init__(
+        self,
+        name: str,
+        component: str,
+        timeseries: OpenPMDTimeSeries,
+    ) -> None:
+        self._name = name
+        self._iterations = timeseries.fields_iterations[name]
+        self._component = component
+        self._ts = timeseries
 
-    def get_only_metadata(self, time_step, field_units=None, axes_units=None,
-                          axes_to_convert=None, time_units=None,
-                          slice_dir_i=None, slice_dir_j=None, m='all',
-                          theta=0, max_resolution_3d=None):
-        fld, fld_md = self.get_data(
-            time_step, field_units=field_units, axes_units=axes_units,
-            axes_to_convert=axes_to_convert, time_units=time_units,
-            slice_dir_i=slice_dir_i, slice_dir_j=slice_dir_j, m=m,
-            theta=theta, max_resolution_3d=max_resolution_3d,
-            only_metadata=True)
-        return fld_md
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def iterations(self) -> np.ndarray:
+        return self._iterations
+
+    @property
+    def timesteps(self) -> np.ndarray:
+        return self.iterations
+
+    @property
+    def geometry(self) -> str:
+        return self._ts.fields_metadata[self._name]['geometry']
+
+    @property
+    def field_name(self) -> str:
+        # TODO: deprecate
+        return self.name
+
+    @property
+    def species_name(self) -> str:
+        # TODO: deprecate
+        return None
+
+    def get_name(self) -> str:
+        """Get field name.
+
+        This method is kept for backward compatibility.
+        """
+        return self.name
+
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        """Get the field data at a given iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            The iteration from which to read the data.
+        slice_across : str or list of str, optional
+            Direction(s) across which the data should be sliced
+            + In cartesian geometry, elements can be:
+                - 1d: 'z'
+                - 2d: 'x' and/or 'z'
+                - 3d: 'x' and/or 'y' and/or 'z'
+            + In cylindrical geometry, elements can be 'r' and/or 'z'
+            Returned array is reduced by 1 dimension per slicing.
+            If slicing is None, the full grid is returned.
+        slice_relative_position : float or list of float, optional
+            Number(s) between -1 and 1 that indicate where to slice the data,
+            along the directions in `slice_across`
+            -1 : lower edge of the simulation box
+            0 : middle of the simulation box
+            1 : upper edge of the simulation box
+            Default: None, which results in slicing at 0 in all direction
+            of `slice_across`.
+        m : int or str, optional
+            Only used for thetaMode geometry
+            Either 'all' (for the sum of all the modes)
+            or an integer (for the selection of a particular mode)
+        theta : float or None, optional
+            Only used for thetaMode geometry
+            The angle of the plane of observation, with respect to the x axis
+            If `theta` is not None, then this function returns a 2D array
+            corresponding to the plane of observation given by `theta` ;
+            otherwise it returns a full 3D Cartesian array
+        max_resolution_3d : list of int or None
+            Maximum resolution that the 3D reconstruction of the field (when
+            `theta` is None) can have. The list should contain two values,
+            e.g. `[200, 100]`, indicating the maximum longitudinal and
+            transverse resolution, respectively. This is useful for
+            performance reasons, particularly for 3D visualization.
+        only_metadata : Optional[bool], optional
+            Whether to read only the field metadata, by default False
+
+        Returns
+        -------
+        FieldData
+        """
+        fld, fld_md = self._ts.get_field(
+            field=self._name,
+            coord=self._component,
+            iteration=iteration,
+            m=m,
+            theta=theta,
+            slice_across=slice_across,
+            slice_relative_position=slice_relative_position,
+            max_resolution_3d=max_resolution_3d
+        )
+        return FieldData(
+            name=self._name,
+            component=self._component,
+            array=fld,
+            metadata=fld_md,
+            geometry=self.geometry,
+        )
 
     def get_geometry(self):
-        field_md = self.get_only_metadata(self.timesteps[0])
-        return field_md['field']['geometry']
+        """Get field geometry.
 
-
-class FolderField(Field):
-    def __init__(
-            self, field_name, field_path, timestep_to_files, field_timesteps,
-            field_reader, unit_converter, species_name=None):
-        super().__init__(field_name, field_timesteps, unit_converter,
-                         species_name)
-        self.field_path = field_path
-        if type(timestep_to_files) is list:
-            if len(timestep_to_files) == len(field_timesteps):
-                timestep_to_files = dict(
-                    zip(field_timesteps, timestep_to_files))
-        self.timestep_to_files = timestep_to_files
-        self.field_reader = field_reader
-
-    def get_data(self, time_step, field_units=None, axes_units=None,
-                 axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        file_path = self._get_file_path(time_step)
-        fld, fld_md = self.field_reader.read_field(
-            file_path, time_step, self.field_path, slice_i, slice_j,
-            slice_dir_i, slice_dir_j, m, theta, max_resolution_3d,
-            only_metadata)
-        # perform unit conversion
-        unit_list = [field_units, axes_units, time_units]
-        if any(unit is not None for unit in unit_list):
-            fld, fld_md = self.unit_converter.convert_field_units(
-                fld, fld_md, target_field_units=field_units,
-                target_axes_units=axes_units, axes_to_convert=axes_to_convert,
-                target_time_units=time_units)
-        return fld, fld_md
-
-    def _get_file_path(self, time_step):
-        return self.timestep_to_files[time_step]
-
-
-class DerivedField(Field):
-    def __init__(self, field_dict, sim_geometry, sim_params, base_fields):
-        self.field_dict = field_dict
-        self.sim_geometry = sim_geometry
-        self.sim_params = sim_params
-        self.base_fields = base_fields
-        field_timesteps = get_common_timesteps(base_fields)
-        field_name = field_dict['name']
-        unit_converter = base_fields[0].unit_converter
-        super().__init__(field_name, field_timesteps, unit_converter)
-
-    def get_data(self, time_step, field_units=None, axes_units=None,
-                 axes_to_convert=None, time_units=None, slice_i=0.5,
-                 slice_j=0.5, slice_dir_i=None, slice_dir_j=None, m='all',
-                 theta=0, max_resolution_3d=None, only_metadata=False):
-        field_data = []
-        for field in self.base_fields:
-            fld, fld_md = field.get_data(
-                time_step, field_units='SI',
-                slice_i=slice_i, slice_j=slice_j, slice_dir_i=slice_dir_i,
-                slice_dir_j=slice_dir_j, m=m, theta=theta,
-                max_resolution_3d=max_resolution_3d,
-                only_metadata=only_metadata)
-            field_data.append(fld)
-        if not only_metadata:
-            fld = self.field_dict['recipe'](field_data, self.sim_geometry,
-                                            self.sim_params)
-        fld_md['field']['units'] = self.field_dict['units']
-        # perform unit conversion
-        unit_list = [field_units, axes_units, time_units]
-        if any(unit is not None for unit in unit_list):
-            fld, fld_md = self.unit_converter.convert_field_units(
-                fld, fld_md, target_field_units=field_units,
-                target_axes_units=axes_units, axes_to_convert=axes_to_convert,
-                target_time_units=time_units)
-        return fld, fld_md
+        This method is only kept for backward compatibility.
+        """
+        return self.geometry

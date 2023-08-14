@@ -6,94 +6,105 @@ The module contains the DataContainer class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
+import os
+from warnings import warn
+from typing import Optional, Union, List, Dict
 
-
-from visualpic.data_handling.derived_field_definitions import (
-    derived_field_definitions)
-from visualpic.data_handling.fields import DerivedField
+from visualpic.data_handling.fields import Field
 from visualpic.data_handling.particle_species import ParticleSpecies
-from visualpic.data_reading.folder_scanners import (
-    OsirisFolderScanner, OpenPMDFolderScanner, HiPACEFolderScanner)
+from openpmd_viewer import OpenPMDTimeSeries
 
 
 class DataContainer():
+    """Class containing and providing access to all the simulation data.
 
-    """Class containing a providing access to all the simulation data"""
+    Parameters
+    ----------
+    data_path : str
+        Path to the folder containing the simulation data.
+    backend : str
+        Used only if `simulation_code='openpmd'`. Specifies the backend to
+        be used by the DataReader of the openPMD-viewer. Possible values
+        are 'h5py' or 'openpmd-api'.
+    load_data : bool
+            Whether to load the data at initialization. If `False`, the
+            `load_data` method must be called manually. By default, True.
+    """
+    def __init__(
+        self,
+        data_path: str = None,
+        backend: Optional[str] = 'openpmd-api',
+        load_data: Optional[bool] = True,
+        *args,
+        **kwargs
+    ) -> None:
+        # Check for inputs following the old v0.5 API.
+        data_path, backend = self._check_backwards_compatibility(
+            data_path, backend, kwargs
+        )
+        # We need to give a default value to `data_path` due to backwards
+        # compatibility issues. Check however that a value is given.
+        assert data_path is not None, ('Missing argument `data_path`.')
+        self._path = data_path
+        self._backend = backend
+        self._ts = None
+        if load_data:
+            self.load_data()
 
-    def __init__(self, simulation_code, data_folder_path, plasma_density=None,
-                 laser_wavelength=0.8e-6, opmd_backend='openpmd-api'):
-        """
-        Initialize the data container.
+    def load_data(
+        self,
+        force_reload: Optional[bool] = False
+    ) -> None:
+        """Load the data into the data container.
 
         Parameters
         ----------
-
-        simulation_code : str
-            Name of the simulation code from which the data comes from.
-            Possible values are 'osiris, 'hipace' or 'openpmd' for any
-            openPMD-compliant code.
-
-        data_folder_path : str
-            Path to the folder containing the simulation data.
-
-        plasma_density : float
-            (Optional) Value of the plasma density in m^{-3}. Needed only for
-            'osiris' and 'hipace' data to allow for conversion to
-            non-normalized units.
-
-        laser_wavelength : float
-            Wavelength (in metres) of the laser in the simulation. Needed for
-            computing the normalized vector potential.
-
-        opmd_backend : str
-            Used only if `simulation_code='openpmd'`. Specifies the backend to
-            be used by the DataReader of the openPMD-viewer. Possible values
-            are 'h5py' or 'openpmd-api'.
-
+        force_reload : bool, optional
+            Whether to force the data to be reloaded`, by default False.
         """
-        self.simulation_code = simulation_code.lower()
-        self.data_folder_path = data_folder_path
-        self.sim_params = {'n_p': plasma_density,
-                           'lambda_0': laser_wavelength}
-        self.opmd_backend = opmd_backend
-        self._set_folder_scanner()
-        self.folder_fields = []
-        self.particle_species = []
-        self.derived_fields = []
+        if self._ts is None or force_reload:
+            self._ts = OpenPMDTimeSeries(
+                self._path,
+                check_all_files=True,
+                backend=self._backend
+            )
 
-    def load_data(self, force_reload=False):
-        """Load the data into the data container."""
-        if not self.folder_fields or force_reload:
-            self.folder_fields = self.folder_scanner.get_list_of_fields(
-                self.data_folder_path)
-        if not self.particle_species or force_reload:
-            self.particle_species = self.folder_scanner.get_list_of_species(
-                self.data_folder_path)
-            self._add_associated_species_fields()
-        if not self.derived_fields or force_reload:
-            self.derived_fields = self._generate_derived_fields()
+    @property
+    def available_fields(self) -> Union[List[str], None]:
+        return self._ts.avail_fields
 
-    def get_list_of_fields(self, include_derived=True):
-        """Returns a list with the names of all available fields."""
-        fields_list = []
-        available_fields = self.folder_fields
-        if include_derived:
-            available_fields = available_fields + self.derived_fields
-        for field in available_fields:
-            fld_name = field.field_name
-            fld_species = field.species_name
-            if fld_species is not None:
-                fld_name += ' [{}]'.format(fld_species)
-            fields_list.append(fld_name)
-        return fields_list
+    @property
+    def available_field_components(self) -> Dict:
+        return {field: self._ts.fields_metadata[field]['avail_components']
+                for field in self.available_fields}
 
-    def get_list_of_species(self, required_data=[]):
+    @property
+    def available_species(self) -> List[str]:
+        return self._ts.avail_species
+
+    @property
+    def available_species_components(self) -> Dict:
+        return self._ts.avail_record_components
+
+    def get_list_of_fields(
+        self,
+        include_derived: Optional[bool] = True
+    ) -> Union[List[str], None]:
+        """Returns a list with the names of all available fields.
+
+        This method is only kept for backward compatibility.
+        """
+        return self.available_fields
+
+    def get_list_of_species(
+        self,
+        required_data: Optional[List] = []
+    ) -> List[str]:
         """
         Returns a list with the names of all available particle species.
 
         Parameters
         ----------
-
         required_data : str or list of strings
             String or list of strings with the names of the particle components
             and/or fields that the species should contain. If specified,
@@ -101,119 +112,163 @@ class DataContainer():
 
         """
         species_list = []
-        for species in self.particle_species:
-            if species.contains(required_data):
-                species_list.append(species.species_name)
+        for species, components in self.available_species_components.items():
+            if set(required_data) <= set(components):
+                species_list.append(species)
         return species_list
 
-    def get_field(self, field_name, species_name=None):
+    def get_field(
+        self,
+        name: str,
+        component: Optional[str] = None
+    ) -> Field:
         """
         Get a specified field from the available ones.
 
         Parameters
         ----------
-
-        field_name : str
-            Name of the field (in VisualPIC convention).
-
-        species_name : str
-            (Optional) Name of the particle species to which the field belongs.
-            Only needed if the field actually belongs to a species.
+        name : str
+            Name of the field.
+        component : str, optional
+            Component of the field to be read.
 
         Returns
         -------
-        A FolderField object containing the specified field.
+        Field
         """
-        for field in self.folder_fields + self.derived_fields:
-            if (field_name == field.field_name and
-                    species_name == field.species_name):
-                return field
-        # raise error if no field has been found
-        if species_name is not None:
-            field_name = field_name + species_name
-        available_fields = self.get_list_of_fields()
-        raise ValueError("Field '{}' not found. ".format(field_name) +
-                         "Available fields are {}.".format(available_fields))
+        # Check if field name follows the old v0.5 API.
+        if (component is None) and (name not in self.available_fields):
+            out = self._check_name_for_backward_compatibility(name)
+            if out:
+                name, component = out
+        assert name in self.available_fields, (
+            f"Field {name} not found. "
+            f"Available fields are {self.available_fields}."
+        )
+        available_components = self.available_field_components[name]
+        if component is None:
+            assert not available_components, (
+                f"Please specify which field component to read. "
+                f"Available components are {available_components}."
+            )
+        else:
+            assert component in available_components, (
+                f"Component {component} not found in field {name}. "
+                f"Available components are {available_components}."
+            )
+        return Field(
+            name=name,
+            component=component,
+            timeseries=self._ts
+        )
 
-    def get_species(self, species_name):
+    def get_species(
+        self,
+        species_name: str
+    ) -> ParticleSpecies:
         """
         Get a specified particle species from the available ones.
 
         Parameters
         ----------
-
         species_name : str
             Name of the particle species.
 
         Returns
         -------
-        A ParticleSpecies object containing the specified species.
+        ParticleSpecies
         """
-        for species in self.particle_species:
-            if species_name == species.species_name:
-                return species
-        # raise error if no species has been found
-        available_species = self.get_list_of_species()
-        raise ValueError("Species '{}' not found. ".format(species_name) +
-                         "Available species are {}.".format(available_species))
+        assert species_name in self.available_species, (
+            f"Species '{species_name}' not found. "
+            f"Available species are {self.available_species}."
+        )
+        return ParticleSpecies(
+            name=species_name,
+            timeseries=self._ts
+        )
 
-    def _set_folder_scanner(self):
-        """Return the folder scanner corresponding to the simulation code."""
-        plasma_density = self.sim_params['n_p']
-        sim_code = self.simulation_code
-        if sim_code == 'osiris':
-            fs = OsirisFolderScanner(plasma_density=plasma_density)
-        elif sim_code == 'hipace':
-            fs = HiPACEFolderScanner(plasma_density=plasma_density)
-        elif sim_code == 'openpmd':
-            fs = OpenPMDFolderScanner(opmd_backend=self.opmd_backend)
+    def _check_backwards_compatibility(self, data_path, backend, kwargs):
+        """Check for inputs following old v0.5 API
+
+        If any old inputs are found, this method will notify the user and try
+        to correct them to allow for backwards compatibility.
+        """
+        if data_path is not None:
+            if not os.path.exists(os.path.dirname(data_path)):
+                # `simulation_code` given as arg.
+                if data_path.lower() in ['openpmd', 'osiris', 'hipace']:
+                    self._check_data_format(data_path.lower())
+                    # The code below is only reached if `openpmd` has been
+                    # requested. Thus, no need to handle `plasma_density`.
+                    # `data_folder_path` given as arg.
+                    if os.path.exists(os.path.dirname(backend)):
+                        data_path = backend
+                    # `laser_wavelength` and `opmd_backend` cannot be given as
+                    # args for openPMD data (because they where after
+                    # `plasma_density`).
+        elif 'simulation_code' in kwargs:
+            self._check_data_format(kwargs['simulation_code'].lower())
+        if 'data_folder_path' in kwargs:
+            warn(
+                '`data_folder_path` has been renamed to `data_path` '
+                'since v0.6. This name will be fully deprecated in '
+                'future versions. Please update this parameter.'
+            )
+            data_path = kwargs['data_folder_path']
+        if 'laser_wavelength' in kwargs:
+            warn(
+                '`laser_wavelength` parameter no longer used since '
+                'v0.6. It will be ignored.'
+            )
+        if 'opmd_backend' in kwargs:
+            warn(
+                '`opmd_backend` has been renamed to `backend` since '
+                'v0.6. This name will be fully deprecated in future '
+                'versions. Please update this parameter.'
+            )
+            backend = kwargs['opmd_backend']
         else:
-            raise ValueError("Unsupported code '{}'.".format(sim_code) +
-                             " Possible values are 'osiris', 'hipace' or " +
-                             "'openpmd'.")
-        self.folder_scanner = fs
+            backend = 'openpmd-api'
+        return data_path, backend
 
-    def _generate_derived_fields(self):
-        """Returns a list with the available derived fields."""
-        derived_field_list = []
-        sim_geometry = self._get_simulation_geometry()
-        if sim_geometry is not None:
-            folder_field_names = self.get_list_of_fields(include_derived=False)
-            for derived_field in derived_field_definitions:
-                required_fields = derived_field['requirements'][sim_geometry]
-                if set(required_fields).issubset(folder_field_names):
-                    base_fields = []
-                    for field_name in required_fields:
-                        base_fields.append(self.get_field(field_name))
-                    derived_field_list.append(DerivedField(
-                        derived_field, sim_geometry, self.sim_params,
-                        base_fields))
-            return derived_field_list
+    def _check_data_format(self, simulation_code):
+        """Check that no deprecated data format is requested.
 
-    def _get_simulation_geometry(self):
-        """Returns a string with the geometry used in the simulation."""
-        if len(self.folder_fields) > 0:
-            time_steps = self.folder_fields[0].timesteps
-            fld_md = self.folder_fields[0].get_only_metadata(time_steps[0])
-            return fld_md['field']['geometry']
-        else:
-            return None
-
-    def _add_associated_species_fields(self):
+        This is needed to maintain compatibility with the old v0.5 API.
+        The user will be notified and, if an unsupported format is requested,
+        an error will be raised.
         """
-        Checks if any field in the data container is associated to a particle
-        species. If so, the field is added to the species. In case that no
-        ParticleSpecies object exists (because no particle data is available
-        for this species), a new instance of ParticleSpecies is created
-        containing only the associated field.
+        warn(
+            "For VisualPIC v0.6 and higher only openPMD data is "
+            "supported. The `simulation_code` parameter has "
+            "therefore been removed and should not be provided."
+        )
+        if simulation_code.lower() in ['osiris', 'hipace']:
+            raise ValueError(
+                "From version 0.6, {simulation_code} is no longer "
+                "supported."
+            )
 
-        """
-        for field in self.folder_fields + self.derived_fields:
-            if field.species_name is not None:
-                try:
-                    species = self.get_species(field.species_name)
-                except:
-                    species = ParticleSpecies(
-                        field.species_name, [], [], [], None, None)
-                    self.particle_species.append(species)
-                species.add_associated_field(field)
+    def _check_name_for_backward_compatibility(self, field_name):
+        """If field name follows old API, separate into name and component."""
+        old_name_relations = {
+            'e/z': 'Ez',
+            'e/x': 'Ex',
+            'e/y': 'Ey',
+            'e/r': 'Er',
+            'e/t': 'Et',
+            'b/z': 'Bz',
+            'b/x': 'Bx',
+            'b/y': 'By',
+            'b/r': 'Br',
+            'b/t': 'Bt',
+            'j/z': 'Jz',
+            'j/x': 'Jx',
+            'j/y': 'Jy',
+            'j/r': 'Jr',
+            'j/t': 'Jt'
+        }
+        if field_name in old_name_relations.values():
+            name = field_name[0]
+            comp = field_name[1]
+            return name, comp
