@@ -101,6 +101,11 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
     def array(self) -> np.ndarray:
         return self._array
 
+    @array.setter
+    def array(self, new_array):
+        assert self._array.shape == new_array.shape
+        self._array = new_array
+
     @property
     def geometry(self) -> str:
         return self._geometry
@@ -134,6 +139,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         return self._metadata.y
 
     @property
+    def r(self) -> np.ndarray:
+        return self._metadata.r
+
+    @property
     def z(self) -> np.ndarray:
         return self._metadata.z
 
@@ -144,6 +153,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def y_min(self) -> float:
         return self._metadata.ymin
+
+    @property
+    def r_min(self) -> float:
+        return self._metadata.rmin
 
     @property
     def z_min(self) -> float:
@@ -158,6 +171,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         return self._metadata.ymax
 
     @property
+    def r_max(self) -> float:
+        return self._metadata.rmax
+
+    @property
     def z_max(self) -> float:
         return self._metadata.zmax
 
@@ -170,6 +187,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         return self._metadata.dy
 
     @property
+    def dr(self) -> float:
+        return self._metadata.dr
+
+    @property
     def dz(self) -> float:
         return self._metadata.dz
 
@@ -179,6 +200,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def y_units(self) -> str:
+        return 'm'
+
+    @property
+    def r_units(self) -> str:
         return 'm'
 
     @property
