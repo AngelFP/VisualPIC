@@ -203,6 +203,7 @@ class DataContainer():
                     # `data_folder_path` given as arg.
                     if os.path.exists(os.path.dirname(backend)):
                         data_path = backend
+                        backend = 'openpmd-api'
                     # `laser_wavelength` and `opmd_backend` cannot be given as
                     # args for openPMD data (because they where after
                     # `plasma_density`).
@@ -227,8 +228,6 @@ class DataContainer():
                 'versions. Please update this parameter.'
             )
             backend = kwargs['opmd_backend']
-        else:
-            backend = 'openpmd-api'
         return data_path, backend
 
     def _check_data_format(self, simulation_code):
