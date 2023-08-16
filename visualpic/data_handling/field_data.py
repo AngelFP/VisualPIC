@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from numbers import Number
 
 import numpy as np
@@ -216,6 +216,14 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
             'Can only generate `imshow_extent` for 2D data.'
         )
         return self._metadata.imshow_extent
+
+    @property
+    def field_attributes(self) -> Dict:
+        return self._metadata.field_attrs
+
+    @property
+    def component_attributes(self) -> Dict:
+        return self._metadata.component_attrs
 
     def _get_units(self):
         known_units = {
