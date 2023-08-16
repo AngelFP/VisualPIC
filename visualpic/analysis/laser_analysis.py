@@ -4,7 +4,7 @@ import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
 
 from visualpic import DataContainer
-from visualpic.data_handling.field import FieldData
+from visualpic.data_handling.field_data import FieldData
 from visualpic.data_handling.fields import Field
 from lasy.utils.laser_utils import (
     field_to_envelope, field_to_vector_potential, vector_potential_to_field,
@@ -163,7 +163,7 @@ class LaserEnvelope(Field):
             iteration, slice_across, slice_relative_position, m, theta,
             max_resolution_3d, only_metadata)
 
-        is_envelope = np.iscomplexobj(field.array.dtype)
+        is_envelope = np.iscomplexobj(field.array)
 
         if len(field.axis_labels) == 3:
             dim = 'xyt'
