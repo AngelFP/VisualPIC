@@ -10,6 +10,8 @@ import os
 from warnings import warn
 from typing import Optional, Union, List, Dict
 
+import numpy as np
+
 from visualpic.data_handling.fields import Field
 from visualpic.data_handling.particle_species import ParticleSpecies
 from openpmd_viewer import OpenPMDTimeSeries
@@ -85,6 +87,10 @@ class DataContainer():
     @property
     def available_species_components(self) -> Dict:
         return self._ts.avail_record_components
+
+    @property
+    def iterations(self) -> np.ndarray:
+        return self._ts.iterations
 
     def get_list_of_fields(
         self,
