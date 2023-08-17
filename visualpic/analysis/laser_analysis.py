@@ -114,14 +114,19 @@ class LaserAnalysis():
             omega0=omega0,
             phase_unwrap_1d=phase_unwrap_1d
         )
-        r = grid.axes[0]
-        dr = grid.dx[0]
-        dz = grid.dx[-1] * ct.c
-        # 1D array that computes the volume of radial cells
-        dV = np.pi * ((r + 0.5 * dr) ** 2 - (r - 0.5 * dr) ** 2) * dz
+        if dim == "xyt":
+            dV = grid.dx[0] * grid.dx[1] * dz
+            weights = np.abs(grid.field) * dV
+        elif dim == "rt":
+            r = grid.axes[0]
+            dr = grid.dx[0]
+            dz = grid.dx[-1] * ct.c
+            # 1D array that computes the volume of radial cells
+            dV = np.pi * ((r + 0.5 * dr) ** 2 - (r - 0.5 * dr) ** 2) * dz
+            weights = np.abs(grid.field) * dV[np.newaxis, :, np.newaxis]
         spectrum, edges = np.histogram(
-            a=omega[0][:, 2:-2],
-            weights=np.abs(grid.field[0][:, 2:-2]) * dV,
+            a=np.squeeze(omega)[..., 2:-2],
+            weights=np.squeeze(weights[..., 2:-2]),
             bins=bins,
             range=range
         )
