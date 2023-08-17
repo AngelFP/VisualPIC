@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 import numpy as np
+import scipy.constants as ct
 from openpmd_viewer import OpenPMDTimeSeries
 
 from visualpic import DataContainer
@@ -113,9 +114,14 @@ class LaserAnalysis():
             omega0=omega0,
             phase_unwrap_1d=phase_unwrap_1d
         )
+        r = grid.axes[0]
+        dr = grid.dx[0]
+        dz = grid.dx[-1] * ct.c
+        # 1D array that computes the volume of radial cells
+        dV = np.pi * ((r + 0.5 * dr) ** 2 - (r - 0.5 * dr) ** 2) * dz
         spectrum, edges = np.histogram(
             a=omega[0][:, 2:-2],
-            weights=np.abs(grid.field[0][:, 2:-2]),
+            weights=np.abs(grid.field[0][:, 2:-2]) * dV,
             bins=bins,
             range=range
         )
