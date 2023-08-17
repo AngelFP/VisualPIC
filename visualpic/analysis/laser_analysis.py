@@ -1,5 +1,4 @@
 from typing import List, Optional, Union
-from functools import lru_cache
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -7,6 +6,7 @@ from openpmd_viewer import OpenPMDTimeSeries
 from visualpic import DataContainer
 from visualpic.data_handling.field_data import FieldData
 from visualpic.data_handling.fields import Field
+from visualpic.utilities.caching import lru_cache
 from lasy.utils.laser_utils import (
     field_to_envelope, field_to_vector_potential, vector_potential_to_field,
     get_frequency, compute_laser_energy, create_grid)
