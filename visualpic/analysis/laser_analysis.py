@@ -20,7 +20,7 @@ class LaserAnalysis():
     ) -> None:
         self._dc = data_container
 
-    @lru_cache(maxsize=None)
+    @lru_cache()
     def get_envelope(
         self,
         field='E',
@@ -151,7 +151,7 @@ class LaserEnvelope(Field):
         self._as_potential = as_potential
         self._normalized = normalized
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=4)
     def get_data(
         self,
         iteration: int,
