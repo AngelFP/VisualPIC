@@ -10,7 +10,7 @@ from visualpic.data_handling.fields import Field
 from visualpic.utilities.caching import lru_cache
 from lasy.utils.laser_utils import (
     field_to_envelope, field_to_vector_potential, vector_potential_to_field,
-    get_frequency, compute_laser_energy, create_grid)
+    compute_laser_energy, get_spectrum, get_duration, create_grid)
 from lasy.utils.openpmd_input import reorder_array
 
 
@@ -78,6 +78,21 @@ class LaserAnalysis():
         a = y_1 - b*x_1
         w = (env_max/np.e - a) / b
         return w
+    
+    def get_duration(
+        self,
+        iteration,
+        field='E',
+        polarization='x'
+    ):
+        env = self.get_envelope(field, polarization).get_data(iteration)
+        if len(env.axis_labels) == 3:
+            dim = 'xyt'
+        elif len(env.axis_labels) == 2:
+            dim = 'rt'
+        array, axes = reorder_array(env.array, env._metadata, dim)
+        grid = create_grid(array, axes, dim)
+        return get_duration(grid, dim)
 
     def get_a0(
         self,
@@ -107,31 +122,14 @@ class LaserAnalysis():
             phase_unwrap_1d = False
         array, axes = reorder_array(env.array, env._metadata, dim)
         grid = create_grid(array, axes, dim)
-        omega, central_omega = get_frequency(
+        return get_spectrum(
             grid=grid,
             dim=dim,
-            is_envelope=True,
-            omega0=omega0,
-            phase_unwrap_1d=phase_unwrap_1d
-        )
-        if dim == "xyt":
-            dV = grid.dx[0] * grid.dx[1] * dz
-            weights = np.abs(grid.field) * dV
-        elif dim == "rt":
-            r = grid.axes[0]
-            dr = grid.dx[0]
-            dz = grid.dx[-1] * ct.c
-            # 1D array that computes the volume of radial cells
-            dV = np.pi * ((r + 0.5 * dr) ** 2 - (r - 0.5 * dr) ** 2) * dz
-            weights = np.abs(grid.field) * dV[np.newaxis, :, np.newaxis]
-        spectrum, edges = np.histogram(
-            a=np.squeeze(omega)[..., 2:-2],
-            weights=np.squeeze(weights[..., 2:-2]),
             bins=bins,
-            range=range
+            range=range,
+            omega0=omega0,
+            phase_unwrap_1d=phase_unwrap_1d,
         )
-        omega_spectrum = edges[1:] - (edges[1] - edges[0]) / 2
-        return spectrum, omega_spectrum
 
     def get_energy(
         self,
