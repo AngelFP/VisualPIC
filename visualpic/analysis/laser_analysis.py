@@ -9,8 +9,8 @@ from visualpic.data_handling.field_data import FieldData
 from visualpic.data_handling.fields import Field
 from lasy.utils.laser_utils import (
     field_to_envelope, field_to_vector_potential, vector_potential_to_field,
-    get_frequency, compute_laser_energy)
-from lasy.utils.openpmd_input import reorder_array, create_grid
+    get_frequency, compute_laser_energy, create_grid)
+from lasy.utils.openpmd_input import reorder_array
 
 
 class LaserAnalysis():
