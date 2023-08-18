@@ -7,7 +7,7 @@ from visualpic import DataContainer
 from visualpic.data_handling.field_data import FieldData
 from visualpic.data_handling.fields import Field
 from visualpic.utilities.caching import lru_cache
-from visualpic.utilities.parallel import enable_threading
+from visualpic.utilities.parallel import enable_parallelism
 from lasy.utils.laser_utils import (
     field_to_envelope, field_to_vector_potential, vector_potential_to_field,
     compute_laser_energy, get_spectrum, get_duration, create_grid)
@@ -37,7 +37,7 @@ class LaserAnalysis():
             normalized=normalized
         )
 
-    @enable_threading('width')
+    @enable_parallelism('width')
     def get_width(
         self,
         iteration,
@@ -80,7 +80,7 @@ class LaserAnalysis():
         w = (env_max/np.e - a) / b
         return w
     
-    @enable_threading('duration')
+    @enable_parallelism('duration')
     def get_duration(
         self,
         iteration,
@@ -96,7 +96,7 @@ class LaserAnalysis():
         grid = create_grid(array, axes, dim)
         return get_duration(grid, dim)
 
-    @enable_threading('a0')
+    @enable_parallelism('a0')
     def get_a0(
         self,
         iteration,
@@ -107,7 +107,7 @@ class LaserAnalysis():
                                 as_potential=True).get_data(iteration)
         return np.max(np.abs(env.array))
 
-    @enable_threading('spectrum')
+    @enable_parallelism('spectrum')
     def get_spectrum(
         self,
         iteration,
@@ -135,7 +135,7 @@ class LaserAnalysis():
             phase_unwrap_1d=phase_unwrap_1d,
         )
 
-    @enable_threading('energy')
+    @enable_parallelism('energy')
     def get_energy(
         self,
         iteration,
