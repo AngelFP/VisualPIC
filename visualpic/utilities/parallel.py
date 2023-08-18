@@ -27,7 +27,15 @@ def enable_threading(name=''):
                 n_proc = cpu_count()
                 ts_params = thread_map(part_func, iteration,
                                        max_workers=n_proc, **tqdm_params)
-                return ts_params
+                ts_params = np.array(ts_params)
+                if ts_params.ndim == 1:
+                    return ts_params
+                else:
+                    out = []
+                    num_outputs = ts_params.shape[1]
+                    for i in range(num_outputs):
+                        out.append(np.ascontiguousarray(ts_params[:, i]))
+                    return (*out,)
             else:
                 return func(self, iteration, **kwargs)
         return run_with_threading
