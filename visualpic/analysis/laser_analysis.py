@@ -113,11 +113,16 @@ class LaserAnalysis():
         iteration,
         field='E',
         polarization='x',
+        is_envelope=False,
         bins=20,
         range=None
     ):
-        env = self.get_envelope(field, polarization).get_data(iteration)
-        omega0 = env.omega0
+        omega0 = None
+        if is_envelope:
+            env = self.get_envelope(field, polarization).get_data(iteration)
+            omega0 = env.omega0
+        else:
+            env = self._dc.get_field(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
             phase_unwrap_1d = True
@@ -133,6 +138,7 @@ class LaserAnalysis():
             range=range,
             omega0=omega0,
             phase_unwrap_1d=phase_unwrap_1d,
+            is_envelope=is_envelope
         )
 
     @enable_parallelism('energy')
