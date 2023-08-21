@@ -70,6 +70,12 @@ class DataContainer():
                 check_all_files=True,
                 backend=self._backend
             )
+            # The openpmd timeseries can reconstruct x and y from r and t
+            # in thetaMode geometry.
+            for field in self.available_fields:
+                f_comps = self._ts.fields_metadata[field]['avail_components']
+                if set(['r', 't']) <= set(f_comps):
+                    f_comps += ['x', 'y']
 
     @property
     def available_fields(self) -> Union[List[str], None]:
