@@ -113,9 +113,10 @@ class LaserAnalysis():
         iteration,
         field='E',
         polarization='x',
-        is_envelope=False,
+        is_envelope=True,
+        range=None,
         bins=20,
-        range=None
+        on_axis=False
     ):
         omega0 = None
         if is_envelope:
@@ -125,10 +126,8 @@ class LaserAnalysis():
             env = self._dc.get_field(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
-            phase_unwrap_1d = True
         elif len(env.axis_labels) == 2:
             dim = 'rt'
-            phase_unwrap_1d = False
         array, axes = reorder_array(env.array, env._metadata, dim)
         grid = create_grid(array, axes, dim)
         return get_spectrum(
@@ -137,8 +136,8 @@ class LaserAnalysis():
             bins=bins,
             range=range,
             omega0=omega0,
-            phase_unwrap_1d=phase_unwrap_1d,
-            is_envelope=is_envelope
+            is_envelope=is_envelope,
+            mode='on_axis' if on_axis else 'sum'
         )
 
     @enable_parallelism('energy')
