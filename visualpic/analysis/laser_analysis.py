@@ -15,9 +15,28 @@ from lasy.utils.openpmd_input import reorder_array
 
 
 class LaserEnvelope(Field):
+    """Class containing a laser envelope field.
+
+    Parameters
+    ----------
+    field : str
+        The name of the field from which to read (if the field already
+        represents a complex envelope) or extract (if the field represents the
+        electric field of a laser) the envelope.
+    polarization : str
+        Polarization of the laser field from which to extract the envelope.
+    timeseries : OpenPMDTimeSeries
+        A timeseries from which to read the field data.
+    as_potential : bool, optional
+        Whether the envelope should be converted to a vector potential, by
+        default False.
+    normalized : Optional[bool], optional
+        Whether the vector potential should be normalized. Only used if
+        `as_potential=True`, by default True.
+    """
     def __init__(
         self,
-        field,
+        field: str,
         polarization: str,
         timeseries: OpenPMDTimeSeries,
         as_potential: Optional[bool] = False,
@@ -102,6 +121,30 @@ class LaserAnalysis():
         as_potential: Optional[bool] = False,
         normalized: Optional[bool] = True
     ) -> LaserEnvelope:
+        """Get the laser envelope
+
+        Parameters
+        ----------
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+        as_potential : bool, optional
+            Whether the envelope should be converted to a vector potential, by
+            default False.
+        normalized : Optional[bool], optional
+            Whether the vector potential should be normalized. Only used if
+            `as_potential=True`, by default True.
+
+        Returns
+        -------
+        LaserEnvelope
+            A laser envelope field object.
+        """
         return LaserEnvelope(
             field=field,
             polarization=polarization,
@@ -117,6 +160,29 @@ class LaserAnalysis():
         field: Optional[str] = 'E',
         polarization: Optional[str] = 'x'
     ) -> float:
+        """Calculate the laser pulse width.
+        
+        The width is defined as the radial position where the electric field
+        decays by 1/e.
+
+        Parameters
+        ----------
+        iteration : int
+            The simulation iteration at which to calculate the laser width.
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+
+        Returns
+        -------
+        float
+            The pulse width in meters.
+        """
         env = self.get_envelope(field, polarization).get_data(iteration)
         assert env.array.ndim == 2
 
@@ -160,6 +226,29 @@ class LaserAnalysis():
         field: Optional[str] = 'E',
         polarization: Optional[str] = 'x'
     ) -> float:
+        """Calculate the laser pulse duration.
+
+        The pulse duration is defined as the RMS duration of the laser
+        intensity.
+
+        Parameters
+        ----------
+        iteration : int
+            The simulation iteration at which to calculate the pulse duration.
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+
+        Returns
+        -------
+        float
+            The pulse duration in seconds.
+        """
         env = self.get_envelope(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
@@ -176,6 +265,26 @@ class LaserAnalysis():
         field: Optional[str] = 'E',
         polarization: Optional[str] = 'x'
     ) -> float:
+        """Calculate maximum of the normalized vector potential.
+
+        Parameters
+        ----------
+        iteration : int
+            The simulation iteration at which to calculate a0.
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+
+        Returns
+        -------
+        float
+            The peak of the normalized vector potential.
+        """
         env = self.get_envelope(field, polarization,
                                 as_potential=True).get_data(iteration)
         return np.max(np.abs(env.array))
@@ -191,6 +300,40 @@ class LaserAnalysis():
         bins: Optional[int] = 20,
         on_axis: Optional[bool] = False
     ) -> Tuple[np.ndarray, np.ndarray]:
+        """Calculate spectral density of a laser pulse.
+
+        Parameters
+        ----------
+        iteration : int
+            The simulation iteration at which to calculate a0.
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+        is_envelope : bool (optional)
+            Whether the field is a complex envelope. By default True.
+        range : list of float (optional)
+            List of two values indicating the minimum and maximum frequency of
+            the spectrum. If provided, only the FFT spectrum within this range
+            will be returned using interpolation. By default None.
+        bins : int (optional)
+            Number of bins of to which to interpolate the spectrum if a `range`
+            is given. By default 20.
+        on_axis : bool
+            Whether to get the spectrum on axis or the transversely summed
+            spectrum of the whole field. By default False.
+
+        Returns
+        -------
+        spectral density : ndarray
+            Array with the spectral density in J/(rad/s).
+        omega : ndarray
+            Array with the angular frequencies of the spectrum.
+        """
         omega0 = None
         if is_envelope:
             env = self.get_envelope(field, polarization).get_data(iteration)
@@ -220,6 +363,26 @@ class LaserAnalysis():
         field: Optional[str] = 'E',
         polarization: Optional[str] = 'x'
     ) -> float:
+        """Calculate the laser energy.
+
+        Parameters
+        ----------
+        iteration : int
+            The simulation iteration at which to calculate a0.
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+
+        Returns
+        -------
+        float
+            The laser energy in Joule.
+        """
         env = self.get_envelope(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
