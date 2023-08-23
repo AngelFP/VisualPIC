@@ -353,7 +353,7 @@ class LaserAnalysis():
             range=range,
             omega0=omega0,
             is_envelope=is_envelope,
-            mode='on_axis' if on_axis else 'sum'
+            method='on_axis' if on_axis else 'sum'
         )
 
     @enable_parallelism('energy')
