@@ -14,6 +14,71 @@ from lasy.utils.laser_utils import (
 from lasy.utils.openpmd_input import reorder_array
 
 
+class LaserEnvelope(Field):
+    def __init__(
+        self,
+        field,
+        polarization: str,
+        timeseries: OpenPMDTimeSeries,
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
+    ) -> None:
+        super().__init__(field, polarization, timeseries)
+        self._as_potential = as_potential
+        self._normalized = normalized
+
+    @lru_cache(maxsize=4)
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        field = super().get_data(
+            iteration, slice_across, slice_relative_position, m, theta,
+            max_resolution_3d, only_metadata)
+
+        is_envelope = np.iscomplexobj(field.array)
+
+        if len(field.axis_labels) == 3:
+            dim = 'xyt'
+            phase_unwrap_1d = True
+        elif len(field.axis_labels) == 2:
+            dim = 'rt'
+            phase_unwrap_1d = False
+        array, axes = reorder_array(field.array, field._metadata, dim)
+        grid = create_grid(array, axes, dim)
+
+        if not is_envelope:
+            grid, omega0 = field_to_envelope(grid, dim, phase_unwrap_1d)
+
+        else:
+            # assume that it is a normalized vector potential.
+            omega0 = field.field_attributes['angularFrequency']
+            grid.field = vector_potential_to_field(grid, omega0)
+
+        if self._as_potential:
+            array = field_to_vector_potential(grid, omega0)
+        else:
+            array = grid.field
+
+        if dim == 'rt':
+            array = array[0]
+            nr, nz = array.shape
+            array_extended = np.zeros((nr*2, nz), dtype=np.complex128)
+            array_extended[:nr] = array[::-1]
+            array_extended[nr:] = array
+            array = array_extended[:, ::-1]
+
+        field.array = array
+        field.omega0 = omega0
+        return field
+
+
 class LaserAnalysis():
     """Class with utilities for the analysis of laser pulses.
 
@@ -163,68 +228,3 @@ class LaserAnalysis():
         array, axes = reorder_array(env.array, env._metadata, dim)
         grid = create_grid(array, axes, dim)
         return compute_laser_energy(dim, grid)
-
-
-class LaserEnvelope(Field):
-    def __init__(
-        self,
-        field,
-        polarization: str,
-        timeseries: OpenPMDTimeSeries,
-        as_potential: Optional[bool] = False,
-        normalized: Optional[bool] = True
-    ) -> None:
-        super().__init__(field, polarization, timeseries)
-        self._as_potential = as_potential
-        self._normalized = normalized
-
-    @lru_cache(maxsize=4)
-    def get_data(
-        self,
-        iteration: int,
-        slice_across: Optional[Union[str, List[str]]] = None,
-        slice_relative_position: Optional[Union[float, List[float]]] = None,
-        m: Optional[Union[int, str]] = 'all',
-        theta: Optional[Union[float, None]] = 0.,
-        max_resolution_3d: Optional[Union[List[int], None]] = None,
-        only_metadata: Optional[bool] = False
-    ) -> FieldData:
-        field = super().get_data(
-            iteration, slice_across, slice_relative_position, m, theta,
-            max_resolution_3d, only_metadata)
-
-        is_envelope = np.iscomplexobj(field.array)
-
-        if len(field.axis_labels) == 3:
-            dim = 'xyt'
-            phase_unwrap_1d = True
-        elif len(field.axis_labels) == 2:
-            dim = 'rt'
-            phase_unwrap_1d = False
-        array, axes = reorder_array(field.array, field._metadata, dim)
-        grid = create_grid(array, axes, dim)
-
-        if not is_envelope:
-            grid, omega0 = field_to_envelope(grid, dim, phase_unwrap_1d)
-
-        else:
-            # assume that it is a normalized vector potential.
-            omega0 = field.field_attributes['angularFrequency']
-            grid.field = vector_potential_to_field(grid, omega0)
-
-        if self._as_potential:
-            array = field_to_vector_potential(grid, omega0)
-        else:
-            array = grid.field
-
-        if dim == 'rt':
-            array = array[0]
-            nr, nz = array.shape
-            array_extended = np.zeros((nr*2, nz), dtype=np.complex128)
-            array_extended[:nr] = array[::-1]
-            array_extended[nr:] = array
-            array = array_extended[:, ::-1]
-
-        field.array = array
-        field.omega0 = omega0
-        return field
