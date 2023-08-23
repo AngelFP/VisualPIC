@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -15,6 +15,14 @@ from lasy.utils.openpmd_input import reorder_array
 
 
 class LaserAnalysis():
+    """Class with utilities for the analysis of laser pulses.
+
+    Parameters
+    ----------
+    data_container : DataContainer
+        A data container with the simulation data.
+
+    """
     def __init__(
         self,
         data_container: DataContainer
@@ -24,11 +32,11 @@ class LaserAnalysis():
     @lru_cache()
     def get_envelope(
         self,
-        field='E',
-        polarization='x',
-        as_potential=False,
-        normalized=True
-    ):
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x',
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
+    ) -> LaserEnvelope:
         return LaserEnvelope(
             field=field,
             polarization=polarization,
@@ -40,10 +48,10 @@ class LaserAnalysis():
     @enable_parallelism('width')
     def get_width(
         self,
-        iteration,
-        field='E',
-        polarization='x'
-    ):
+        iteration: int,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x'
+    ) -> float:
         env = self.get_envelope(field, polarization).get_data(iteration)
         assert env.array.ndim == 2
 
@@ -83,10 +91,10 @@ class LaserAnalysis():
     @enable_parallelism('duration')
     def get_duration(
         self,
-        iteration,
-        field='E',
-        polarization='x'
-    ):
+        iteration: int,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x'
+    ) -> float:
         env = self.get_envelope(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
@@ -99,10 +107,10 @@ class LaserAnalysis():
     @enable_parallelism('a0')
     def get_a0(
         self,
-        iteration,
-        field='E',
-        polarization='x'
-    ):
+        iteration: int,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x'
+    ) -> float:
         env = self.get_envelope(field, polarization,
                                 as_potential=True).get_data(iteration)
         return np.max(np.abs(env.array))
@@ -110,14 +118,14 @@ class LaserAnalysis():
     @enable_parallelism('spectrum')
     def get_spectrum(
         self,
-        iteration,
-        field='E',
-        polarization='x',
-        is_envelope=True,
-        range=None,
-        bins=20,
-        on_axis=False
-    ):
+        iteration: int,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x',
+        is_envelope: Optional[bool] = True,
+        range: Optional[list] = None,
+        bins: Optional[int] = 20,
+        on_axis: Optional[bool] = False
+    ) -> Tuple[np.ndarray, np.ndarray]:
         omega0 = None
         if is_envelope:
             env = self.get_envelope(field, polarization).get_data(iteration)
@@ -143,10 +151,10 @@ class LaserAnalysis():
     @enable_parallelism('energy')
     def get_energy(
         self,
-        iteration,
-        field='E',
-        polarization='x'
-    ):
+        iteration: int,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x'
+    ) -> float:
         env = self.get_envelope(field, polarization).get_data(iteration)
         if len(env.axis_labels) == 3:
             dim = 'xyt'
@@ -163,8 +171,8 @@ class LaserEnvelope(Field):
         field,
         polarization: str,
         timeseries: OpenPMDTimeSeries,
-        as_potential=False,
-        normalized=True
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
     ) -> None:
         super().__init__(field, polarization, timeseries)
         self._as_potential = as_potential
