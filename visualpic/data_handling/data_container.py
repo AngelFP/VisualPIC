@@ -213,9 +213,8 @@ class DataContainer():
                     # The code below is only reached if `openpmd` has been
                     # requested. Thus, no need to handle `plasma_density`.
                     # `data_folder_path` given as arg.
-                    if os.path.exists(os.path.dirname(backend)):
-                        data_path = backend
-                        backend = 'openpmd-api'
+                    data_path = backend
+                    backend = 'openpmd-api'
                     # `laser_wavelength` and `opmd_backend` cannot be given as
                     # args for openPMD data (because they where after
                     # `plasma_density`).
