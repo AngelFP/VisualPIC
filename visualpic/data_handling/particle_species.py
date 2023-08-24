@@ -119,11 +119,7 @@ class ParticleSpecies():
             if 'q' in old_names:
                 i_q = old_names.index('q')
                 w = data.pop(-1)
-                # When the species is empty, w is empty the but the charge
-                # array has one element, leading to an error in the
-                # multiplication below.
-                if len(w) > 0:
-                    data[i_q] *= w
+                data[i_q] = data[i_q] * w
 
         return ParticleData(
             components=components_list if not has_old_names else old_names,
