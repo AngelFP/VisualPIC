@@ -10,6 +10,8 @@ import os
 from warnings import warn
 from typing import Optional, Union, List, Dict
 
+import numpy as np
+
 from visualpic.data_handling.fields import Field
 from visualpic.data_handling.particle_species import ParticleSpecies
 from openpmd_viewer import OpenPMDTimeSeries
@@ -68,6 +70,12 @@ class DataContainer():
                 check_all_files=True,
                 backend=self._backend
             )
+            # The openpmd timeseries can reconstruct x and y from r and t
+            # in thetaMode geometry.
+            for field in self.available_fields:
+                f_comps = self._ts.fields_metadata[field]['avail_components']
+                if set(['r', 't']) <= set(f_comps):
+                    f_comps += ['x', 'y']
 
     @property
     def available_fields(self) -> Union[List[str], None]:
@@ -85,6 +93,10 @@ class DataContainer():
     @property
     def available_species_components(self) -> Dict:
         return self._ts.avail_record_components
+
+    @property
+    def iterations(self) -> np.ndarray:
+        return self._ts.iterations
 
     def get_list_of_fields(
         self,
@@ -201,8 +213,8 @@ class DataContainer():
                     # The code below is only reached if `openpmd` has been
                     # requested. Thus, no need to handle `plasma_density`.
                     # `data_folder_path` given as arg.
-                    if os.path.exists(os.path.dirname(backend)):
-                        data_path = backend
+                    data_path = backend
+                    backend = 'openpmd-api'
                     # `laser_wavelength` and `opmd_backend` cannot be given as
                     # args for openPMD data (because they where after
                     # `plasma_density`).
@@ -227,8 +239,6 @@ class DataContainer():
                 'versions. Please update this parameter.'
             )
             backend = kwargs['opmd_backend']
-        else:
-            backend = 'openpmd-api'
         return data_path, backend
 
     def _check_data_format(self, simulation_code):
