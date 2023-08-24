@@ -6,7 +6,7 @@ The module contains the definitions of the ParticleSpecies class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 from copy import deepcopy
 from warnings import warn
 
@@ -60,6 +60,7 @@ class ParticleSpecies():
         self,
         iteration: int,
         components_list: Optional[List[str]] = None,
+        select: Optional[Dict] = None,
         data_units: Optional[List[str]] = None
     ) -> ParticleData:
         """
@@ -72,6 +73,11 @@ class ParticleSpecies():
         components_list : list, optional
             List of strings containing the names of the components to be read.
             If `None` all components will be read. By defaulf, None.
+        select: dict, optional
+            Dictionary with a set of rules to select the particles, of the form
+            'x' : [-4., 10.]   (Particles having x between -4 and 10 meters)
+            'ux' : [-0.1, 0.1] (Particles having ux between -0.1 and 0.1 mc)
+            'uz' : [5., None]  (Particles with uz above 5 mc)
         data_units : list, optional
             Do not use, it does not have any effect. The data is always
             returned in SI units.
@@ -111,7 +117,8 @@ class ParticleSpecies():
         data = self._ts.get_particle(
             var_list=components_list,
             species=self._name,
-            iteration=iteration
+            iteration=iteration,
+            select=select
         )
 
         # Get the macroparticle charge, if using the old API.
