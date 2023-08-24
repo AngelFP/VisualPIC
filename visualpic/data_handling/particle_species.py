@@ -8,6 +8,7 @@ License: GNU GPL-3.0.
 """
 from typing import Optional, Union, List
 from copy import deepcopy
+from warnings import warn
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -58,7 +59,8 @@ class ParticleSpecies():
     def get_data(
         self,
         iteration: int,
-        components_list: Optional[List[str]] = None
+        components_list: Optional[List[str]] = None,
+        data_units: Optional[List[str]] = None
     ) -> ParticleData:
         """
         Get the species data of the requested components and time step.
@@ -70,6 +72,11 @@ class ParticleSpecies():
         components_list : list, optional
             List of strings containing the names of the components to be read.
             If `None` all components will be read. By defaulf, None.
+        data_units : list, optional
+            Do not use, it does not have any effect. The data is always
+            returned in SI units.
+
+            .. deprecated:: 0.6.0
 
         Returns
         -------
@@ -86,6 +93,15 @@ class ParticleSpecies():
                     if new_name:
                         components_list[i] = new_name
                         has_old_names = True
+            # In the old API, 'q' stands for the macroparticle charge, so we
+            # need the weight to compute it.
+            if 'q' in old_names:
+                components_list.append('w')
+        if data_units is not None:
+            warn(
+                '`data_units` argument has been deprecated since version 0.6. '
+                'The data is now always returned in SI units.'
+            )
 
         # By default, if no list is specified, get all components.
         else:
@@ -97,6 +113,14 @@ class ParticleSpecies():
             species=self._name,
             iteration=iteration
         )
+
+        # Get the macroparticle charge, if using the old API.
+        if has_old_names:
+            if 'q' in old_names:
+                i_q = old_names.index('q')
+                w = data.pop(-1)
+                data[i_q] *= w
+
         return ParticleData(
             components=components_list if not has_old_names else old_names,
             arrays=data,
