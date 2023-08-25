@@ -98,7 +98,7 @@ class LaserEnvelope(Field):
                 md.axes = {0: "r", 1: "z"}
                 setattr(md, 'r', np.array([-1.5, -0.5, 0.5, 1.5]))
 
-        array, axes = reorder_array(array_lasy, md, dim)
+        array, axes = reorder_array(array, md, dim)
         grid = create_grid(array, axes, dim)
 
         if not is_envelope:
