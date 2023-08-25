@@ -1,4 +1,5 @@
 from typing import List, Optional, Union, Tuple
+from copy import deepcopy
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -62,21 +63,41 @@ class LaserEnvelope(Field):
         m: Optional[Union[int, str]] = 'all',
         theta: Optional[Union[float, None]] = 0.,
         max_resolution_3d: Optional[Union[List[int], None]] = None,
+        laser_propagation_direction: Optional[str] = 'z',
         only_metadata: Optional[bool] = False
     ) -> FieldData:
+        if slice_across is not None:
+            assert laser_propagation_direction not in slice_across, (
+                'Cannot slice along laser propagation direction.'
+            )
         field = super().get_data(
             iteration, slice_across, slice_relative_position, m, theta,
             max_resolution_3d, only_metadata)
 
-        is_envelope = np.iscomplexobj(field.array)
+        array = field.array
 
-        if len(field.axis_labels) == 3:
+        is_envelope = np.iscomplexobj(array)
+
+        if field.geometry == '3dcartesian' or theta is None:
             dim = 'xyt'
             phase_unwrap_1d = True
-        elif len(field.axis_labels) == 2:
+            assert slice_across is None, (
+                'Slicing of 3d envelope not yet supported.'
+            )
+
+        elif field.geometry == 'thetaMode':
             dim = 'rt'
             phase_unwrap_1d = False
-        array, axes = reorder_array(field.array, field._metadata, dim)
+            if slice_across is not None:
+                # Workaround to support slicing. Create 2D array and radial
+                # axis to pass to lasy.
+                array_lasy = np.zeros((4, array.size), dtype=array.dtype)
+                array_lasy[:] = array
+                md = deepcopy(field._metadata)
+                md.axes = {0: "r", 1: "z"}
+                setattr(md, 'r', np.array([-1.5, -0.5, 0.5, 1.5]))
+
+        array, axes = reorder_array(array_lasy, md, dim)
         grid = create_grid(array, axes, dim)
 
         if not is_envelope:
@@ -99,6 +120,10 @@ class LaserEnvelope(Field):
             array_extended[:nr] = array[::-1]
             array_extended[nr:] = array
             array = array_extended[:, ::-1]
+            # Workaround to support slicing. Get single slice of "artificial"
+            # 2D array.
+            if slice_across is not None:
+                array = array[0]
 
         field.array = array
         field.omega0 = omega0
