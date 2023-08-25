@@ -75,6 +75,7 @@ class LaserEnvelope(Field):
             max_resolution_3d, only_metadata)
 
         array = field.array
+        md = field._metadata
 
         is_envelope = np.iscomplexobj(array)
 
