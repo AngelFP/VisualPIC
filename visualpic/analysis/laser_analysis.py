@@ -93,6 +93,7 @@ class LaserEnvelope(Field):
                 # axis to pass to lasy.
                 array_lasy = np.zeros((4, array.size), dtype=array.dtype)
                 array_lasy[:] = array
+                array = array_lasy
                 md = deepcopy(field._metadata)
                 md.axes = {0: "r", 1: "z"}
                 setattr(md, 'r', np.array([-1.5, -0.5, 0.5, 1.5]))
