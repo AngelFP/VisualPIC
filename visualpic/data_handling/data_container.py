@@ -97,6 +97,10 @@ class DataContainer():
     @property
     def iterations(self) -> np.ndarray:
         return self._ts.iterations
+    
+    @property
+    def iteration_times(self) -> np.ndarray:
+        return self._ts.t
 
     def get_list_of_fields(
         self,
