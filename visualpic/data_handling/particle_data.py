@@ -21,7 +21,7 @@ class GridMetadata():
         self.range = range
 
 
-class ComponentData():
+class ComponentData(np.lib.mixins.NDArrayOperatorsMixin):
     """Class storing the data of each particle component.
 
     Parameters
@@ -118,7 +118,7 @@ class ComponentData():
         return md
 
 
-class ParticleData(np.lib.mixins.NDArrayOperatorsMixin):
+class ParticleData():
     """Class containing the particle data at a given iteration.
 
     Parameters
