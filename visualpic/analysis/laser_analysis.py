@@ -81,14 +81,12 @@ class LaserEnvelope(Field):
 
         if field.geometry == '3dcartesian' or theta is None:
             dim = 'xyt'
-            phase_unwrap_1d = True
             assert slice_across is None, (
                 'Slicing of 3d envelope not yet supported.'
             )
 
         elif field.geometry == 'thetaMode':
             dim = 'rt'
-            phase_unwrap_1d = False
             if slice_across is not None:
                 # Workaround to support slicing. Create 2D array and radial
                 # axis to pass to lasy.
@@ -103,7 +101,7 @@ class LaserEnvelope(Field):
         grid = create_grid(array, axes, dim)
 
         if not is_envelope:
-            grid, omega0 = field_to_envelope(grid, dim, phase_unwrap_1d)
+            grid, omega0 = field_to_envelope(grid, dim)
 
         else:
             # assume that it is a normalized vector potential.
