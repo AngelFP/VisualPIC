@@ -59,9 +59,10 @@ class ParticleSpecies():
     def get_data(
         self,
         iteration: int,
-        components_list: Optional[List[str]] = None,
+        components: Optional[List[str]] = None,
         select: Optional[Dict] = None,
-        data_units: Optional[List[str]] = None
+        data_units: Optional[List[str]] = None,
+        **kwargs
     ) -> ParticleData:
         """
         Get the species data of the requested components and time step.
@@ -70,7 +71,7 @@ class ParticleSpecies():
         ----------
         iteration : int
             Iteration from which to read the data.
-        components_list : list, optional
+        components : list, optional
             List of strings containing the names of the components to be read.
             If `None` all components will be read. By defaulf, None.
         select: dict, optional
@@ -88,21 +89,29 @@ class ParticleSpecies():
         -------
         ParticleData
         """
+        # Check for old argument name from v0.5 API.
+        if 'components_list' in kwargs:
+            warn(
+                "The argument 'components_list' has been renamed to "
+                "'components' since v0.6. Compatibility with the old name "
+                "will be removed in a future release."
+            )
+            components = kwargs['components_list']
         # Check given names for backward compatibility with old v0.5 API.
         has_old_names = False
-        if components_list:
-            old_names = components_list
-            components_list = deepcopy(components_list)
-            for i, c in enumerate(components_list):
+        if components:
+            old_names = components
+            components = deepcopy(components)
+            for i, c in enumerate(components):
                 if c not in self.available_components:
                     new_name = self._check_name_for_backward_compatibility(c)
                     if new_name:
-                        components_list[i] = new_name
+                        components[i] = new_name
                         has_old_names = True
             # In the old API, 'q' stands for the macroparticle charge, so we
             # need the weight to compute it.
             if 'q' in old_names:
-                components_list.append('w')
+                components.append('w')
         if data_units is not None:
             warn(
                 '`data_units` argument has been deprecated since version 0.6. '
@@ -111,11 +120,11 @@ class ParticleSpecies():
 
         # By default, if no list is specified, get all components.
         else:
-            components_list = self.available_components
+            components = self.available_components
 
         # Get particle data.
         data = self._ts.get_particle(
-            var_list=components_list,
+            var_list=components,
             species=self._name,
             iteration=iteration,
             select=select
@@ -129,7 +138,7 @@ class ParticleSpecies():
                 data[i_q] = data[i_q] * w
 
         return ParticleData(
-            components=components_list if not has_old_names else old_names,
+            components=components if not has_old_names else old_names,
             arrays=data,
             iteration=iteration,
             time=self._get_time(iteration),
