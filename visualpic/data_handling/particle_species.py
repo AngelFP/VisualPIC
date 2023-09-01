@@ -61,7 +61,6 @@ class ParticleSpecies():
         iteration: int,
         components: Optional[List[str]] = None,
         select: Optional[Dict] = None,
-        data_units: Optional[List[str]] = None,
         **kwargs
     ) -> ParticleData:
         """
@@ -79,17 +78,12 @@ class ParticleSpecies():
             'x' : [-4., 10.]   (Particles having x between -4 and 10 meters)
             'ux' : [-0.1, 0.1] (Particles having ux between -0.1 and 0.1 mc)
             'uz' : [5., None]  (Particles with uz above 5 mc)
-        data_units : list, optional
-            Do not use, it does not have any effect. The data is always
-            returned in SI units.
-
-            .. deprecated:: 0.6.0
 
         Returns
         -------
         ParticleData
         """
-        # Check for old argument name from v0.5 API.
+        # Check for old arguments from v0.5 API.
         if 'components_list' in kwargs:
             warn(
                 "The argument 'components_list' has been renamed to "
@@ -97,6 +91,11 @@ class ParticleSpecies():
                 "will be removed in a future release."
             )
             components = kwargs['components_list']
+        if 'data_units' in kwargs:
+            warn(
+                'The argument `data_units` has been deprecated since v0.6. '
+                'The data is now always returned in SI units.'
+            )
         # Check given names for backward compatibility with old v0.5 API.
         has_old_names = False
         if components:
@@ -112,11 +111,6 @@ class ParticleSpecies():
             # need the weight to compute it.
             if 'q' in old_names:
                 components.append('w')
-        if data_units is not None:
-            warn(
-                '`data_units` argument has been deprecated since version 0.6. '
-                'The data is now always returned in SI units.'
-            )
 
         # By default, if no list is specified, get all components.
         else:
