@@ -43,17 +43,18 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
 
     """Basic Qt window for interactive visualization of 3D renders."""
 
-    def __init__(self, vtk_visualizer, parent=None):
+    def __init__(self, vtk_visualizer, parent=None, window_size=[1024, 768]):
         super().__init__(parent=parent)
         self.vtk_vis = vtk_visualizer
         self.available_timesteps = self.vtk_vis.get_possible_timesteps()
         self.timestep_change_callbacks = []
+        self._window_size = window_size
         self.setup_interface()
         self.register_ui_events()
         self.show()
 
     def setup_interface(self):
-        self.resize(600, 400)
+        self.resize(*self._window_size)
         self.setWindowTitle('VisualPIC - 3D Viewer')
         icon_path = resource_filename('visualpic.ui.icons',
                                       'vp_logo_sq_blue.png')

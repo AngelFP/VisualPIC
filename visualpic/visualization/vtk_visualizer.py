@@ -53,7 +53,7 @@ class VTKVisualizer():
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
                  scale_z=1, forced_norm_factor=None, use_qt=True,
-                 notebook=False):
+                 notebook=False, window_size=[1024, 768]):
         """
         Initialize the 3D visualizer.
 
@@ -112,6 +112,9 @@ class VTKVisualizer():
         notebook : bool
             Whether to show the visualizer on a Jupyter notebook.
 
+        window_size : sequence[int], optional
+            Window size in pixels.  Defaults to ``[1024, 768]``
+
         """
         self._check_dependencies(notebook)
         use_qt = self._check_qt(use_qt)
@@ -136,6 +139,7 @@ class VTKVisualizer():
         self.current_time_step = -1
         self.available_time_steps = None
         self._notebook = notebook
+        self._window_size = window_size
         self._initialize_base_vtk_elements()
         self.set_background(background)
 
@@ -353,7 +357,8 @@ class VTKVisualizer():
             self.plotter.off_screen = False
             if self.vis_config['use_qt']:
                 app = QtWidgets.QApplication(sys.argv)
-                self.qt_window = BasicRenderWindow(self)
+                self.qt_window = BasicRenderWindow(
+                    self, window_size=self._window_size)
                 app.exec_()
         self.plotter.show()
 
@@ -615,7 +620,7 @@ class VTKVisualizer():
         self.vtk_volume_mapper.UseJitteringOn()
         self.vtk_volume.SetMapper(self.vtk_volume_mapper)
         self.plotter = Plotter(
-            window_size=[500, 500],
+            window_size=self._window_size,
             title='VisualPIC',
             notebook=self._notebook
         )
