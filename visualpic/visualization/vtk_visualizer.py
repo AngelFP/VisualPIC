@@ -22,9 +22,16 @@ except:
     vtk_installed = False
 try:
     import pyvista as pv
+    from pyvista.plotting.plotter import Plotter
     pyvista_installed = True
+    try:
+        pv.set_jupyter_backend('server')
+        trame_installed = True
+    except:
+        trame_installed = False
 except:
     pyvista_installed = False
+    trame_installed = False
 try:
     from PyQt5 import QtWidgets
     qt_installed = True
@@ -45,7 +52,8 @@ class VTKVisualizer():
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
-                 scale_z=1, forced_norm_factor=None, use_qt=True):
+                 scale_z=1, forced_norm_factor=None, use_qt=True,
+                 notebook=False):
         """
         Initialize the 3D visualizer.
 
@@ -101,8 +109,11 @@ class VTKVisualizer():
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
 
+        notebook : bool
+            Whether to show the visualizer on a Jupyter notebook.
+
         """
-        self._check_dependencies()
+        self._check_dependencies(notebook)
         use_qt = self._check_qt(use_qt)
         self.vis_config = {'background': background,
                            'show_logo': show_logo,
@@ -124,6 +135,7 @@ class VTKVisualizer():
         self._colorbar_visibility = []
         self.current_time_step = -1
         self.available_time_steps = None
+        self._notebook = notebook
         self._initialize_base_vtk_elements()
         self.set_background(background)
 
@@ -304,20 +316,15 @@ class VTKVisualizer():
             (False).
 
         """
+        self.plotter.off_screen = True
         self.window.SetOffScreenRendering(1)
-        if resolution is not None:
-            self.window.SetSize(*resolution)
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
-        self.window.Render()
-        w2if = vtk.vtkWindowToImageFilter()
-        w2if.SetInput(self.window)
-        w2if.Update()
-        writer = vtk.vtkPNGWriter()
-        writer.SetFileName(file_path)
-        writer.SetInputConnection(w2if.GetOutputPort())
-        writer.Write()
+        self.plotter.screenshot(
+            filename=file_path,
+            window_size=resolution
+        )
 
     def show(self, timestep=0, ts_is_index=True):
         """
@@ -341,14 +348,14 @@ class VTKVisualizer():
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
-        self.window.SetOffScreenRendering(0)
-        if self.vis_config['use_qt']:
-            app = QtWidgets.QApplication(sys.argv)
-            self.qt_window = BasicRenderWindow(self)
-            app.exec_()
-        else:
-            self.window.Render()
-            self.interactor.Start()
+        if not self._notebook:
+            self.window.SetOffScreenRendering(0)
+            self.plotter.off_screen = False
+            if self.vis_config['use_qt']:
+                app = QtWidgets.QApplication(sys.argv)
+                self.qt_window = BasicRenderWindow(self)
+                app.exec_()
+        self.plotter.show()
 
     def show_axes(self, value):
         """
@@ -607,18 +614,17 @@ class VTKVisualizer():
         self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
         self.vtk_volume_mapper.UseJitteringOn()
         self.vtk_volume.SetMapper(self.vtk_volume_mapper)
-        self.renderer = vtk.vtkRenderer()
+        self.plotter = Plotter(
+            window_size=[500, 500],
+            title='VisualPIC',
+            notebook=self._notebook
+        )
+        self.plotter.camera_position = 'xy'
+        self.plotter.enable_anti_aliasing(aa_type='fxaa', multi_samples=8)
+        self.window = self.plotter.render_window
+        self.renderer = self.plotter.renderer
+        self.interactor = self.plotter.iren.interactor
         self.renderer.AddVolume(self.vtk_volume)
-        self.window = vtk.vtkRenderWindow()
-        self.window.SetSize(500, 500)
-        self.window.AddRenderer(self.renderer)
-        self.window.SetOffScreenRendering(1)
-        if self.vis_config['use_qt']:
-            self.interactor = vtk.vtkGenericRenderWindowInteractor()
-        else:
-            self.interactor = vtk.vtkRenderWindowInteractor()
-        self.interactor.SetRenderWindow(self.window)
-        self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
         self.camera = self.renderer.GetActiveCamera()
         self._add_axes_widget()
         self._add_cube_axes()
@@ -995,7 +1001,7 @@ class VTKVisualizer():
             rep.SetPosition(x_1, y_1)
             rep.SetPosition2(x_2, y_2)
 
-    def _check_dependencies(self):
+    def _check_dependencies(self, notebook):
         missing_dependencies = []
         if not vtk_installed:
             missing_dependencies.append('vtk')
@@ -1007,6 +1013,12 @@ class VTKVisualizer():
                 "Missing required dependencies: {}.".format(dep_str) +
                 "Install by running " +
                 "'python -m pip install {}'.".format(dep_str))
+        if notebook and not trame_installed:
+            raise ImportError(
+                "Running on an notebook requires trame. Install it by running "
+                "`python -m pip install 'jupyterlab>=3' ipywidgets "
+                "'pyvista[all,trame]'`."
+            )        
 
     def _check_qt(self, use_qt):
         if use_qt and not qt_installed:
