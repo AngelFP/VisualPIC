@@ -61,14 +61,14 @@ class DataContainer():
         self.particle_species = []
         self.derived_fields = []
 
-    def load_data(self, force_reload=False):
+    def load_data(self, force_reload=False, iterations=None):
         """Load the data into the data container."""
         if not self.folder_fields or force_reload:
             self.folder_fields = self.folder_scanner.get_list_of_fields(
-                self.data_folder_path)
+                self.data_folder_path, iterations)
         if not self.particle_species or force_reload:
             self.particle_species = self.folder_scanner.get_list_of_species(
-                self.data_folder_path)
+                self.data_folder_path, iterations)
             self._add_associated_species_fields()
         if not self.derived_fields or force_reload:
             self.derived_fields = self._generate_derived_fields()
