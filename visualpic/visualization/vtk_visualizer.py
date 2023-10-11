@@ -277,7 +277,7 @@ class VTKVisualizer():
                 'Particle species cannot be added because it is not 3D.')
 
     def render_to_file(self, timestep, file_path, resolution=None,
-                       ts_is_index=True):
+                       scale_output=1, ts_is_index=True):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -298,6 +298,9 @@ class VTKVisualizer():
             List containing the horizontal and vertical resolution of the
             rendered image.
 
+        scale : int
+            Scales the output resolution by this factor.
+
         ts_is_index : bool
             Indicates whether the value provided in 'timestep' is the index of
             the time step (True) or the numerical value of the time step
@@ -313,13 +316,14 @@ class VTKVisualizer():
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
+        w2if.SetScale(scale_output)
         w2if.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(file_path)
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep=0, ts_is_index=True):
+    def show(self, timestep=0, ts_is_index=True, resolution=None):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -337,6 +341,10 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
 
+        resolution : list
+            List containing the horizontal and vertical resolution of the
+            rendered image.
+
         """
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
@@ -344,9 +352,11 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            self.qt_window = BasicRenderWindow(self)
+            self.qt_window = BasicRenderWindow(self, resolution=resolution)
             app.exec_()
         else:
+            if resolution is not None:
+                self.window.SetSize(*resolution)
             self.window.Render()
             self.interactor.Start()
 
