@@ -157,6 +157,21 @@ class DataContainer():
         raise ValueError("Species '{}' not found. ".format(species_name) +
                          "Available species are {}.".format(available_species))
 
+    def add_derived_field(self, derived_field):
+        """Adds a derived field."""
+        sim_geometry = self._get_simulation_geometry()
+        if sim_geometry is not None:
+            folder_field_names = self.get_list_of_fields(include_derived=False)
+            required_fields = derived_field['requirements'][sim_geometry]
+            if set(required_fields).issubset(folder_field_names):
+                base_fields = []
+                for field_name in required_fields:
+                    base_fields.append(self.get_field(field_name))
+
+            self.derived_fields.append(DerivedField(
+                derived_field, sim_geometry, self.sim_params,
+                base_fields))
+
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
         plasma_density = self.sim_params['n_p']
