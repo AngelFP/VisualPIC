@@ -936,9 +936,9 @@ class VTKVisualizer():
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
-        focus = np.array(self.camera.GetFocalPoint())
         if self.camera_props['focus_shift'] is not None:
-            focus = focus + self.camera_props['focus_shift']
+            focus = np.array(self.camera.GetFocalPoint()) \
+                + self.camera_props['focus_shift']
             self.camera.SetFocalPoint(focus[0], focus[1], focus[2])
 
     def _set_background_colors(self, color, color_2=None):
