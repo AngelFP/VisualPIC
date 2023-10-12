@@ -45,7 +45,8 @@ class VTKVisualizer():
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
-                 scale_z=1, forced_norm_factor=None, use_qt=True):
+                 scale_z=1, forced_norm_factor=None,
+                 use_qt=True, use_multi_volume=False):
         """
         Initialize the 3D visualizer.
 
@@ -101,6 +102,10 @@ class VTKVisualizer():
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
 
+        use_multi_volume : bool
+            Whether to use vtkMultiVolume or vtkVolume for the volume
+            rendering.
+
         """
         self._check_dependencies()
         use_qt = self._check_qt(use_qt)
@@ -111,7 +116,8 @@ class VTKVisualizer():
                            'show_bounding_box': show_bounding_box,
                            'show_colorbars': show_colorbars,
                            'axes_scale': [scale_z, scale_y, scale_x],
-                           'use_qt': use_qt}
+                           'use_qt': use_qt,
+                           'use_multi_volume': use_multi_volume}
         self._unit_norm_factors = {'m': 1e5,
                                    'um': 0.1,
                                    'c/\\omega_p': 1}
@@ -597,13 +603,15 @@ class VTKVisualizer():
             self._position_colorbars()
 
     def _initialize_base_vtk_elements(self):
-        try:
-            # vtkMultiVolume class available only in vtk >= 8.2.0
-            self.vtk_volume = vtk.vtkMultiVolume()
-            self.old_vtk = False
-        except:
+        if self.vis_config['use_multi_volume']:
+            try:
+                # vtkMultiVolume class available only in vtk >= 8.2.0
+                self.vtk_volume = vtk.vtkMultiVolume()
+            except:
+                self.vtk_volume = vtk.vtkVolume()
+                self.vis_config['use_multi_volume'] = False
+        else:
             self.vtk_volume = vtk.vtkVolume()
-            self.old_vtk = True
         self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
         self.vtk_volume_mapper.UseJitteringOn()
         self.vtk_volume.SetMapper(self.vtk_volume_mapper)
@@ -698,10 +706,10 @@ class VTKVisualizer():
         self._setup_camera()
 
     def _render_volumes(self, timestep):
-        if self.old_vtk:
-            self._load_data_into_single_volume(self.current_time_step)
-        else:
+        if self.vis_config['use_multi_volume']:
             self._load_data_into_multi_volume(self.current_time_step)
+        else:
+            self._load_data_into_single_volume(self.current_time_step)
 
     def _load_data_into_single_volume(self, timestep):
         vtk_volume_prop = self._get_single_volume_properties(timestep)
