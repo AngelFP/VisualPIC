@@ -45,7 +45,8 @@ class VTKVisualizer():
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
-                 scale_z=1, forced_norm_factor=None, use_qt=True):
+                 scale_z=1, forced_norm_factor=None, use_qt=True,
+                 window_size=[600, 400]):
         """
         Initialize the 3D visualizer.
 
@@ -101,6 +102,9 @@ class VTKVisualizer():
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
 
+        window_size : sequence[int], optional
+            Window size in pixels.  Defaults to ``[600, 400]``
+
         """
         self._check_dependencies()
         use_qt = self._check_qt(use_qt)
@@ -124,6 +128,7 @@ class VTKVisualizer():
         self._colorbar_visibility = []
         self.current_time_step = -1
         self.available_time_steps = None
+        self._window_size = window_size
         self._initialize_base_vtk_elements()
         self.set_background(background)
 
@@ -343,20 +348,22 @@ class VTKVisualizer():
 
         window_size : list
             List containing the horizontal and vertical size of the
-            render window.
+            render window. If given, it overrides the window size of the
+            `VTKVisualizer`.
 
         """
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
+        if window_size is not None:
+            window_size = self._window_size
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
             self.qt_window = BasicRenderWindow(self, window_size=window_size)
             app.exec_()
         else:
-            if window_size is not None:
-                self.window.SetSize(*window_size)
+            self.window.SetSize(*window_size)
             self.window.Render()
             self.interactor.Start()
 
@@ -620,7 +627,7 @@ class VTKVisualizer():
         self.renderer = vtk.vtkRenderer()
         self.renderer.AddVolume(self.vtk_volume)
         self.window = vtk.vtkRenderWindow()
-        self.window.SetSize(500, 500)
+        self.window.SetSize(*self._window_size)
         self.window.AddRenderer(self.renderer)
         self.window.SetOffScreenRendering(1)
         if self.vis_config['use_qt']:
