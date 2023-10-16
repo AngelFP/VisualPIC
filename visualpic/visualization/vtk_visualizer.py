@@ -45,7 +45,8 @@ class VTKVisualizer():
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
-                 scale_z=1, forced_norm_factor=None, use_qt=True,
+                 scale_z=1, forced_norm_factor=None,
+                 use_qt=True, use_multi_volume=False,
                  window_size=[600, 400]):
         """
         Initialize the 3D visualizer.
@@ -102,6 +103,10 @@ class VTKVisualizer():
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
 
+        use_multi_volume : bool
+            Whether to use vtkMultiVolume or vtkVolume for the volume
+            rendering.
+
         window_size : sequence[int], optional
             Window size in pixels.  Defaults to ``[600, 400]``
 
@@ -115,12 +120,13 @@ class VTKVisualizer():
                            'show_bounding_box': show_bounding_box,
                            'show_colorbars': show_colorbars,
                            'axes_scale': [scale_z, scale_y, scale_x],
-                           'use_qt': use_qt}
+                           'use_qt': use_qt,
+                           'use_multi_volume': use_multi_volume}
         self._unit_norm_factors = {'m': 1e5,
                                    'um': 0.1,
                                    'c/\\omega_p': 1}
         self.forced_norm_factor = forced_norm_factor
-        self.camera_props = {'zoom': 1}
+        self.camera_props = {'zoom': 1, 'focus_shift': None}
         self.volume_field_list = []
         self.scatter_species_list = []
         self.colorbar_list = []
@@ -486,7 +492,18 @@ class VTKVisualizer():
 
         """
         self.camera_props['zoom'] = zoom
-        self.camera.Zoom(zoom)
+
+    def set_camera_shift(self, shift):
+        """
+        Shift the focal point of the camera in three directions.
+
+        Parameters
+        ----------
+
+        shift : list
+            The three components of the shift vector.
+        """
+        self.camera_props['focus_shift'] = shift
 
     def get_possible_timesteps(self):
         """
@@ -614,13 +631,15 @@ class VTKVisualizer():
             self._position_colorbars()
 
     def _initialize_base_vtk_elements(self):
-        try:
-            # vtkMultiVolume class available only in vtk >= 8.2.0
-            self.vtk_volume = vtk.vtkMultiVolume()
-            self.old_vtk = False
-        except:
+        if self.vis_config['use_multi_volume']:
+            try:
+                # vtkMultiVolume class available only in vtk >= 8.2.0
+                self.vtk_volume = vtk.vtkMultiVolume()
+            except:
+                self.vtk_volume = vtk.vtkVolume()
+                self.vis_config['use_multi_volume'] = False
+        else:
             self.vtk_volume = vtk.vtkVolume()
-            self.old_vtk = True
         self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
         self.vtk_volume_mapper.UseJitteringOn()
         self.vtk_volume.SetMapper(self.vtk_volume_mapper)
@@ -715,10 +734,10 @@ class VTKVisualizer():
         self._setup_camera()
 
     def _render_volumes(self, timestep):
-        if self.old_vtk:
-            self._load_data_into_single_volume(self.current_time_step)
-        else:
+        if self.vis_config['use_multi_volume']:
             self._load_data_into_multi_volume(self.current_time_step)
+        else:
+            self._load_data_into_single_volume(self.current_time_step)
 
     def _load_data_into_single_volume(self, timestep):
         vtk_volume_prop = self._get_single_volume_properties(timestep)
@@ -942,6 +961,10 @@ class VTKVisualizer():
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
+        if self.camera_props['focus_shift'] is not None:
+            focus = np.array(self.camera.GetFocalPoint()) \
+                + self.camera_props['focus_shift']
+            self.camera.SetFocalPoint(focus[0], focus[1], focus[2])
 
     def _set_background_colors(self, color, color_2=None):
         """
