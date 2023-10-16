@@ -122,7 +122,7 @@ class VTKVisualizer():
                                    'um': 0.1,
                                    'c/\\omega_p': 1}
         self.forced_norm_factor = forced_norm_factor
-        self.camera_props = {'zoom': 1}
+        self.camera_props = {'zoom': 1, 'focus_shift': None}
         self.volume_field_list = []
         self.scatter_species_list = []
         self.colorbar_list = []
@@ -475,7 +475,18 @@ class VTKVisualizer():
 
         """
         self.camera_props['zoom'] = zoom
-        self.camera.Zoom(zoom)
+
+    def set_camera_shift(self, shift):
+        """
+        Shift the focal point of the camera in three directions.
+
+        Parameters
+        ----------
+
+        shift : list
+            The three components of the shift vector.
+        """
+        self.camera_props['focus_shift'] = shift
 
     def get_possible_timesteps(self):
         """
@@ -933,6 +944,10 @@ class VTKVisualizer():
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
+        if self.camera_props['focus_shift'] is not None:
+            focus = np.array(self.camera.GetFocalPoint()) \
+                + self.camera_props['focus_shift']
+            self.camera.SetFocalPoint(focus[0], focus[1], focus[2])
 
     def _set_background_colors(self, color, color_2=None):
         """
