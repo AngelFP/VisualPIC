@@ -323,7 +323,7 @@ class VTKVisualizer():
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep=0, ts_is_index=True, resolution=None):
+    def show(self, timestep=0, ts_is_index=True, window_size=None):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -341,9 +341,9 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
 
-        resolution : list
-            List containing the horizontal and vertical resolution of the
-            rendered image.
+        window_size : list
+            List containing the horizontal and vertical size of the
+            render window.
 
         """
         # Only make render if any data has been added for visualization
@@ -352,11 +352,11 @@ class VTKVisualizer():
         self.window.SetOffScreenRendering(0)
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            self.qt_window = BasicRenderWindow(self, resolution=resolution)
+            self.qt_window = BasicRenderWindow(self, window_size=window_size)
             app.exec_()
         else:
-            if resolution is not None:
-                self.window.SetSize(*resolution)
+            if window_size is not None:
+                self.window.SetSize(*window_size)
             self.window.Render()
             self.interactor.Start()
 
