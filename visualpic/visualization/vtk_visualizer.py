@@ -46,7 +46,8 @@ class VTKVisualizer():
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
                  scale_z=1, forced_norm_factor=None,
-                 use_qt=True, use_multi_volume=False):
+                 use_qt=True, use_multi_volume=False,
+                 window_size=[600, 400]):
         """
         Initialize the 3D visualizer.
 
@@ -106,6 +107,9 @@ class VTKVisualizer():
             Whether to use vtkMultiVolume or vtkVolume for the volume
             rendering.
 
+        window_size : sequence[int], optional
+            Window size in pixels.  Defaults to ``[600, 400]``
+
         """
         self._check_dependencies()
         use_qt = self._check_qt(use_qt)
@@ -130,6 +134,7 @@ class VTKVisualizer():
         self._colorbar_visibility = []
         self.current_time_step = -1
         self.available_time_steps = None
+        self._window_size = window_size
         self._initialize_base_vtk_elements()
         self.set_background(background)
 
@@ -283,7 +288,7 @@ class VTKVisualizer():
                 'Particle species cannot be added because it is not 3D.')
 
     def render_to_file(self, timestep, file_path, resolution=None,
-                       ts_is_index=True):
+                       scale=1, ts_is_index=True):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -304,6 +309,9 @@ class VTKVisualizer():
             List containing the horizontal and vertical resolution of the
             rendered image.
 
+        scale : int
+            Scales the output resolution by this factor.
+
         ts_is_index : bool
             Indicates whether the value provided in 'timestep' is the index of
             the time step (True) or the numerical value of the time step
@@ -319,13 +327,14 @@ class VTKVisualizer():
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
+        w2if.SetScale(scale)
         w2if.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(file_path)
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep=0, ts_is_index=True):
+    def show(self, timestep=0, ts_is_index=True, window_size=None):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -343,16 +352,24 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
 
+        window_size : list
+            List containing the horizontal and vertical size of the
+            render window. If given, it overrides the window size of the
+            `VTKVisualizer`.
+
         """
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
+        if window_size is not None:
+            window_size = self._window_size
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            self.qt_window = BasicRenderWindow(self)
+            self.qt_window = BasicRenderWindow(self, window_size=window_size)
             app.exec_()
         else:
+            self.window.SetSize(*window_size)
             self.window.Render()
             self.interactor.Start()
 
@@ -629,7 +646,7 @@ class VTKVisualizer():
         self.renderer = vtk.vtkRenderer()
         self.renderer.AddVolume(self.vtk_volume)
         self.window = vtk.vtkRenderWindow()
-        self.window.SetSize(500, 500)
+        self.window.SetSize(*self._window_size)
         self.window.AddRenderer(self.renderer)
         self.window.SetOffScreenRendering(1)
         if self.vis_config['use_qt']:
