@@ -277,7 +277,7 @@ class VTKVisualizer():
                 'Particle species cannot be added because it is not 3D.')
 
     def render_to_file(self, timestep, file_path, resolution=None,
-                       scale_output=1, ts_is_index=True):
+                       scale=1, ts_is_index=True):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -316,7 +316,7 @@ class VTKVisualizer():
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
-        w2if.SetScale(scale_output)
+        w2if.SetScale(scale)
         w2if.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(file_path)
