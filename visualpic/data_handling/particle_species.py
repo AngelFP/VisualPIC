@@ -97,7 +97,6 @@ class ParticleSpecies():
                 'The data is now always returned in SI units.'
             )
         # Check given names for backward compatibility with old v0.5 API.
-        has_old_names = False
         if components:
             old_names = components
             components = deepcopy(components)
@@ -106,7 +105,6 @@ class ParticleSpecies():
                     new_name = self._check_name_for_backward_compatibility(c)
                     if new_name:
                         components[i] = new_name
-                        has_old_names = True
             # In the old API, 'q' stands for the macroparticle charge, so we
             # need the weight to compute it.
             if 'q' in old_names:
@@ -124,15 +122,8 @@ class ParticleSpecies():
             select=select
         )
 
-        # Get the macroparticle charge, if using the old API.
-        if has_old_names:
-            if 'q' in old_names:
-                i_q = old_names.index('q')
-                w = data.pop(-1)
-                data[i_q] = data[i_q] * w
-
         return ParticleData(
-            components=components if not has_old_names else old_names,
+            components=components,
             arrays=data,
             iteration=iteration,
             time=self._get_time(iteration),
