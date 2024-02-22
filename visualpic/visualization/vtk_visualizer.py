@@ -362,7 +362,7 @@ class VTKVisualizer():
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
-        if window_size is not None:
+        if window_size is None:
             window_size = self._window_size
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
