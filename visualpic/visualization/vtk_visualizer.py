@@ -45,7 +45,9 @@ class VTKVisualizer():
     def __init__(self, show_axes=True, show_cube_axes=True,
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
-                 scale_z=1, forced_norm_factor=None, use_qt=True):
+                 scale_z=1, forced_norm_factor=None,
+                 use_qt=True, use_multi_volume=False,
+                 window_size=[600, 400]):
         """
         Initialize the 3D visualizer.
 
@@ -101,6 +103,13 @@ class VTKVisualizer():
         use_qt : bool
             Whether to use Qt for the windows opened by the visualizer.
 
+        use_multi_volume : bool
+            Whether to use vtkMultiVolume or vtkVolume for the volume
+            rendering.
+
+        window_size : sequence[int], optional
+            Window size in pixels.  Defaults to ``[600, 400]``
+
         """
         self._check_dependencies()
         use_qt = self._check_qt(use_qt)
@@ -111,12 +120,13 @@ class VTKVisualizer():
                            'show_bounding_box': show_bounding_box,
                            'show_colorbars': show_colorbars,
                            'axes_scale': [scale_z, scale_y, scale_x],
-                           'use_qt': use_qt}
+                           'use_qt': use_qt,
+                           'use_multi_volume': use_multi_volume}
         self._unit_norm_factors = {'m': 1e5,
                                    'um': 0.1,
                                    'c/\\omega_p': 1}
         self.forced_norm_factor = forced_norm_factor
-        self.camera_props = {'zoom': 1}
+        self.camera_props = {'zoom': 1, 'focus_shift': None}
         self.volume_field_list = []
         self.scatter_species_list = []
         self.colorbar_list = []
@@ -124,6 +134,7 @@ class VTKVisualizer():
         self._colorbar_visibility = []
         self.current_time_step = -1
         self.available_time_steps = None
+        self._window_size = window_size
         self._initialize_base_vtk_elements()
         self.set_background(background)
 
@@ -277,7 +288,7 @@ class VTKVisualizer():
                 'Particle species cannot be added because it is not 3D.')
 
     def render_to_file(self, timestep, file_path, resolution=None,
-                       ts_is_index=True):
+                       scale=1, ts_is_index=True):
         """
         Render the fields in the visualizer at a specific time step and save
         image to a file.
@@ -298,6 +309,9 @@ class VTKVisualizer():
             List containing the horizontal and vertical resolution of the
             rendered image.
 
+        scale : int
+            Scales the output resolution by this factor.
+
         ts_is_index : bool
             Indicates whether the value provided in 'timestep' is the index of
             the time step (True) or the numerical value of the time step
@@ -313,13 +327,14 @@ class VTKVisualizer():
         self.window.Render()
         w2if = vtk.vtkWindowToImageFilter()
         w2if.SetInput(self.window)
+        w2if.SetScale(scale)
         w2if.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetFileName(file_path)
         writer.SetInputConnection(w2if.GetOutputPort())
         writer.Write()
 
-    def show(self, timestep=0, ts_is_index=True):
+    def show(self, timestep=0, ts_is_index=True, window_size=None):
         """
         Render and show the fields in the visualizer at a specific time step.
 
@@ -337,16 +352,24 @@ class VTKVisualizer():
             the time step (True) or the numerical value of the time step
             (False).
 
+        window_size : list
+            List containing the horizontal and vertical size of the
+            render window. If given, it overrides the window size of the
+            `VTKVisualizer`.
+
         """
         # Only make render if any data has been added for visualization
         if len(self.volume_field_list + self.scatter_species_list) > 0:
             self._make_timestep_render(timestep, ts_is_index)
         self.window.SetOffScreenRendering(0)
+        if window_size is not None:
+            window_size = self._window_size
         if self.vis_config['use_qt']:
             app = QtWidgets.QApplication(sys.argv)
-            self.qt_window = BasicRenderWindow(self)
+            self.qt_window = BasicRenderWindow(self, window_size=window_size)
             app.exec_()
         else:
+            self.window.SetSize(*window_size)
             self.window.Render()
             self.interactor.Start()
 
@@ -469,7 +492,18 @@ class VTKVisualizer():
 
         """
         self.camera_props['zoom'] = zoom
-        self.camera.Zoom(zoom)
+
+    def set_camera_shift(self, shift):
+        """
+        Shift the focal point of the camera in three directions.
+
+        Parameters
+        ----------
+
+        shift : list
+            The three components of the shift vector.
+        """
+        self.camera_props['focus_shift'] = shift
 
     def get_possible_timesteps(self):
         """
@@ -597,20 +631,22 @@ class VTKVisualizer():
             self._position_colorbars()
 
     def _initialize_base_vtk_elements(self):
-        try:
-            # vtkMultiVolume class available only in vtk >= 8.2.0
-            self.vtk_volume = vtk.vtkMultiVolume()
-            self.old_vtk = False
-        except:
+        if self.vis_config['use_multi_volume']:
+            try:
+                # vtkMultiVolume class available only in vtk >= 8.2.0
+                self.vtk_volume = vtk.vtkMultiVolume()
+            except:
+                self.vtk_volume = vtk.vtkVolume()
+                self.vis_config['use_multi_volume'] = False
+        else:
             self.vtk_volume = vtk.vtkVolume()
-            self.old_vtk = True
         self.vtk_volume_mapper = vtk.vtkGPUVolumeRayCastMapper()
         self.vtk_volume_mapper.UseJitteringOn()
         self.vtk_volume.SetMapper(self.vtk_volume_mapper)
         self.renderer = vtk.vtkRenderer()
         self.renderer.AddVolume(self.vtk_volume)
         self.window = vtk.vtkRenderWindow()
-        self.window.SetSize(500, 500)
+        self.window.SetSize(*self._window_size)
         self.window.AddRenderer(self.renderer)
         self.window.SetOffScreenRendering(1)
         if self.vis_config['use_qt']:
@@ -698,10 +734,10 @@ class VTKVisualizer():
         self._setup_camera()
 
     def _render_volumes(self, timestep):
-        if self.old_vtk:
-            self._load_data_into_single_volume(self.current_time_step)
-        else:
+        if self.vis_config['use_multi_volume']:
             self._load_data_into_multi_volume(self.current_time_step)
+        else:
+            self._load_data_into_single_volume(self.current_time_step)
 
     def _load_data_into_single_volume(self, timestep):
         vtk_volume_prop = self._get_single_volume_properties(timestep)
@@ -925,6 +961,10 @@ class VTKVisualizer():
     def _setup_camera(self):
         self.renderer.ResetCamera()
         self.camera.Zoom(self.camera_props['zoom'])
+        if self.camera_props['focus_shift'] is not None:
+            focus = np.array(self.camera.GetFocalPoint()) \
+                + self.camera_props['focus_shift']
+            self.camera.SetFocalPoint(focus[0], focus[1], focus[2])
 
     def _set_background_colors(self, color, color_2=None):
         """
