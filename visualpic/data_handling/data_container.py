@@ -158,7 +158,20 @@ class DataContainer():
                          "Available species are {}.".format(available_species))
 
     def add_derived_field(self, derived_field):
-        """Adds a derived field."""
+        """Adds a derived field.
+        
+        Parameters
+        ----------
+        derived_field : dict
+            Dictionary containing the information to build the derived field.
+            It needs the following keys:
+            'name': a string with the name to the derived field.
+            'units': a string with the units of the field.
+            'requirements': a dict containing the list of required fields
+                with the geometry type of the data as keys.
+            'recipe': a callable function to calculate the derived field
+                from the required fields.
+        """
         sim_geometry = self._get_simulation_geometry()
         if sim_geometry is not None:
             folder_field_names = self.get_list_of_fields(include_derived=False)
