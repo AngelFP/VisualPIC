@@ -159,7 +159,7 @@ class DataContainer():
 
     def add_derived_field(self, derived_field):
         """Adds a derived field.
-        
+
         Parameters
         ----------
         derived_field : dict
