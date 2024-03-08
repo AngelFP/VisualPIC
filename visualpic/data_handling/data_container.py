@@ -71,7 +71,7 @@ class DataContainer():
                 self.data_folder_path, iterations)
             self._add_associated_species_fields()
         if not self.derived_fields or force_reload:
-            self.derived_fields = self._generate_derived_fields()
+            self._generate_derived_fields()
 
     def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
@@ -157,6 +157,34 @@ class DataContainer():
         raise ValueError("Species '{}' not found. ".format(species_name) +
                          "Available species are {}.".format(available_species))
 
+    def add_derived_field(self, derived_field):
+        """Adds a derived field.
+
+        Parameters
+        ----------
+        derived_field : dict
+            Dictionary containing the information to build the derived field.
+            It needs the following keys:
+            'name': a string with the name to the derived field.
+            'units': a string with the units of the field.
+            'requirements': a dict containing the list of required fields
+                with the geometry type of the data as keys.
+            'recipe': a callable function to calculate the derived field
+                from the required fields.
+        """
+        sim_geometry = self._get_simulation_geometry()
+        if sim_geometry is not None:
+            folder_field_names = self.get_list_of_fields(include_derived=False)
+            required_fields = derived_field['requirements'][sim_geometry]
+            if set(required_fields).issubset(folder_field_names):
+                base_fields = []
+                for field_name in required_fields:
+                    base_fields.append(self.get_field(field_name))
+
+            self.derived_fields.append(DerivedField(
+                derived_field, sim_geometry, self.sim_params,
+                base_fields))
+
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
         plasma_density = self.sim_params['n_p']
@@ -174,21 +202,9 @@ class DataContainer():
         self.folder_scanner = fs
 
     def _generate_derived_fields(self):
-        """Returns a list with the available derived fields."""
-        derived_field_list = []
-        sim_geometry = self._get_simulation_geometry()
-        if sim_geometry is not None:
-            folder_field_names = self.get_list_of_fields(include_derived=False)
-            for derived_field in derived_field_definitions:
-                required_fields = derived_field['requirements'][sim_geometry]
-                if set(required_fields).issubset(folder_field_names):
-                    base_fields = []
-                    for field_name in required_fields:
-                        base_fields.append(self.get_field(field_name))
-                    derived_field_list.append(DerivedField(
-                        derived_field, sim_geometry, self.sim_params,
-                        base_fields))
-            return derived_field_list
+        """Generate the predefined derived fields."""
+        for derived_field in derived_field_definitions:
+            self.add_derived_field(derived_field)
 
     def _get_simulation_geometry(self):
         """Returns a string with the geometry used in the simulation."""
