@@ -11,6 +11,7 @@ from typing import Optional, Union, List
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
 
+from visualpic.helper_functions import get_common_timesteps
 from .field_data import FieldData
 
 
@@ -36,7 +37,6 @@ class Field():
         timeseries: OpenPMDTimeSeries,
     ) -> None:
         self._name = name
-        self._iterations = timeseries.fields_iterations[name]
         self._component = component
         self._ts = timeseries
 
@@ -46,7 +46,7 @@ class Field():
 
     @property
     def iterations(self) -> np.ndarray:
-        return self._iterations
+        return self._ts.fields_iterations[self._name]
 
     @property
     def timesteps(self) -> np.ndarray:
@@ -153,3 +153,57 @@ class Field():
         This method is only kept for backward compatibility.
         """
         return self.geometry
+
+
+class DerivedField(Field):
+    def __init__(self, field_dict, sim_geometry, sim_params, base_fields: List[Field]):
+        self._field_dict = field_dict
+        self._sim_geometry = sim_geometry
+        self._sim_params = sim_params
+        self._base_fields = base_fields
+        self._common_iterations = get_common_timesteps(base_fields)
+        super().__init__(field_dict['name'], None, base_fields[0]._ts)
+
+    @property
+    def iterations(self):
+        return self._common_iterations
+
+    @property
+    def geometry(self):
+        return self._sim_geometry
+
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        field_data = []
+        for field in self._base_fields:
+            fld_data = field.get_data(
+                iteration=iteration,
+                slice_across=slice_across,
+                slice_relative_position=slice_relative_position,
+                m=m,
+                theta=theta,
+                max_resolution_3d=max_resolution_3d,
+                only_metadata=only_metadata
+            )
+            field_data.append(fld_data.array)
+        if not only_metadata:
+            fld = self._field_dict['recipe'](field_data, self._sim_geometry,
+                                            self._sim_params)
+        
+        # fld_md['field']['units'] = self._field_dict['units']
+        # TODO: implement correct metadata
+        return FieldData(
+            name=self.name,
+            component=self._component,
+            array=fld,
+            metadata=fld_data._metadata,
+            geometry=self.geometry
+        )

@@ -12,7 +12,7 @@ from typing import Optional, Union, List, Dict
 
 import numpy as np
 
-from visualpic.data_handling.fields import Field
+from visualpic.data_handling.fields import Field, DerivedField
 from visualpic.data_handling.particle_species import ParticleSpecies
 from openpmd_viewer import OpenPMDTimeSeries
 
