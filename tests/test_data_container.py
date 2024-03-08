@@ -23,7 +23,7 @@ def test_data_container():
         for it in species.timesteps:
             comps = species.get_list_of_available_components()
             assert comps == ["q", "m", "x", "y", "z", "px", "py", "pz", "w", "x_prime"]
-            sp_data, md = species.get_data(it)
+            sp_data = species.get_data(it)
 
 
 if __name__ == "__main__":
