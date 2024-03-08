@@ -21,7 +21,7 @@ class GridMetadata():
         self.range = range
 
 
-class ComponentData():
+class ComponentData(np.lib.mixins.NDArrayOperatorsMixin):
     """Class storing the data of each particle component.
 
     Parameters
@@ -118,7 +118,7 @@ class ComponentData():
         return md
 
 
-class ParticleData(np.lib.mixins.NDArrayOperatorsMixin):
+class ParticleData():
     """Class containing the particle data at a given iteration.
 
     Parameters
@@ -149,8 +149,23 @@ class ParticleData(np.lib.mixins.NDArrayOperatorsMixin):
         self._grid_params = grid_params
         self._components_data = {c: ComponentData(c, a, time, self.grid)
                                  for c, a in zip(components, arrays)}
-        self._legacy_data = {c: (cd.array, cd._legacy_metadata)
-                             for c, cd in self._components_data.items()}
+        self._legacy_data = {}
+        for c, cd in self._components_data.items():
+            if c in ["x", "y", "z"]:
+                self._legacy_data[c] = (cd.array, cd._legacy_metadata)
+            elif c in ["ux", "uy", "uz"]:
+                c = c.replace("u", "p")
+                self._legacy_data[c] = (cd.array, cd._legacy_metadata)
+            elif c == "w":
+                self._legacy_data[c] = (cd.array, cd._legacy_metadata)
+                self._legacy_data["q"] = (
+                    cd.array * self._components_data["charge"].array,
+                    cd._legacy_metadata
+                )
+                self._legacy_data["m"] = (
+                    cd.array * self._components_data["mass"].array,
+                    cd._legacy_metadata
+                )
         for c in components:
             if not hasattr(self, c):
                 setattr(self, c, self._components_data[c])
@@ -211,6 +226,10 @@ class ParticleData(np.lib.mixins.NDArrayOperatorsMixin):
     @property
     def w(self) -> ComponentData:
         return self._components_data['w']
+
+    @property
+    def q(self) -> ComponentData:
+        return self._components_data['w'] * self._components_data['charge']
 
     @property
     def components(self) -> List[str]:

@@ -7,6 +7,7 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 from typing import Optional, Union, List
+from warnings import warn
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -81,7 +82,8 @@ class Field():
         m: Optional[Union[int, str]] = 'all',
         theta: Optional[Union[float, None]] = 0.,
         max_resolution_3d: Optional[Union[List[int], None]] = None,
-        only_metadata: Optional[bool] = False
+        only_metadata: Optional[bool] = False,
+        **kwargs
     ) -> FieldData:
         """Get the field data at a given iteration.
 
@@ -129,6 +131,9 @@ class Field():
         -------
         FieldData
         """
+        slice_across, slice_relative_position = self._check_old_api(
+            slice_across, slice_relative_position, kwargs
+        )
         fld, fld_md = self._ts.get_field(
             field=self._name,
             coord=self._component,
@@ -153,3 +158,38 @@ class Field():
         This method is only kept for backward compatibility.
         """
         return self.geometry
+
+    def _check_old_api(self, slice_across, slice_relative_position, kwargs):
+        """Check if arguments from the old v0.5 API have been provided.
+
+        If so, raise a warning or try to convert them to the new API.
+        """
+        if 'field_units' in kwargs:
+            warn(
+                '`data_units` argument is deprecated since version 0.6. '
+                'The data is now always returned in SI units.'
+            )
+        if 'axes_units' in kwargs:
+            warn(
+                '`axes_units` argument is deprecated since version 0.6. '
+                'The data is now always returned in SI units.'
+            )
+        if 'axes_to_convert' in kwargs:
+            warn(
+                '`axes_to_convert` argument is deprecated since version 0.6. '
+                'The data is now always returned in SI units.'
+            )
+        if 'time_units' in kwargs:
+            warn(
+                '`time_units` argument is deprecated since version 0.6. '
+                'The data is now always returned in SI units.'
+            )
+        if 'slice_dir_i' in kwargs:
+            if kwargs['slice_dir_i'] is not None:
+                slice_across = [kwargs['slice_dir_i']]
+                slice_relative_position = [2 * (kwargs['slice_i'] - 0.5)]
+        if 'slice_dir_j' in kwargs:
+            if kwargs['slice_dir_j'] is not None:
+                slice_across += [kwargs['slice_dir_j']]
+                slice_relative_position += [2 * (kwargs['slice_j'] - 0.5)]
+        return slice_across, slice_relative_position

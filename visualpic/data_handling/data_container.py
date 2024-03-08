@@ -29,14 +29,19 @@ class DataContainer():
         be used by the DataReader of the openPMD-viewer. Possible values
         are 'h5py' or 'openpmd-api'.
     load_data : bool
-            Whether to load the data at initialization. If `False`, the
-            `load_data` method must be called manually. By default, True.
+        Whether to load the data at initialization. If `False`, the
+        `load_data` method must be called manually. By default, True.
+    check_all_files : bool
+        Whether to check the available data in all files. If disabled, only
+        the first iteration is open, and it will be assumed that all other
+        iterations have the same available species and fields.
     """
     def __init__(
         self,
         data_path: str = None,
         backend: Optional[str] = 'openpmd-api',
         load_data: Optional[bool] = True,
+        check_all_files: Optional[bool] = True,
         *args,
         **kwargs
     ) -> None:
@@ -50,6 +55,7 @@ class DataContainer():
         self._path = data_path
         self._backend = backend
         self._ts = None
+        self._check_all_files = check_all_files
         if load_data:
             self.load_data()
 
@@ -67,7 +73,7 @@ class DataContainer():
         if self._ts is None or force_reload:
             self._ts = OpenPMDTimeSeries(
                 self._path,
-                check_all_files=True,
+                check_all_files=self._check_all_files,
                 backend=self._backend
             )
             # The openpmd timeseries can reconstruct x and y from r and t
@@ -97,6 +103,10 @@ class DataContainer():
     @property
     def iterations(self) -> np.ndarray:
         return self._ts.iterations
+    
+    @property
+    def iteration_times(self) -> np.ndarray:
+        return self._ts.t
 
     def get_list_of_fields(
         self,

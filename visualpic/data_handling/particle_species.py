@@ -6,8 +6,9 @@ The module contains the definitions of the ParticleSpecies class.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 from copy import deepcopy
+from warnings import warn
 
 import numpy as np
 from openpmd_viewer import OpenPMDTimeSeries
@@ -58,7 +59,9 @@ class ParticleSpecies():
     def get_data(
         self,
         iteration: int,
-        components_list: Optional[List[str]] = None
+        components: Optional[List[str]] = None,
+        select: Optional[Dict] = None,
+        **kwargs
     ) -> ParticleData:
         """
         Get the species data of the requested components and time step.
@@ -67,38 +70,60 @@ class ParticleSpecies():
         ----------
         iteration : int
             Iteration from which to read the data.
-        components_list : list, optional
+        components : list, optional
             List of strings containing the names of the components to be read.
             If `None` all components will be read. By defaulf, None.
+        select: dict, optional
+            Dictionary with a set of rules to select the particles, of the form
+            'x' : [-4., 10.]   (Particles having x between -4 and 10 meters)
+            'ux' : [-0.1, 0.1] (Particles having ux between -0.1 and 0.1 mc)
+            'uz' : [5., None]  (Particles with uz above 5 mc)
 
         Returns
         -------
         ParticleData
         """
+        # Check for old arguments from v0.5 API.
+        if 'components_list' in kwargs:
+            warn(
+                "The argument 'components_list' has been renamed to "
+                "'components' since v0.6. Compatibility with the old name "
+                "will be removed in a future release."
+            )
+            components = kwargs['components_list']
+        if 'data_units' in kwargs:
+            warn(
+                'The argument `data_units` has been deprecated since v0.6. '
+                'The data is now always returned in SI units.'
+            )
         # Check given names for backward compatibility with old v0.5 API.
-        has_old_names = False
-        if components_list:
-            old_names = components_list
-            components_list = deepcopy(components_list)
-            for i, c in enumerate(components_list):
+        if components:
+            old_names = components
+            components = deepcopy(components)
+            for i, c in enumerate(components):
                 if c not in self.available_components:
                     new_name = self._check_name_for_backward_compatibility(c)
                     if new_name:
-                        components_list[i] = new_name
-                        has_old_names = True
+                        components[i] = new_name
+            # In the old API, 'q' stands for the macroparticle charge, so we
+            # need the weight to compute it.
+            if 'q' in old_names:
+                components.append('w')
 
         # By default, if no list is specified, get all components.
         else:
-            components_list = self.available_components
+            components = self.available_components
 
         # Get particle data.
         data = self._ts.get_particle(
-            var_list=components_list,
+            var_list=components,
             species=self._name,
-            iteration=iteration
+            iteration=iteration,
+            select=select
         )
+
         return ParticleData(
-            components=components_list if not has_old_names else old_names,
+            components=components,
             arrays=data,
             iteration=iteration,
             time=self._get_time(iteration),
