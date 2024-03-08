@@ -12,18 +12,29 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, '3.10', 3.11]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[test]"
+    - name: Download test data
+      run: |
+        git clone https://github.com/openPMD/openPMD-example-datasets.git ./tests/test_data/
+        cd ./tests/test_data
+        tar -zxvf example-2d.tar.gz
+        tar -zxvf example-3d.tar.gz
+        tar -zxvf example-thetaMode.tar.gz
     - name: Lint with flake8
       run: |
         flake8 --extend-ignore=E722 --exclude QVTKRenderWindowInteractor.py ./visualpic
+    - shell: bash -l {0}
+      name: Run unit tests
+      run: |
+        python -m pytest tests/
