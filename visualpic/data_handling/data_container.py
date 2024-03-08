@@ -71,7 +71,7 @@ class DataContainer():
                 self.data_folder_path, iterations)
             self._add_associated_species_fields()
         if not self.derived_fields or force_reload:
-            self.derived_fields = self._generate_derived_fields()
+            self._generate_derived_fields()
 
     def get_list_of_fields(self, include_derived=True):
         """Returns a list with the names of all available fields."""
@@ -200,23 +200,11 @@ class DataContainer():
                              " Possible values are 'osiris', 'hipace' or " +
                              "'openpmd'.")
         self.folder_scanner = fs
-
+        
     def _generate_derived_fields(self):
-        """Returns a list with the available derived fields."""
-        derived_field_list = []
-        sim_geometry = self._get_simulation_geometry()
-        if sim_geometry is not None:
-            folder_field_names = self.get_list_of_fields(include_derived=False)
-            for derived_field in derived_field_definitions:
-                required_fields = derived_field['requirements'][sim_geometry]
-                if set(required_fields).issubset(folder_field_names):
-                    base_fields = []
-                    for field_name in required_fields:
-                        base_fields.append(self.get_field(field_name))
-                    derived_field_list.append(DerivedField(
-                        derived_field, sim_geometry, self.sim_params,
-                        base_fields))
-            return derived_field_list
+        """Generate the predefined derived fields."""
+        for derived_field in derived_field_definitions:
+            self.add_derived_field(derived_field)
 
     def _get_simulation_geometry(self):
         """Returns a string with the geometry used in the simulation."""
