@@ -199,6 +199,34 @@ class DataContainer():
             timeseries=self._ts
         )
 
+    def add_derived_field(self, derived_field):
+        """Adds a derived field.
+
+        Parameters
+        ----------
+        derived_field : dict
+            Dictionary containing the information to build the derived field.
+            It needs the following keys:
+            'name': a string with the name to the derived field.
+            'units': a string with the units of the field.
+            'requirements': a dict containing the list of required fields
+                with the geometry type of the data as keys.
+            'recipe': a callable function to calculate the derived field
+                from the required fields.
+        """
+        sim_geometry = self._get_simulation_geometry()
+        if sim_geometry is not None:
+            folder_field_names = self.get_list_of_fields(include_derived=False)
+            required_fields = derived_field['requirements'][sim_geometry]
+            if set(required_fields).issubset(folder_field_names):
+                base_fields = []
+                for field_name in required_fields:
+                    base_fields.append(self.get_field(field_name))
+
+            self.derived_fields.append(DerivedField(
+                derived_field, sim_geometry, self.sim_params,
+                base_fields))
+
     def _check_backwards_compatibility(self, data_path, backend, kwargs):
         """Check for inputs following old v0.5 API
 
