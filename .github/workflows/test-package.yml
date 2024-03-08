@@ -37,4 +37,5 @@ jobs:
     - shell: bash -l {0}
       name: Run unit tests
       run: |
-        python -m pytest tests/
+        cd tests
+        python -m pytest .

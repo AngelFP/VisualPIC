@@ -3,7 +3,7 @@ from visualpic import DataContainer
 
 def test_data_container():
     """Test basic functionality of the DataContainer using sample data."""
-    data_path = r".\test_data\example-3d\hdf5"
+    data_path = "./test_data/example-3d/hdf5"
     diags = DataContainer("openpmd", data_path)
     diags.load_data()
     available_fields = diags.get_list_of_fields()
