@@ -200,7 +200,7 @@ class DataContainer():
                              " Possible values are 'osiris', 'hipace' or " +
                              "'openpmd'.")
         self.folder_scanner = fs
-        
+
     def _generate_derived_fields(self):
         """Generate the predefined derived fields."""
         for derived_field in derived_field_definitions:
