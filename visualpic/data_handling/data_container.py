@@ -267,7 +267,7 @@ class DataContainer():
         """
         if derived_field["name"] in self.available_fields:
             raise ValueError(
-                f"Cannot add field {derived_field["name"]} because a field "
+                f"Cannot add field {derived_field['name']} because a field "
                 "with that name already exists."
             )
         sim_geometry = self.geometry
