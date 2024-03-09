@@ -6,7 +6,7 @@ The module contains the definitions of different field classes.
 Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 from warnings import warn
 
 import numpy as np
@@ -76,7 +76,7 @@ class Field():
 
     def get_data(
         self,
-        iteration: int,
+        iteration: Optional[int] = None,
         slice_across: Optional[Union[str, List[str]]] = None,
         slice_relative_position: Optional[Union[float, List[float]]] = None,
         m: Optional[Union[int, str]] = 'all',
@@ -131,9 +131,11 @@ class Field():
         -------
         FieldData
         """
-        slice_across, slice_relative_position = self._check_old_api(
-            slice_across, slice_relative_position, kwargs
+        iteration, slice_across, slice_relative_position = self._check_old_api(
+            iteration, slice_across, slice_relative_position, kwargs
         )
+        if iteration is None:
+            raise ValueError("Please indicate which `iteration` to read.")
         fld, fld_md = self._ts.get_field(
             field=self._name,
             coord=self._component,
@@ -159,7 +161,7 @@ class Field():
         """
         return self.geometry
 
-    def _check_old_api(self, slice_across, slice_relative_position, kwargs):
+    def _check_old_api(self, iteration, slice_across, slice_relative_position, kwargs):
         """Check if arguments from the old v0.5 API have been provided.
 
         If so, raise a warning or try to convert them to the new API.
@@ -184,6 +186,12 @@ class Field():
                 '`time_units` argument is deprecated since version 0.6. '
                 'The data is now always returned in SI units.'
             )
+        if 'time_step' in kwargs:
+            warn(
+                '`time_step` argument is deprecated since version 0.6. '
+                'please use `iteration` instead.'
+            )
+            iteration = kwargs['time_step']
         if 'slice_dir_i' in kwargs:
             if kwargs['slice_dir_i'] is not None:
                 slice_across = [kwargs['slice_dir_i']]
@@ -192,14 +200,13 @@ class Field():
             if kwargs['slice_dir_j'] is not None:
                 slice_across += [kwargs['slice_dir_j']]
                 slice_relative_position += [2 * (kwargs['slice_j'] - 0.5)]
-        return slice_across, slice_relative_position
+        return iteration, slice_across, slice_relative_position
 
 
 class DerivedField(Field):
-    def __init__(self, field_dict, sim_geometry, sim_params, base_fields: List[Field]):
+    def __init__(self, field_dict: Dict, sim_geometry: str, base_fields: List[Field]):
         self._field_dict = field_dict
         self._sim_geometry = sim_geometry
-        self._sim_params = sim_params
         self._base_fields = base_fields
         self._common_iterations = get_common_timesteps(base_fields)
         super().__init__(field_dict['name'], None, base_fields[0]._ts)
@@ -214,13 +221,14 @@ class DerivedField(Field):
 
     def get_data(
         self,
-        iteration: int,
+        iteration: Optional[int] = None,
         slice_across: Optional[Union[str, List[str]]] = None,
         slice_relative_position: Optional[Union[float, List[float]]] = None,
         m: Optional[Union[int, str]] = 'all',
         theta: Optional[Union[float, None]] = 0.,
         max_resolution_3d: Optional[Union[List[int], None]] = None,
-        only_metadata: Optional[bool] = False
+        only_metadata: Optional[bool] = False,
+        **kwargs,
     ) -> FieldData:
         field_data = []
         for field in self._base_fields:
@@ -231,19 +239,19 @@ class DerivedField(Field):
                 m=m,
                 theta=theta,
                 max_resolution_3d=max_resolution_3d,
-                only_metadata=only_metadata
+                only_metadata=only_metadata,
+                **kwargs,
             )
             field_data.append(fld_data.array)
         if not only_metadata:
             fld = self._field_dict['recipe'](field_data, self._sim_geometry,
-                                            self._sim_params)
-        
-        # fld_md['field']['units'] = self._field_dict['units']
-        # TODO: implement correct metadata
+                                            None)
+
         return FieldData(
             name=self.name,
             component=self._component,
             array=fld,
             metadata=fld_data._metadata,
-            geometry=self.geometry
+            geometry=self.geometry,
+            units=self._field_dict['units'],
         )

@@ -78,19 +78,32 @@ class DataContainer():
             )
             # The openpmd timeseries can reconstruct x and y from r and t
             # in thetaMode geometry.
-            for field in self.available_fields:
+            for field in self._available_fields_on_diags:
                 f_comps = self._ts.fields_metadata[field]['avail_components']
                 if set(['r', 't']) <= set(f_comps):
                     f_comps += ['x', 'y']
+            self._derived_fields = []
 
     @property
-    def available_fields(self) -> Union[List[str], None]:
+    def _available_fields_on_diags(self) -> Union[List[str], None]:
+        """Get the list of available fields in the diagnostics."""
         return self._ts.avail_fields
+    
+    @property
+    def available_fields(self) -> Union[List[str], None]:
+        """Get the list of all available fields."""
+        derived_fields = [f.name for f in self._derived_fields]
+        return self._available_fields_on_diags + derived_fields
 
     @property
     def available_field_components(self) -> Dict:
-        return {field: self._ts.fields_metadata[field]['avail_components']
-                for field in self.available_fields}
+        """Get the components of all available fields."""
+        field_comps = {
+            field: self._ts.fields_metadata[field]['avail_components']
+            for field in self._available_fields_on_diags
+        }
+        derived_fields = {field.name: [] for field in self._derived_fields}
+        return {**field_comps, **derived_fields}
 
     @property
     def available_species(self) -> List[str]:
@@ -107,6 +120,21 @@ class DataContainer():
     @property
     def iteration_times(self) -> np.ndarray:
         return self._ts.t
+    
+    @property
+    def geometry(self) -> Optional[str]:
+        """Get the simulation geometry.
+        
+        The geometry is inferred from the fields available in the diagnostics.
+        """
+        available_geoms = list(self._ts.avail_geom)
+        geom_order = ["3dcartesian", "2dcartesian", "thetaMode"]
+        sorted_geoms = [
+            geom for x in geom_order for geom in available_geoms if geom == x
+        ]
+        # There are available geometries, return the highest one.
+        if sorted_geoms:
+            return sorted_geoms[0]
 
     def get_list_of_fields(
         self,
@@ -116,7 +144,17 @@ class DataContainer():
 
         This method is only kept for backward compatibility.
         """
-        return self.available_fields
+        legacy_fields = []
+        for field, comps in self.available_field_components.items():
+            if comps:
+                for comp in comps:
+                    legacy_fields.append(field + comp)
+            else:
+                legacy_fields.append(field)
+        derived_fields = [f.name for f in self._derived_fields]
+        if not include_derived:
+            legacy_fields = [f for f in legacy_fields if f not in derived_fields]
+        return legacy_fields
 
     def get_list_of_species(
         self,
@@ -163,6 +201,9 @@ class DataContainer():
             out = self._check_name_for_backward_compatibility(name)
             if out:
                 name, component = out
+        for field in self._derived_fields:
+            if field.name == name:
+                return field
         assert name in self.available_fields, (
             f"Field {name} not found. "
             f"Available fields are {self.available_fields}."
@@ -224,7 +265,7 @@ class DataContainer():
             'recipe': a callable function to calculate the derived field
                 from the required fields.
         """
-        sim_geometry = self._get_simulation_geometry()
+        sim_geometry = self.geometry
         if sim_geometry is not None:
             folder_field_names = self.get_list_of_fields(include_derived=False)
             required_fields = derived_field['requirements'][sim_geometry]
@@ -232,10 +273,9 @@ class DataContainer():
                 base_fields = []
                 for field_name in required_fields:
                     base_fields.append(self.get_field(field_name))
-
-            self.derived_fields.append(DerivedField(
-                derived_field, sim_geometry, self.sim_params,
-                base_fields))
+            self._derived_fields.append(
+                DerivedField(derived_field, sim_geometry, base_fields)
+            )
 
     def _check_backwards_compatibility(self, data_path, backend, kwargs):
         """Check for inputs following old v0.5 API

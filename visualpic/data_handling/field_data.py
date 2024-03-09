@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from numbers import Number
 
 import numpy as np
@@ -31,13 +31,15 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         component: str,
         array: np.ndarray,
         metadata: FieldMetaInformation,
-        geometry: str
+        geometry: str,
+        units: Optional[str] = None,
     ) -> None:
         self._name = name
         self._component = component
         self._array = array
         self._metadata = metadata
         self._geometry = geometry
+        self._units = units
         self._legacy_metadata = self._create_legacy_metadata()
         self._legacy_api = (self.array, self._legacy_metadata)
         # Enable some array-like functionality (such as passing to matplotlib).
@@ -116,7 +118,10 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
 
     @property
     def units(self) -> str:
-        return self._get_units()
+        if self._units is not None:
+            return self._units
+        else:
+            return self._get_units()
 
     @property
     def axis_labels(self) -> List[str]:
