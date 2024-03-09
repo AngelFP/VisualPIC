@@ -189,7 +189,7 @@ class Field():
         if 'time_step' in kwargs:
             warn(
                 '`time_step` argument is deprecated since version 0.6. '
-                'please use `iteration` instead.'
+                'Please use `iteration` instead.'
             )
             iteration = kwargs['time_step']
         if 'slice_dir_i' in kwargs:

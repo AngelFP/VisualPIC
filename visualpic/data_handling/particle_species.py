@@ -67,7 +67,7 @@ class ParticleSpecies():
 
     def get_data(
         self,
-        iteration: int,
+        iteration: Optional[int] = None,
         components: Optional[List[str]] = None,
         select: Optional[Dict] = None,
         **kwargs
@@ -105,6 +105,12 @@ class ParticleSpecies():
                 'The argument `data_units` has been deprecated since v0.6. '
                 'The data is now always returned in SI units.'
             )
+        if 'time_step' in kwargs:
+            warn(
+                'The argument `time_step` has been deprecated since v0.6. '
+                'Please use `iteration` instead.'
+            )
+            iteration = kwargs['time_step']
         # Check given names for backward compatibility with old v0.5 API.
         if components:
             old_names = components
