@@ -265,6 +265,11 @@ class DataContainer():
             'recipe': a callable function to calculate the derived field
                 from the required fields.
         """
+        if derived_field["name"] in self.available_fields:
+            raise ValueError(
+                f"Cannot add field {derived_field["name"]} because a field "
+                "with that name already exists."
+            )
         sim_geometry = self.geometry
         if sim_geometry is not None:
             folder_field_names = self.get_list_of_fields(include_derived=False)
