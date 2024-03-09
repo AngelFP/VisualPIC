@@ -33,6 +33,15 @@ class ParticleSpecies():
     ) -> None:
         self._name = name
         self._ts = timeseries
+        # For backward compatibility.
+        self._old_name_relations = {
+            'pz': 'uz',
+            'px': 'ux',
+            'py': 'uy',
+            'q': 'charge',
+            'm': 'mass',
+            'tag': 'id',
+        }
 
     @property
     def name(self) -> str:
@@ -164,7 +173,12 @@ class ParticleSpecies():
 
         This method is kept for backward compatibility.
         """
-        return self.available_components
+        inv_relations = {v: k for k, v in self._old_name_relations.items()}
+        comps = deepcopy(self.available_components)
+        for i, comp in enumerate(comps):
+            if comp in inv_relations:
+                comps[i] = inv_relations[comp]
+        return comps
 
     def _get_time(self, iteration) -> float:
         """Get time of current iteration."""
@@ -177,13 +191,5 @@ class ParticleSpecies():
         component_name: str
     ) -> Union[str, None]:
         """If the component has a name from the old API, return new name."""
-        old_name_relations = {
-            'pz': 'uz',
-            'px': 'ux',
-            'py': 'uy',
-            'q': 'charge',
-            'm': 'mass',
-            'tag': 'id',
-        }
-        if component_name in old_name_relations:
-            return old_name_relations[component_name]
+        if component_name in self._old_name_relations:
+            return self._old_name_relations[component_name]
