@@ -888,9 +888,8 @@ class VTKVisualizer():
 
     def _scale_actors(self):
         scale = self.vis_config['axes_scale']
-        if isinstance(self.vtk_volume, vtk.vtkVolume):
-            self.vtk_volume.SetScale(*scale)
-        elif isinstance(self.vtk_volume, vtk.vtkMultiVolume):
+        self.vtk_volume.SetScale(*scale)
+        if isinstance(self.vtk_volume, vtk.vtkMultiVolume):
             n_vols = len(self.volume_field_list)
             for i in range(n_vols):
                 vol = self.vtk_volume.GetVolume(i)
