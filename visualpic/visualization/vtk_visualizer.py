@@ -9,11 +9,13 @@ License: GNU GPL-3.0.
 
 
 import os
+from copy import deepcopy
 import sys
 from pkg_resources import resource_filename
 import warnings
 
 import numpy as np
+import scipy.constants as ct
 from scipy.ndimage import zoom
 try:
     import vtk
@@ -1260,6 +1262,23 @@ class VolumetricField():
             fld_data, fld_md = self.field.get_data(
                 timestep, theta=None,
                 max_resolution_3d=self.max_resolution_3d)
+            # Reorder array axes to expected shape.
+            fld_axes = fld_md["field"]["axis_labels"]
+            vis_axes = ["x", "y", "z"]
+            if "t" in fld_axes:
+                fld_md["field"]["axis_labels"] = deepcopy(vis_axes)
+                fld_md["axis"]["z"] = {
+                    "array": fld_md["axis"]["t"]["array"] * ct.c,
+                    "units": "m",
+                    "min": fld_md["axis"]["t"]["min"] * ct.c,
+                    "max": fld_md["axis"]["t"]["max"] * ct.c,
+                }
+                del fld_md["axis"]["t"]
+                vis_axes[-1] = "t"
+            sorted_indices = [
+                i for x in vis_axes for i, ax in enumerate(fld_axes) if ax == x
+            ]
+            fld_data = np.moveaxis(fld_data, [0, 1, 2], sorted_indices)
             fld_data = self._trim_field(fld_data)
             fld_data = self._change_resolution(fld_data)
             min_fld = np.min(fld_data)
