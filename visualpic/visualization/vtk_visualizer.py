@@ -48,7 +48,7 @@ class VTKVisualizer():
                  show_bounding_box=True, show_colorbars=True, show_logo=True,
                  background='default gradient', scale_x=1, scale_y=1,
                  scale_z=1, forced_norm_factor=None,
-                 use_qt=True, use_multi_volume=False,
+                 use_qt=True, use_multi_volume=True,
                  window_size=[600, 400]):
         """
         Initialize the 3D visualizer.
@@ -888,7 +888,13 @@ class VTKVisualizer():
 
     def _scale_actors(self):
         scale = self.vis_config['axes_scale']
-        self.vtk_volume.SetScale(*scale)
+        if isinstance(self.vtk_volume, vtk.vtkVolume):
+            self.vtk_volume.SetScale(*scale)
+        elif isinstance(self.vtk_volume, vtk.vtkMultiVolume):
+            n_vols = len(self.volume_field_list)
+            for i in range(n_vols):
+                vol = self.vtk_volume.GetVolume(i)
+                vol.SetScale(*scale)
         for species in self.scatter_species_list:
             species.get_actor().SetScale(*scale)
 
