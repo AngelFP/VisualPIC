@@ -32,8 +32,10 @@ class FigureWithDraggablePoints(Figure):
         self.patch_color = patch_color
         self.drag_points = {}
         self.histograms = {}
-        super().__init__(figsize, dpi, facecolor, edgecolor, linewidth,
-                         frameon, subplotpars, tight_layout)
+        super().__init__(figsize=figsize, dpi=dpi, facecolor=facecolor,
+                     edgecolor=edgecolor, linewidth=linewidth,
+                     frameon=frameon, subplotpars=subplotpars,
+                     tight_layout=tight_layout)
         self.create_axes(nrows, ncols, xlabels, ylabels, share_x_axis,
                          share_y_axis, hist, hist_edges)
 
