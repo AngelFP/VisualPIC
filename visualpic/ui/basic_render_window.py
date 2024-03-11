@@ -8,7 +8,6 @@ Copyright 2016-2020, Angel Ferran Pousa.
 License: GNU GPL-3.0.
 """
 
-
 from pkg_resources import resource_filename
 import platform
 import ctypes
@@ -24,8 +23,9 @@ from visualpic.ui.controls.qt.QVTKRenderWindowInteractor import (
 from visualpic.ui.setup_field_volume_window import SetupFieldVolumeWindow
 from visualpic.ui.setup_scatter_species_dialog import SetupScatterSpeciesDialog
 from visualpic.ui.render_settings_dialog import RenderSettingsDialog
-from visualpic.helper_functions import (
-    get_closest_timestep, get_previous_timestep, get_next_timestep)
+from visualpic.helper_functions import (get_closest_timestep,
+                                        get_previous_timestep,
+                                        get_next_timestep)
 
 # code for proper scaling in high-DPI screens. Move this somewhere else once \
 # final UI is implemented.
@@ -40,7 +40,6 @@ QtWidgets.QApplication.setStyle(QStyleFactory.create('Fusion'))
 
 
 class BasicRenderWindow(QtWidgets.QMainWindow):
-
     """Basic Qt window for interactive visualization of 3D renders."""
 
     def __init__(self, vtk_visualizer, parent=None, window_size=None):
@@ -95,9 +94,10 @@ class BasicRenderWindow(QtWidgets.QMainWindow):
         self.hl.addWidget(self.next_button)
         self.timestep_slider = QtWidgets.QSlider(Qt.Horizontal)
         if len(self.available_timesteps) > 0:
-            self.timestep_slider.setRange(np.min(self.available_timesteps),
-                                          np.max(self.available_timesteps))
-            self.timestep_slider.setValue(self.vtk_vis.current_time_step)
+            self.timestep_slider.setRange(
+                int(np.min(self.available_timesteps)),
+                int(np.max(self.available_timesteps)))
+            self.timestep_slider.setValue(int(self.vtk_vis.current_time_step))
         else:
             self.timestep_slider.setEnabled(False)
         self.hl.addWidget(self.timestep_slider)
