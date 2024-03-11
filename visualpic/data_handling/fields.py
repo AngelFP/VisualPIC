@@ -42,6 +42,10 @@ class Field():
         self._ts = timeseries
 
     @property
+    def _metadata(self) -> Dict:
+        return self._ts.fields_metadata[self.name]
+
+    @property
     def name(self) -> str:
         return self._name
 
@@ -55,7 +59,11 @@ class Field():
 
     @property
     def geometry(self) -> str:
-        return self._ts.fields_metadata[self._name]['geometry']
+        return self._metadata['geometry']
+    
+    @property
+    def axis_labels(self) -> List:
+        return self._metadata['axis_labels']
 
     @property
     def field_name(self) -> str:
@@ -218,6 +226,10 @@ class DerivedField(Field):
     @property
     def geometry(self):
         return self._sim_geometry
+    
+    @property
+    def axis_labels(self):
+        self._base_fields[0].axis_labels
 
     def get_data(
         self,
