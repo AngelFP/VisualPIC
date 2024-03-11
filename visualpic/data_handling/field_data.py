@@ -40,6 +40,12 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
         self._metadata = metadata
         self._geometry = geometry
         self._units = units
+        for axis in self.axis_labels:
+            if not hasattr(self, axis):
+                setattr(self, axis, getattr(metadata, axis))
+                setattr(self, f"d{axis}", getattr(metadata, f"d{axis}"))
+                setattr(self, f"{axis}_min", getattr(metadata, f"{axis}min"))
+                setattr(self, f"{axis}_max", getattr(metadata, f"{axis}max"))
         self._legacy_metadata = self._create_legacy_metadata()
         self._legacy_api = (self.array, self._legacy_metadata)
         # Enable some array-like functionality (such as passing to matplotlib).
@@ -106,7 +112,7 @@ class FieldData(np.lib.mixins.NDArrayOperatorsMixin):
     @array.setter
     def array(self, new_array):
         assert self._array.shape == new_array.shape
-        self._array = new_array
+        self._array[:] = new_array
 
     @property
     def geometry(self) -> str:

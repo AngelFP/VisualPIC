@@ -54,7 +54,6 @@ class LaserEnvelope(Field):
         self._as_potential = as_potential
         self._normalized = normalized
 
-    @lru_cache(maxsize=4)
     def get_data(
         self,
         iteration: int,
@@ -66,6 +65,43 @@ class LaserEnvelope(Field):
         laser_propagation_direction: Optional[str] = 'z',
         only_metadata: Optional[bool] = False
     ) -> FieldData:
+        # We need to convert lists to tuples, because otherwise lru_cache
+        # won't work.
+        if isinstance(slice_across, list):
+            slice_across = tuple(slice_across)
+        if isinstance(slice_relative_position, list):
+            slice_relative_position = tuple(slice_relative_position)
+        if isinstance(max_resolution_3d, list):
+            max_resolution_3d = tuple(max_resolution_3d)
+        return self._get_data_cached(
+            iteration=iteration,
+            slice_across=slice_across,
+            slice_relative_position=slice_relative_position,
+            m=m,
+            theta=theta,
+            max_resolution_3d=max_resolution_3d,
+            laser_propagation_direction=laser_propagation_direction,
+            only_metadata=only_metadata
+        )
+
+    @lru_cache(maxsize=4)    
+    def _get_data_cached(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, Tuple[str]]] = None,
+        slice_relative_position: Optional[Union[float, Tuple[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[Tuple[int], None]] = None,
+        laser_propagation_direction: Optional[str] = 'z',
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        if isinstance(slice_across, tuple):
+            slice_across = list(slice_across)
+        if isinstance(slice_relative_position, tuple):
+            slice_relative_position = list(slice_relative_position)
+        if isinstance(max_resolution_3d, tuple):
+            max_resolution_3d = list(max_resolution_3d)
         if slice_across is not None:
             assert laser_propagation_direction not in slice_across, (
                 'Cannot slice along laser propagation direction.'
@@ -125,9 +161,171 @@ class LaserEnvelope(Field):
             if slice_across is not None:
                 array = array[0]
 
+        # Put array back in the original shape.
+        lasy_axes = ["x", "y", "t"]
+        orig_axes = field.axis_labels
+        if "z" in orig_axes:
+            lasy_axes[-1] = "z"
+        sorted_indices = [
+            i for x in orig_axes for i, ax in enumerate(lasy_axes) if ax == x
+        ]
+        array = np.moveaxis(array, [0, 1, 2], sorted_indices)
         field.array = array
         field.omega0 = omega0
         return field
+
+
+class LaserEnvelopeAmplitude(LaserEnvelope):
+    """Class containing the amplitude of a laser envelope field.
+
+    Parameters
+    ----------
+    field : str
+        The name of the field from which to read (if the field already
+        represents a complex envelope) or extract (if the field represents the
+        electric field of a laser) the envelope.
+    polarization : str
+        Polarization of the laser field from which to extract the envelope.
+    timeseries : OpenPMDTimeSeries
+        A timeseries from which to read the field data.
+    as_potential : bool, optional
+        Whether the envelope should be converted to a vector potential, by
+        default False.
+    normalized : Optional[bool], optional
+        Whether the vector potential should be normalized. Only used if
+        `as_potential=True`, by default True.
+    """
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        laser_propagation_direction: Optional[str] = 'z',
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        envelope = super().get_data(
+            iteration=iteration,
+            slice_across=slice_across,
+            slice_relative_position=slice_relative_position,
+            m=m,
+            theta=theta,
+            max_resolution_3d=max_resolution_3d,
+            laser_propagation_direction=laser_propagation_direction,
+            only_metadata=only_metadata
+        )
+        return FieldData(
+            name=envelope._name,
+            component=envelope._component,
+            array=np.absolute(envelope.array),
+            metadata=envelope._metadata,
+            geometry=envelope._geometry,
+            units=envelope._units
+        )
+
+
+class LaserEnvelopeReal(LaserEnvelope):
+    """Class containing the real part of a laser envelope field.
+
+    Parameters
+    ----------
+    field : str
+        The name of the field from which to read (if the field already
+        represents a complex envelope) or extract (if the field represents the
+        electric field of a laser) the envelope.
+    polarization : str
+        Polarization of the laser field from which to extract the envelope.
+    timeseries : OpenPMDTimeSeries
+        A timeseries from which to read the field data.
+    as_potential : bool, optional
+        Whether the envelope should be converted to a vector potential, by
+        default False.
+    normalized : Optional[bool], optional
+        Whether the vector potential should be normalized. Only used if
+        `as_potential=True`, by default True.
+    """
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        laser_propagation_direction: Optional[str] = 'z',
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        envelope = super().get_data(
+            iteration=iteration,
+            slice_across=slice_across,
+            slice_relative_position=slice_relative_position,
+            m=m,
+            theta=theta,
+            max_resolution_3d=max_resolution_3d,
+            laser_propagation_direction=laser_propagation_direction,
+            only_metadata=only_metadata
+        )
+        return FieldData(
+            name=envelope._name,
+            component=envelope._component,
+            array=np.real(envelope.array),
+            metadata=envelope._metadata,
+            geometry=envelope._geometry,
+            units=envelope._units
+        )
+    
+
+class LaserEnvelopeImag(LaserEnvelope):
+    """Class containing the imaginary part of a laser envelope field.
+
+    Parameters
+    ----------
+    field : str
+        The name of the field from which to read (if the field already
+        represents a complex envelope) or extract (if the field represents the
+        electric field of a laser) the envelope.
+    polarization : str
+        Polarization of the laser field from which to extract the envelope.
+    timeseries : OpenPMDTimeSeries
+        A timeseries from which to read the field data.
+    as_potential : bool, optional
+        Whether the envelope should be converted to a vector potential, by
+        default False.
+    normalized : Optional[bool], optional
+        Whether the vector potential should be normalized. Only used if
+        `as_potential=True`, by default True.
+    """
+    def get_data(
+        self,
+        iteration: int,
+        slice_across: Optional[Union[str, List[str]]] = None,
+        slice_relative_position: Optional[Union[float, List[float]]] = None,
+        m: Optional[Union[int, str]] = 'all',
+        theta: Optional[Union[float, None]] = 0.,
+        max_resolution_3d: Optional[Union[List[int], None]] = None,
+        laser_propagation_direction: Optional[str] = 'z',
+        only_metadata: Optional[bool] = False
+    ) -> FieldData:
+        envelope = super().get_data(
+            iteration=iteration,
+            slice_across=slice_across,
+            slice_relative_position=slice_relative_position,
+            m=m,
+            theta=theta,
+            max_resolution_3d=max_resolution_3d,
+            laser_propagation_direction=laser_propagation_direction,
+            only_metadata=only_metadata
+        )
+        return FieldData(
+            name=envelope._name,
+            component=envelope._component,
+            array=np.imag(envelope.array),
+            metadata=envelope._metadata,
+            geometry=envelope._geometry,
+            units=envelope._units
+        )
 
 
 class LaserAnalysis():
@@ -182,6 +380,123 @@ class LaserAnalysis():
             A laser envelope field object.
         """
         return LaserEnvelope(
+            field=field,
+            polarization=polarization,
+            timeseries=self._dc._ts,
+            as_potential=as_potential,
+            normalized=normalized
+        )
+
+    @lru_cache()
+    def get_envelope_amplitude(
+        self,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x',
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
+    ) -> LaserEnvelopeAmplitude:
+        """Get the amplitudeof a laser envelope.
+
+        Parameters
+        ----------
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+        as_potential : bool, optional
+            Whether the envelope should be converted to a vector potential, by
+            default False.
+        normalized : Optional[bool], optional
+            Whether the vector potential should be normalized. Only used if
+            `as_potential=True`, by default True.
+
+        Returns
+        -------
+        LaserEnvelopeAmplitude
+        """
+        return LaserEnvelopeAmplitude(
+            field=field,
+            polarization=polarization,
+            timeseries=self._dc._ts,
+            as_potential=as_potential,
+            normalized=normalized
+        )
+
+    @lru_cache()
+    def get_envelope_real(
+        self,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x',
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
+    ) -> LaserEnvelopeReal:
+        """Get the real part of a laser envelope.
+
+        Parameters
+        ----------
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+        as_potential : bool, optional
+            Whether the envelope should be converted to a vector potential, by
+            default False.
+        normalized : Optional[bool], optional
+            Whether the vector potential should be normalized. Only used if
+            `as_potential=True`, by default True.
+
+        Returns
+        -------
+        LaserEnvelopeReal
+        """
+        return LaserEnvelopeReal(
+            field=field,
+            polarization=polarization,
+            timeseries=self._dc._ts,
+            as_potential=as_potential,
+            normalized=normalized
+        )
+
+    @lru_cache()
+    def get_envelope_imag(
+        self,
+        field: Optional[str] = 'E',
+        polarization: Optional[str] = 'x',
+        as_potential: Optional[bool] = False,
+        normalized: Optional[bool] = True
+    ) -> LaserEnvelopeImag:
+        """Get the imaginary part of a laser envelope.
+
+        Parameters
+        ----------
+        field : str, optional
+            The name of the field from which to read (if the field already
+            represents a complex envelope) or extract (if the field represents
+            the electric field of a laser) the envelope. By default 'E'.
+        polarization : Optional[str], optional
+            Polarization of the laser field from which to extract the envelope.
+            Only required if the field is not an envelope and if the field
+            is scalar (i.e., it has no components). By default 'x'.
+        as_potential : bool, optional
+            Whether the envelope should be converted to a vector potential, by
+            default False.
+        normalized : Optional[bool], optional
+            Whether the vector potential should be normalized. Only used if
+            `as_potential=True`, by default True.
+
+        Returns
+        -------
+        LaserEnvelopeImag
+        """
+        return LaserEnvelopeImag(
             field=field,
             polarization=polarization,
             timeseries=self._dc._ts,
