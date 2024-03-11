@@ -278,9 +278,9 @@ class DataContainer():
                 base_fields = []
                 for field_name in required_fields:
                     base_fields.append(self.get_field(field_name))
-            self._derived_fields.append(
-                DerivedField(derived_field, sim_geometry, base_fields)
-            )
+
+                self._derived_fields.append(DerivedField(
+                    derived_field, sim_geometry, base_fields))
 
     def _check_backwards_compatibility(self, data_path, backend, kwargs):
         """Check for inputs following old v0.5 API
