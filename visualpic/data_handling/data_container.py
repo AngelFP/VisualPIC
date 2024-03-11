@@ -181,9 +181,9 @@ class DataContainer():
                 for field_name in required_fields:
                     base_fields.append(self.get_field(field_name))
 
-            self.derived_fields.append(DerivedField(
-                derived_field, sim_geometry, self.sim_params,
-                base_fields))
+                self.derived_fields.append(DerivedField(
+                    derived_field, sim_geometry, self.sim_params,
+                    base_fields))
 
     def _set_folder_scanner(self):
         """Return the folder scanner corresponding to the simulation code."""
