@@ -162,14 +162,31 @@ class LaserEnvelope(Field):
                 array = array[0]
 
         # Put array back in the original shape.
-        lasy_axes = ["x", "y", "t"]
-        orig_axes = field.axis_labels
-        if "z" in orig_axes:
-            lasy_axes[-1] = "z"
-        sorted_indices = [
-            i for x in orig_axes for i, ax in enumerate(lasy_axes) if ax == x
-        ]
-        array = np.moveaxis(array, [0, 1, 2], sorted_indices)
+        if dim == "xyt":
+            lasy_axes = ["x", "y", "t"]
+            orig_axes = field.axis_labels
+            if "z" in orig_axes:
+                lasy_axes[-1] = "z"
+            sorted_indices = [
+                i
+                for x in orig_axes
+                for i, ax in enumerate(lasy_axes)
+                if ax == x
+            ]
+            array = np.moveaxis(array, [0, 1, 2], sorted_indices)
+        else:
+            lasy_axes = ["r", "t"]
+            orig_axes = field.axis_labels
+            if "z" in orig_axes:
+                lasy_axes[-1] = "z"
+            sorted_indices = [
+                i
+                for x in orig_axes
+                for i, ax in enumerate(lasy_axes)
+                if ax == x
+            ]
+            array = np.moveaxis(array, [0, 1], sorted_indices)
+
         field.array = array
         field.omega0 = omega0
         return field
