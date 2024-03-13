@@ -187,7 +187,14 @@ class LaserEnvelope(Field):
             ]
             array = np.moveaxis(array, [0, 1], sorted_indices)
 
-        field.array = array
+        field = FieldData(
+            name=field._name,
+            component=field._component,
+            array=array,
+            metadata=field._metadata,
+            geometry=field._geometry,
+            units=field._units
+        )
         field.omega0 = omega0
         return field
 
